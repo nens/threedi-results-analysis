@@ -105,7 +105,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.weir_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.weir_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(200, 30, 30), width=4, style=Qt.DashLine)
+        pen = pg.mkPen(color=QColor(0, 255, 0), width=4, style=Qt.DashLine)
         self.orifice_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
@@ -119,7 +119,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         # Required for fill in bottom of graph
         self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
 
-        self.fill = pg.FillBetweenItem(
+        self.bottom_fill = pg.FillBetweenItem(
             self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
@@ -128,7 +128,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.addItem(self.drain_level_plot)
 
-        self.addItem(self.fill)
+        self.addItem(self.bottom_fill)
 
         self.addItem(self.bottom_plot)
         self.addItem(self.upper_plot)
@@ -146,6 +146,12 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.pump_upper_plot)
 
         self.addItem(self.water_level_plot)
+
+        # Add some fills
+        self.orifice_fill = pg.FillBetweenItem(
+            self.orifice_bottom_plot, self.orifice_upper_plot, pg.mkBrush(0, 255, 0)
+        )
+        self.addItem(self.orifice_fill)
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
@@ -339,8 +345,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                 if ptype != last_type:
                     if last_type is not None:
                         # add nan point to make gap in line
-                        # tables[ptype].append((point[0], np.nan))
-                        pass
+                        tables[ptype].append((point[0], np.nan))
+                        # pass
                     last_type = ptype
 
                 tables[ptype].append((point[0], point[1]))
@@ -380,8 +386,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 if ptype != last_type:
                     if last_type is not None:
-                        # tables[ptype].append((point[0], np.nan))
-                        pass
+                        tables[ptype].append((point[0], np.nan))
                     last_type = ptype
 
                 tables[ptype].append((point[0], point[1]))

@@ -60,13 +60,14 @@ class SideViewGraphGenerator():
 
             line_type = SideViewGraphGenerator.content_type_to_line_type(lines_1d_data["content_type"][count].decode())
 
+            node_id_1 = lines_1d_data["line"][0][count]
+            node_id_2 = lines_1d_data["line"][1][count]
+
             if line_type == LineType.PIPE or line_type == LineType.CULVERT or line_type == LineType.ORIFICE or line_type == LineType.WEIR:
                 cross1_id = lines_1d_data["cross1"][count]
                 cross2_id = lines_1d_data["cross2"][count]
                 assert cross1_id == cross2_id  # pipes and culverts have only one cross section definition
                 cross_section = ga.cross_sections.filter(id=cross1_id)
-                node_id_1 = lines_1d_data["line"][0][count]
-                node_id_2 = lines_1d_data["line"][1][count]
 
                 try:
                     height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables)
@@ -92,6 +93,20 @@ class SideViewGraphGenerator():
                 # logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
 
                 # Note that id (count) is the flowline index in Python (0-based indexing)
+                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
+                progress_bar.set_value((count / number_of_lines) * 100.0)
+                if not pr.addFeature(feat):
+                    logger.error(f"Unable to add feature: {pr.lastError()}")
+
+            elif line_type == LineType.CHANNEL:
+
+                node_1 = ga.nodes.filter(id=node_id_1)
+                node_2 = ga.nodes.filter(id=node_id_2)
+                start_level = node_1.dmax[0].item()
+                end_level = node_2.dmax[0].item()
+                start_height = 0
+                end_height = 0
+
                 feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
                 progress_bar.set_value((count / number_of_lines) * 100.0)
                 if not pr.addFeature(feat):
