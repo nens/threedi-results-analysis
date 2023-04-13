@@ -9,6 +9,7 @@ from qgis.PyQt.QtCore import QVariant
 import statistics
 import math
 import logging
+import numpy as np
 logger = logging.getLogger(__name__)
 
 
@@ -87,8 +88,8 @@ class SideViewGraphGenerator():
                     # for bottom level, take dmax of adjacent nodes
                     node_1 = ga.nodes.filter(id=node_id_1)
                     node_2 = ga.nodes.filter(id=node_id_2)
-                    start_level = node_1.dmax[0].item()
-                    end_level = node_2.dmax[0].item()
+                    start_level = np.average([node_1.dmax[0], node_2.dmax[0]]).item()
+                    end_level = start_level
 
                 # logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
 
@@ -164,7 +165,7 @@ class SideViewGraphGenerator():
                 if upper_level < bottom_level:
                     logger.error(f"Derived upper level of node is below bottom level for node {node_id}")
                 assert upper_level >= bottom_level
-                height = upper_level-bottom_level
+                height = (upper_level-bottom_level)
 
             node_info[node_id] = {
                 "type": nodes_1d["calculation_type"][count],

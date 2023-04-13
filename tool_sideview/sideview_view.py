@@ -149,7 +149,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         # Add some fills
         self.orifice_fill = pg.FillBetweenItem(
-            self.orifice_bottom_plot, self.orifice_upper_plot, pg.mkBrush(0, 255, 0)
+            self.orifice_upper_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
         )
         self.addItem(self.orifice_fill)
 
@@ -346,31 +346,18 @@ class SideViewPlotWidget(pg.PlotWidget):
                     if last_type is not None:
                         # add nan point to make gap in line
                         tables[ptype].append((point[0], np.nan))
-                        # pass
                     last_type = ptype
-
                 tables[ptype].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in bottom_line], dtype=float)
             self.bottom_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[LineType.PIPE], dtype=float)
-            self.sewer_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.CHANNEL], dtype=float)
-            self.channel_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.CULVERT], dtype=float)
-            self.culvert_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.WEIR], dtype=float)
-            self.weir_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.ORIFICE], dtype=float)
-            self.orifice_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.PUMP], dtype=float)
-            self.pump_bottom_plot.setData(ts_table, connect="finite")
+            self.sewer_bottom_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="finite")
+            self.channel_bottom_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="finite")
+            self.culvert_bottom_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="finite")
+            self.weir_bottom_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
+            self.orifice_bottom_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
+            self.pump_bottom_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
             tables = {
                 LineType.PIPE: [],
@@ -388,44 +375,31 @@ class SideViewPlotWidget(pg.PlotWidget):
                     if last_type is not None:
                         tables[ptype].append((point[0], np.nan))
                     last_type = ptype
-
                 tables[ptype].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in upper_line], dtype=float)
             self.upper_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[LineType.PIPE], dtype=float)
-            self.sewer_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.CHANNEL], dtype=float)
-            self.channel_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.CULVERT], dtype=float)
-            self.culvert_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.WEIR], dtype=float)
-            self.weir_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.ORIFICE], dtype=float)
-            self.orifice_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.PUMP], dtype=float)
-            self.pump_upper_plot.setData(ts_table, connect="finite")
+            self.sewer_upper_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="finite")
+            self.channel_upper_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="finite")
+            self.culvert_upper_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="finite")
+            self.weir_upper_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
+            self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
+            self.pump_upper_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
             ts_table = np.array(drain_level, dtype=float)
             self.drain_level_plot.setData(ts_table, connect="finite")
-
             # reset water level line
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
 
+            # Only let specific set of plots determine range
             self.autoRange(items=[self.bottom_plot, self.upper_plot])
 
             self.profile_route_updated.emit()
         else:
             # reset sideview
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
-
             self.bottom_plot.setData(ts_table)
             self.upper_plot.setData(ts_table)
             self.sewer_bottom_plot.setData(ts_table)
