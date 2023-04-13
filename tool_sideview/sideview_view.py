@@ -455,18 +455,19 @@ class SideViewPlotWidget(pg.PlotWidget):
         pass
         # TODO: reconnect to Temporal controller
         # timestamp_nr = self.time_slider.value()
+        timestamp_nr = 0
 
-        # water_level_line = []
-        # for node in self.sideview_nodes:
-        #     if node["timeseries"] is not None:
-        #         water_level = node["timeseries"][timestamp_nr][1]
-        #         water_level_line.append((node["distance"], water_level))
-        #     else:
-        #         # todo: check this is required behavior
-        #         water_level = None
+        water_level_line = []
+        for node in self.sideview_nodes:
+            if node["timeseries"] is not None:
+                water_level = node["timeseries"][timestamp_nr][1]
+                water_level_line.append((node["distance"], water_level))
+            else:
+                # todo: check this is required behavior
+                water_level = None
 
-        # ts_table = np.array(water_level_line, dtype=float)
-        # self.water_level_plot.setData(ts_table)
+        ts_table = np.array(water_level_line, dtype=float)
+        self.water_level_plot.setData(ts_table)
 
     def on_close(self):
         """

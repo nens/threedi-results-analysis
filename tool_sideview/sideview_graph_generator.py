@@ -6,7 +6,6 @@ from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.cross_section_utils import CrossSectionShape
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from qgis.PyQt.QtCore import QVariant
-import statistics
 import math
 import logging
 import numpy as np
@@ -88,7 +87,7 @@ class SideViewGraphGenerator():
                     # for bottom level, take dmax of adjacent nodes
                     node_1 = ga.nodes.filter(id=node_id_1)
                     node_2 = ga.nodes.filter(id=node_id_2)
-                    start_level = np.average([node_1.dmax[0], node_2.dmax[0]]).item()
+                    start_level = np.min([node_1.dmax[0], node_2.dmax[0]]).item()
                     end_level = start_level
 
                 # logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
@@ -103,12 +102,18 @@ class SideViewGraphGenerator():
 
                 node_1 = ga.nodes.filter(id=node_id_1)
                 node_2 = ga.nodes.filter(id=node_id_2)
-                start_level = node_1.dmax[0].item()
-                end_level = node_2.dmax[0].item()
+                start_bottom_level = node_1.dmax[0].item()
+                end_bottom_level = node_2.dmax[0].item()
+
+                start_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_1, lines_1d2d_data)
+                end_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_2, lines_1d2d_data)
                 start_height = 0
                 end_height = 0
+                if not math.isnan(start_upper_level):
+                    start_height = start_upper_level - start_bottom_level
+                    end_height = end_upper_level - end_bottom_level
 
-                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
+                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_bottom_level, end_bottom_level, start_height, end_height])
                 progress_bar.set_value((count / number_of_lines) * 100.0)
                 if not pr.addFeature(feat):
                     logger.error(f"Unable to add feature: {pr.lastError()}")
@@ -143,7 +148,7 @@ class SideViewGraphGenerator():
     def generate_node_info(gridadmin_file: Path):
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
-        nodes_1d = ga.nodes.subset("1D").only("coordinates", "storage_area", "calculation_type", "dmax", "id", "is_manhole", "content_pk").data
+        nodes_1d = ga.nodes.subset("1D").only("coordinates", "drain_level", "storage_area", "calculation_type", "dmax", "id", "is_manhole", "content_pk").data
         nodes_1d = {k: v.tolist() for (k, v) in nodes_1d.items()}
 
         lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
@@ -156,8 +161,12 @@ class SideViewGraphGenerator():
             length = math.sqrt(nodes_1d["storage_area"][count])
             length = 0.0 if math.isnan(length) else length
 
-            upper_level = SideViewGraphGenerator.retrieve_node_upper_level(count, nodes_1d, lines_1d2d_data, ga.has_2d)
             bottom_level = nodes_1d["dmax"][count]
+            if not ga.has_2d:
+                upper_level = nodes_1d["drain_level"][count]  # can be nan
+            else:
+                upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id, lines_1d2d_data)
+
             height = 0.0
             if math.isnan(upper_level):
                 height = 0.0
@@ -220,24 +229,14 @@ class SideViewGraphGenerator():
         raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} with shape {shape}")
 
     @staticmethod
-    def retrieve_node_upper_level(node_idx: int, nodes_1d, lines_1d2d, model_is_2d: bool) -> float:
-        if not model_is_2d:
-            return nodes_1d["drain_level"][node_idx]  # Can be nan when not manhole
-
-        # For 2D model, take average dpumax from adjacent 1D2D lines (if available)
+    def retrieve_node_upper_level(node_id, lines_1d2d) -> float:
+        # For 2D model, take minimum dpumax from adjacent 1D2D lines (if available)
         dpumax_list = []
-        node_id = nodes_1d["id"][node_idx]
         for count in range(len(lines_1d2d["line"][0])):
             if node_id == lines_1d2d["line"][0][count] or node_id == lines_1d2d["line"][1][count]:
                 dpumax_list.append(lines_1d2d["dpumax"][count])
 
         if dpumax_list:
-            return float(statistics.fmean(dpumax_list))
+            return np.min(dpumax_list).item()
         else:
-            # # Check whether the nodes are manholes and isolated (1), in that
-            # # case it is correct that there are no adjacent 1D2D lines
-            # if not ((nodes_1d["calculation_type"][node_idx] == 1) and nodes_1d["is_manhole"][node_idx]):
-            #     # raise AttributeError(f"Unexpected missing 1D2D lines for node: {node_id}")
-            #     return math.nan
-            # else:
             return math.nan
