@@ -1,10 +1,12 @@
 from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
-from ..utils.maptools.polygon_draw import PolygonDrawTool
+from qgis.core import Qgis
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsFeatureRequest
-from qgis.core import QgsGeometry
 from qgis.core import QgsProject
+from qgis.core import QgsWkbTypes
+from qgis.gui import QgsMapToolIdentify
+from qgis.gui import QgsHighlight
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
@@ -38,8 +40,13 @@ import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
 
-
 serie_settings = {s["name"]: s for s in serie_settings}
+
+MSG_TITLE = "Water Balance Tool"
+
+POLYGON_TYPES = (
+    QgsWkbTypes.Polygon, QgsWkbTypes.PolygonZ, QgsWkbTypes.Polygon25D,
+)
 
 # serie_name, index, modelpart for bars, modelpart for graph
 INPUT_SERIES = [
@@ -675,11 +682,6 @@ class WaterBalanceWidget(QDockWidget):
         self.wb_item_table.setModel(self.model)
         self.plot_widget.setModel(self.model)
 
-        # link tool
-        self.polygon_tool = PolygonDrawTool(
-            self.iface.mapCanvas(), self.select_polygon_button, self.on_polygon_ready
-        )
-
         # fill comboboxes with selections
         self.modelpart_combo_box.insertItems(0, ["1d and 2d", "1d", "2d"])
         self.sum_type_combo_box.insertItems(0, list(serie_settings.keys()))
@@ -687,10 +689,8 @@ class WaterBalanceWidget(QDockWidget):
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
 
         # add listeners
-        self.select_polygon_button.toggled.connect(self.toggle_polygon_button)
-        self.reset_waterbalans_button.clicked.connect(self.reset_waterbalans)
+        self.select_polygon_button.clicked.connect(self._set_map_tool)
         self.chart_button.clicked.connect(self.show_barchart)
-        # self.polygon_tool.deactivated.connect(self.update_wb)
         self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
         self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
         self.agg_combo_box.currentIndexChanged.connect(self.update_wb)
@@ -702,8 +702,9 @@ class WaterBalanceWidget(QDockWidget):
 
         # TODO: is this a good default?
         # initially turn on tool
-        self.select_polygon_button.toggle()
         self.__current_calc = None  # cache the results of calculation
+        self.wb_highlight = None
+        self.wb_polygon = None
 
     def _get_io_series_net(self):
         io_series_net = [
@@ -760,9 +761,7 @@ class WaterBalanceWidget(QDockWidget):
         return time_divisor
 
     def show_barchart(self):
-
-        # only possible to calculate bars when a polygon has been drawn
-        if self.select_polygon_button.text() == "Finalize polygon":
+        if self.wb_polygon is None:
             return
 
         # always use domain '1d and 2d' to get all flows in the barchart
@@ -1053,9 +1052,7 @@ class WaterBalanceWidget(QDockWidget):
 
         Uses the cached self.qgs_lines/self.qgs_points.
         """
-        if self.select_polygon_button.isChecked():
-            # highlighting when drawing the polygon doesn't look right.
-            # this is the best solution I can think of atm...
+        if self.wb_polygon is None:
             return
 
         # TODO 1: generate this dict
@@ -1132,29 +1129,11 @@ class WaterBalanceWidget(QDockWidget):
                     geoms = self.qgs_points[t]
                     point_geoms.extend(geoms)
 
-        self.polygon_tool.selection_vis.update(line_geoms, point_geoms)
-
     def hover_exit_map_visualization(self, *args):
-        self.polygon_tool.selection_vis.reset()
+        pass  # do not show polygon contours anymore?
 
-    def on_polygon_ready(self, points):
-        self.iface.mapCanvas().unsetMapTool(self.polygon_tool)
-
-    def reset_waterbalans(self):
-        self.polygon_tool.reset()
-
-    def toggle_polygon_button(self):
-
-        if self.select_polygon_button.isChecked():
-            self.reset_waterbalans()
-
-            self.iface.mapCanvas().setMapTool(self.polygon_tool)
-
-            self.select_polygon_button.setText("Finalize polygon")
-        else:
-            self.iface.mapCanvas().unsetMapTool(self.polygon_tool)
-            self.update_wb()
-            self.select_polygon_button.setText("Draw new polygon")
+    def _set_map_tool(self):
+        self.iface.mapCanvas().setMapTool(self.map_tool_select_polygon)
 
     def activate_layers(self):
         for item in self.model.rows:
@@ -1178,7 +1157,8 @@ class WaterBalanceWidget(QDockWidget):
                 serie_settings[self.sum_type_combo_box.currentText()],
             )
         except NotSynchronizedTimestampsError as e:
-            messagebar_message("Couldn't draw series", e.message, 1, 5)
+            msg = f"Couldn't draw series: {e.message}"
+            messagebar_message(MSG_TITLE, msg, Qgis.Warning, 3)
             logger.warning(e.message, e.data)
             return
 
@@ -1208,21 +1188,10 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_upper)
         self.plot_widget.addItem(text_lower)
 
-    def get_wb_polygon(self):
-        poly_points = self.polygon_tool.points
-        self.wb_polygon = QgsGeometry.fromPolygonXY([poly_points])
-        tr = QgsCoordinateTransform(
-            self.iface.mapCanvas().mapSettings().destinationCrs(),
-            self.calc.result.lines.crs(),
-            QgsProject.instance(),
-        )
-        self.wb_polygon.transform(tr)
-
     def calc_wb_graph(self, model_part, aggregation_type, settings):
         lines = self.calc.result.lines
         points = self.calc.result.points
         pumps = self.calc.result.pumps
-        self.get_wb_polygon()
         link_ids, pump_ids = self.calc.get_incoming_and_outcoming_link_ids(
             self.wb_polygon, model_part
         )
@@ -1249,7 +1218,7 @@ class WaterBalanceWidget(QDockWidget):
         return bc_ts, bc_total_time
 
     def prepare_and_visualize_selection(
-        self, link_ids, pump_ids, node_ids, lines, pumps, points, draw_it=False
+        self, link_ids, pump_ids, node_ids, lines, pumps, points
     ):
         """Prepare dictionaries with geometries categorized by type and
         save it on self.qgs_lines and self.qgs_points.
@@ -1312,14 +1281,6 @@ class WaterBalanceWidget(QDockWidget):
 
         self.qgs_lines = qgs_lines
         self.qgs_points = qgs_points
-
-        # draw the lines/points immediately
-        # TODO: probably need to throw this code away since we won't use it
-        if draw_it:
-            qgs_lines_all = [j for i in list(qgs_lines.values()) for j in i]
-            qgs_points_all = [j for i in list(qgs_points.values()) for j in i]
-
-            self.polygon_tool.update_line_point_selection(qgs_lines_all, qgs_points_all)
 
     def make_graph_series(self, ts, total_time, model_part, aggregation_type, settings):
         settings = copy.deepcopy(settings)
@@ -1426,22 +1387,9 @@ class WaterBalanceWidget(QDockWidget):
 
         return settings
 
-    def unset_tool(self):
-        pass
-
-    def accept(self):
-        pass
-
-    def reject(self):
-        self.close()
-
     def closeEvent(self, event):
-        self.select_polygon_button.toggled.disconnect(self.toggle_polygon_button)
-        self.reset_waterbalans_button.clicked.disconnect(self.reset_waterbalans)
+        self.select_polygon_button.clicked.disconnect(self._set_map_tool)
         self.chart_button.clicked.disconnect(self.show_barchart)
-        # self.polygon_tool.deactivated.disconnect(self.update_wb)
-        self.iface.mapCanvas().unsetMapTool(self.polygon_tool)
-        self.polygon_tool.close()
 
         self.modelpart_combo_box.currentIndexChanged.disconnect(self.update_wb)
         self.sum_type_combo_box.currentIndexChanged.disconnect(self.update_wb)
@@ -1472,15 +1420,8 @@ class WaterBalanceWidget(QDockWidget):
 
         # add button to add objects to graphs
         self.button_bar_hlayout = QHBoxLayout(self)
-        self.select_polygon_button = QPushButton(self)
-        self.select_polygon_button.setCheckable(True)
-        self.select_polygon_button.setObjectName("SelectedSideview")
+        self.select_polygon_button = QPushButton("Select Polygon", self)
         self.button_bar_hlayout.addWidget(self.select_polygon_button)
-        self.select_polygon_button2 = QPushButton(parent=self, text="Select Polygon")
-        self.button_bar_hlayout.addWidget(self.select_polygon_button2)
-        self.reset_waterbalans_button = QPushButton(self)
-        self.reset_waterbalans_button.setObjectName("ResetSideview")
-        self.button_bar_hlayout.addWidget(self.reset_waterbalans_button)
         self.chart_button = QPushButton(self)
         self.button_bar_hlayout.addWidget(self.chart_button)
 
@@ -1541,9 +1482,71 @@ class WaterBalanceWidget(QDockWidget):
 
         # add dockwidget
         dock_widget.setWidget(self.dock_widget_content)
-        self.select_polygon_button.setText("Draw new polygon")
         self.chart_button.setText("Show total balance")
-        self.reset_waterbalans_button.setText("Hide on map")
         self.activate_all_button.setText("activate all")
         self.deactivate_all_button.setText("deactivate all")
         QMetaObject.connectSlotsByName(dock_widget)
+
+        # add selection maptool
+        self.map_tool_select_polygon = SelectPolygonTool(
+            widget=self, canvas=self.iface.mapCanvas(),
+        )
+        self.map_tool_select_polygon.setButton(self.select_polygon_button)
+        self.map_tool_select_polygon.setCursor(Qt.CrossCursor)
+
+    def set_wb_polygon(self, polygon, layer):
+        """ Highlight and sets the current waterbalance polygon."""
+        # highlight must be done before transform
+        highlight = QgsHighlight(self.iface.mapCanvas(), polygon, layer)
+        highlight.setColor(QColor(0, 0, 255, 127))
+        # highlight.setWidth(3)
+
+        # transform to 3di result crs
+        tr = QgsCoordinateTransform(
+            layer.crs(),
+            self.calc.result.lines.crs(),
+            QgsProject.instance(),
+        )
+        polygon.transform(tr)
+
+        self.wb_polygon = polygon
+        self.wb_highlight = highlight
+        self.update_wb()
+
+    def unset_wb_polygon(self):
+        if self.wb_polygon is None:
+            return
+        self.iface.mapCanvas().scene().removeItem(self.wb_highlight)
+        self.wb_highlight = None
+        self.wb_polygon = None
+
+
+class SelectPolygonTool(QgsMapToolIdentify):
+    def __init__(self, widget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.widget = widget
+
+        # select at most one feature
+        self.identifyMenu().setAllowMultipleReturn(False)
+
+    def canvasReleaseEvent(self, event):
+        self.widget.unset_wb_polygon()
+        identify_results = self.identify(
+            x=int(event.pos().x()),
+            y=int(event.pos().y()),
+            layerList=self.parent().layers(),
+            mode=self.IdentifyMode.LayerSelection,
+        )
+        if not identify_results:
+            msg = 'No polygons found in this location.'
+            messagebar_message(MSG_TITLE, msg, Qgis.Warning, 3)
+            return
+
+        identify_result = identify_results[0]
+        layer = identify_result.mLayer
+        feature = identify_result.mFeature
+
+        polygon = feature.geometry()
+        assert polygon.wkbType() in POLYGON_TYPES
+
+        self.widget.set_wb_polygon(polygon=polygon, layer=layer)
