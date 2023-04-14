@@ -181,6 +181,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # sideview signals
         self.model.grid_added.connect(self.sideview_tool.grid_added)
         self.model.grid_removed.connect(self.sideview_tool.grid_removed)
+        tc.updateTemporalRange.connect(self.sideview_tool.update_waterlevels)
 
         self.init_state_sync()
 

@@ -7,8 +7,9 @@ from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.core import Qgis
+from qgis.core import QgsDateTimeRange
 from qgis.core import NULL
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
@@ -29,9 +30,12 @@ from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from threedi_results_analysis.utils.utils import python_value
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
+from qgis.utils import iface
+from bisect import bisect
 import logging
 import numpy as np
 import os
+from datetime import datetime as Datetime
 import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
@@ -150,8 +154,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
-        # self.time_slider.valueChanged.connect(self.draw_waterlevel_line)
-        # self.time_slider.datasource_changed.connect(self.update_water_level_cache)
 
         # set code for hovering
         self.vb = self.plotItem.vb
@@ -423,23 +425,40 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-        ds_item = self.model.get_results(False)[0]  # TODO: ACTIVE
+        ds_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
         if ds_item:
             logger.info("Updating water level cache")
             ds = ds_item.threedi_result
             for node in self.sideview_nodes:
                 node["timeseries"] = ds.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
 
-            self.draw_waterlevel_line()
+            tc = iface.mapCanvas().temporalController()
+            self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()))
         else:
             # reset water level line
             logger.error("No DS_ITEM!")
             self.water_level_plot.setData(np.array(np.array([(0.0, np.nan)]), dtype=float))
 
-    def draw_waterlevel_line(self):
-        # TODO: reconnect to Temporal controller
-        # timestamp_nr = self.time_slider.value()
-        timestamp_nr = 1
+    @pyqtSlot(QgsDateTimeRange)
+    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
+
+        result_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
+        if not result_item:
+            return
+
+        threedi_result = result_item.threedi_result
+        current_datetime = qgs_dt_range.begin().toPyDateTime()
+        begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
+        end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
+        current_datetime = max(begin_datetime, min(current_datetime, end_datetime))
+        current_delta = (current_datetime - begin_datetime)
+        # determine timestep number for current parameter
+        current_seconds = current_delta.total_seconds()
+        parameter_timestamps = threedi_result.get_timestamps("s1")
+        timestamp_nr = bisect(parameter_timestamps, current_seconds)
+        timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
+
+        # timestamp_nr = 1
         logger.error(f"Drawing result for nr {timestamp_nr}")
 
         water_level_line = []
@@ -457,8 +476,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         :return:
         """
         self.profile_route_updated.disconnect(self.update_water_level_cache)
-        # self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
-        # self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)
 
     def closeEvent(self, event):
         """
@@ -473,8 +490,6 @@ class SideViewDockWidget(QDockWidget):
     """Main Dock Widget for showing 3Di results in Graphs"""
 
     # todo:
-    # punten verplaatsen
-    # als op lijn wordt gedrukt en vastgehouden
     # detecteer dichtsbijzijnde punt in plaats van willekeurige binnen gebied
     # let op CRS van vreschillende lagen en CRS changes
 
@@ -521,9 +536,6 @@ class SideViewDockWidget(QDockWidget):
 
         QgsProject.instance().addMapLayer(self.graph_layer)
 
-        # logger.error('point_dict')
-        # logger.error(self.point_dict)
-
         self.side_view_plot_widget = SideViewPlotWidget(
             self,
             self.point_dict,
@@ -568,6 +580,10 @@ class SideViewDockWidget(QDockWidget):
         )
 
         QgsProject.instance().addMapLayer(self.vl_tree_layer)
+
+    @pyqtSlot(QgsDateTimeRange)
+    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
+        self.side_view_plot_widget.update_waterlevel(qgs_dt_range)
 
     def create_combined_layers(self, spatialite_path, model_line_layer):
 

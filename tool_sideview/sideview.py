@@ -1,7 +1,7 @@
-from qgis.PyQt.QtCore import Qt, QObject
+from qgis.PyQt.QtCore import Qt, QObject, pyqtSlot
 from threedi_results_analysis.tool_sideview.sideview_view import SideViewDockWidget
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
-from qgis.PyQt.QtCore import pyqtSlot
+from qgis.core import QgsDateTimeRange
 import qgis
 import os
 
@@ -45,6 +45,12 @@ class ThreeDiSideView(QObject):
     @pyqtSlot(ThreeDiGridItem)
     def grid_removed(self, _: ThreeDiGridItem):
         self.action_icon.setEnabled(self.model.number_of_grids() > 0)
+
+    @pyqtSlot(QgsDateTimeRange)
+    def update_waterlevels(self, qgs_dt_range: QgsDateTimeRange):
+        for i in range(0, len(self.dock_widgets)):
+            widget = self.dock_widgets[i]
+            widget.update_waterlevel(qgs_dt_range)
 
     def on_close_child_widget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""
