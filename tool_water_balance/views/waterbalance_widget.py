@@ -30,6 +30,10 @@ from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
 from threedi_results_analysis.utils.user_messages import messagebar_message
+from qgis.core import QgsGeometry
+from qgis.gui import QgsRubberBand
+from qgis.gui import QgsVertexMarker
+
 
 import copy
 import functools
@@ -43,7 +47,7 @@ logger = logging.getLogger(__name__)
 serie_settings = {s["name"]: s for s in serie_settings}
 
 MSG_TITLE = "Water Balance Tool"
-
+QCOLOR_RED = QColor(255, 0, 0)
 POLYGON_TYPES = (
     QgsWkbTypes.Polygon, QgsWkbTypes.PolygonZ, QgsWkbTypes.Polygon25D,
 )
@@ -681,6 +685,7 @@ class WaterBalanceWidget(QDockWidget):
         self.model = WaterbalanceItemModel()
         self.wb_item_table.setModel(self.model)
         self.plot_widget.setModel(self.model)
+        self.selection_vis = SelectionVisualisation(iface.mapCanvas())
 
         # fill comboboxes with selections
         self.modelpart_combo_box.insertItems(0, ["1d and 2d", "1d", "2d"])
@@ -1129,8 +1134,10 @@ class WaterBalanceWidget(QDockWidget):
                     geoms = self.qgs_points[t]
                     point_geoms.extend(geoms)
 
+        self.selection_vis.update(line_geoms, point_geoms)
+
     def hover_exit_map_visualization(self, *args):
-        pass  # do not show polygon contours anymore?
+        self.selection_vis.reset()
 
     def _set_map_tool(self):
         self.iface.mapCanvas().setMapTool(self.map_tool_select_polygon)
@@ -1520,6 +1527,61 @@ class WaterBalanceWidget(QDockWidget):
         self.iface.mapCanvas().scene().removeItem(self.wb_highlight)
         self.wb_highlight = None
         self.wb_polygon = None
+
+
+class SelectionVisualisation(object):
+    """Visualize selected lines and points."""
+
+    def __init__(self, canvas, color=QCOLOR_RED):
+        self.canvas = canvas
+        self.color = color
+        self.vertex_markers = []
+        self.lines = []
+        self.points = []
+
+    @functools.cached_property
+    def rb_line(self):
+        rb_line = QgsRubberBand(self.canvas, QgsWkbTypes.LineGeometry)
+        rb_line.setColor(self.color)
+        rb_line.setLineStyle(Qt.DotLine)
+        rb_line.setWidth(3)
+        return rb_line
+
+    def show(self):
+        # visualize lines
+        multiline = QgsGeometry().fromMultiPolylineXY(self.lines)
+        self.rb_line.setToGeometry(multiline, None)
+        # visualize points
+        for p in self.points:
+            marker = QgsVertexMarker(self.canvas)
+            marker.setCenter(p)
+            marker.setIconType(QgsVertexMarker.ICON_BOX)
+            marker.setColor(self.color)
+            marker.setVisible(True)
+            self.vertex_markers.append(marker)
+
+    def reset(self):
+        self.rb_line.reset(QgsWkbTypes.LineGeometry)
+        for m in self.vertex_markers:
+            m.setVisible(False)
+            # rubber bands are owned by the canvas, so we must explictly
+            # delete them
+            self.canvas.scene().removeItem(m)
+        self.vertex_markers = []
+        self.lines = []
+        self.points = []
+
+    def update(self, lines, points):
+        """lines and points are lists of QgsPoints and QgsPolylines."""
+        self.reset()
+        self.lines = lines
+        self.points = points
+        self.show()
+
+    def close(self):
+        self.reset()
+        # delete the rubberband we've been re-using
+        self.canvas.scene().removeItem(self.rb_line)
 
 
 class SelectPolygonTool(QgsMapToolIdentify):
