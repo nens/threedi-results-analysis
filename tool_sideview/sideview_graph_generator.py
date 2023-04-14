@@ -24,8 +24,8 @@ class SideViewGraphGenerator():
         pr = graph_layer.dataProvider()
 
         pr.addAttributes([QgsField("id", QVariant.Int),
-                          QgsField("start_node_idx", QVariant.Int),
-                          QgsField("end_node_idx", QVariant.Int),
+                          QgsField("start_node_id", QVariant.Int),
+                          QgsField("end_node_id", QVariant.Int),
                           QgsField("real_length", QVariant.Double),
                           QgsField("type", QVariant.Int),
                           QgsField("start_level", QVariant.Double),

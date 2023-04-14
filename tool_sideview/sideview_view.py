@@ -113,9 +113,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.pump_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.pump_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(0, 255, 0), width=2, style=Qt.DashLine)
-        self.drain_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-
         # Required for fill in bottom of graph
         self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
 
@@ -125,8 +122,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         pen = pg.mkPen(color=QColor(0, 255, 255), width=2)
         self.water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-
-        self.addItem(self.drain_level_plot)
 
         self.addItem(self.bottom_fill)
 
@@ -172,8 +167,6 @@ class SideViewPlotWidget(pg.PlotWidget):
     def set_sideprofile(self, route_path):
 
         self.sideview_nodes = []
-        drain_level = []
-
         bottom_line = []
         upper_line = []
 
@@ -188,18 +181,18 @@ class SideViewPlotWidget(pg.PlotWidget):
                 end_dist = float(end_dist)
 
                 if direction == 1:
-                    begin_node_idx = feature["start_node_idx"]
-                    end_node_idx = feature["end_node_idx"]
+                    begin_node_id = feature["start_node_id"]
+                    end_node_id = feature["end_node_id"]
                 else:
-                    end_node_idx = feature["start_node_idx"]
-                    begin_node_idx = feature["end_node_idx"]
+                    end_node_id = feature["start_node_id"]
+                    begin_node_id = feature["end_node_id"]
 
-                begin_node = self.node_dict[begin_node_idx]
-                end_node = self.node_dict[end_node_idx]
+                begin_node = self.node_dict[begin_node_id]
+                end_node = self.node_dict[end_node_id]
 
                 # 1. add point structure (manhole)
                 logger.info(f"node type {begin_node['type']}, manhole: {begin_node['is_manhole']}")
-                logger.info(f"Adding node {begin_node_idx} with length: {begin_node['length']}, height: {begin_node['height']} and level: {begin_node['level']}")
+                logger.info(f"Adding node {begin_node_id} with length: {begin_node['length']}, height: {begin_node['height']} and level: {begin_node['level']}")
 
                 if first_node:  # Add closing vertical line at beginning
                     bottom_line.append(
@@ -209,7 +202,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                             LineType.PIPE,
                         )
                     )
-                    first_node = False
 
                 bottom_line.append(
                     (
@@ -243,7 +235,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 # 2 contours based on structure or pipe
                 ltype = feature["type"]
-                logger.error(f"type: {ltype}")
                 if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
                     if direction == 1:
                         begin_level = feature["start_level"]
@@ -288,6 +279,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                             ltype,
                         )
                     )
+                else:
+                    logger.error(f"Unknown line type: {ltype}")
 
                 # 3 Add closing point/manhole (if last segment)
                 if count == (len(route_part)-1):
@@ -319,6 +312,17 @@ class SideViewPlotWidget(pg.PlotWidget):
                             LineType.PIPE,
                         )
                     )
+
+                # store node information for water level line
+                if first_node:
+                    self.sideview_nodes.append(
+                        {"distance": begin_dist, "id": begin_node_id}
+                    )
+                    first_node = False
+
+                self.sideview_nodes.append(
+                    {"distance": end_dist, "id": end_node_id}
+                )
 
         if len(route_path) > 0:
             # Draw data into graph
@@ -387,8 +391,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
             self.pump_upper_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
-            ts_table = np.array(drain_level, dtype=float)
-            self.drain_level_plot.setData(ts_table, connect="finite")
             # reset water level line
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
@@ -415,56 +417,36 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.pump_bottom_plot.setData(ts_table)
             self.pump_upper_plot.setData(ts_table)
 
-            self.drain_level_plot.setData(ts_table)
             self.water_level_plot.setData(ts_table)
 
+            # Node list used to draw results
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
         ds_item = self.model.get_results(False)[0]  # TODO: ACTIVE
         if ds_item:
+            logger.info("Updating water level cache")
             ds = ds_item.threedi_result
             for node in self.sideview_nodes:
-                try:
-                    if python_value(node["idx"]) is not None:
-                        ts = ds.get_timeseries(
-                            "s1", node_id=int(node["nr"]), fill_value=np.NaN
-                        )
-                    else:
-                        ts = ds.get_timeseries(
-                            "s1", content_pk=int(node["id"]), fill_value=np.NaN
-                        )
-                except KeyError:
-                    # This can be "idx", "nr" or "id": are both equally
-                    # innocent?  TODO check if an `if "nr" not in node`-like
-                    # condition is nicer/friendlier/cleaner.
-                    logger.exception(
-                        "node has no ids/nr/id key, setting timeries to None"
-                    )
-                    ts = None
-                node["timeseries"] = ts
+                node["timeseries"] = ds.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
 
             self.draw_waterlevel_line()
-
         else:
             # reset water level line
-            ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
-            self.water_level_plot.setData(ts_table)
+            logger.error("No DS_ITEM!")
+            self.water_level_plot.setData(np.array(np.array([(0.0, np.nan)]), dtype=float))
 
     def draw_waterlevel_line(self):
-        return
         # TODO: reconnect to Temporal controller
         # timestamp_nr = self.time_slider.value()
-        timestamp_nr = 0
+        timestamp_nr = 1
+        logger.error(f"Drawing result for nr {timestamp_nr}")
 
         water_level_line = []
         for node in self.sideview_nodes:
-            if node["timeseries"] is not None:
-                water_level = node["timeseries"][timestamp_nr][1]
-                water_level_line.append((node["distance"], water_level))
-            else:
-                # todo: check this is required behavior
-                water_level = None
+            water_level = node["timeseries"][timestamp_nr][1]
+            water_level_line.append((node["distance"], water_level))
+            logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
 
         ts_table = np.array(water_level_line, dtype=float)
         self.water_level_plot.setData(ts_table)
