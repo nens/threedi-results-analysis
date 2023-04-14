@@ -1495,7 +1495,7 @@ class WaterBalanceWidget(QDockWidget):
         self.map_tool_select_polygon.setCursor(Qt.CrossCursor)
 
     def set_wb_polygon(self, polygon, layer):
-        """ Highlight and sets the current waterbalance polygon."""
+        """ Highlight and set the current waterbalance polygon."""
         # highlight must be done before transform
         highlight = QgsHighlight(self.iface.mapCanvas(), polygon, layer)
         highlight.setColor(QColor(0, 0, 255, 127))
@@ -1514,6 +1514,7 @@ class WaterBalanceWidget(QDockWidget):
         self.update_wb()
 
     def unset_wb_polygon(self):
+        """ De-highlight and unset the current waterbalance polygon."""
         if self.wb_polygon is None:
             return
         self.iface.mapCanvas().scene().removeItem(self.wb_highlight)
