@@ -447,19 +447,19 @@ class SideViewPlotWidget(pg.PlotWidget):
             return
 
         threedi_result = result_item.threedi_result
+        # TODO: refactor the following to an util function and check (first datetime yields idx 1)
         current_datetime = qgs_dt_range.begin().toPyDateTime()
         begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
         end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
         current_datetime = max(begin_datetime, min(current_datetime, end_datetime))
         current_delta = (current_datetime - begin_datetime)
-        # determine timestep number for current parameter
         current_seconds = current_delta.total_seconds()
         parameter_timestamps = threedi_result.get_timestamps("s1")
         timestamp_nr = bisect(parameter_timestamps, current_seconds)
         timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
 
         # timestamp_nr = 1
-        logger.error(f"Drawing result for nr {timestamp_nr}")
+        logger.info(f"Drawing result for nr {timestamp_nr}")
 
         water_level_line = []
         for node in self.sideview_nodes:

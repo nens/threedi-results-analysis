@@ -173,9 +173,9 @@ class SideViewGraphGenerator():
             if math.isnan(upper_level):
                 height = 0.0
             else:
-                # This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
+                # TODO: This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
                 if upper_level < bottom_level:
-                    logger.error(f"Derived upper level of node is below bottom level for node {node_id}")
+                    # logger.error(f"Derived upper level of node is below bottom level for node {node_id}")
                     upper_level, bottom_level = bottom_level, upper_level
                 # if (nodes_all["node_type"][count] not in [1, 2, 5, 6]):
                 #    assert upper_level >= bottom_level
