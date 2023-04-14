@@ -7,8 +7,9 @@ from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.core import Qgis
+from qgis.core import QgsDateTimeRange
 from qgis.core import NULL
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
@@ -29,9 +30,12 @@ from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from threedi_results_analysis.utils.utils import python_value
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
+from qgis.utils import iface
+from bisect import bisect
 import logging
 import numpy as np
 import os
+from datetime import datetime as Datetime
 import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
@@ -79,7 +83,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.node_dict = point_dict
 
-        self.profile = []
         self.sideview_nodes = []
 
         self.showGrid(True, True, 0.5)
@@ -106,7 +109,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.weir_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.weir_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(200, 30, 30), width=4, style=Qt.DashLine)
+        pen = pg.mkPen(color=QColor(0, 255, 0), width=1)
         self.orifice_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
@@ -114,21 +117,17 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.pump_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.pump_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(0, 255, 0), width=2, style=Qt.DashLine)
-        self.drain_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-
+        # Required for fill in bottom of graph
         self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
 
-        self.fill = pg.FillBetweenItem(
+        self.bottom_fill = pg.FillBetweenItem(
             self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
         pen = pg.mkPen(color=QColor(0, 255, 255), width=2)
         self.water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        self.addItem(self.drain_level_plot)
-
-        self.addItem(self.fill)
+        self.addItem(self.bottom_fill)
 
         self.addItem(self.bottom_plot)
         self.addItem(self.upper_plot)
@@ -147,10 +146,14 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.addItem(self.water_level_plot)
 
+        # Add some fills
+        self.orifice_fill = pg.FillBetweenItem(
+            self.orifice_upper_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
+        )
+        self.addItem(self.orifice_fill)
+
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
-        # self.time_slider.valueChanged.connect(self.draw_waterlevel_line)
-        # self.time_slider.datasource_changed.connect(self.update_water_level_cache)
 
         # set code for hovering
         self.vb = self.plotItem.vb
@@ -165,12 +168,9 @@ class SideViewPlotWidget(pg.PlotWidget):
 
     def set_sideprofile(self, route_path):
 
-        self.profile = route_path
         self.sideview_nodes = []
-
         bottom_line = []
         upper_line = []
-        drain_level = []
 
         first_node = True
 
@@ -183,18 +183,18 @@ class SideViewPlotWidget(pg.PlotWidget):
                 end_dist = float(end_dist)
 
                 if direction == 1:
-                    begin_node_idx = feature["start_node_idx"]
-                    end_node_idx = feature["end_node_idx"]
+                    begin_node_id = feature["start_node_id"]
+                    end_node_id = feature["end_node_id"]
                 else:
-                    end_node_idx = feature["start_node_idx"]
-                    begin_node_idx = feature["end_node_idx"]
+                    end_node_id = feature["start_node_id"]
+                    begin_node_id = feature["end_node_id"]
 
-                begin_node = self.node_dict[begin_node_idx]
-                end_node = self.node_dict[end_node_idx]
+                begin_node = self.node_dict[begin_node_id]
+                end_node = self.node_dict[end_node_id]
 
                 # 1. add point structure (manhole)
                 logger.info(f"node type {begin_node['type']}, manhole: {begin_node['is_manhole']}")
-                logger.info(f"Adding node {begin_node_idx} with length: {begin_node['length']}, height: {begin_node['height']} and level: {begin_node['level']}")
+                logger.info(f"Adding node {begin_node_id} with length: {begin_node['length']}, height: {begin_node['height']} and level: {begin_node['level']}")
 
                 if first_node:  # Add closing vertical line at beginning
                     bottom_line.append(
@@ -204,7 +204,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                             LineType.PIPE,
                         )
                     )
-                    first_node = False
 
                 bottom_line.append(
                     (
@@ -238,7 +237,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 # 2 contours based on structure or pipe
                 ltype = feature["type"]
-                logger.error(f"type: {ltype}")
                 if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
                     if direction == 1:
                         begin_level = feature["start_level"]
@@ -283,6 +281,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                             ltype,
                         )
                     )
+                else:
+                    logger.error(f"Unknown line type: {ltype}")
 
                 # 3 Add closing point/manhole (if last segment)
                 if count == (len(route_part)-1):
@@ -315,10 +315,26 @@ class SideViewPlotWidget(pg.PlotWidget):
                         )
                     )
 
-        if len(self.profile) > 0:
+                # store node information for water level line
+                if first_node:
+                    self.sideview_nodes.append(
+                        {"distance": begin_dist, "id": begin_node_id}
+                    )
+                    first_node = False
+
+                self.sideview_nodes.append(
+                    {"distance": end_dist, "id": end_node_id}
+                )
+
+        if len(route_path) > 0:
             # Draw data into graph
             # split lines into seperate parts for the different line types
             # (channel, structure, etc.)
+
+            # determine max and min x value to draw absolute bottom line
+            x_min = min([point[0] for point in bottom_line])
+            x_max = max([point[0] for point in bottom_line])
+            self.absolute_bottom.setData(np.array([(x_min, -10000), (x_max, -10000)], dtype=float), connect="finite")
 
             tables = {
                 LineType.PIPE: [],
@@ -337,29 +353,17 @@ class SideViewPlotWidget(pg.PlotWidget):
                         # add nan point to make gap in line
                         tables[ptype].append((point[0], np.nan))
                     last_type = ptype
-
                 tables[ptype].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in bottom_line], dtype=float)
             self.bottom_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[LineType.PIPE], dtype=float)
-            self.sewer_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.CHANNEL], dtype=float)
-            self.channel_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.CULVERT], dtype=float)
-            self.culvert_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.WEIR], dtype=float)
-            self.weir_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.ORIFICE], dtype=float)
-            self.orifice_bottom_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.PUMP], dtype=float)
-            self.pump_bottom_plot.setData(ts_table, connect="finite")
+            self.sewer_bottom_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="finite")
+            self.channel_bottom_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="finite")
+            self.culvert_bottom_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="finite")
+            self.weir_bottom_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
+            self.orifice_bottom_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
+            self.pump_bottom_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
             tables = {
                 LineType.PIPE: [],
@@ -377,44 +381,29 @@ class SideViewPlotWidget(pg.PlotWidget):
                     if last_type is not None:
                         tables[ptype].append((point[0], np.nan))
                     last_type = ptype
-
                 tables[ptype].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in upper_line], dtype=float)
             self.upper_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[LineType.PIPE], dtype=float)
-            self.sewer_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.CHANNEL], dtype=float)
-            self.channel_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.CULVERT], dtype=float)
-            self.culvert_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.WEIR], dtype=float)
-            self.weir_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.ORIFICE], dtype=float)
-            self.orifice_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(tables[LineType.PUMP], dtype=float)
-            self.pump_upper_plot.setData(ts_table, connect="finite")
-
-            ts_table = np.array(drain_level, dtype=float)
-            self.drain_level_plot.setData(ts_table, connect="finite")
+            self.sewer_upper_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="finite")
+            self.channel_upper_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="finite")
+            self.culvert_upper_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="finite")
+            self.weir_upper_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
+            self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
+            self.pump_upper_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
             # reset water level line
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
 
+            # Only let specific set of plots determine range
             self.autoRange(items=[self.bottom_plot, self.upper_plot])
 
             self.profile_route_updated.emit()
         else:
             # reset sideview
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
-
             self.bottom_plot.setData(ts_table)
             self.upper_plot.setData(ts_table)
             self.sewer_bottom_plot.setData(ts_table)
@@ -430,59 +419,56 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.pump_bottom_plot.setData(ts_table)
             self.pump_upper_plot.setData(ts_table)
 
-            self.drain_level_plot.setData(ts_table)
             self.water_level_plot.setData(ts_table)
 
-            self.profile = []
+            # Node list used to draw results
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-        ds_item = self.model.get_results(False)[0]  # TODO: ACTIVE
+        ds_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
         if ds_item:
+            logger.info("Updating water level cache")
             ds = ds_item.threedi_result
             for node in self.sideview_nodes:
-                try:
-                    if python_value(node["idx"]) is not None:
-                        ts = ds.get_timeseries(
-                            "s1", node_id=int(node["nr"]), fill_value=np.NaN
-                        )
-                    else:
-                        ts = ds.get_timeseries(
-                            "s1", content_pk=int(node["id"]), fill_value=np.NaN
-                        )
-                except KeyError:
-                    # This can be "idx", "nr" or "id": are both equally
-                    # innocent?  TODO check if an `if "nr" not in node`-like
-                    # condition is nicer/friendlier/cleaner.
-                    logger.exception(
-                        "node has no ids/nr/id key, setting timeries to None"
-                    )
-                    ts = None
-                node["timeseries"] = ts
+                node["timeseries"] = ds.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
 
-            self.draw_waterlevel_line()
-
+            tc = iface.mapCanvas().temporalController()
+            self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()))
         else:
             # reset water level line
-            ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
-            self.water_level_plot.setData(ts_table)
+            logger.error("No DS_ITEM!")
+            self.water_level_plot.setData(np.array(np.array([(0.0, np.nan)]), dtype=float))
 
-    def draw_waterlevel_line(self):
-        pass
-        # TODO: reconnect to Temporal controller
-        # timestamp_nr = self.time_slider.value()
+    @pyqtSlot(QgsDateTimeRange)
+    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
 
-        # water_level_line = []
-        # for node in self.sideview_nodes:
-        #     if node["timeseries"] is not None:
-        #         water_level = node["timeseries"][timestamp_nr][1]
-        #         water_level_line.append((node["distance"], water_level))
-        #     else:
-        #         # todo: check this is required behavior
-        #         water_level = None
+        result_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
+        if not result_item:
+            return
 
-        # ts_table = np.array(water_level_line, dtype=float)
-        # self.water_level_plot.setData(ts_table)
+        threedi_result = result_item.threedi_result
+        current_datetime = qgs_dt_range.begin().toPyDateTime()
+        begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
+        end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
+        current_datetime = max(begin_datetime, min(current_datetime, end_datetime))
+        current_delta = (current_datetime - begin_datetime)
+        # determine timestep number for current parameter
+        current_seconds = current_delta.total_seconds()
+        parameter_timestamps = threedi_result.get_timestamps("s1")
+        timestamp_nr = bisect(parameter_timestamps, current_seconds)
+        timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
+
+        # timestamp_nr = 1
+        logger.error(f"Drawing result for nr {timestamp_nr}")
+
+        water_level_line = []
+        for node in self.sideview_nodes:
+            water_level = node["timeseries"][timestamp_nr][1]
+            water_level_line.append((node["distance"], water_level))
+            # logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
+
+        ts_table = np.array(water_level_line, dtype=float)
+        self.water_level_plot.setData(ts_table)
 
     def on_close(self):
         """
@@ -490,8 +476,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         :return:
         """
         self.profile_route_updated.disconnect(self.update_water_level_cache)
-        # self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
-        # self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)
 
     def closeEvent(self, event):
         """
@@ -506,8 +490,6 @@ class SideViewDockWidget(QDockWidget):
     """Main Dock Widget for showing 3Di results in Graphs"""
 
     # todo:
-    # punten verplaatsen
-    # als op lijn wordt gedrukt en vastgehouden
     # detecteer dichtsbijzijnde punt in plaats van willekeurige binnen gebied
     # let op CRS van vreschillende lagen en CRS changes
 
@@ -549,13 +531,10 @@ class SideViewDockWidget(QDockWidget):
         progress_bar = StatusProgressBar(100, "3Di Sideview")
         progress_bar.set_value(0, "Creating flowline graph")
         self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
-        self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
+        self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
         del progress_bar
 
         QgsProject.instance().addMapLayer(self.graph_layer)
-
-        # logger.error('point_dict')
-        # logger.error(self.point_dict)
 
         self.side_view_plot_widget = SideViewPlotWidget(
             self,
@@ -601,6 +580,10 @@ class SideViewDockWidget(QDockWidget):
         )
 
         QgsProject.instance().addMapLayer(self.vl_tree_layer)
+
+    @pyqtSlot(QgsDateTimeRange)
+    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
+        self.side_view_plot_widget.update_waterlevel(qgs_dt_range)
 
     def create_combined_layers(self, spatialite_path, model_line_layer):
 
