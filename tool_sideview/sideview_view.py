@@ -105,7 +105,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.weir_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.weir_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(0, 255, 0), width=4, style=Qt.DashLine)
+        pen = pg.mkPen(color=QColor(0, 255, 0), width=1)
         self.orifice_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
@@ -452,7 +452,8 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.water_level_plot.setData(ts_table)
 
     def draw_waterlevel_line(self):
-        pass
+        
+        return
         # TODO: reconnect to Temporal controller
         # timestamp_nr = self.time_slider.value()
         timestamp_nr = 0
