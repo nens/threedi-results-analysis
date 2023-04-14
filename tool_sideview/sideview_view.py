@@ -465,7 +465,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         for node in self.sideview_nodes:
             water_level = node["timeseries"][timestamp_nr][1]
             water_level_line.append((node["distance"], water_level))
-            logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
+            # logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
 
         ts_table = np.array(water_level_line, dtype=float)
         self.water_level_plot.setData(ts_table)

@@ -150,22 +150,22 @@ class SideViewGraphGenerator():
     def generate_node_info(gridadmin_file: Path):
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
-        nodes_1d = ga.nodes.subset("1D").only("coordinates", "drain_level", "storage_area", "calculation_type", "dmax", "id", "is_manhole", "content_pk").data
-        nodes_1d = {k: v.tolist() for (k, v) in nodes_1d.items()}
+        nodes_all = ga.nodes.only("coordinates", "drain_level", "storage_area", "calculation_type", "dmax", "id", "is_manhole", "content_pk", "node_type").data
+        nodes_all = {k: v.tolist() for (k, v) in nodes_all.items()}
 
         lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
         lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
 
         node_info = {}
-        number_of_nodes = len(nodes_1d["coordinates"][0])
+        number_of_nodes = len(nodes_all["coordinates"][0])
         for count in range(number_of_nodes):
-            node_id = nodes_1d["id"][count]
-            length = math.sqrt(nodes_1d["storage_area"][count])
+            node_id = nodes_all["id"][count]
+            length = math.sqrt(nodes_all["storage_area"][count])
             length = 0.0 if math.isnan(length) else length
 
-            bottom_level = nodes_1d["dmax"][count]
+            bottom_level = nodes_all["dmax"][count]
             if not ga.has_2d:
-                upper_level = nodes_1d["drain_level"][count]  # can be nan
+                upper_level = nodes_all["drain_level"][count]  # can be nan
             else:
                 upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id, lines_1d2d_data)
 
@@ -173,14 +173,18 @@ class SideViewGraphGenerator():
             if math.isnan(upper_level):
                 height = 0.0
             else:
+                # This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
                 if upper_level < bottom_level:
                     logger.error(f"Derived upper level of node is below bottom level for node {node_id}")
-                assert upper_level >= bottom_level
+                    upper_level, bottom_level = bottom_level, upper_level
+                # if (nodes_all["node_type"][count] not in [1, 2, 5, 6]):
+                #    assert upper_level >= bottom_level
+
                 height = (upper_level-bottom_level)
 
             node_info[node_id] = {
-                "type": nodes_1d["calculation_type"][count],
-                "is_manhole": nodes_1d["is_manhole"][count],
+                "type": nodes_all["calculation_type"][count],
+                "is_manhole": nodes_all["is_manhole"][count],
                 "level": bottom_level,
                 "height": height,
                 "length": length,
