@@ -452,7 +452,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.water_level_plot.setData(ts_table)
 
     def draw_waterlevel_line(self):
-        
         return
         # TODO: reconnect to Temporal controller
         # timestamp_nr = self.time_slider.value()

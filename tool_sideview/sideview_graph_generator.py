@@ -111,6 +111,8 @@ class SideViewGraphGenerator():
                 end_height = 0
                 if not math.isnan(start_upper_level):
                     start_height = (start_upper_level - start_bottom_level)
+
+                if not math.isnan(end_upper_level):
                     end_height = (end_upper_level - end_bottom_level)
 
                 feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_bottom_level, end_bottom_level, start_height, end_height])
