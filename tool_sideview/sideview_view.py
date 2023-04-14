@@ -119,14 +119,17 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         # Required for fill in bottom of graph
         self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
-
         self.bottom_fill = pg.FillBetweenItem(
             self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
         pen = pg.mkPen(color=QColor(0, 255, 255), width=2)
         self.water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.water_fill = pg.FillBetweenItem(
+            self.water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255)
+        )
 
+        self.addItem(self.water_fill)
         self.addItem(self.bottom_fill)
 
         self.addItem(self.bottom_plot)
@@ -398,7 +401,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.water_level_plot.setData(ts_table)
 
             # Only let specific set of plots determine range
-            self.autoRange(items=[self.bottom_plot, self.upper_plot])
+            self.autoRange(items=[self.bottom_plot, self.upper_plot, self.water_level_plot])
 
             self.profile_route_updated.emit()
         else:
