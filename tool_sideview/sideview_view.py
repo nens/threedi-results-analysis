@@ -1,14 +1,8 @@
-from collections import Counter
 from functools import reduce
 from qgis.analysis import QgsVectorLayerDirector
-from qgis.core import QgsDataSourceUri
-from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
-from qgis.core import QgsVectorLayer
-from qgis.core import Qgis
 from qgis.core import QgsDateTimeRange
-from qgis.core import NULL
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
@@ -23,12 +17,9 @@ from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool, CustomDistancePropeter
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import haversine
-from threedi_results_analysis.tool_sideview.utils import split_line_at_points
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.utils.user_messages import statusbar_message
-from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
-from threedi_results_analysis.utils.utils import python_value
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from qgis.utils import iface
 from bisect import bisect
@@ -502,22 +493,9 @@ class SideViewDockWidget(QDockWidget):
         # init class attributes
         self.route_tool_active = False
 
-        # create point and line layer out of spatialite layers
-        # if self.model.number_of_results() > 0:
-        #     line, node, cell, pump = self.model.get_results(checked_only=False)[0].get_result_layers()
-        # else:  # is this case possible?
-        #     line = None # noqa
-
-        # logger.error(datasources.model_spatialite_filepath)
-        # (
-        #     self.point_dict,
-        #     self.channel_profiles,
-        # ) = self.create_combined_layers(
-        #     datasources.model_spatialite_filepath, line
-        # )
-
         progress_bar = StatusProgressBar(100, "3Di Sideview")
         progress_bar.set_value(0, "Creating flowline graph")
+
         self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
         self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
         del progress_bar
@@ -573,258 +551,6 @@ class SideViewDockWidget(QDockWidget):
     def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
         self.side_view_plot_widget.update_waterlevel(qgs_dt_range)
 
-    def create_combined_layers(self, spatialite_path, model_line_layer):
-
-        def get_layer(spatialite_path, table_name, geom_column=""):
-            uri2 = QgsDataSourceUri()
-            uri2.setDatabase(spatialite_path)
-            uri2.setDataSource("", table_name, geom_column)
-
-            return QgsVectorLayer(uri2.uri(), table_name, "spatialite")
-
-        profile_layer = get_layer(spatialite_path, "v2_cross_section_definition")
-        profiles = {}
-        for profile in profile_layer.getFeatures():
-            # todo: add support for other definitions
-            rel_bottom_level = 0.0
-            open = False
-            height_was_none = False
-
-            if profile["shape"] in (1, 2, 3):
-
-                height = python_value(profile["height"], func=float)
-                # grid['cross_sections']['width_1d'] in netcdf?
-                width = python_value(profile["width"], func=float)
-                if profile["shape"] == 1:
-                    # rectangle
-                    if height is None:
-                        # square
-                        height_was_none = True
-                        if width is not None:
-                            height = width
-                elif profile["shape"] == 2:
-                    # round
-                    height = width
-            elif profile["shape"] in (5, 6):
-                # tabulated and tabulated interpolated
-                height_list = profile["height"].split(" ")
-                # The calculation core automagically move the lowest point of
-                # a profile to 0, so this is not correct:
-                # rel_bottom_level = float(height_list[0])
-                # height = float(height_list[-1]) - rel_bottom_level
-                # but this:
-                rel_bottom_level = 0.0
-                # todo: catch and warn of values are incorrect
-                height = float(height_list[-1]) - float(height_list[0])
-
-                if float(profile["width"].split(" ")[-1]) > 0.01:
-                    open = True
-
-            profiles[profile["id"]] = {
-                "height": height,
-                "rel_bottom_level": rel_bottom_level,
-                "open": open,
-                "height_was_none": height_was_none,
-            }
-
-        connection_node_layer = get_layer(spatialite_path, "v2_connection_nodes", "the_geom")
-        manhole_layer = get_layer(spatialite_path, "v2_manhole")
-        boundary_layer = get_layer(spatialite_path, "v2_1d_boundary_conditions")
-
-        points = {}
-        for cn in connection_node_layer.getFeatures():
-            points[cn["id"]] = {
-                "point": cn.geometry().asPoint(),
-                "type": LineType.CONNECTION_NODE,
-                "surface_level": None,
-                "drain_level": None,
-                "bottom_level": None,
-                "length": 0.0,
-            }
-
-        for manhole in manhole_layer.getFeatures():
-            p = points[manhole["connection_node_id"]]
-            p["type"] = LineType.MANHOLE
-            p["surface_level"] = python_value(manhole["surface_level"])
-            p["drain_level"] = python_value(manhole["drain_level"], p["surface_level"])
-            p["bottom_level"] = python_value(manhole["bottom_level"])
-            p["length"] = python_value(manhole["width"], 0.0)
-
-        for bound in boundary_layer.getFeatures():
-            p = points[bound["connection_node_id"]]
-            p["type"] = LineType.BOUNDARY
-            p["surface_level"] = None
-            p["drain_level"] = None
-            p["bottom_level"] = None
-            p["length"] = 0.0
-
-        # This dict is being returned:
-        channel_profiles = {}
-
-        cross_section_location_layer = get_layer(spatialite_path, "v2_cross_section_location", "the_geom")
-        channel_layer = get_layer(spatialite_path, "v2_channel", "the_geom")
-
-        channel_calc_points = {}
-        channel_cs_locations = {}
-
-        for cs in cross_section_location_layer.getFeatures():
-
-            ids = cs["channel_id"]
-            if ids not in channel_cs_locations:
-                channel_cs_locations[ids] = []
-
-            channel_cs_locations[ids].append(cs)
-
-        if model_line_layer is not None:
-            # create indexed sets of calculation points
-            request = QgsFeatureRequest().setFilterExpression(u"type='v2_channel'")
-            for line in model_line_layer.getFeatures(request):
-                ids = line["spatialite_id"]
-                if ids not in channel_calc_points:
-                    channel_calc_points[ids] = []
-                channel_calc_points[ids].append(line)
-
-        for channel in channel_layer.getFeatures():
-            channel_profiles[channel["id"]] = []
-            # prepare profile information of channel
-            if channel["id"] in channel_cs_locations:
-                crs_points = channel_cs_locations[channel["id"]]
-            else:
-                crs_points = []
-
-            profile_channel_parts = split_line_at_points(
-                channel.geometry(),
-                crs_points,
-                point_feature_id_field="id",
-                start_node_id=None,
-                end_node_id=None,
-            )
-
-            # split on cross section locations
-            for i, part in enumerate(profile_channel_parts):
-
-                if part["start_point_id"] is not None:
-                    start_id = "crs_" + str(part["start_point_id"])
-                else:
-                    start_id = channel["connection_node_start_id"]
-
-                if part["end_point_id"] is not None:
-                    end_id = "crs_" + str(part["end_point_id"])
-                else:
-                    end_id = channel["connection_node_end_id"]
-
-                channel_part = {
-                    "id": "subch_" + str(channel["id"]) + "_" + str(i),
-                    "type": LineType.CHANNEL,
-                    "start_node": start_id,
-                    "end_node": end_id,
-                    "real_length": part["length"],
-                    "sub_channel_nr": i,
-                    "channel_id": channel["id"],
-                    "start_channel_distance": part["distance_at_line"],
-                }
-
-                # use cross sections part for only as info for drawing
-                # sideview
-                channel_profiles[channel["id"]].append(channel_part)
-
-            for p in crs_points:
-                def_id = p["definition_id"]
-                try:
-                    crs_def = profiles[def_id]
-                except KeyError:
-                    # Skip point if its `definitition_id` is not present in the profiles
-                    continue
-                level = p["reference_level"] + crs_def["rel_bottom_level"]
-                height = crs_def["height"]
-                bank_level = p["bank_level"]
-
-                points["crs_" + str(p["id"])] = {
-                    "point": p.geometry().asPoint(),
-                    "type": LineType.CROSS_SECTION,
-                    "surface_level": bank_level,
-                    "drain_level": bank_level,
-                    "bottom_level": level,
-                    "height": height,
-                    "length": 0.0,
-                }
-
-            if model_line_layer is not None:
-                # create channel part for each sub link (taking calculation
-                # nodes into account)
-
-                cpoints_idx = []
-                cpoints = {}
-                # get calculation points on line
-                for line in channel_calc_points[channel["id"]]:
-                    cpoints_idx.append(line["start_node_idx"])
-                    cpoints[line["start_node_idx"]] = line.geometry().asPolyline()[0]
-                    cpoints_idx.append(line["end_node_idx"])
-                    cpoints[line["end_node_idx"]] = line.geometry().asPolyline()[-1]
-
-                # all calculation nodes (points in between, must be a
-                # startpoint as well as an endpoint, so 2 occurances)
-                cpoint_count = dict(Counter(cpoints_idx))
-                calc_points = [
-                    key for key, value in list(cpoint_count.items()) if value == 2
-                ]
-
-                calculation_points = [
-                    {"id": key, "geom": value}
-                    for key, value in list(cpoints.items())
-                    if key in calc_points
-                ]
-
-                channel_parts = split_line_at_points(
-                    channel.geometry(),
-                    calculation_points,
-                    point_feature_id_field="id",
-                    start_node_id=None,
-                    end_node_id=None,
-                )
-
-                for i, part in enumerate(channel_parts):
-                    if i == 0:
-                        start_node_id = channel["connection_node_start_id"]
-                    else:
-                        start_node_id = "calc_" + str(part["start_point_id"])
-
-                    if i == len(channel_parts) - 1:
-                        end_node_id = channel["connection_node_end_id"]
-                    else:
-                        end_node_id = "calc_" + str(part["end_point_id"])
-
-                    channel_part = {
-                        "id": "subch_" + str(channel["id"]) + "_" + str(i),
-                        "type": LineType.CHANNEL,
-                        "start_node": start_node_id,
-                        "end_node": end_node_id,
-                        "start_node_idx": part["start_point_id"],
-                        "end_node_idx": part["end_point_id"],
-                        "real_length": part["length"],
-                        "sub_channel_nr": i,
-                        "channel_id": channel["id"],
-                        "start_channel_distance": part["distance_at_line"],
-                        "geom": part["geom"],
-                    }
-
-                for p in calculation_points:
-                    points["calc_" + str(p["id"])] = {
-                        "point": p["geom"],
-                        "type": LineType.CALCULATION_NODE,
-                        "surface_level": None,
-                        "drain_level": None,
-                        "bottom_level": None,
-                        "height": None,
-                        "length": 0.0,
-                    }
-
-        # We need to make sure that all ids are strings
-        points = {str(point_id): point for point_id, point in points.items()}
-        #  make point dict permanent
-        self.point_dict = points
-        return points, channel_profiles
-
     def unset_route_tool(self):
         if self.route_tool_active:
             self.route_tool_active = False
@@ -870,36 +596,8 @@ class SideViewDockWidget(QDockWidget):
         if not success:
             statusbar_message(msg)
 
-        # values_valid = self.validate_path_nodes_values(self.route.path, "surface_level")
-        # As we are no longer using surface level, this validation can be skipped
-        values_valid = True
-
-        if values_valid:
-            self.active_sideview.set_sideprofile(self.route.path)
-            self.map_visualisation.set_sideview_route(self.route)
-        else:
-            self.reset_sideview()
-
-    def validate_path_nodes_values(self, profile, *attributes):
-        nodes = {}
-        invalid_values = [None, NULL]
-        for route_part in profile:
-            for begin_dist, end_dist, distance, direction, feature in route_part:
-                start_node_id = str(feature["start_node"])
-                end_node_id = str(feature["end_node"])
-                start_node = self.point_dict[start_node_id]
-                end_node = self.point_dict[end_node_id]
-                nodes[start_node_id] = start_node
-                nodes[end_node_id] = end_node
-
-        for node_id, node in nodes.items():
-            if node["type"] == LineType.MANHOLE:
-                for attr in attributes:
-                    if node[attr] in invalid_values:
-                        error_msg = f"Manhole with 'connection_node_id' {node_id} is missing '{attr}' value."
-                        messagebar_message("Missing values", error_msg, level=Qgis.Warning, duration=5)
-                        return False
-        return True
+        self.active_sideview.set_sideprofile(self.route.path)
+        self.map_visualisation.set_sideview_route(self.route)
 
     def reset_sideview(self):
         self.route.reset()
