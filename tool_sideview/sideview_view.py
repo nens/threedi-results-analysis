@@ -40,26 +40,6 @@ import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
 
-parameter_config = {
-    "q": [
-        {"name": "Discharge", "unit": "m3/s", "parameters": ["q"]},
-        {"name": "Velocity", "unit": "m/s", "parameters": ["u1"]},
-    ],
-    "h": [
-        {"name": "Waterlevel", "unit": "mNAP", "parameters": ["s1"]},
-        {"name": "Volume", "unit": "m3", "parameters": ["vol"]},
-    ],
-}
-
-
-INTERPOLATION_PHYSICAL = 0  # interpolation based on all profiles
-# interpolation as the 3Di calculation core is
-# performing the interpolation. for bottom
-# level use profiles close to
-# calculation points. For height (profile) first
-# get heigth on centerpoints at links
-INTERPOLATION_CALCULATION = 1
-
 
 class SideViewPlotWidget(pg.PlotWidget):
     """Side view plot element"""
