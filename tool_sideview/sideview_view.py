@@ -88,7 +88,11 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.pump_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.pump_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
+        pen = pg.mkPen(color=QColor(0, 200, 0), width=2, style=Qt.DashLine)
+        self.exchange_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+
         # Required for fill in bottom of graph
+        pen = pg.mkPen(color=QColor(0, 0, 0), width=1)
         self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
         self.bottom_fill = pg.FillBetweenItem(
             self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
@@ -126,6 +130,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.pump_bottom_plot)
         self.addItem(self.pump_upper_plot)
 
+        self.addItem(self.exchange_plot)
+
         self.addItem(self.water_level_plot)
 
         self.addItem(self.orifice_fill)
@@ -150,6 +156,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.sideview_nodes = []
         bottom_line = []
         upper_line = []
+        top_line = []
 
         first_node = True
 
@@ -213,6 +220,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                         LineType.PIPE,
                     )
                 )
+
+                top_line.append((begin_dist, begin_node["level"] + begin_node["height"]))
 
                 # 2 contours based on structure or pipe
                 ltype = feature["type"]
@@ -308,7 +317,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         if len(route_path) > 0:
             # Draw data into graph
             # split lines into seperate parts for the different line types
-            # (channel, structure, etc.)
 
             # determine max and min x value to draw absolute bottom line
             x_min = min([point[0] for point in bottom_line])
@@ -372,6 +380,9 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
             self.pump_upper_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
+            # draw exchange line
+            self.exchange_plot.setData(np.array(top_line, dtype=float), connect="finite")
+
             # reset water level line
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
@@ -397,6 +408,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_upper_plot.setData(ts_table)
             self.pump_bottom_plot.setData(ts_table)
             self.pump_upper_plot.setData(ts_table)
+            self.exchange_plot.setData(ts_table)
 
             self.water_level_plot.setData(ts_table)
 

@@ -17,7 +17,7 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def generate_layer(gridadmin_file: Path, progress_bar: StatusProgressBar) -> QgsVectorLayer:
-        # Retrieve lines from gridadmin
+
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
         graph_layer = QgsVectorLayer(f"LineString?crs=EPSG:{ga.epsg_code}&index=yes", "graph_layer", "memory")
@@ -36,6 +36,7 @@ class SideViewGraphGenerator():
         # Tell the vector layer to fetch changes from the provider
         graph_layer.updateFields()
 
+        # Retrieve 1D lines from gridadmin
         lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2").data
         lines_1d_data = {k: v.tolist() for (k, v) in lines_1d_data.items()}  # convert to native python items
 
@@ -174,11 +175,12 @@ class SideViewGraphGenerator():
                 height = 0.0
             else:
                 # TODO: This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
+                if (nodes_all["node_type"][count] not in [1, 2, 5, 6]):
+                    assert upper_level >= bottom_level
+
                 if upper_level < bottom_level:
-                    # logger.error(f"Derived upper level of node is below bottom level for node {node_id}")
+                    # logger.warning(f"Derived upper level of node is below bottom level for node {node_id}")
                     upper_level, bottom_level = bottom_level, upper_level
-                # if (nodes_all["node_type"][count] not in [1, 2, 5, 6]):
-                #    assert upper_level >= bottom_level
 
                 height = (upper_level-bottom_level)
 
