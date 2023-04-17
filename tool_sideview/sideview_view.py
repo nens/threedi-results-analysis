@@ -129,6 +129,14 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255)
         )
 
+        # Add some structure specific fills
+        self.orifice_fill = pg.FillBetweenItem(
+            self.orifice_upper_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
+        )
+        self.weir_fill = pg.FillBetweenItem(
+            self.weir_upper_plot, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
+        )
+
         self.addItem(self.water_fill)
         self.addItem(self.bottom_fill)
 
@@ -149,11 +157,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.addItem(self.water_level_plot)
 
-        # Add some fills
-        self.orifice_fill = pg.FillBetweenItem(
-            self.orifice_upper_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
-        )
         self.addItem(self.orifice_fill)
+        self.addItem(self.weir_fill)
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
