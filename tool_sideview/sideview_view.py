@@ -82,6 +82,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         pen = pg.mkPen(color=QColor(0, 255, 0), width=1)
         self.orifice_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        pen = pg.mkPen(color=QColor(208, 240, 192), width=1)
         self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(200, 200, 0), width=4)
@@ -106,7 +107,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         # Add some structure specific fills
         self.orifice_fill = pg.FillBetweenItem(
-            self.orifice_upper_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
+            self.orifice_upper_plot, self.orifice_bottom_plot, pg.mkBrush(208, 240, 192)
         )
         self.weir_fill = pg.FillBetweenItem(
             self.weir_upper_plot, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
@@ -302,6 +303,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                             LineType.PIPE,
                         )
                     )
+                    top_line.append((end_dist, end_node["level"] + end_node["height"]))
 
                 # store node information for water level line
                 if first_node:

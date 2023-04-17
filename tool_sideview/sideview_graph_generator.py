@@ -31,7 +31,9 @@ class SideViewGraphGenerator():
                           QgsField("start_level", QVariant.Double),
                           QgsField("end_level", QVariant.Double),
                           QgsField("start_height", QVariant.Double),
-                          QgsField("end_height", QVariant.Double)])
+                          QgsField("end_height", QVariant.Double),
+                          QgsField("crest_level", QVariant.Double)
+                          ])
 
         # Tell the vector layer to fetch changes from the provider
         graph_layer.updateFields()
@@ -80,6 +82,7 @@ class SideViewGraphGenerator():
                     height = 0.0
                 start_height = height
                 end_height = height
+                crest_level = None
 
                 if line_type == LineType.PIPE or line_type == LineType.CULVERT:
                     start_level = lines_1d_data["invert_level_start_point"][count]
@@ -90,11 +93,13 @@ class SideViewGraphGenerator():
                     node_2 = ga.nodes.filter(id=node_id_2)
                     start_level = np.min([node_1.dmax[0], node_2.dmax[0]]).item()
                     end_level = start_level
-
-                # logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
+                    if line_type == LineType.ORIFICE:
+                        crest_level = ga.lines.orifices.filter(id=lines_1d_data["id"][count]).crest_level[0]
+                    if line_type == LineType.WEIR:
+                        crest_level = ga.lines.weirs.filter(id=lines_1d_data["id"][count]).crest_level[0]
 
                 # Note that id (count) is the flowline index in Python (0-based indexing)
-                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
+                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height, crest_level])
                 progress_bar.set_value((count / number_of_lines) * 100.0)
                 if not pr.addFeature(feat):
                     logger.error(f"Unable to add feature: {pr.lastError()}")
@@ -116,7 +121,7 @@ class SideViewGraphGenerator():
                 if not math.isnan(end_upper_level):
                     end_height = (end_upper_level - end_bottom_level)
 
-                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_bottom_level, end_bottom_level, start_height, end_height])
+                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_bottom_level, end_bottom_level, start_height, end_height, None])
                 progress_bar.set_value((count / number_of_lines) * 100.0)
                 if not pr.addFeature(feat):
                     logger.error(f"Unable to add feature: {pr.lastError()}")
