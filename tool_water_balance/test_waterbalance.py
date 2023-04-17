@@ -7,6 +7,7 @@ from qgis.core import QgsProject
 from threedi_results_analysis.tests.test_init import TEST_DATA_DIR
 from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initialized
 from threedi_results_analysis.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
+from threedi_results_analysis.tool_water_balance.tools.waterbalance import ResultHelper
 from threedi_results_analysis.tool_water_balance.views import waterbalance_widget
 
 import mock
@@ -127,9 +128,10 @@ def wb_polygon():
 
 
 @pytest.fixture()
-def wb_calculation(ts_datasources):
+def wb_calculation(three_di_result_item):
+    result = ResultHelper(three_di_result_item)
     ensure_qgis_app_is_initialized()
-    wb_calculation = WaterBalanceCalculation(ts_datasources)
+    wb_calculation = WaterBalanceCalculation(result=result)
     return wb_calculation
 
 

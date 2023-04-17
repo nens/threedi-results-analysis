@@ -44,6 +44,11 @@ class ThreeDiGridItem(ThreeDiModelItem):
     A model item for computation grids
     """
     def __init__(self, path: Path, text: str, *args, **kwargs):
+        """
+        Args:
+            path: Path to gridadmin.gpkg
+            text: Name in the GUI
+        """
         super().__init__(*args, **kwargs)
         self.path = path
         self.setSelectable(True)
@@ -66,6 +71,10 @@ class ThreeDiResultItem(ThreeDiModelItem):
     A model item for 3Di results.
     """
     def __init__(self, path: Path, *args, **kwargs):
+        """
+        Args:
+            path: Path tp results_3di.nc
+        """
         super().__init__(*args, **kwargs)
         self.path = path
         self.setCheckable(True)

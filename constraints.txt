@@ -22,4 +22,4 @@ networkx
 condenser>=0.2.1
 Shapely>=2.0.0
 threedigrid_builder>=1.10.0
-hydxlib>=1.4.5
+hydxlib==1.5.*
