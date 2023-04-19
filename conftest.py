@@ -5,6 +5,7 @@ can have also have such files in subdirectories. The fixtures in this file
 *stay* available there, except when you override them.
 
 """
+from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 
 from threedi_results_analysis import PLUGIN_DIR
@@ -83,9 +84,9 @@ def three_di_result_item(tmp_path):
 
     gpkg_layers = {"Node": "node", "Flowline": "flowline"}
     for layer_name, table_name in gpkg_layers.items():
-        source = f"{grid.path}|layername={table_name}"
-        vector_layer = QgsVectorLayer(source, layer_name, "ogr")
+        layer_uri = f"{grid.path}|layername={table_name}"
+        vector_layer = QgsVectorLayer(layer_uri, layer_name, "ogr")
         grid.layer_ids[table_name] = vector_layer.id()
-    # TODO store the layer somewhere or else...?
+        QgsProject.instance().addMapLayer(vector_layer)
 
-    return result
+    yield result

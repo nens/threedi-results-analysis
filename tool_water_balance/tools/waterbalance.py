@@ -9,6 +9,7 @@ from qgis.core import QgsProject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
 from threedigrid_builder.constants import LineType
+from threedigrid_builder.constants import NodeType
 
 from ..views.waterbalance_widget import WaterBalanceWidget
 from ..views.waterbalance_widget import NotSynchronizedTimestampsError
@@ -32,6 +33,19 @@ LINE_TYPES_1D2D = {
     LineType.LINE_1D2D_ACTIVE_BREACH,
     LineType.LINE_1D2D_GROUNDWATER,
     58,  # Also LINE_1D2D_GROUNDWATER?
+}
+NODE_TYPES_1D = {
+    NodeType.NODE_1D_NO_STORAGE,
+    NodeType.NODE_1D_STORAGE,
+    NodeType.NODE_1D_BOUNDARIES,
+}
+NODE_TYPES_2D = {
+    NodeType.NODE_2D_OPEN_WATER,
+    NodeType.NODE_2D_BOUNDARIES,
+}
+NODE_TYPES_2D_GROUNDWATER = {
+    NodeType.NODE_2D_GROUNDWATER_BOUNDARIES,
+    NodeType.NODE_2D_GROUNDWATER,
 }
 
 logger = logging.getLogger(__name__)
@@ -427,26 +441,25 @@ class WaterBalanceCalculation(object):
         request_filter = QgsFeatureRequest().setFilterRect(
             wb_polygon.get().boundingBox()
         )
-        if model_part == "1d":
-            request_filter.setFilterExpression(u"\"type\" = '1d'")
-        elif model_part == "2d":
-            request_filter.setFilterExpression(
-                u"\"type\" = '2d' OR \"type\" = '2d_groundwater'"
-            )
-        else:
-            request_filter.setFilterExpression(
-                u'"type" = \'1d\' OR "type" ' u"= '2d' OR \"type\" = '2d_groundwater'"
-            )
+        node_types = set()
+        if model_part == "1d" or model_part is None:
+            node_types |= NODE_TYPES_1D
+        if model_part == "2d" or model_part is None:
+            node_types |= NODE_TYPES_2D | NODE_TYPES_2D_GROUNDWATER
+        node_types_csv = ",".join(str(n.value) for n in node_types)
+        request_filter.setFilterExpression(f"node_type in ({node_types_csv})")
         # todo: check if boundary nodes could not have rain, infiltration, etc.
 
+        node_type_map = {}
+        node_type_map.update({n.value: "1d" for n in NODE_TYPES_1D})
+        node_type_map.update({n.value: "2d" for n in NODE_TYPES_2D})
+        node_type_map.update({n.value: "2d_groundwater"
+                              for n in NODE_TYPES_2D_GROUNDWATER})
+
         for point in self.result.points.getFeatures(request_filter):
-            import ipdb
-            ipdb.set_trace()
             # test if points are contained by polygon
             if wb_polygon.contains(point.geometry()):
-                _type = point["type"]
-                nodes[_type].append(point["id"])
-
+                nodes[node_type_map[point['node_type']]].append(point.id())
         return nodes
 
     def get_aggregated_flows(self, link_ids, pump_ids, node_ids, model_part):
