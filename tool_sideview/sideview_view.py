@@ -76,13 +76,16 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.culvert_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.culvert_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(200, 30, 30), width=4)
+        pen = pg.mkPen(color=QColor(255, 0, 0), width=1)
         self.weir_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        pen = pg.mkPen(color=QColor(250, 217, 213), width=1)
+        self.weir_middle_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.weir_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(0, 255, 0), width=1)
         self.orifice_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         pen = pg.mkPen(color=QColor(208, 240, 192), width=1)
+        self.orifice_middle_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(200, 200, 0), width=4)
@@ -107,10 +110,16 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         # Add some structure specific fills
         self.orifice_fill = pg.FillBetweenItem(
-            self.orifice_upper_plot, self.orifice_bottom_plot, pg.mkBrush(208, 240, 192)
+            self.orifice_upper_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
+        )
+        self.orifice_upper_fill = pg.FillBetweenItem(
+            self.orifice_upper_plot, self.orifice_middle_plot, pg.mkBrush(208, 240, 192)
         )
         self.weir_fill = pg.FillBetweenItem(
             self.weir_upper_plot, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
+        )
+        self.weir_upper_fill = pg.FillBetweenItem(
+            self.weir_upper_plot, self.weir_middle_plot, pg.mkBrush(250, 217, 213)
         )
 
         self.addItem(self.water_fill)
@@ -134,9 +143,10 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.exchange_plot)
 
         self.addItem(self.water_level_plot)
-
         self.addItem(self.orifice_fill)
+        self.addItem(self.orifice_upper_fill)
         self.addItem(self.weir_fill)
+        self.addItem(self.weir_upper_fill)
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
@@ -154,27 +164,25 @@ class SideViewPlotWidget(pg.PlotWidget):
 
     def set_sideprofile(self, route_path):
 
-        self.sideview_nodes = []
-        bottom_line = []
-        upper_line = []
-        top_line = []
-
+        self.sideview_nodes = []  # Required to plot water level
+        bottom_line = []  # Bottom of structures
+        upper_line = []  # Top of structures
+        middle_line = []  # Typically crest-level
+        top_line = []  # exchange level
         first_node = True
 
         for route_part in route_path:
-            logger.error("ROUTE PATH")
+            logger.error("NEW ROUTE PART")
 
             for count, (begin_dist, end_dist, distance, direction, feature) in enumerate(route_part):
 
                 begin_dist = float(begin_dist)
                 end_dist = float(end_dist)
 
-                if direction == 1:
-                    begin_node_id = feature["start_node_id"]
-                    end_node_id = feature["end_node_id"]
-                else:
-                    end_node_id = feature["start_node_id"]
-                    begin_node_id = feature["end_node_id"]
+                begin_node_id = feature["start_node_id"]
+                end_node_id = feature["end_node_id"]
+                if direction != 1:
+                    begin_node_id, end_node_id = end_node_id, begin_node_id
 
                 begin_node = self.node_dict[begin_node_id]
                 end_node = self.node_dict[end_node_id]
@@ -183,44 +191,17 @@ class SideViewPlotWidget(pg.PlotWidget):
                 logger.info(f"node type {begin_node['type']}, manhole: {begin_node['is_manhole']}")
                 logger.info(f"Adding node {begin_node_id} with length: {begin_node['length']}, height: {begin_node['height']} and level: {begin_node['level']}")
 
+                node_begin_x = begin_dist - 0.5 * begin_node["length"]
+                node_end_x = begin_dist + 0.5 * begin_node["length"]  # beginning of line
+
                 if first_node:  # Add closing vertical line at beginning
-                    bottom_line.append(
-                        (
-                            begin_dist - 0.5 * begin_node["length"],
-                            begin_node["level"] + begin_node["height"],
-                            LineType.PIPE,
-                        )
-                    )
+                    bottom_line.append((node_begin_x, begin_node["level"] + begin_node["height"], LineType.PIPE))
 
-                bottom_line.append(
-                    (
-                        begin_dist - 0.5 * begin_node["length"],
-                        begin_node["level"],
-                        LineType.PIPE,
-                    )
-                )
-                bottom_line.append(
-                    (
-                        begin_dist + 0.5 * begin_node["length"],
-                        begin_node["level"],
-                        LineType.PIPE,
-                    )
-                )
+                bottom_line.append((node_begin_x, begin_node["level"], LineType.PIPE))
+                bottom_line.append((node_end_x, begin_node["level"], LineType.PIPE))
 
-                upper_line.append(
-                    (
-                        begin_dist - 0.5 * begin_node["length"],
-                        begin_node["level"] + begin_node["height"],
-                        LineType.PIPE,
-                    )
-                )
-                upper_line.append(
-                    (
-                        begin_dist + 0.5 * begin_node["length"],
-                        begin_node["level"] + begin_node["height"],
-                        LineType.PIPE,
-                    )
-                )
+                upper_line.append((node_begin_x, begin_node["level"] + begin_node["height"], LineType.PIPE))
+                upper_line.append((node_end_x, begin_node["level"] + begin_node["height"], LineType.PIPE))
 
                 top_line.append((begin_dist, begin_node["level"] + begin_node["height"]))
 
@@ -240,13 +221,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                     logger.info(f"Adding line {feature['id']} with length: {feature['real_length']}, start_height: {feature['start_height']}, end_height: {feature['end_height']}, start_level: {feature['start_level']} and end_level {feature['end_level']}")
 
-                    bottom_line.append(
-                        (
-                            begin_dist + 0.5 * begin_node["length"],
-                            begin_level,
-                            ltype,
-                        )
-                    )
+                    bottom_line.append((node_end_x, begin_level, ltype))
                     bottom_line.append(
                         (
                             end_dist - 0.5 * end_node["length"],
@@ -255,14 +230,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                         )
                     )
 
-                    # upper line
-                    upper_line.append(
-                        (
-                            begin_dist + 0.5 * begin_node["length"],
-                            begin_level + begin_height,
-                            ltype,
-                        )
-                    )
+                    upper_line.append((node_end_x, begin_level + begin_height, ltype))
                     upper_line.append(
                         (
                             end_dist - 0.5 * end_node["length"],
@@ -270,6 +238,18 @@ class SideViewPlotWidget(pg.PlotWidget):
                             ltype,
                         )
                     )
+
+                    if (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR):
+                        # Orifices and weirs require different visualisation
+                        crest_level = feature["crest_level"]
+                        middle_line.append((node_end_x, crest_level, ltype))
+                        middle_line.append(
+                            (
+                                end_dist - 0.5 * end_node["length"],
+                                crest_level,
+                                ltype
+                            )
+                        )
                 else:
                     logger.error(f"Unknown line type: {ltype}")
 
@@ -317,8 +297,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                 )
 
         if len(route_path) > 0:
-            # Draw data into graph
-            # split lines into seperate parts for the different line types
+            # Draw data into graph, split lines into seperate parts for the different line types
 
             # determine max and min x value to draw absolute bottom line
             x_min = min([point[0] for point in bottom_line])
@@ -382,6 +361,26 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
             self.pump_upper_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
+            tables = {
+                LineType.PIPE: [],
+                LineType.CHANNEL: [],
+                LineType.CULVERT: [],
+                LineType.PUMP: [],
+                LineType.WEIR: [],
+                LineType.ORIFICE: [],
+            }
+            last_type = None
+            for point in middle_line:
+                ptype = point[2]
+
+                if ptype != last_type:
+                    if last_type is not None:
+                        tables[ptype].append((point[0], np.nan))
+                    last_type = ptype
+                tables[ptype].append((point[0], point[1]))
+            self.weir_middle_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
+            self.orifice_middle_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
+
             # draw exchange line
             self.exchange_plot.setData(np.array(top_line, dtype=float), connect="finite")
 
@@ -413,12 +412,11 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.exchange_plot.setData(ts_table)
 
             self.water_level_plot.setData(ts_table)
-
-            # Node list used to draw results
+            # Clear node list used to draw results
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-        ds_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
+        ds_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS
         if ds_item:
             logger.info("Updating water level cache")
             ds = ds_item.threedi_result
