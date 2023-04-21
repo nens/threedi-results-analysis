@@ -63,7 +63,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(200, 200, 200), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(0, 0, 0), width=5)
+        pen = pg.mkPen(color=QColor(0, 0, 0), width=2, style=Qt.DashLine)
         self.node_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(100, 100, 100), width=2)
