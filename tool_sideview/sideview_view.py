@@ -63,6 +63,9 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(200, 200, 200), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
+        pen = pg.mkPen(color=QColor(0, 0, 0), width=5)
+        self.node_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+
         pen = pg.mkPen(color=QColor(100, 100, 100), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.sewer_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -140,6 +143,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_bottom_plot)
         self.addItem(self.orifice_upper_plot)
         self.addItem(self.water_level_plot)
+        self.addItem(self.node_plot)
 
         self.addItem(self.orifice_full_fill)
         self.addItem(self.orifice_opening_fill)
@@ -151,6 +155,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         # Set the z-order of the curves (note that fill take minimum of its two defining curve as z-value)
         self.water_level_plot.setZValue(100)  # always visible
         self.exchange_plot.setZValue(100)
+        self.node_plot.setZValue(60)
         self.orifice_full_fill.setZValue(20)
         self.orifice_opening_fill.setZValue(21)
         self.weir_full_fill.setZValue(20)
@@ -175,15 +180,15 @@ class SideViewPlotWidget(pg.PlotWidget):
 
     def set_sideprofile(self, route_path):
 
-        self.sideview_nodes = []  # Required to plot water level
+        self.sideview_nodes = []  # Required to plot nodes and water level
         bottom_line = []  # Bottom of structures
         upper_line = []  # Top of structures
         middle_line = []  # Typically crest-level
         top_line = []  # exchange level
-        first_node = True
 
         for route_part in route_path:
             logger.error("NEW ROUTE PART")
+            first_node = True
 
             for count, (begin_dist, end_dist, distance, direction, feature) in enumerate(route_part):
 
@@ -282,12 +287,12 @@ class SideViewPlotWidget(pg.PlotWidget):
                 # store node information for water level line
                 if first_node:
                     self.sideview_nodes.append(
-                        {"distance": begin_dist, "id": begin_node_id}
+                        {"distance": begin_dist, "id": begin_node_id, "height": begin_node["height"], "level": begin_node["level"]}
                     )
                     first_node = False
 
                 self.sideview_nodes.append(
-                    {"distance": end_dist, "id": end_node_id}
+                    {"distance": end_dist, "id": end_node_id, "height": end_node["height"], "level": end_node["level"]}
                 )
 
         if len(route_path) > 0:
@@ -298,10 +303,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             x_max = max([point[0] for point in bottom_line])
             self.absolute_bottom.setData(np.array([(x_min, -10000), (x_max, -10000)], dtype=float), connect="finite")
             self.absolute_top.setData(np.array([(x_min, 10000), (x_max, 10000)], dtype=float), connect="finite")
-            # draw exchange line
             self.exchange_plot.setData(np.array(top_line, dtype=float), connect="finite")
-
-            logger.error(f"Bottom Points: {bottom_line}")
 
             tables = {
                 LineType.PIPE: [],
@@ -364,6 +366,13 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.weir_middle_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
             self.orifice_middle_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
 
+            # draw nodes
+            node_table = []
+            for node in self.sideview_nodes:
+                node_table.append((node["distance"], node["level"]))
+                node_table.append((node["distance"], node["level"] + node["height"]))
+            self.node_plot.setData(np.array(node_table, dtype=float), connect="pairs")
+
             # reset water level line
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
@@ -389,8 +398,9 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_upper_plot.setData(ts_table)
             self.orifice_middle_plot.setData(ts_table)
             self.exchange_plot.setData(ts_table)
-
+            self.node_plot.setData(ts_table)
             self.water_level_plot.setData(ts_table)
+
             # Clear node list used to draw results
             self.sideview_nodes = []
 
