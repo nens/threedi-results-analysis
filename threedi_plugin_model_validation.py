@@ -10,8 +10,6 @@ import h5py
 import logging
 logger = logging.getLogger(__name__)
 
-MSG_TITLE = "3Di Results Manager"
-
 
 class ThreeDiPluginModelValidator(QObject):
     """
@@ -85,7 +83,7 @@ class ThreeDiPluginModelValidator(QObject):
         on success and emits result_valid or result_invalid.
         """
         def fail(msg):
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5)
             self.result_invalid.emit(result_item, grid_item)
             return False
 

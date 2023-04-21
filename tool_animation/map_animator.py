@@ -3,8 +3,6 @@ from qgis.core import QgsDateTimeRange
 from qgis.core import QgsInterval
 from qgis.core import QgsProject
 from qgis.core import QgsTemporalNavigationObject
-from qgis.core import QgsVectorLayer
-from qgis.core import QgsWkbTypes
 from qgis.utils import iface
 from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QCheckBox
@@ -32,7 +30,7 @@ import copy
 import logging
 import math
 import numpy as np
-from bisect import bisect
+from bisect import bisect_left
 from functools import lru_cache
 from datetime import datetime as Datetime
 from datetime import timedelta as Timedelta
@@ -43,26 +41,6 @@ logger = logging.getLogger(__name__)
 
 def get_layer_by_id(layer_id):
     return QgsProject.instance().mapLayer(layer_id)
-
-
-def copy_layer_into_memory_layer(source_layer, layer_name):
-    source_provider = source_layer.dataProvider()
-
-    uri = "{0}?crs=EPSG:{1}".format(
-        QgsWkbTypes.displayString(source_provider.wkbType()).lstrip("WKB"),
-        str(source_provider.crs().postgisSrid()),
-    )
-
-    dest_layer = QgsVectorLayer(uri, layer_name, "memory")
-    dest_provider = dest_layer.dataProvider()
-
-    dest_provider.addAttributes(source_provider.fields())
-    dest_layer.updateFields()
-
-    dest_provider.addFeatures([f for f in source_provider.getFeatures()])
-    dest_layer.updateExtents()
-
-    return dest_layer
 
 
 def strip_agg_options(param: str) -> str:
@@ -544,7 +522,7 @@ class MapAnimator(QGroupBox):
             # determine timestep number for current parameter
             current_seconds = current_delta.total_seconds()
             parameter_timestamps = threedi_result.get_timestamps(parameter)
-            timestep_nr = bisect(parameter_timestamps, current_seconds)
+            timestep_nr = bisect_left(parameter_timestamps, current_seconds)
             timestep_nr = min(timestep_nr, parameter_timestamps.size - 1)
 
             values_t0 = threedi_result.get_values_by_timestep_nr(parameter, 0)
