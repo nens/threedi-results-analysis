@@ -47,6 +47,10 @@ NODE_TYPES_2D_GROUNDWATER = {
     NodeType.NODE_2D_GROUNDWATER_BOUNDARIES,
     NodeType.NODE_2D_GROUNDWATER,
 }
+NODE_TYPES_BOUNDARIES = {
+    NodeType.NODE_1D_BOUNDARIES,
+    NodeType.NODE_2D_BOUNDARIES,
+}
 
 logger = logging.getLogger(__name__)
 
@@ -357,12 +361,11 @@ class WaterBalanceCalculation(object):
                 flow_lines["1d_2d_exch"].append(line["id"])
 
         # find boundaries in polygon
+        node_types_csv = ",".join(str(n.value) for n in NODE_TYPES_BOUNDARIES)
         request_filter = (
             QgsFeatureRequest()
             .setFilterRect(wb_polygon.get().boundingBox())
-            .setFilterExpression(
-                u'"type" = ' u"'1d_bound' or \"type\" = " u"'2d_bound'"
-            )
+            .setFilterExpression(f"node_type in ({node_types_csv})")
         )
 
         # all boundaries in polygon
@@ -370,19 +373,18 @@ class WaterBalanceCalculation(object):
             if wb_polygon.contains(QgsPointXY(bound.geometry().asPoint())):
                 # find link connected to boundary
                 request_filter_bound = QgsFeatureRequest().setFilterExpression(
-                    u'"start_node_idx" = '
-                    u"'{idx}' or \"end_node_idx\" ="
-                    u" '{idx}'".format(idx=bound["id"])
+                    f"calculation_node_id_start == {bound.id()} OR"
+                    f"calculation_node_id_end == {bound.id()}"
                 )
                 bound_lines = lines.getFeatures(request_filter_bound)
                 for bound_line in bound_lines:
-                    if bound_line["start_node_idx"] == bound["id"]:
-                        if bound["type"] == "1d_bound":
+                    if bound_line["calculation_node_id_start"] == bound["id"]:
+                        if bound["node_type"] == NODE_1D_BOUNDARIES:
                             flow_lines["1d_bound_in"].append(bound_line["id"])
                         else:  # 2d
                             flow_lines["2d_bound_in"].append(bound_line["id"])
                     else:  # out
-                        if bound["type"] == "1d_bound":
+                        if bound["node_type"] == NODE_1D_BOUNDARIES:
                             flow_lines["1d_bound_out"].append(bound_line["id"])
                         else:  # 2d
                             flow_lines["2d_bound_out"].append(bound_line["id"])
