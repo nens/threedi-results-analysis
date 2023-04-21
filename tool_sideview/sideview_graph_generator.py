@@ -39,14 +39,13 @@ class SideViewGraphGenerator():
         graph_layer.updateFields()
 
         # Retrieve 1D lines from gridadmin
-        lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2").data
+        lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2", "dpumax").data
         lines_1d_data = {k: v.tolist() for (k, v) in lines_1d_data.items()}  # convert to native python items
 
         lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
         lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
 
         # As we already subset the list, we do not need to skip the first nan-element
-        last_index = 0
         number_of_lines = len(lines_1d_data["line_coords"][0])
         for count in range(number_of_lines):  # line_coords is transposed
             feat = QgsFeature()
@@ -93,10 +92,9 @@ class SideViewGraphGenerator():
                     node_2 = ga.nodes.filter(id=node_id_2)
                     start_level = np.min([node_1.dmax[0], node_2.dmax[0]]).item()
                     end_level = start_level
-                    if line_type == LineType.ORIFICE:
-                        crest_level = ga.lines.orifices.filter(id=lines_1d_data["id"][count]).crest_level[0].item()
-                    if line_type == LineType.WEIR:
-                        crest_level = ga.lines.weirs.filter(id=lines_1d_data["id"][count]).crest_level[0].item()
+                    # crest_level is input, can be corrected due to incorrect node bottom levels -> use dpumax
+                    # crest_level = ga.lines.orifices.filter(id=lines_1d_data["id"][count]).crest_level[0].item()
+                    crest_level = lines_1d_data["dpumax"][count]
 
                 # Note that id (count) is the flowline index in Python (0-based indexing)
                 feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height, crest_level])
@@ -125,29 +123,6 @@ class SideViewGraphGenerator():
                 progress_bar.set_value((count / number_of_lines) * 100.0)
                 if not pr.addFeature(feat):
                     logger.error(f"Unable to add feature: {pr.lastError()}")
-
-            last_index = count  # noqa
-
-        # # Pumps are not part of lines, add as well.
-        # pump_coords = ga.pumps.node_coordinates.transpose()[1:].tolist()  # drop nan-element
-        # node1_ids = ga.pumps.node1_id[1:].tolist()
-        # node2_ids = ga.pumps.node2_id[1:].tolist()
-
-        # # TODO: Retrieve this info
-        # start_level = 3.0
-        # end_level = 3.0
-        # start_height = 3.0
-        # end_height = 3.0
-        # for count, pump_coord in enumerate(pump_coords):
-        #     feat = QgsFeature()
-
-        #     p1 = QgsPointXY(pump_coord[0], pump_coord[1])
-        #     p2 = QgsPointXY(pump_coord[2], pump_coord[3])
-        #     geom = QgsGeometry.fromPolylineXY([p1, p2])
-        #     feat.setGeometry(geom)
-
-        #     feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None, LineType.PUMP, start_level, end_level, start_height, end_height])
-        #     features.append(feat)
 
         graph_layer.updateExtents()
         return graph_layer

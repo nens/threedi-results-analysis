@@ -111,7 +111,7 @@ class SideViewMapVisualisation(object):
                             )
 
                         length = distance_on_line * conversion_factor
-                        # Note that interpolate() uses absolute weight (instead of normalized)
+                        # Note that interpolate() uses absolute length (instead of normalized weight)
                         point = part[4].geometry().interpolate(length)
                         if point.isEmpty():
                             return
