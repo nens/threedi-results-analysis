@@ -22,7 +22,7 @@ from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from qgis.utils import iface
-from bisect import bisect
+from bisect import bisect_left
 import logging
 import numpy as np
 import os
@@ -435,7 +435,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         current_delta = (current_datetime - begin_datetime)
         current_seconds = current_delta.total_seconds()
         parameter_timestamps = threedi_result.get_timestamps("s1")
-        timestamp_nr = bisect(parameter_timestamps, current_seconds)
+        timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
         timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
 
         # timestamp_nr = 1
