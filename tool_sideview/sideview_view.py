@@ -62,7 +62,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         pen = pg.mkPen(color=QColor(200, 200, 200), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(100, 100, 100), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -87,10 +86,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(208, 240, 192), width=1)
         self.orifice_middle_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-
-        pen = pg.mkPen(color=QColor(200, 200, 0), width=4)
-        self.pump_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.pump_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(0, 200, 0), width=2, style=Qt.DashLine)
         self.exchange_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -126,11 +121,14 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.absolute_top, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
         )
 
+        self.sewer_top_fill = pg.FillBetweenItem(
+            self.exchange_plot, self.sewer_upper_plot, pg.mkBrush(200, 200, 200)
+        )
+
         self.addItem(self.water_fill)
         self.addItem(self.bottom_fill)
-
+        self.addItem(self.sewer_top_fill)
         self.addItem(self.bottom_plot)
-        self.addItem(self.upper_plot)
         self.addItem(self.sewer_bottom_plot)
         self.addItem(self.sewer_upper_plot)
         self.addItem(self.channel_bottom_plot)
@@ -141,8 +139,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.weir_upper_plot)
         self.addItem(self.orifice_bottom_plot)
         self.addItem(self.orifice_upper_plot)
-        self.addItem(self.pump_bottom_plot)
-        self.addItem(self.pump_upper_plot)
         self.addItem(self.water_level_plot)
 
         self.addItem(self.orifice_full_fill)
@@ -151,6 +147,17 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.weir_opening_fill)
 
         self.addItem(self.exchange_plot)
+
+        # Set the z-order of the curves (note that fill take minimum of its two defining curve as z-value)
+        self.water_level_plot.setZValue(100)  # always visible
+        self.exchange_plot.setZValue(100)
+        self.orifice_full_fill.setZValue(20)
+        self.orifice_opening_fill.setZValue(21)
+        self.weir_full_fill.setZValue(20)
+        self.weir_opening_fill.setZValue(21)
+        self.bottom_fill.setZValue(3)
+        self.sewer_top_fill.setZValue(3)
+        self.water_fill.setZValue(0)
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
@@ -291,6 +298,8 @@ class SideViewPlotWidget(pg.PlotWidget):
             x_max = max([point[0] for point in bottom_line])
             self.absolute_bottom.setData(np.array([(x_min, -10000), (x_max, -10000)], dtype=float), connect="finite")
             self.absolute_top.setData(np.array([(x_min, 10000), (x_max, 10000)], dtype=float), connect="finite")
+            # draw exchange line
+            self.exchange_plot.setData(np.array(top_line, dtype=float), connect="finite")
 
             logger.error(f"Bottom Points: {bottom_line}")
 
@@ -302,15 +311,15 @@ class SideViewPlotWidget(pg.PlotWidget):
                 LineType.WEIR: [],
                 LineType.ORIFICE: [],
             }
-            last_type = None
+
             for point in bottom_line:
                 ptype = point[2]
-
-                if ptype != last_type:
-                    if last_type is not None:
-                        # add nan point to make gap in line
-                        tables[ptype].append((point[0], np.nan))
-                    last_type = ptype
+                # Discontinuous lines are not always filled correctly: don't use
+                # if ptype != last_type:
+                #     if last_type is not None:
+                #         # add nan point to make gap in line
+                #         tables[ptype].append((point[0], np.nan))
+                #     last_type = ptype
                 tables[ptype].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in bottom_line], dtype=float)
@@ -321,7 +330,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.culvert_bottom_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="finite")
             self.weir_bottom_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
             self.orifice_bottom_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
-            self.pump_bottom_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
             tables = {
                 LineType.PIPE: [],
@@ -331,25 +339,15 @@ class SideViewPlotWidget(pg.PlotWidget):
                 LineType.WEIR: [],
                 LineType.ORIFICE: [],
             }
-            last_type = None
+
             for point in upper_line:
-                ptype = point[2]
-
-                if ptype != last_type:
-                    if last_type is not None:
-                        tables[ptype].append((point[0], np.nan))
-                    last_type = ptype
-                tables[ptype].append((point[0], point[1]))
-
-            ts_table = np.array([(b[0], b[1]) for b in upper_line], dtype=float)
-            self.upper_plot.setData(ts_table, connect="finite")
+                tables[point[2]].append((point[0], point[1]))
 
             self.sewer_upper_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="finite")
             self.channel_upper_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="finite")
             self.culvert_upper_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="finite")
             self.weir_upper_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
             self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
-            self.pump_upper_plot.setData(np.array(tables[LineType.PUMP], dtype=float), connect="finite")
 
             tables = {
                 LineType.PIPE: [],
@@ -359,34 +357,25 @@ class SideViewPlotWidget(pg.PlotWidget):
                 LineType.WEIR: [],
                 LineType.ORIFICE: [],
             }
-            last_type = None
-            for point in middle_line:
-                ptype = point[2]
 
-                if ptype != last_type:
-                    if last_type is not None:
-                        tables[ptype].append((point[0], np.nan))
-                    last_type = ptype
-                tables[ptype].append((point[0], point[1]))
+            for point in middle_line:
+                tables[point[2]].append((point[0], point[1]))
+
             self.weir_middle_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
             self.orifice_middle_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
-
-            # draw exchange line
-            self.exchange_plot.setData(np.array(top_line, dtype=float), connect="finite")
 
             # reset water level line
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
 
             # Only let specific set of plots determine range
-            self.autoRange(items=[self.bottom_plot, self.upper_plot, self.water_level_plot])
+            self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
 
             self.profile_route_updated.emit()
         else:
             # reset sideview
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.bottom_plot.setData(ts_table)
-            self.upper_plot.setData(ts_table)
             self.sewer_bottom_plot.setData(ts_table)
             self.sewer_upper_plot.setData(ts_table)
             self.channel_bottom_plot.setData(ts_table)
@@ -399,8 +388,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_bottom_plot.setData(ts_table)
             self.orifice_upper_plot.setData(ts_table)
             self.orifice_middle_plot.setData(ts_table)
-            self.pump_bottom_plot.setData(ts_table)
-            self.pump_upper_plot.setData(ts_table)
             self.exchange_plot.setData(ts_table)
 
             self.water_level_plot.setData(ts_table)
