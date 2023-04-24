@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QProgressDialog
 
+import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import importlib
 import logging
 import os

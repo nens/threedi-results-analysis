@@ -2,13 +2,20 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.6 (unreleased)
-----------------
+2.5.2 (unreleased)
+------------------
 
 - Bump threedi-schema to at least 0.216.2
 - Bump SQLAlchemy to 2.0.6
 - Bump threedidepth to 0.5
 - Bump hydxlib to 1.5.*
+
+
+2.5.1 (2023-04-11)
+------------------
+
+- Temporary pinned threedi-schema on bugfix version to deal with dropped sqlalchemy 1.3 support.
+- Fixed import issue with setuptools/importlib
 
 
 2.5 (2023-02-06)
