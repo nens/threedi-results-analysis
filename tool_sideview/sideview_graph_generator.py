@@ -1,5 +1,5 @@
 from pathlib import Path
-from qgis.core import QgsVectorLayer, QgsFeature
+from qgis.core import QgsVectorLayer, QgsFeature, NULL
 from qgis.core import QgsGeometry, QgsPointXY, QgsField
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedi_results_analysis.tool_sideview.utils import LineType
@@ -17,7 +17,7 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def generate_layer(gridadmin_file: Path, progress_bar: StatusProgressBar) -> QgsVectorLayer:
-        # Retrieve lines from gridadmin
+
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
         graph_layer = QgsVectorLayer(f"LineString?crs=EPSG:{ga.epsg_code}&index=yes", "graph_layer", "memory")
@@ -31,19 +31,21 @@ class SideViewGraphGenerator():
                           QgsField("start_level", QVariant.Double),
                           QgsField("end_level", QVariant.Double),
                           QgsField("start_height", QVariant.Double),
-                          QgsField("end_height", QVariant.Double)])
+                          QgsField("end_height", QVariant.Double),
+                          QgsField("crest_level", QVariant.Double)
+                          ])
 
         # Tell the vector layer to fetch changes from the provider
         graph_layer.updateFields()
 
-        lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2").data
+        # Retrieve 1D lines from gridadmin
+        lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2", "dpumax").data
         lines_1d_data = {k: v.tolist() for (k, v) in lines_1d_data.items()}  # convert to native python items
 
         lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
         lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
 
         # As we already subset the list, we do not need to skip the first nan-element
-        last_index = 0
         number_of_lines = len(lines_1d_data["line_coords"][0])
         for count in range(number_of_lines):  # line_coords is transposed
             feat = QgsFeature()
@@ -79,6 +81,7 @@ class SideViewGraphGenerator():
                     height = 0.0
                 start_height = height
                 end_height = height
+                crest_level = NULL
 
                 if line_type == LineType.PIPE or line_type == LineType.CULVERT:
                     start_level = lines_1d_data["invert_level_start_point"][count]
@@ -89,11 +92,12 @@ class SideViewGraphGenerator():
                     node_2 = ga.nodes.filter(id=node_id_2)
                     start_level = np.min([node_1.dmax[0], node_2.dmax[0]]).item()
                     end_level = start_level
-
-                # logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
+                    # crest_level is input, can be corrected due to incorrect node bottom levels -> use dpumax
+                    # crest_level = ga.lines.orifices.filter(id=lines_1d_data["id"][count]).crest_level[0].item()
+                    crest_level = lines_1d_data["dpumax"][count]
 
                 # Note that id (count) is the flowline index in Python (0-based indexing)
-                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
+                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height, crest_level])
                 progress_bar.set_value((count / number_of_lines) * 100.0)
                 if not pr.addFeature(feat):
                     logger.error(f"Unable to add feature: {pr.lastError()}")
@@ -115,33 +119,10 @@ class SideViewGraphGenerator():
                 if not math.isnan(end_upper_level):
                     end_height = (end_upper_level - end_bottom_level)
 
-                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_bottom_level, end_bottom_level, start_height, end_height])
+                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_bottom_level, end_bottom_level, start_height, end_height, NULL])
                 progress_bar.set_value((count / number_of_lines) * 100.0)
                 if not pr.addFeature(feat):
                     logger.error(f"Unable to add feature: {pr.lastError()}")
-
-            last_index = count  # noqa
-
-        # # Pumps are not part of lines, add as well.
-        # pump_coords = ga.pumps.node_coordinates.transpose()[1:].tolist()  # drop nan-element
-        # node1_ids = ga.pumps.node1_id[1:].tolist()
-        # node2_ids = ga.pumps.node2_id[1:].tolist()
-
-        # # TODO: Retrieve this info
-        # start_level = 3.0
-        # end_level = 3.0
-        # start_height = 3.0
-        # end_height = 3.0
-        # for count, pump_coord in enumerate(pump_coords):
-        #     feat = QgsFeature()
-
-        #     p1 = QgsPointXY(pump_coord[0], pump_coord[1])
-        #     p2 = QgsPointXY(pump_coord[2], pump_coord[3])
-        #     geom = QgsGeometry.fromPolylineXY([p1, p2])
-        #     feat.setGeometry(geom)
-
-        #     feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None, LineType.PUMP, start_level, end_level, start_height, end_height])
-        #     features.append(feat)
 
         graph_layer.updateExtents()
         return graph_layer
@@ -173,12 +154,13 @@ class SideViewGraphGenerator():
             if math.isnan(upper_level):
                 height = 0.0
             else:
-                # This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
+                # TODO: This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
+                if (nodes_all["node_type"][count] not in [1, 2, 5, 6]):
+                    assert upper_level >= bottom_level
+
                 if upper_level < bottom_level:
-                    logger.error(f"Derived upper level of node is below bottom level for node {node_id}")
+                    # logger.warning(f"Derived upper level of node is below bottom level for node {node_id}")
                     upper_level, bottom_level = bottom_level, upper_level
-                # if (nodes_all["node_type"][count] not in [1, 2, 5, 6]):
-                #    assert upper_level >= bottom_level
 
                 height = (upper_level-bottom_level)
 
