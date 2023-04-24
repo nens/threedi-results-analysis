@@ -2,6 +2,7 @@ from qgis.analysis import QgsGraphAnalyzer
 from qgis.analysis import QgsGraphBuilder
 from qgis.analysis import QgsNetworkDistanceStrategy
 from qgis.analysis import QgsNetworkStrategy
+from qgis.analysis import QgsVectorLayerDirector
 from qgis.core import QgsFeature
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsField
@@ -15,9 +16,6 @@ from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import QgsProject
 from qgis.core import QgsRectangle
-from qgis.core import QgsUnitTypes
-from qgis.core import QgsDistanceArea
-from threedi_results_analysis.utils.utils import python_value
 
 
 class AttributeProperter(QgsNetworkStrategy):
@@ -41,58 +39,29 @@ class AttributeProperter(QgsNetworkStrategy):
         return attributes
 
 
-class CustomDistancePropeter(QgsNetworkStrategy):
-    """custom properter for graph layer"""
-
-    def __init__(self):
-        QgsNetworkStrategy.__init__(self)
-
-    def cost(self, distance, feature):
-        value = feature["real_length"]
-        if python_value(value) is None:
-            # provided distance is not correct, so do a correct calculation
-            # value = distance
-            d = QgsDistanceArea()
-            length = d.measureLength(feature.geometry())
-            unit = d.lengthUnits()
-            conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
-                unit, QgsUnitTypes.DistanceMeters
-            )
-            value = length * conversion_factor
-            # value, unit = d.convertMeasurement(
-            #     feature.geometry().length(),
-            #     Qgis.Degrees, Qgis.Meters, False)
-        return value
-
-    def requiredAttributes(self):
-        # Must be a list of the attribute indexes (int), not strings:
-        attributes = []
-        return attributes
-
-
 class Route(object):
     def __init__(
         self,
         line_layer,
-        director,
         weight_properter=QgsNetworkDistanceStrategy(),
         distance_properter=QgsNetworkDistanceStrategy(),
         id_field="ROWID",
     ):
 
         self.line_layer = line_layer
-        self.director = director
+        # A search graph is constructed using a so-called Director.
+        # Don't use information about road direction from attributes, all edges are treated as two-ways
+        self.director = QgsVectorLayerDirector(self.line_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth)
         self.id_field = id_field
         self.id_field_index = self.line_layer.fields().lookupField(self.id_field)
 
-        # build graph for network
+        # It is necessary to create a strategy for calculating edge properties.
         properter_1 = weight_properter
         properter_2 = distance_properter
         properter_3 = AttributeProperter(self.id_field, self.id_field_index)
         self.director.addStrategy(properter_1)
         self.director.addStrategy(properter_2)
         self.director.addStrategy(properter_3)
-        # self.director.addStrategy(QgsNetworkDistanceStrategy())
         crs = self.line_layer.crs()
         self.builder = QgsGraphBuilder(crs)
         self.director.makeGraph(self.builder, [])
@@ -118,6 +87,7 @@ class Route(object):
         :return: tuple (boolean: successful added to path,
                         string: message)
         """
+        # retrieve vertex index from qgs point
         id_point = self.graph.findVertex(qgs_point)
         if not id_point:
             return False, "point is not on a vertex of the route graph"
