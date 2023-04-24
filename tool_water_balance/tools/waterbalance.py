@@ -444,10 +444,12 @@ class WaterBalanceCalculation(object):
             wb_polygon.get().boundingBox()
         )
         node_types = set()
-        if model_part == "1d" or model_part is None:
-            node_types |= NODE_TYPES_1D
-        if model_part == "2d" or model_part is None:
-            node_types |= NODE_TYPES_2D | NODE_TYPES_2D_GROUNDWATER
+        if model_part == "1d":
+            node_types = NODE_TYPES_1D
+        elif model_part == "2d":
+            node_types = NODE_TYPES_2D | NODE_TYPES_2D_GROUNDWATER
+        else:
+            node_types = NODE_TYPES_1D | NODE_TYPES_2D | NODE_TYPES_2D_GROUNDWATER
         node_types_csv = ",".join(str(n.value) for n in node_types)
         request_filter.setFilterExpression(f"node_type in ({node_types_csv})")
         # todo: check if boundary nodes could not have rain, infiltration, etc.

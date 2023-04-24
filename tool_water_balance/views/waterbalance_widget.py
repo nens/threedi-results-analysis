@@ -707,7 +707,6 @@ class WaterBalanceWidget(QDockWidget):
 
         # TODO: is this a good default?
         # initially turn on tool
-        self.__current_calc = None  # cache the results of calculation
         self.wb_highlight = None
         self.wb_polygon = None
 

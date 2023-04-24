@@ -399,11 +399,6 @@ def test_waterbalance_closure(
     t1 = min(timesteps)
     t2 = max(timesteps)
 
-    wb_widget.wb_polygon = wb_polygon
-    # always use domain '1d and 2d' to get all flows in the barchart
-    wb_barchart_modelpart = "1d and 2d"
-    timesteps, ts_series = wb_widget.calc_wb_barchart(wb_barchart_modelpart)
-
     io_series_net = wb_widget._get_io_series_net()
     io_series_2d = wb_widget._get_io_series_2d()
     io_series_2d_groundwater = wb_widget._get_io_series_2d_groundwater()
