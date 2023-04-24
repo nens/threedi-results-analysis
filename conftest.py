@@ -5,8 +5,12 @@ can have also have such files in subdirectories. The fixtures in this file
 *stay* available there, except when you override them.
 
 """
+from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
 
 from threedi_results_analysis import PLUGIN_DIR
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 
 import os
 import pytest
@@ -25,9 +29,9 @@ def fix_import_mechanism():
 
 fix_import_mechanism()  # Needs to be called right away.
 
-data_dir = PLUGIN_DIR / "tests" / "data"
-bergermeer_dir = data_dir / "testmodel" / "v2_bergermeer"
-results_3di_path = bergermeer_dir / "results_3di.nc"
+DATA_DIR = PLUGIN_DIR / "tests" / "data"
+BERGERMEER_DIR = DATA_DIR / "testmodel" / "v2_bergermeer"
+RESULTS_3DI_PATH = BERGERMEER_DIR / "results_3di.nc"
 
 
 @pytest.fixture()
@@ -41,7 +45,7 @@ def threedi_result():
     # Late import, otherwise we get circular import errors.
     from threedi_results_analysis.datasource.threedi_results import ThreediResult
 
-    return ThreediResult(file_path=results_3di_path)
+    return ThreediResult(file_path=RESULTS_3DI_PATH)
 
 
 @pytest.fixture()
@@ -54,7 +58,7 @@ def ts_datasources(tmp_path):
     # Late import, otherwise we get circular import errors.
     from threedi_results_analysis.tool_result_selection.models import TimeseriesDatasourceModel
 
-    shutil.copytree(bergermeer_dir, tmp_path / "v2_bergermeer")
+    shutil.copytree(BERGERMEER_DIR, tmp_path / "v2_bergermeer")
     copied_results_3di_path = tmp_path / "v2_bergermeer" / "results_3di.nc"
     result = TimeseriesDatasourceModel()
     test_values = {
@@ -65,3 +69,24 @@ def ts_datasources(tmp_path):
     }
     result.insertRows([test_values])
     return result
+
+
+@pytest.fixture()
+def three_di_result_item(tmp_path):
+    """ Result pointing to the bergermeer test model. """
+    shutil.copytree(BERGERMEER_DIR, tmp_path / "v2_bergermeer")
+
+    path_gpkg = tmp_path / "v2_bergermeer" / "gridadmin.gpkg"
+    path_nc = tmp_path / "v2_bergermeer" / "results_3di.nc"
+    grid = ThreeDiGridItem(path=path_gpkg, text="foo")
+    result = ThreeDiResultItem(path=path_nc)
+    grid.appendRow(result)
+
+    gpkg_layers = {"Node": "node", "Flowline": "flowline"}
+    for layer_name, table_name in gpkg_layers.items():
+        layer_uri = f"{grid.path}|layername={table_name}"
+        vector_layer = QgsVectorLayer(layer_uri, layer_name, "ogr")
+        grid.layer_ids[table_name] = vector_layer.id()
+        QgsProject.instance().addMapLayer(vector_layer)
+
+    yield result

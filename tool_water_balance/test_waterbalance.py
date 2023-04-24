@@ -7,6 +7,7 @@ from qgis.core import QgsProject
 from threedi_results_analysis.tests.test_init import TEST_DATA_DIR
 from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initialized
 from threedi_results_analysis.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
+from threedi_results_analysis.tool_water_balance.tools.waterbalance import ResultHelper
 from threedi_results_analysis.tool_water_balance.views import waterbalance_widget
 
 import mock
@@ -27,27 +28,57 @@ LINKS_EXPECTED = (
         "1d_out": [],
         "1d_bound_in": [],
         "1d_bound_out": [],
-        "2d_in": [1557, 3689, 3690, 3710, 4879, 6573, 8900, 8901, 8964, 10314],
-        "2d_out": [3730, 4895, 5348, 10347, 10369],
+        "2d_in": [
+            3710,
+            6573,
+            10314,
+            1557,
+            8964,
+            8900,
+            8901,
+            3689,
+            3690,
+            4879,
+        ],
+        "2d_out": [
+            10369,
+            5348,
+            4895,
+            3730,
+            10347,
+        ],
         "2d_bound_in": [],
         "2d_bound_out": [],
         "1d__1d_2d_flow": [],
         "2d__1d_2d_flow": [],
         "1d_2d_exch": [30649, 31654],
         "2d_groundwater_in": [
-            17968,
-            20100,
-            20101,
-            20121,
-            21290,
             22984,
-            25311,
-            25312,
+            17968,
             25375,
             26725,
+            20121,
+            25311,
+            25312,
+            20100,
+            20101,
+            21290,
         ],
-        "2d_groundwater_out": [20141, 21306, 21759, 26758, 26780],
-        "2d_vertical_infiltration": [11591, 11592, 12503, 12504, 12517, 14931],
+        "2d_groundwater_out": [
+            26780,
+            21306,
+            20141,
+            21759,
+            26758,
+        ],
+        "2d_vertical_infiltration": [
+            14931,
+            11591,
+            12517,
+            12503,
+            12504,
+            11592,
+        ],
     },
     {"in": [], "out": []},
 )
@@ -101,7 +132,6 @@ def _helper_calculate_agg_flow(aggregated_flows, input_serie_id):
 @pytest.fixture
 def wb_polygon():
     """WaterBalancePolyon is to select links, nodes, pumps from model schematisation"""
-    POINTS_IN_WGS84 = True
     polygon_points = [
         QgsPointXY(4.70635793604164299, 52.64214387449186461),
         QgsPointXY(4.70644905107772882, 52.64329192394655621),
@@ -111,25 +141,25 @@ def wb_polygon():
         QgsPointXY(4.70635793604164299, 52.64214387449186461),
     ]
     polygon = QgsGeometry.fromPolygonXY([polygon_points])
-    if not POINTS_IN_WGS84:
-        tr = QgsCoordinateTransform(
-            QgsCoordinateReferenceSystem(
-                28992, QgsCoordinateReferenceSystem.PostgisCrsId
-            ),
-            QgsCoordinateReferenceSystem(
-                4326, QgsCoordinateReferenceSystem.PostgisCrsId
-            ),
-            QgsProject.instance(),
-        )
-        polygon.transform(tr)
+    tr = QgsCoordinateTransform(
+        QgsCoordinateReferenceSystem(
+            4326, QgsCoordinateReferenceSystem.PostgisCrsId
+        ),
+        QgsCoordinateReferenceSystem(
+            28992, QgsCoordinateReferenceSystem.PostgisCrsId
+        ),
+        QgsProject.instance(),
+    )
+    polygon.transform(tr)
     assert polygon.isGeosValid(), "polygon is GeoInvalid. WaterBalance tests will fail"
     return polygon
 
 
 @pytest.fixture()
-def wb_calculation(ts_datasources):
+def wb_calculation(three_di_result_item):
+    result = ResultHelper(three_di_result_item)
     ensure_qgis_app_is_initialized()
-    wb_calculation = WaterBalanceCalculation(ts_datasources)
+    wb_calculation = WaterBalanceCalculation(result=result)
     return wb_calculation
 
 
@@ -215,13 +245,15 @@ def test_get_aggregated_flows_2d_and_1d(progress_bar_mock, wb_calculation):
 
 @pytest.fixture()
 @mock.patch(
-    "threedi_results_analysis.tool_water_balance.views.waterbalance_widget.PolygonDrawTool"
+    "threedi_results_analysis.tool_water_balance.views.waterbalance_widget.SelectPolygonTool"
 )
-def wb_widget(mock_it, ts_datasources, wb_calculation):
+def wb_widget(pt, wb_calculation):
     ensure_qgis_app_is_initialized()
     iface = mock.Mock()
     wb_widget = waterbalance_widget.WaterBalanceWidget(
-        iface=iface, ts_datasources=ts_datasources, wb_calc=wb_calculation
+        "3Di water balance",
+        iface=iface,
+        calc=wb_calculation,
     )
     return wb_widget
 
@@ -366,11 +398,6 @@ def test_waterbalance_closure(
     timesteps, time_series = waterbalance_widget_timeseries
     t1 = min(timesteps)
     t2 = max(timesteps)
-
-    wb_widget.wb_polygon = wb_polygon
-    # always use domain '1d and 2d' to get all flows in the barchart
-    wb_barchart_modelpart = "1d and 2d"
-    timesteps, ts_series = wb_widget.calc_wb_barchart(wb_barchart_modelpart)
 
     io_series_net = wb_widget._get_io_series_net()
     io_series_2d = wb_widget._get_io_series_2d()

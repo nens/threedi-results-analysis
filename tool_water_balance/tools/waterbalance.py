@@ -1,31 +1,90 @@
-from qgis.core import QgsFeatureRequest
-from qgis.core import QgsPointXY
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QMessageBox
-from threedi_results_analysis.datasource.threedi_results import find_h5_file
-from threedi_results_analysis.tool_water_balance.views.waterbalance_widget import (
-    WaterBalanceWidget, NotSynchronizedTimestampsError,
-)
-from threedigrid.admin.gridadmin import GridH5Admin
-
-import os
 import logging
+import os
+
 import numpy as np
 import numpy.ma as ma
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsPointXY
+from qgis.core import QgsProject
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QMessageBox
+from threedigrid_builder.constants import LineType
+from threedigrid_builder.constants import NodeType
+
+from ..views.waterbalance_widget import WaterBalanceWidget
+from ..views.waterbalance_widget import NotSynchronizedTimestampsError
 
 NO_ENDPOINT_ID = -9999
+
+LINE_TYPES_1D = {
+    LineType.LINE_1D_EMBEDDED,
+    LineType.LINE_1D_ISOLATED,
+    LineType.LINE_1D_CONNECTED,
+    LineType.LINE_1D_LONG_CRESTED,
+    LineType.LINE_1D_SHORT_CRESTED,
+    LineType.LINE_1D_DOUBLE_CONNECTED,
+}
+LINE_TYPES_1D2D = {
+    LineType.LINE_1D2D_SINGLE_CONNECTED_CLOSED,
+    LineType.LINE_1D2D_SINGLE_CONNECTED_OPEN_WATER,
+    LineType.LINE_1D2D_DOUBLE_CONNECTED_CLOSED,
+    LineType.LINE_1D2D_DOUBLE_CONNECTED_OPEN_WATER,
+    LineType.LINE_1D2D_POSSIBLE_BREACH,
+    LineType.LINE_1D2D_ACTIVE_BREACH,
+    LineType.LINE_1D2D_GROUNDWATER,
+    58,  # Also LINE_1D2D_GROUNDWATER?
+}
+NODE_TYPES_1D = {
+    NodeType.NODE_1D_NO_STORAGE,
+    NodeType.NODE_1D_STORAGE,
+    NodeType.NODE_1D_BOUNDARIES,
+}
+NODE_TYPES_2D = {
+    NodeType.NODE_2D_OPEN_WATER,
+    NodeType.NODE_2D_BOUNDARIES,
+}
+NODE_TYPES_2D_GROUNDWATER = {
+    NodeType.NODE_2D_GROUNDWATER_BOUNDARIES,
+    NodeType.NODE_2D_GROUNDWATER,
+}
+NODE_TYPES_BOUNDARIES = {
+    NodeType.NODE_1D_BOUNDARIES,
+    NodeType.NODE_2D_BOUNDARIES,
+}
 
 logger = logging.getLogger(__name__)
 
 
-class WaterBalanceCalculation(object):
-    def __init__(self, ts_datasources):
-        self.ts_datasources = ts_datasources
+class ResultHelper:
+    def __init__(self, result):
+        self.result = result
 
-        # gridadmin
-        nc_path = self.ts_datasources.rows[0].threedi_result().file_path
-        h5 = find_h5_file(nc_path)
-        ga = GridH5Admin(h5)
+    def _get_layer_by_name(self, layer_name):
+        layer_id = self.result.parent().layer_ids[layer_name]
+        return QgsProject.instance().mapLayer(layer_id)
+
+    @property
+    def lines(self):
+        return self._get_layer_by_name('flowline')
+
+    @property
+    def points(self):
+        return self._get_layer_by_name('node')
+
+    @property
+    def pumps(self):
+        return None  # TODO
+
+    @property
+    def threedi_result(self):
+        return self.result.threedi_result
+
+
+class WaterBalanceCalculation(object):
+    def __init__(self, result):
+        self.result = result
+
+        ga = self.result.threedi_result.gridadmin
 
         # total nr of x-dir (horizontal in topview) 2d lines
         nr_2d_x_dir = ga.get_from_meta("liutot")
@@ -120,7 +179,9 @@ class WaterBalanceCalculation(object):
         }
         pump_selection = {"in": [], "out": []}
 
-        lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
+        lines = self.result.lines
+        points = self.result.points
+        pumps = self.result.pumps
 
         # all links in and out
         # use bounding box and spatial index to prefilter lines
@@ -128,8 +189,9 @@ class WaterBalanceCalculation(object):
             wb_polygon.get().boundingBox()
         )
         for line in lines.getFeatures(request_filter):
+            line_type = line.attribute('line_type')
 
-            if line["type"] == "2d_vertical_infiltration":
+            if line_type == LineType.LINE_2D_VERTICAL:
                 geom = line.geometry().asPolyline()
                 # 2d vertical infiltration line is handmade diagonal (drawn
                 # from 2d point 15m towards south-west ). Thus, if at-least
@@ -152,38 +214,24 @@ class WaterBalanceCalculation(object):
                     # polygon
                     pass
                 elif outgoing:
-                    if line["type"] in [
-                        "1d",
-                        "v2_pipe",
-                        "v2_channel",
-                        "v2_culvert",
-                        "v2_orifice",
-                        "v2_weir",
-                    ]:
+                    if line_type in LINE_TYPES_1D:
                         flow_lines["1d_out"].append(line["id"])
-                    elif line["type"] in ["1d_2d"]:
+                    elif line_type in LINE_TYPES_1D2D:
                         # draw direction of 1d_2d is always from 2d node to
                         # 1d node. So when 2d node is inside polygon (and 1d
                         # node is not) we define it as a '2d__1d_2d_flow' link
                         # because
                         flow_lines["2d__1d_2d_flow"].append(line["id"])
                 elif incoming:
-                    if line["type"] in [
-                        "1d",
-                        "v2_pipe",
-                        "v2_channel",
-                        "v2_culvert",
-                        "v2_orifice",
-                        "v2_weir",
-                    ]:
+                    if line_type in LINE_TYPES_1D:
                         flow_lines["1d_in"].append(line["id"])
-                    elif line["type"] in ["1d_2d"]:
+                    elif line_type in LINE_TYPES_1D2D:
                         # draw direction of 1d_2d is always from 2d node to
                         # 1d node. So when 1d node is inside polygon (and 2d
                         # node is not) we define it as a '1d__1d_2d_flow' link
                         flow_lines["1d__1d_2d_flow"].append(line["id"])
 
-                if line["type"] in ["2d"] and not (incoming and outgoing):
+                if line_type == LineType.LINE_2D and not (incoming and outgoing):
                     # 2d lines are a separate story: discharge on a 2d
                     # link in the nc can be positive and negative during 1
                     # simulation - like you would expect - but we also have
@@ -274,7 +322,7 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines["2d_out"].append(line["id"])
 
-                if line["type"] in ["2d_groundwater"] and not (incoming and outgoing):
+                if line_type == LineType.LINE_2D_GROUNDWATER and not (incoming and outgoing):
 
                     start_x = geom[0][0]
                     start_y = geom[0][1]
@@ -309,16 +357,15 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines["2d_groundwater_out"].append(line["id"])
 
-            elif line["type"] == "1d_2d" and line.geometry().within(wb_polygon):
+            elif line_type in LINE_TYPES_1D2D and line.geometry().within(wb_polygon):
                 flow_lines["1d_2d_exch"].append(line["id"])
 
         # find boundaries in polygon
+        node_types_csv = ",".join(str(n.value) for n in NODE_TYPES_BOUNDARIES)
         request_filter = (
             QgsFeatureRequest()
             .setFilterRect(wb_polygon.get().boundingBox())
-            .setFilterExpression(
-                u'"type" = ' u"'1d_bound' or \"type\" = " u"'2d_bound'"
-            )
+            .setFilterExpression(f"node_type in ({node_types_csv})")
         )
 
         # all boundaries in polygon
@@ -326,19 +373,18 @@ class WaterBalanceCalculation(object):
             if wb_polygon.contains(QgsPointXY(bound.geometry().asPoint())):
                 # find link connected to boundary
                 request_filter_bound = QgsFeatureRequest().setFilterExpression(
-                    u'"start_node_idx" = '
-                    u"'{idx}' or \"end_node_idx\" ="
-                    u" '{idx}'".format(idx=bound["id"])
+                    f"calculation_node_id_start == {bound.id()} OR"
+                    f"calculation_node_id_end == {bound.id()}"
                 )
                 bound_lines = lines.getFeatures(request_filter_bound)
                 for bound_line in bound_lines:
-                    if bound_line["start_node_idx"] == bound["id"]:
-                        if bound["type"] == "1d_bound":
+                    if bound_line["calculation_node_id_start"] == bound["id"]:
+                        if bound["node_type"] == NODE_1D_BOUNDARIES:
                             flow_lines["1d_bound_in"].append(bound_line["id"])
                         else:  # 2d
                             flow_lines["2d_bound_in"].append(bound_line["id"])
                     else:  # out
-                        if bound["type"] == "1d_bound":
+                        if bound["node_type"] == NODE_1D_BOUNDARIES:
                             flow_lines["1d_bound_out"].append(bound_line["id"])
                         else:  # 2d
                             flow_lines["2d_bound_out"].append(bound_line["id"])
@@ -393,30 +439,31 @@ class WaterBalanceCalculation(object):
 
         nodes = {"1d": [], "2d": [], "2d_groundwater": []}
 
-        lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
-
         # use bounding box and spatial index to prefilter lines
         request_filter = QgsFeatureRequest().setFilterRect(
             wb_polygon.get().boundingBox()
         )
+        node_types = set()
         if model_part == "1d":
-            request_filter.setFilterExpression(u"\"type\" = '1d'")
+            node_types = NODE_TYPES_1D
         elif model_part == "2d":
-            request_filter.setFilterExpression(
-                u"\"type\" = '2d' OR \"type\" = '2d_groundwater'"
-            )
+            node_types = NODE_TYPES_2D | NODE_TYPES_2D_GROUNDWATER
         else:
-            request_filter.setFilterExpression(
-                u'"type" = \'1d\' OR "type" ' u"= '2d' OR \"type\" = '2d_groundwater'"
-            )
+            node_types = NODE_TYPES_1D | NODE_TYPES_2D | NODE_TYPES_2D_GROUNDWATER
+        node_types_csv = ",".join(str(n.value) for n in node_types)
+        request_filter.setFilterExpression(f"node_type in ({node_types_csv})")
         # todo: check if boundary nodes could not have rain, infiltration, etc.
 
-        for point in points.getFeatures(request_filter):
+        node_type_map = {}
+        node_type_map.update({n.value: "1d" for n in NODE_TYPES_1D})
+        node_type_map.update({n.value: "2d" for n in NODE_TYPES_2D})
+        node_type_map.update({n.value: "2d_groundwater"
+                              for n in NODE_TYPES_2D_GROUNDWATER})
+
+        for point in self.result.points.getFeatures(request_filter):
             # test if points are contained by polygon
             if wb_polygon.contains(point.geometry()):
-                _type = point["type"]
-                nodes[_type].append(point["id"])
-
+                nodes[node_type_map[point['node_type']]].append(point.id())
         return nodes
 
     def get_aggregated_flows(self, link_ids, pump_ids, node_ids, model_part):
@@ -536,8 +583,7 @@ class WaterBalanceCalculation(object):
             np_link["ntype"] != TYPE_2D_VERTICAL_INFILTRATION
         )
 
-        active_ts_datasource = self.ts_datasources.rows[0]
-        threedi_result = active_ts_datasource.threedi_result()
+        threedi_result = self.result.threedi_result
 
         # get all flows through incoming and outgoing flows
         ts = threedi_result.get_timestamps(parameter="q_cum")
@@ -867,7 +913,7 @@ class WaterBalanceCalculation(object):
 class WaterBalanceTool(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasources):
+    def __init__(self, iface, model):
         """Constructor.
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
@@ -876,14 +922,12 @@ class WaterBalanceTool(object):
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        self.ts_datasources = ts_datasources
+        self.model = model
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "icons", "weight-scale.png")
         self.menu_text = u"Water Balance Tool"
 
-        self.plugin_is_active = False
         self.widget = None
-
         self.toolbox = None
 
     def on_unload(self):
@@ -924,9 +968,8 @@ class WaterBalanceTool(object):
         )
         QMessageBox.warning(None, header, msg)
 
-    def pop_up_missing_agg_vars(self):
+    def pop_up_missing_agg_vars(self, missing_vars):
         header = "Error: Missing aggregation settings"
-        missing_vars = self.get_missing_agg_vars()
         msg = (
             "The WaterBalanceTool found the 'aggregate_results_3di.nc' but "
             "the file does not include all required aggregation "
@@ -954,7 +997,7 @@ class WaterBalanceTool(object):
         )
         QMessageBox.warning(None, header, msg)
 
-    def get_missing_agg_vars(self):
+    def get_missing_agg_vars(self, threedi_result):
         """Returns a list with tuples of aggregation vars (vol, discharge) +
         methods (cum, current, etc) that are not (but should be) in the
         v2_aggregation_settings
@@ -963,9 +1006,6 @@ class WaterBalanceTool(object):
         2.  some vars methods are required when included in the model
             schematisation (e.g. pumps, laterals).
         """
-
-        active_ts_datasource = self.ts_datasources.rows[0]
-        threedi_result = active_ts_datasource.threedi_result()
         check_available_vars = threedi_result.available_vars
 
         ga = threedi_result.gridadmin
@@ -1048,33 +1088,37 @@ class WaterBalanceTool(object):
         return missing_vars
 
     def run(self):
-        active_ts_datasource = self.ts_datasources.rows[0]
-        threedi_result = active_ts_datasource.threedi_result()
-        if not threedi_result.ds_aggregation:
-            self.pop_up_no_agg_found()
-        elif self.get_missing_agg_vars():
-            self.pop_up_missing_agg_vars()
-        else:
-            self.run_it()
+        # TODO make the tool work for al results - tabbed?
+        results = self.model.get_results(checked_only=False)
+        result = ResultHelper(results[0])
 
-    def run_it(self):
+        aggregate_result_admin = result.threedi_result.aggregate_result_admin
+
+        if aggregate_result_admin is None:
+            return self.pop_up_no_agg_found()
+
+        missing_agg_vars = self.get_missing_agg_vars(result.threedi_result)
+        if missing_agg_vars:
+            self.pop_up_missing_agg_vars(missing_agg_vars)
+            return
+
+        self.run_it(result)
+
+    def run_it(self, result):
         """Run_it method that loads and starts the plugin"""
+        if self.widget is None:
+            # Create the widget (after translation) and keep reference
+            calc = WaterBalanceCalculation(result)
+            self.widget = WaterBalanceWidget(
+                "3Di water balance",
+                iface=self.iface,
+                calc=calc
+            )
 
-        if not self.plugin_is_active:
-            self.plugin_is_active = True
+        # connect to provide cleanup on closing of widget
+        self.widget.closingWidget.connect(self.on_close_child_widget)
 
-            if self.widget is None:
-                # Create the widget (after translation) and keep reference
-                self.widget = WaterBalanceWidget(
-                    iface=self.iface,
-                    ts_datasources=self.ts_datasources,
-                    wb_calc=WaterBalanceCalculation(self.ts_datasources),
-                )
+        # show the #widget
+        self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.widget)
 
-            # connect to provide cleanup on closing of widget
-            self.widget.closingWidget.connect(self.on_close_child_widget)
-
-            # show the #widget
-            self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.widget)
-
-            self.widget.show()
+        self.widget.show()
