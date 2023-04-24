@@ -43,7 +43,6 @@ class Route(object):
     def __init__(
         self,
         line_layer,
-        weight_properter=QgsNetworkDistanceStrategy(),
         distance_properter=QgsNetworkDistanceStrategy(),
         id_field="ROWID",
     ):
@@ -56,12 +55,10 @@ class Route(object):
         self.id_field_index = self.line_layer.fields().lookupField(self.id_field)
 
         # It is necessary to create a strategy for calculating edge properties.
-        properter_1 = weight_properter
-        properter_2 = distance_properter
-        properter_3 = AttributeProperter(self.id_field, self.id_field_index)
+        properter_1 = distance_properter
+        properter_2 = AttributeProperter(self.id_field, self.id_field_index)
         self.director.addStrategy(properter_1)
         self.director.addStrategy(properter_2)
-        self.director.addStrategy(properter_3)
         crs = self.line_layer.crs()
         self.builder = QgsGraphBuilder(crs)
         self.director.makeGraph(self.builder, [])
@@ -181,9 +178,9 @@ class Route(object):
             ).point()
             p.append(point)
 
-            dist = self.graph.edge(self.tree[cur_pos]).strategies()[1]
+            dist = self.graph.edge(self.tree[cur_pos]).strategies()[0]
 
-            id_line = self.graph.edge(self.tree[cur_pos]).strategies()[2]
+            id_line = self.graph.edge(self.tree[cur_pos]).strategies()[1]
 
             filt = u'"%s" = %s' % (self.id_field, str(id_line))
             request = QgsFeatureRequest().setFilterExpression(filt)
@@ -238,8 +235,8 @@ class Route(object):
 
                 feat.setAttributes(
                     [
-                        float(self.graph.edge(branch).strategies()[1]),
-                        int(self.graph.edge(branch).strategies()[2]),
+                        float(self.graph.edge(branch).strategies()[0]),
+                        int(self.graph.edge(branch).strategies()[1]),
                     ]
                 )
                 features.append(feat)
