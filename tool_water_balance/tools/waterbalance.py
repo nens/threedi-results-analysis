@@ -379,12 +379,12 @@ class WaterBalanceCalculation(object):
                 bound_lines = lines.getFeatures(request_filter_bound)
                 for bound_line in bound_lines:
                     if bound_line["calculation_node_id_start"] == bound["id"]:
-                        if bound["node_type"] == NODE_1D_BOUNDARIES:
+                        if bound["node_type"] == NodeType.NODE_1D_BOUNDARIES:
                             flow_lines["1d_bound_in"].append(bound_line["id"])
                         else:  # 2d
                             flow_lines["2d_bound_in"].append(bound_line["id"])
                     else:  # out
-                        if bound["node_type"] == NODE_1D_BOUNDARIES:
+                        if bound["node_type"] == NodeType.NODE_1D_BOUNDARIES:
                             flow_lines["1d_bound_out"].append(bound_line["id"])
                         else:  # 2d
                             flow_lines["2d_bound_out"].append(bound_line["id"])
