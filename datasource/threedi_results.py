@@ -1,4 +1,4 @@
-from cached_property import cached_property
+from functools import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
 from ThreeDiToolbox.datasource.base import BaseDataSource
 from ThreeDiToolbox.datasource.result_constants import LAYER_OBJECT_TYPE_MAPPING

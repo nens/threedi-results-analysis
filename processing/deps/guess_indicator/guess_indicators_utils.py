@@ -42,7 +42,7 @@ class Guesser(object):
             update(Manhole)
             .where(
                 Manhole.connection_node_id.in_(
-                    select([Pumpstation.connection_node_start_id]).correlate()
+                    select(Pumpstation.connection_node_start_id).correlate()
                 )
             )
             .values(manhole_indicator=Constants.MANHOLE_INDICATOR_PUMPSTATION)
@@ -62,7 +62,7 @@ class Guesser(object):
             update(Manhole)
             .where(
                 Manhole.connection_node_id.in_(
-                    select([BoundaryCondition1D.connection_node_id]).correlate()
+                    select(BoundaryCondition1D.connection_node_id).correlate()
                 )
             )
             .values(manhole_indicator=Constants.MANHOLE_INDICATOR_OUTLET)

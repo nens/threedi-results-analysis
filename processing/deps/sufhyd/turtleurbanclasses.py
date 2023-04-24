@@ -255,14 +255,21 @@ class HydroObject(object):
 
     def translateField(self, key, override=None):
         "translate the string field (optionally using override value)"
-
         definition = self.getType(key)
 
+        _type = definition[0]
+        _value = self.fields[key]
+
         try:
-            value = definition[0](self.fields[key].strip())
-        except Exception:
-            logger.exception("TODO broad exception")
+            value = _type(_value)
+        except ValueError:
+            logger.warning(
+                f"Cannot convert value '{_value}' "
+                f"to type '{_type.__name__}';"
+                f"setting field '{key}' to None"
+            )
             value = None
+
         self.__dict__[key] = value
 
     def toSufHyd(self):
