@@ -78,7 +78,7 @@ class SideViewMapVisualisation(object):
         )
 
         """
-
+            Path elements consist of:
                    - begin distance of part (from initial start_point),
                    - end distance of part
                    - Some other distance?
@@ -119,8 +119,6 @@ class SideViewMapVisualisation(object):
                             transform.transform(point.asPoint())
                         )
                         return
-            else:
-                logger.error("Different routepart")
 
     def hover_map(self, point_geometry):
         pass

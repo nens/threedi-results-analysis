@@ -1,5 +1,4 @@
 from functools import reduce
-from qgis.analysis import QgsVectorLayerDirector
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from qgis.core import QgsDateTimeRange
@@ -14,7 +13,7 @@ from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool, CustomDistancePropeter
+from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import LineType
@@ -69,6 +68,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(100, 100, 100), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.sewer_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.sewer_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(50, 50, 50), width=2)
         self.channel_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -125,7 +125,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         self.sewer_top_fill = pg.FillBetweenItem(
-            self.exchange_plot, self.sewer_upper_plot, pg.mkBrush(200, 200, 200)
+            self.sewer_top_plot, self.sewer_upper_plot, pg.mkBrush(200, 200, 200)
         )
 
         self.addItem(self.water_fill)
@@ -134,6 +134,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.bottom_plot)
         self.addItem(self.sewer_bottom_plot)
         self.addItem(self.sewer_upper_plot)
+        self.addItem(self.sewer_top_plot)
         self.addItem(self.channel_bottom_plot)
         self.addItem(self.channel_upper_plot)
         self.addItem(self.culvert_bottom_plot)
@@ -203,24 +204,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                 begin_node = self.node_dict[begin_node_id]
                 end_node = self.node_dict[end_node_id]
 
-                # 1. add point structure (manhole)
-                logger.info(f"node type {begin_node['type']}, manhole: {begin_node['is_manhole']}")
-                logger.info(f"Adding node {begin_node_id} with length: {begin_node['length']}, height: {begin_node['height']} and level: {begin_node['level']}")
-
-                # node_begin_x = begin_dist - 0.5 * begin_node["length"]
-                # node_end_x = begin_dist + 0.5 * begin_node["length"]  # beginning of line
-
-                # if first_node:  # Add closing vertical line at beginning
-                #     bottom_line.append((node_begin_x, begin_node["level"] + begin_node["height"], LineType.PIPE))
-
-                # bottom_line.append((node_begin_x, begin_node["level"], LineType.PIPE))
-                # bottom_line.append((node_end_x, begin_node["level"], LineType.PIPE))
-
-                # upper_line.append((node_begin_x, begin_node["level"] + begin_node["height"], LineType.PIPE))
-                # upper_line.append((node_end_x, begin_node["level"] + begin_node["height"], LineType.PIPE))
-
-                top_line.append((begin_dist, begin_node["level"] + begin_node["height"]))
-
                 # 2 contours based on structure or pipe
                 ltype = feature["type"]
                 if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
@@ -251,38 +234,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                 else:
                     logger.error(f"Unknown line type: {ltype}")
 
-                # 3 Add closing point/manhole (if last segment)
-                if count == (len(route_part)-1):
-                    logger.info(f"Adding closing node {end_node_id} with length: {end_node['length']}, height: {end_node['height']} and level: {end_node['level']}")
-                    # bottom_line.append(
-                    #     (
-                    #         end_dist - 0.5 * end_node["length"],
-                    #         end_node["level"],
-                    #         LineType.PIPE,
-                    #     )
-                    # )
-                    # bottom_line.append(
-                    #     (
-                    #         end_dist + 0.5 * end_node["length"],
-                    #         end_node["level"],
-                    #         LineType.PIPE,
-                    #     )
-                    # )
-                    # upper_line.append(
-                    #     (
-                    #         end_dist - 0.5 * end_node["length"],
-                    #         end_node["level"] + end_node["height"],
-                    #         LineType.PIPE,
-                    #     )
-                    # )
-                    # upper_line.append(
-                    #     (
-                    #         end_dist + 0.5 * end_node["length"],
-                    #         end_node["level"] + end_node["height"],
-                    #         LineType.PIPE,
-                    #     )
-                    # )
-                    top_line.append((end_dist, end_node["level"] + end_node["height"]))
+                top_line.append((begin_dist, begin_node["level"] + begin_node["height"]))
+                top_line.append((end_dist, end_node["level"] + end_node["height"]))
 
                 # store node information for water level line
                 if first_node:
@@ -299,11 +252,8 @@ class SideViewPlotWidget(pg.PlotWidget):
             # Draw data into graph, split lines into seperate parts for the different line types
 
             # determine max and min x value to draw absolute bottom line
-            x_min = min([point[0] for point in bottom_line])
-            x_max = max([point[0] for point in bottom_line])
-            self.absolute_bottom.setData(np.array([(x_min, -10000), (x_max, -10000)], dtype=float), connect="finite")
-            self.absolute_top.setData(np.array([(x_min, 10000), (x_max, 10000)], dtype=float), connect="finite")
-            self.exchange_plot.setData(np.array(top_line, dtype=float), connect="finite")
+            # x_min = min([point[0] for point in bottom_line])
+            # x_max = max([point[0] for point in bottom_line])
 
             tables = {
                 LineType.PIPE: [],
@@ -315,23 +265,37 @@ class SideViewPlotWidget(pg.PlotWidget):
             }
 
             for point in bottom_line:
-                ptype = point[2]
-                # Discontinuous lines are not always filled correctly: don't use
-                # if ptype != last_type:
-                #     if last_type is not None:
-                #         # add nan point to make gap in line
-                #         tables[ptype].append((point[0], np.nan))
-                #     last_type = ptype
-                tables[ptype].append((point[0], point[1]))
+                tables[point[2]].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in bottom_line], dtype=float)
-            self.bottom_plot.setData(ts_table, connect="finite")
+            ts_bottom_table = np.array([(b[0], -10000) for b in bottom_line], dtype=float)
+            ts_top_table = np.array([(b[0], 10000) for b in bottom_line], dtype=float)
+            ts_exchange_table = np.array(top_line, dtype=float)
 
-            self.sewer_bottom_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="finite")
-            self.channel_bottom_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="finite")
-            self.culvert_bottom_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="finite")
-            self.weir_bottom_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
-            self.orifice_bottom_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
+            self.exchange_plot.setData(ts_exchange_table, connect="pairs")
+            self.bottom_plot.setData(ts_table, connect="pairs")
+            self.absolute_bottom.setData(ts_bottom_table, connect="pairs")
+            self.absolute_top.setData(ts_top_table, connect="pairs")
+
+            # pyqtgraph has difficulties with filling between lines consisting of different
+            # number of segments, therefore we need to draw a dedicated sewer-exchange line
+
+            sewer_top_table = []
+            for point in tables[LineType.PIPE]:
+                dist = point[0]
+                # find the corresponding exchange height at this distance
+                for exchange_point in ts_exchange_table:
+                    if exchange_point[0] == dist:
+                        sewer_top_table.append((dist, exchange_point[1]))
+                        break
+
+            self.sewer_top_plot.setData(np.array(sewer_top_table, dtype=float), connect="pairs")
+
+            self.sewer_bottom_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="pairs")
+            self.channel_bottom_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="pairs")
+            self.culvert_bottom_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
+            self.weir_bottom_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
+            self.orifice_bottom_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
 
             tables = {
                 LineType.PIPE: [],
@@ -345,11 +309,11 @@ class SideViewPlotWidget(pg.PlotWidget):
             for point in upper_line:
                 tables[point[2]].append((point[0], point[1]))
 
-            self.sewer_upper_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="finite")
-            self.channel_upper_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="finite")
-            self.culvert_upper_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="finite")
-            self.weir_upper_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
-            self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
+            self.sewer_upper_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="pairs")
+            self.channel_upper_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="pairs")
+            self.culvert_upper_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
+            self.weir_upper_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
+            self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
 
             tables = {
                 LineType.PIPE: [],
@@ -363,8 +327,8 @@ class SideViewPlotWidget(pg.PlotWidget):
             for point in middle_line:
                 tables[point[2]].append((point[0], point[1]))
 
-            self.weir_middle_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="finite")
-            self.orifice_middle_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="finite")
+            self.weir_middle_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
+            self.orifice_middle_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
 
             # draw nodes
             node_table = []
@@ -405,6 +369,9 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
+        if len(self.model.get_results(False)) == 0:
+            return
+
         ds_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS
         if ds_item:
             logger.info("Updating water level cache")
@@ -494,13 +461,12 @@ class SideViewDockWidget(QDockWidget):
         # init class attributes
         self.route_tool_active = False
 
+        # Preprocess graph layer
         progress_bar = StatusProgressBar(100, "3Di Sideview")
         progress_bar.set_value(0, "Creating flowline graph")
-
         self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
         self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
         del progress_bar
-
         QgsProject.instance().addMapLayer(self.graph_layer)
 
         self.side_view_plot_widget = SideViewPlotWidget(
@@ -509,33 +475,26 @@ class SideViewDockWidget(QDockWidget):
             self.model,
         )
         self.main_vlayout.addWidget(self.side_view_plot_widget)
-
         self.active_sideview = self.side_view_plot_widget
 
-        # Init route graph
+        # Init route  (for shortest path)
         self.route = Route(
             self.graph_layer,
-            QgsVectorLayerDirector(self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth),
             id_field="id",
-            weight_properter=CustomDistancePropeter(),
-            distance_properter=CustomDistancePropeter(),
         )
 
-        # link route map tool
+        # Link route map tool (allows node selection)
         self.route_tool = RouteMapTool(
             self.iface.mapCanvas(), self.graph_layer, self.on_route_point_select
         )
-
         self.route_tool.deactivated.connect(self.unset_route_tool)
 
-        self.map_visualisation = SideViewMapVisualisation(
-            self.iface, self.graph_layer.crs()
-        )
+        self.map_visualisation = SideViewMapVisualisation(self.iface, self.graph_layer.crs())
 
         # connect graph hover to point visualisation on map
         self.active_sideview.profile_hovered.connect(self.map_visualisation.hover_graph)
 
-        # add tree layer to map (for fun and testing purposes)
+        # Add tree layer to map (service area, for fun and testing purposes)
         self.vl_tree_layer = self.route.get_virtual_tree_layer()
 
         self.vl_tree_layer.loadNamedStyle(
@@ -611,6 +570,9 @@ class SideViewDockWidget(QDockWidget):
         unloading widget and remove all required stuff
         :return:
         """
+        QgsProject.instance().removeMapLayer(self.graph_layer.id())
+        QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
+
         self.select_sideview_button.clicked.disconnect(self.toggle_route_tool)
         self.reset_sideview_button.clicked.disconnect(self.reset_sideview)
 
@@ -624,11 +586,6 @@ class SideViewDockWidget(QDockWidget):
         self.map_visualisation.close()
 
         self.side_view_plot_widget.on_close()
-
-        # todo: find out how to unload layer from memory (done automic if
-        # there are no references?)
-        QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
-        QgsProject.instance().removeMapLayer(self.graph_layer.id())
 
     def closeEvent(self, event):
         """

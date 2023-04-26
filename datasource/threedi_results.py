@@ -385,9 +385,7 @@ class ThreediResult(BaseDataSource):
                 "TODO: overly broad exception while splitting model_slug. "
                 "Using model_name"
             )
-            return gridadmin.model_name
-
-
+            return self.gridadmin.model_name
 
 
 def find_h5_file(netcdf_file_path):
