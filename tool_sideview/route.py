@@ -43,7 +43,6 @@ class Route(object):
     def __init__(
         self,
         line_layer,
-        distance_properter=QgsNetworkDistanceStrategy(),
         id_field="ROWID",
     ):
 
@@ -55,7 +54,7 @@ class Route(object):
         self.id_field_index = self.line_layer.fields().lookupField(self.id_field)
 
         # It is necessary to create a strategy for calculating edge properties.
-        properter_1 = distance_properter
+        properter_1 = QgsNetworkDistanceStrategy()
         properter_2 = AttributeProperter(self.id_field, self.id_field_index)
         self.director.addStrategy(properter_1)
         self.director.addStrategy(properter_2)
@@ -113,11 +112,6 @@ class Route(object):
             self.set_tree_startpoint(id_point)
 
             return True, "point found and added to path"
-
-    def scan_point(self, qgs_point):
-
-        # returns path, without adding point to path
-        pass
 
     def get_id_of_point(self, qgs_point):
 

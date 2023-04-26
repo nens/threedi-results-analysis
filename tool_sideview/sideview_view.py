@@ -18,7 +18,6 @@ from threedi_results_analysis.tool_sideview.sideview_visualisation import SideVi
 from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.utils.user_messages import statusbar_message
-from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from qgis.utils import iface
 from bisect import bisect_left
@@ -173,7 +172,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.proxy = pg.SignalProxy(
             self.scene().sigMouseMoved, rateLimit=10, slot=self.mouse_hover
         )
-        # self.scene().sigMouseMoved.connect(self.mouse_hover)
 
     def mouse_hover(self, evt):
         mouse_point_x = self.plotItem.vb.mapSceneToView(evt[0]).x()
@@ -187,6 +185,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         middle_line = []  # Typically crest-level
         top_line = []  # exchange level
 
+        h5_file = self.model.get_results(checked_only=False)[0].parent().path
+
         for route_part in route_path:
             logger.error("NEW ROUTE PART")
             first_node = True
@@ -196,29 +196,20 @@ class SideViewPlotWidget(pg.PlotWidget):
                 begin_dist = float(begin_dist)
                 end_dist = float(end_dist)
 
-                begin_node_id = feature["start_node_id"]
-                end_node_id = feature["end_node_id"]
+                begin_node_id = feature["calculation_node_id_start"]
+                end_node_id = feature["calculation_node_id_end"]
                 if direction != 1:
                     begin_node_id, end_node_id = end_node_id, begin_node_id
 
-                begin_node = self.node_dict[begin_node_id]
-                end_node = self.node_dict[end_node_id]
-
                 # 2 contours based on structure or pipe
-                ltype = feature["type"]
-                if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
-                    if direction == 1:
-                        begin_level = feature["start_level"]
-                        end_level = feature["end_level"]
-                        begin_height = feature["start_height"]
-                        end_height = feature["end_height"]
-                    else:
-                        begin_level = feature["end_level"]
-                        end_level = feature["start_level"]
-                        begin_height = feature["end_height"]
-                        end_height = feature["start_height"]
+                begin_level, end_level, begin_height, end_height, crest_level, ltype = SideViewGraphGenerator.retrieve_profile_info_from_flowline(h5_file, feature["id"])
+                if direction != 1:
+                    begin_level, end_level = end_level, begin_level
+                    begin_height, end_height = end_height, begin_height
 
-                    logger.info(f"Adding line {feature['id']} with length: {feature['real_length']}, start_height: {feature['start_height']}, end_height: {feature['end_height']}, start_level: {feature['start_level']}, end_level {feature['end_level']}, crest_level {feature['crest_level']}")
+                if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
+
+                    logger.info(f"Adding line {feature['id']}, start_height: {begin_height}, end_height: {end_height}, start_level: {begin_level}, end_level: {end_level}, crest_level {crest_level}")
 
                     bottom_line.append((begin_dist, begin_level, ltype))
                     bottom_line.append((end_dist, end_level, ltype))
@@ -228,24 +219,26 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                     if (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR):
                         # Orifices and weirs require different visualisation
-                        crest_level = feature["crest_level"]
                         middle_line.append((begin_dist, crest_level, ltype))
                         middle_line.append((end_dist, crest_level, ltype))
                 else:
                     logger.error(f"Unknown line type: {ltype}")
 
-                top_line.append((begin_dist, begin_node["level"] + begin_node["height"]))
-                top_line.append((end_dist, end_node["level"] + end_node["height"]))
+                node_level_1, node_height_1 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, begin_node_id)
+                node_level_2, node_height_2 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, end_node_id)
+
+                top_line.append((begin_dist, node_level_1 + node_height_1))
+                top_line.append((end_dist, node_level_2 + node_height_2))
 
                 # store node information for water level line
                 if first_node:
                     self.sideview_nodes.append(
-                        {"distance": begin_dist, "id": begin_node_id, "height": begin_node["height"], "level": begin_node["level"]}
+                        {"distance": begin_dist, "id": begin_node_id, "height": node_height_1, "level":  node_level_1}
                     )
                     first_node = False
 
                 self.sideview_nodes.append(
-                    {"distance": end_dist, "id": end_node_id, "height": end_node["height"], "level": end_node["level"]}
+                    {"distance": end_dist, "id": end_node_id, "height": node_height_2, "level":  node_level_2}
                 )
 
         if len(route_path) > 0:
@@ -462,26 +455,23 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool_active = False
 
         # Preprocess graph layer
-        progress_bar = StatusProgressBar(100, "3Di Sideview")
-        progress_bar.set_value(0, "Creating flowline graph")
-        self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
-        self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
-        del progress_bar
-        QgsProject.instance().addMapLayer(self.graph_layer)
+        # progress_bar = StatusProgressBar(100, "3Di Sideview")
+        # progress_bar.set_value(0, "Creating flowline graph")
+        # self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
+        # self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
+        self.point_dict = None
+        # del progress_bar
+        # QgsProject.instance().addMapLayer(self.graph_layer)
 
-        self.side_view_plot_widget = SideViewPlotWidget(
-            self,
-            self.point_dict,
-            self.model,
-        )
+        self.side_view_plot_widget = SideViewPlotWidget(self, self.point_dict, self.model)
         self.main_vlayout.addWidget(self.side_view_plot_widget)
         self.active_sideview = self.side_view_plot_widget
 
-        # Init route  (for shortest path)
-        self.route = Route(
-            self.graph_layer,
-            id_field="id",
-        )
+        layer_id = self.model.get_results(checked_only=False)[0].parent().layer_ids["flowline"]
+        self.graph_layer = QgsProject.instance().mapLayer(layer_id)
+
+        # Init route (for shortest path)
+        self.route = Route(self.graph_layer, id_field="id")
 
         # Link route map tool (allows node selection)
         self.route_tool = RouteMapTool(
