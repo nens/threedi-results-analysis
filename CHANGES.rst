@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.5.2 (unreleased)
+2.5.2 (2023-04-26)
 ------------------
 
 - Bump threedi-schema to at least 0.216.2
