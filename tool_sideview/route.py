@@ -17,9 +17,19 @@ from qgis.PyQt.QtCore import QVariant
 from qgis.core import QgsProject
 from qgis.core import QgsRectangle
 
+import logging
+logger = logging.getLogger(__name__)
+
+# class GraphBuilder1D(QgsGraphBuilder):
+#     def __init__(self, crs: QgsCoordinateReferenceSystem, otfEnabled: bool = True, topologyTolerance: float = 0, ellipsoidID: str = ""):
+#         QgsGraphBuilder.__init__(self, crs, otfEnabled, topologyTolerance, ellipsoidID)
+
+#     def addEdge(self, pt1id: int, pt1: QgsPointXY, pt2id: int, pt2: QgsPointXY, prop: Iterable[Any]):
+#         logger.error(prop)  # length and ID
+
 
 class AttributeProperter(QgsNetworkStrategy):
-    """custom properter"""
+    """Strategy that allows setting a specific attribute for cost"""
 
     def __init__(self, attribute, attribute_index):
         QgsNetworkStrategy.__init__(self)
@@ -55,6 +65,8 @@ class Route(object):
 
         # It is necessary to create a strategy for calculating edge properties.
         properter_1 = QgsNetworkDistanceStrategy()
+
+        # This second strategy is used to quickly retrieve the id
         properter_2 = AttributeProperter(self.id_field, self.id_field_index)
         self.director.addStrategy(properter_1)
         self.director.addStrategy(properter_2)
@@ -63,11 +75,12 @@ class Route(object):
         self.director.makeGraph(self.builder, [])
         self.graph = self.builder.graph()
 
+        # Now remove all the non-1D lines
+
         # init class attributes
         self.start_point_tree = None
         self.has_path = False
-        self.cost = []
-        self.tree = []
+        self.tree = []  # Result from Dijkstra
         self.path = []
         self.path_vertexes = []
         self.point_path = []
@@ -131,7 +144,7 @@ class Route(object):
         self.id_start_tree = id_start_point
         self.start_point_tree = self.graph.vertex(id_start_point).point()
 
-        (self.tree, self.cost) = QgsGraphAnalyzer.dijkstra(
+        (self.tree, cost) = QgsGraphAnalyzer.dijkstra(
             self.graph, self.id_start_tree, 0
         )
         self.tree_layer_up_to_date = False
@@ -150,7 +163,7 @@ class Route(object):
                    a list of path line elements, represent as a tuple, with:
                    - begin distance of part (from initial start_point),
                    - end distance of part
-                   - Some other distance?
+                   - Some other distance (length of line?)
                    - direction of path equal to direction of feature definition
                      1 in case ot is, -1 in case it is the opposite direction
                    - feature
@@ -273,7 +286,6 @@ class Route(object):
         """
 
         self.id_start_tree = None
-        # self.id_end = None
         self.start_point_tree = None
         self.cost = []
         self.tree = []
