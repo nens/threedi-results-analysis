@@ -81,7 +81,7 @@ class SideViewMapVisualisation(object):
             Path elements consist of:
                    - begin distance of part (from initial start_point),
                    - end distance of part
-                   - Some other distance?
+                   - segment length
                    - direction of path equal to direction of feature definition
                      1 in case ot is, -1 in case it is the opposite direction
                    - feature

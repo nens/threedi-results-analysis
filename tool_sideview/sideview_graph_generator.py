@@ -1,11 +1,7 @@
 from pathlib import Path
-from qgis.core import QgsVectorLayer, QgsFeature, NULL
-from qgis.core import QgsGeometry, QgsPointXY, QgsField
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.cross_section_utils import CrossSectionShape
-from threedi_results_analysis.utils.user_messages import StatusProgressBar
-from qgis.PyQt.QtCore import QVariant
 import math
 import logging
 import numpy as np
@@ -13,149 +9,96 @@ logger = logging.getLogger(__name__)
 
 
 class SideViewGraphGenerator():
-    """Generates a profile graph based on a gridadmin file"""
-
     @staticmethod
-    def generate_layer(gridadmin_file: Path, progress_bar: StatusProgressBar) -> QgsVectorLayer:
-
+    def retrieve_profile_info_from_flowline(gridadmin_file: Path, flowline_id: int) -> tuple[float, float, float, float, float, int]:
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+        line = ga.lines.filter(id=flowline_id)
 
-        graph_layer = QgsVectorLayer(f"LineString?crs=EPSG:{ga.epsg_code}&index=yes", "graph_layer", "memory")
-        pr = graph_layer.dataProvider()
-
-        pr.addAttributes([QgsField("id", QVariant.Int),
-                          QgsField("start_node_id", QVariant.Int),
-                          QgsField("end_node_id", QVariant.Int),
-                          QgsField("real_length", QVariant.Double),
-                          QgsField("type", QVariant.Int),
-                          QgsField("start_level", QVariant.Double),
-                          QgsField("end_level", QVariant.Double),
-                          QgsField("start_height", QVariant.Double),
-                          QgsField("end_height", QVariant.Double),
-                          QgsField("crest_level", QVariant.Double)
-                          ])
-
-        # Tell the vector layer to fetch changes from the provider
-        graph_layer.updateFields()
-
-        # Retrieve 1D lines from gridadmin
-        lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2", "dpumax").data
-        lines_1d_data = {k: v.tolist() for (k, v) in lines_1d_data.items()}  # convert to native python items
+        start_level = None
+        end_level = None
+        start_height = None
+        end_height = None
+        crest_level = None
 
         lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
         lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
 
-        # As we already subset the list, we do not need to skip the first nan-element
-        number_of_lines = len(lines_1d_data["line_coords"][0])
-        for count in range(number_of_lines):  # line_coords is transposed
-            feat = QgsFeature()
+        line_type = SideViewGraphGenerator.content_type_to_line_type(line.content_type[0].decode())
+        node_id_1 = line.line[0][0]
+        node_id_2 = line.line[1][0]
 
-            p1 = QgsPointXY(lines_1d_data["line_coords"][0][count], lines_1d_data["line_coords"][1][count])
-            p2 = QgsPointXY(lines_1d_data["line_coords"][2][count], lines_1d_data["line_coords"][3][count])
-            geom = QgsGeometry.fromPolylineXY([p1, p2])
-            feat.setGeometry(geom)
+        if line_type == LineType.PIPE or line_type == LineType.CULVERT or line_type == LineType.ORIFICE or line_type == LineType.WEIR:
+            cross1_id = line.cross1[0]
+            cross2_id = line.cross2[0]
+            assert cross1_id == cross2_id  # pipes and culverts have only one cross section definition
+            cross_section = ga.cross_sections.filter(id=cross1_id)
 
-            start_level = None
-            end_level = None
-            start_height = None
-            end_height = None
+            try:
+                height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables)
+            except AttributeError:
+                raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} {cross1_id} {cross1_id} with shape {cross_section.shape[0]} for line {flowline_id}")
 
-            line_type = SideViewGraphGenerator.content_type_to_line_type(lines_1d_data["content_type"][count].decode())
+            if math.isnan(height):  # Not an error, simply not enough information
+                logger.warning(f"Unable to derive cross section height for cross section {cross1_id} with shape {cross_section.shape[0]} for line {flowline_id}, setting height to 0.")
+                height = 0.0
+            start_height = height
+            end_height = height
 
-            node_id_1 = lines_1d_data["line"][0][count]
-            node_id_2 = lines_1d_data["line"][1][count]
-
-            if line_type == LineType.PIPE or line_type == LineType.CULVERT or line_type == LineType.ORIFICE or line_type == LineType.WEIR:
-                cross1_id = lines_1d_data["cross1"][count]
-                cross2_id = lines_1d_data["cross2"][count]
-                assert cross1_id == cross2_id  # pipes and culverts have only one cross section definition
-                cross_section = ga.cross_sections.filter(id=cross1_id)
-
-                try:
-                    height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables)
-                except AttributeError:
-                    raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} {cross1_id} {cross1_id} with shape {cross_section.shape[0]} for line {lines_1d_data['id'][count]}, count {count}, pk: {lines_1d_data['content_pk'][count]}, type: {line_type}, start_level {start_level}, end_level {end_level}, cs_pk {cross_section.content_pk[0]}, width_1d {cross_section.width_1d[0]}")
-
-                if math.isnan(height):  # Not an error, simply not enough information
-                    logger.warning(f"Unable to derive cross section height for cross section {cross1_id} with shape {cross_section.shape[0]} for line {lines_1d_data['id'][count]}, count {count}, pk: {lines_1d_data['content_pk'][count]}, type: {line_type}, setting height to 0.")
-                    height = 0.0
-                start_height = height
-                end_height = height
-                crest_level = NULL
-
-                if line_type == LineType.PIPE or line_type == LineType.CULVERT:
-                    start_level = lines_1d_data["invert_level_start_point"][count]
-                    end_level = lines_1d_data["invert_level_end_point"][count]
-                elif line_type == LineType.ORIFICE or line_type == LineType.WEIR:
-                    # for bottom level, take dmax of adjacent nodes
-                    node_1 = ga.nodes.filter(id=node_id_1)
-                    node_2 = ga.nodes.filter(id=node_id_2)
-                    start_level = np.min([node_1.dmax[0], node_2.dmax[0]]).item()
-                    end_level = start_level
-                    # crest_level is input, can be corrected due to incorrect node bottom levels -> use dpumax
-                    # crest_level = ga.lines.orifices.filter(id=lines_1d_data["id"][count]).crest_level[0].item()
-                    crest_level = lines_1d_data["dpumax"][count]
-
-                # Note that id (count) is the flowline index in Python (0-based indexing)
-                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height, crest_level])
-                progress_bar.set_value((count / number_of_lines) * 100.0)
-                if not pr.addFeature(feat):
-                    logger.error(f"Unable to add feature: {pr.lastError()}")
-
-            elif line_type == LineType.CHANNEL:
-
+            if line_type == LineType.PIPE or line_type == LineType.CULVERT:
+                start_level = line.invert_level_start_point[0].item()
+                end_level = line.invert_level_end_point[0].item()
+            elif line_type == LineType.ORIFICE or line_type == LineType.WEIR:
+                # for bottom level, take dmax of adjacent nodes
                 node_1 = ga.nodes.filter(id=node_id_1)
                 node_2 = ga.nodes.filter(id=node_id_2)
-                start_bottom_level = node_1.dmax[0].item()
-                end_bottom_level = node_2.dmax[0].item()
+                start_level = np.min([node_1.dmax[0], node_2.dmax[0]]).item()
+                end_level = start_level
+                # crest_level is input, can be corrected due to incorrect node bottom levels -> use dpumax
+                # crest_level = ga.lines.orifices.filter(id=lines_1d_data["id"][count]).crest_level[0].item()
+                crest_level = line.dpumax[0].item()
 
-                start_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_1, lines_1d2d_data)
-                end_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_2, lines_1d2d_data)
-                start_height = 0
-                end_height = 0
-                if not math.isnan(start_upper_level):
-                    start_height = (start_upper_level - start_bottom_level)
+        elif line_type == LineType.CHANNEL:
 
-                if not math.isnan(end_upper_level):
-                    end_height = (end_upper_level - end_bottom_level)
+            node_1 = ga.nodes.filter(id=node_id_1)
+            node_2 = ga.nodes.filter(id=node_id_2)
+            start_bottom_level = node_1.dmax[0].item()
+            end_bottom_level = node_2.dmax[0].item()
 
-                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_bottom_level, end_bottom_level, start_height, end_height, NULL])
-                progress_bar.set_value((count / number_of_lines) * 100.0)
-                if not pr.addFeature(feat):
-                    logger.error(f"Unable to add feature: {pr.lastError()}")
+            start_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_1, lines_1d2d_data)
+            end_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_2, lines_1d2d_data)
+            start_height = 0
+            end_height = 0
+            if not math.isnan(start_upper_level):
+                start_height = (start_upper_level - start_bottom_level)
 
-        graph_layer.updateExtents()
-        return graph_layer
+            if not math.isnan(end_upper_level):
+                end_height = (end_upper_level - end_bottom_level)
+
+        return (start_level, end_level, start_height, end_height, crest_level, line_type)
 
     @staticmethod
-    def generate_node_info(gridadmin_file: Path):
+    def retrieve_profile_info_from_node(gridadmin_file: Path, node_id: int) -> tuple[float, float]:
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
-
-        nodes_all = ga.nodes.only("coordinates", "drain_level", "storage_area", "calculation_type", "dmax", "id", "is_manhole", "content_pk", "node_type").data
-        nodes_all = {k: v.tolist() for (k, v) in nodes_all.items()}
 
         lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
         lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
 
-        node_info = {}
-        number_of_nodes = len(nodes_all["coordinates"][0])
-        for count in range(number_of_nodes):
-            node_id = nodes_all["id"][count]
-            length = math.sqrt(nodes_all["storage_area"][count])
-            length = 0.0 if math.isnan(length) else length
+        node = ga.nodes.filter(id=node_id)
+        length = math.sqrt(node.storage_area[0])
+        length = 0.0 if math.isnan(length) else length
 
-            bottom_level = nodes_all["dmax"][count]
-            if not ga.has_2d:
-                upper_level = nodes_all["drain_level"][count]  # can be nan
-            else:
-                upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id, lines_1d2d_data)
+        bottom_level = node.dmax[0]
+        if not ga.has_2d:
+            upper_level = node.drain_level[0].item()  # can be nan
+        else:
+            upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id, lines_1d2d_data)
 
-            height = 0.0
+            height = np.float64(0.0)
             if math.isnan(upper_level):
-                height = 0.0
+                height = np.float64(0.0)
             else:
                 # TODO: This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
-                if (nodes_all["node_type"][count] not in [1, 2, 5, 6]):
+                if (node.node_type[0] not in [1, 2, 5, 6]):
                     assert upper_level >= bottom_level
 
                 if upper_level < bottom_level:
@@ -164,15 +107,7 @@ class SideViewGraphGenerator():
 
                 height = (upper_level-bottom_level)
 
-            node_info[node_id] = {
-                "type": nodes_all["calculation_type"][count],
-                "is_manhole": nodes_all["is_manhole"][count],
-                "level": bottom_level,
-                "height": height,
-                "length": length,
-            }
-
-        return node_info
+        return (bottom_level.item(), height.item())
 
     @staticmethod
     def content_type_to_line_type(content_type: str) -> int:
