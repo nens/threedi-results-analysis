@@ -39,12 +39,18 @@ class ThreeDiSideView(QObject):
             widget.close()
 
     @pyqtSlot(ThreeDiGridItem)
-    def grid_added(self, item: ThreeDiGridItem):
+    def grid_added(self, _: ThreeDiGridItem):
         self.action_icon.setEnabled(self.model.number_of_grids() > 0)
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_removed(self, _: ThreeDiGridItem):
         self.action_icon.setEnabled(self.model.number_of_grids() > 0)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_changed(self, item: ThreeDiGridItem):
+        for i in range(0, len(self.dock_widgets)):
+            widget = self.dock_widgets[i]
+            widget.grid_changed(item)
 
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevels(self, qgs_dt_range: QgsDateTimeRange):

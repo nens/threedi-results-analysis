@@ -19,6 +19,7 @@ from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
 from qgis.utils import iface
 from bisect import bisect_left
 import logging
@@ -453,7 +454,6 @@ class SideViewDockWidget(QDockWidget):
 
         self.side_view_plot_widget = SideViewPlotWidget(self, self.model)
         self.main_vlayout.addWidget(self.side_view_plot_widget)
-        self.active_sideview = self.side_view_plot_widget
 
         layer_id = self.model.get_results(checked_only=False)[0].parent().layer_ids["flowline"]
         self.graph_layer = QgsProject.instance().mapLayer(layer_id)
@@ -470,7 +470,7 @@ class SideViewDockWidget(QDockWidget):
         self.map_visualisation = SideViewMapVisualisation(self.iface, self.graph_layer.crs())
 
         # connect graph hover to point visualisation on map
-        self.active_sideview.profile_hovered.connect(self.map_visualisation.hover_graph)
+        self.side_view_plot_widget.profile_hovered.connect(self.map_visualisation.hover_graph)
 
         # Add tree layer to map (service area, for fun and testing purposes)
         self.vl_tree_layer = self.route.get_virtual_tree_layer()
@@ -488,6 +488,10 @@ class SideViewDockWidget(QDockWidget):
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
         self.side_view_plot_widget.update_waterlevel(qgs_dt_range)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_changed(self, item: ThreeDiGridItem):
+        self.setWindowTitle(f"3Di Sideview Plot: {item.text()}")
 
     def unset_route_tool(self):
         if self.route_tool_active:
@@ -535,14 +539,14 @@ class SideViewDockWidget(QDockWidget):
             statusbar_message(msg)
             return
 
-        self.active_sideview.set_sideprofile(self.route.path)
+        self.side_view_plot_widget.set_sideprofile(self.route.path)
         self.map_visualisation.set_sideview_route(self.route)
 
     def reset_sideview(self):
         self.route.reset()
         self.map_visualisation.reset()
 
-        self.active_sideview.set_sideprofile([])
+        self.side_view_plot_widget.set_sideprofile([])
 
     def on_close(self):
         """
@@ -558,7 +562,7 @@ class SideViewDockWidget(QDockWidget):
 
         self.unset_route_tool()
 
-        self.active_sideview.profile_hovered.disconnect(
+        self.side_view_plot_widget.profile_hovered.disconnect(
             self.map_visualisation.hover_graph
         )
         self.map_visualisation.close()
@@ -593,7 +597,7 @@ class SideViewDockWidget(QDockWidget):
         self.button_bar_hlayout = QHBoxLayout(self)
 
         # add title to graph
-        self.setWindowTitle(f"3Di Sideview Plot {self.nr}")
+        self.setWindowTitle(f"3Di Sideview Plot {self.nr}: ")
 
         self.select_sideview_button = QPushButton("Choose sideview trajectory", self.dock_widget_content)
         self.select_sideview_button.setObjectName("SelectedSideview")
