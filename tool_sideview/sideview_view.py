@@ -338,6 +338,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             # reset sideview
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.bottom_plot.setData(ts_table)
+            self.sewer_top_plot.setData(ts_table)
             self.sewer_bottom_plot.setData(ts_table)
             self.sewer_upper_plot.setData(ts_table)
             self.channel_bottom_plot.setData(ts_table)
@@ -532,6 +533,7 @@ class SideViewDockWidget(QDockWidget):
 
         if not success:
             statusbar_message(msg)
+            return
 
         self.active_sideview.set_sideprofile(self.route.path)
         self.map_visualisation.set_sideview_route(self.route)
