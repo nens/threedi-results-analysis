@@ -39,7 +39,6 @@ class SideViewPlotWidget(pg.PlotWidget):
     def __init__(
         self,
         parent=None,
-        point_dict=None,
         model=None,
     ):
         """
@@ -49,9 +48,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         super().__init__(parent)
 
         self.model = model
-
-        self.node_dict = point_dict
-
         self.sideview_nodes = []
 
         self.showGrid(True, True, 0.5)
@@ -454,16 +450,7 @@ class SideViewDockWidget(QDockWidget):
         # init class attributes
         self.route_tool_active = False
 
-        # Preprocess graph layer
-        # progress_bar = StatusProgressBar(100, "3Di Sideview")
-        # progress_bar.set_value(0, "Creating flowline graph")
-        # self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
-        # self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
-        self.point_dict = None
-        # del progress_bar
-        # QgsProject.instance().addMapLayer(self.graph_layer)
-
-        self.side_view_plot_widget = SideViewPlotWidget(self, self.point_dict, self.model)
+        self.side_view_plot_widget = SideViewPlotWidget(self, self.model)
         self.main_vlayout.addWidget(self.side_view_plot_widget)
         self.active_sideview = self.side_view_plot_widget
 
@@ -471,7 +458,7 @@ class SideViewDockWidget(QDockWidget):
         self.graph_layer = QgsProject.instance().mapLayer(layer_id)
 
         # Init route (for shortest path)
-        self.route = Route(self.graph_layer, id_field="id")
+        self.route = Route(self.graph_layer)
 
         # Link route map tool (allows node selection)
         self.route_tool = RouteMapTool(
@@ -560,7 +547,6 @@ class SideViewDockWidget(QDockWidget):
         unloading widget and remove all required stuff
         :return:
         """
-        QgsProject.instance().removeMapLayer(self.graph_layer.id())
         QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
 
         self.select_sideview_button.clicked.disconnect(self.toggle_route_tool)

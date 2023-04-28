@@ -20,15 +20,8 @@ from qgis.core import QgsRectangle
 import logging
 logger = logging.getLogger(__name__)
 
-# class GraphBuilder1D(QgsGraphBuilder):
-#     def __init__(self, crs: QgsCoordinateReferenceSystem, otfEnabled: bool = True, topologyTolerance: float = 0, ellipsoidID: str = ""):
-#         QgsGraphBuilder.__init__(self, crs, otfEnabled, topologyTolerance, ellipsoidID)
 
-#     def addEdge(self, pt1id: int, pt1: QgsPointXY, pt2id: int, pt2: QgsPointXY, prop: Iterable[Any]):
-#         logger.error(prop)  # length and ID
-
-
-class AttributeProperter(QgsNetworkStrategy):
+class AttributeStrategy(QgsNetworkStrategy):
     """Strategy that allows setting a specific attribute for cost"""
 
     def __init__(self, attribute, attribute_index):
@@ -37,48 +30,46 @@ class AttributeProperter(QgsNetworkStrategy):
         self.attribute_index = attribute_index
 
     def cost(self, distance, feature):
-        if self.attribute == "ROWID":
-            value = feature.id()
-        else:
-            value = feature[self.attribute]
-        return value
+        return feature[self.attribute]
 
     def requiredAttributes(self):
         # Must be a list of the attribute indexes (int), not strings:
-        attributes = [self.attribute_index]
-        return attributes
+        return [self.attribute_index]
 
 
 class Route(object):
     def __init__(
         self,
         line_layer,
-        id_field="ROWID",
     ):
 
-        self.line_layer = line_layer
+        # Make a copy of the line layer containing only 1D lines, and use that to create the graph
+        features_1d = [f for f in line_layer.getFeatures() if f["line_type"] in (0, 1, 2, 3, 4, 5)]
+        self.graph_layer = QgsVectorLayer(f"linestring?crs={line_layer.crs().authid()}", "graph_lines", "memory")
+        self.graph_layer.startEditing()
+        self.graph_layer.dataProvider().addAttributes(line_layer.dataProvider().fields().toList())
+        self.graph_layer.updateFields()
+        self.graph_layer.dataProvider().addFeatures(features_1d)
+        self.graph_layer.commitChanges()
+        QgsProject.instance().addMapLayer(self.graph_layer, True)
+
         # A search graph is constructed using a so-called Director.
         # Don't use information about road direction from attributes, all edges are treated as two-ways
-        self.director = QgsVectorLayerDirector(self.line_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth)
-        self.id_field = id_field
-        self.id_field_index = self.line_layer.fields().lookupField(self.id_field)
+        self.director = QgsVectorLayerDirector(self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth)
+        self.id_field = "id"
+        self.id_field_index = self.graph_layer.fields().lookupField(self.id_field)
 
         # It is necessary to create a strategy for calculating edge properties.
-        properter_1 = QgsNetworkDistanceStrategy()
-
+        self.director.addStrategy(QgsNetworkDistanceStrategy())
         # This second strategy is used to quickly retrieve the id
-        properter_2 = AttributeProperter(self.id_field, self.id_field_index)
-        self.director.addStrategy(properter_1)
-        self.director.addStrategy(properter_2)
-        crs = self.line_layer.crs()
-        self.builder = QgsGraphBuilder(crs)
+        self.director.addStrategy(AttributeStrategy(self.id_field, self.id_field_index))
+        self.builder = QgsGraphBuilder(line_layer.crs())
         self.director.makeGraph(self.builder, [])
         self.graph = self.builder.graph()
 
-        # Now remove all the non-1D lines
-
         # init class attributes
         self.start_point_tree = None
+        self.id_start_tree = None
         self.has_path = False
         self.tree = []  # Result from Dijkstra
         self.path = []
@@ -86,8 +77,10 @@ class Route(object):
         self.point_path = []
         self.tree_layer_up_to_date = False
         self._virtual_tree_layer = None
-
         self.path_points = []
+
+    def get_graph_layer(self) -> QgsVectorLayer:
+        return self.graph_layer
 
     def add_point(self, qgs_point):
         """
@@ -98,7 +91,7 @@ class Route(object):
         """
         # retrieve vertex index from qgs point
         id_point = self.graph.findVertex(qgs_point)
-        if not id_point:
+        if id_point == -1:
             return False, "point is not on a vertex of the route graph"
         else:
             distance = 0
@@ -138,6 +131,7 @@ class Route(object):
         :return:
         """
         if id_start_point == -1:
+            logger.error("No valid point found")
             return False, "No valid point found"
 
         # else create tree from this tree startpoint
@@ -172,6 +166,7 @@ class Route(object):
 
         # check if end_point is connected to start point
         if self.tree[id_end_point] == -1:
+            logger.error("Path not found")
             return False, "Path not found", None
 
         # else continue finding path
@@ -185,13 +180,12 @@ class Route(object):
             ).point()
             p.append(point)
 
-            dist = self.graph.edge(self.tree[cur_pos]).strategies()[0]
-
-            id_line = self.graph.edge(self.tree[cur_pos]).strategies()[1]
+            dist = self.graph.edge(self.tree[cur_pos]).cost(0)
+            id_line = self.graph.edge(self.tree[cur_pos]).cost(1)
 
             filt = u'"%s" = %s' % (self.id_field, str(id_line))
             request = QgsFeatureRequest().setFilterExpression(filt)
-            feature = next(self.line_layer.getFeatures(request))
+            feature = next(self.graph_layer.getFeatures(request))
 
             if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):
                 # current point on tree (end point of this line) is equal to
@@ -221,12 +215,12 @@ class Route(object):
 
         if not self._virtual_tree_layer:
             # not yet created
-            return True
+            return
 
         if self.tree_layer_up_to_date:
-            # layer already up to date
-            return True
+            return
 
+        logger.info("Updating virtual tree")
         ids = [feat.id() for feat in self._virtual_tree_layer.getFeatures()]
         self._virtual_tree_layer.dataProvider().deleteFeatures(ids)
 
@@ -242,8 +236,8 @@ class Route(object):
 
                 feat.setAttributes(
                     [
-                        float(self.graph.edge(branch).strategies()[0]),
-                        int(self.graph.edge(branch).strategies()[1]),
+                        float(self.graph.edge(branch).cost(0)),
+                        int(self.graph.edge(branch).cost(1)),
                     ]
                 )
                 features.append(feat)
@@ -252,7 +246,6 @@ class Route(object):
         self._virtual_tree_layer.commitChanges()
         self._virtual_tree_layer.updateExtents()
         self._virtual_tree_layer.triggerRepaint()
-        return True
 
     def get_virtual_tree_layer(self):
         """
@@ -264,7 +257,7 @@ class Route(object):
         if not self._virtual_tree_layer:
 
             self._virtual_tree_layer = QgsVectorLayer(
-                f"linestring?crs={self.line_layer.crs().authid()}", "temporary_lines", "memory"
+                f"linestring?crs={self.graph_layer.crs().authid()}", "temporary_lines", "memory"
             )
 
             self._virtual_tree_layer.dataProvider().addAttributes(
@@ -282,7 +275,6 @@ class Route(object):
     def reset(self):
         """
         reset found route
-        :return:
         """
 
         self.id_start_tree = None

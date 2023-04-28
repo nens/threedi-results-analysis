@@ -93,9 +93,9 @@ class SideViewGraphGenerator():
         else:
             upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id, lines_1d2d_data)
 
-            height = 0.0
+            height = np.float64(0.0)
             if math.isnan(upper_level):
-                height = 0.0
+                height = np.float64(0.0)
             else:
                 # TODO: This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
                 if (node.node_type[0] not in [1, 2, 5, 6]):
