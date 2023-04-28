@@ -61,18 +61,18 @@ class SideViewGraphGenerator():
 
             node_1 = ga.nodes.filter(id=node_id_1)
             node_2 = ga.nodes.filter(id=node_id_2)
-            start_bottom_level = node_1.dmax[0].item()
-            end_bottom_level = node_2.dmax[0].item()
+            start_level = node_1.dmax[0].item()
+            end_level = node_2.dmax[0].item()
 
             start_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_1, lines_1d2d_data)
             end_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_2, lines_1d2d_data)
             start_height = 0
             end_height = 0
             if not math.isnan(start_upper_level):
-                start_height = (start_upper_level - start_bottom_level)
+                start_height = (start_upper_level - start_level)
 
             if not math.isnan(end_upper_level):
-                end_height = (end_upper_level - end_bottom_level)
+                end_height = (end_upper_level - end_level)
 
         return (start_level, end_level, start_height, end_height, crest_level, line_type)
 
