@@ -15,7 +15,6 @@ from qgis.core import QgsVectorLayer
 from qgis.core import NULL
 from sqlalchemy import create_engine
 from sqlalchemy import func
-from sqlalchemy import text
 from sqlalchemy import MetaData
 from sqlalchemy import text
 from sqlalchemy.event import listen
