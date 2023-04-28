@@ -3,7 +3,6 @@ from osgeo import ogr
 from qgis.PyQt.QtCore import QSettings
 from sqlalchemy import create_engine
 from sqlalchemy.event import listen
-# from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.sql import text
 

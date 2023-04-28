@@ -47,11 +47,10 @@ DEPENDENCIES = [
     Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2"),
-    Dependency("threedigrid", "threedigrid", "==2.0.3"),
-    Dependency("threedi-schema", "threedi_schema", ">=0.216.2"),
+    Dependency("threedigrid", "threedigrid", ">=2.0.3"),
+    Dependency("threedi-schema", "threedi_schema", "==0.216.4"),
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.1.0"),
     Dependency("threedidepth", "threedidepth", "==0.5"),
-    Dependency("h5netcdf", "h5netcdf", ""),
     Dependency("click", "click", ">=8.0"),
     Dependency("cftime", "cftime", ">=1.5.0"),  # via threedigrid[results]
     Dependency("alembic", "alembic", "==1.8.*"),
@@ -62,6 +61,7 @@ DEPENDENCIES = [
         "zipp", "zipp", ""
     ),  # backward compat. alembic
     Dependency("Mako", "mako", ""),
+    Dependency("cftime", "cftime", ">=1.5.0"),  # threedigrid[results]
     Dependency("packaging", "packaging", ""),
     Dependency("greenlet", "greenlet", "!=0.4.17"),
     Dependency("typing-extensions", "typing_extensions", ">=4.2.0"),
@@ -73,6 +73,7 @@ DEPENDENCIES = [
     Dependency("Shapely", "shapely", ">=2.0.0"),
     Dependency("threedigrid_builder", "threedigrid_builder", ">=1.10.0"),
     Dependency("hydxlib", "hydxlib", "==1.5.*"),
+    Dependency("h5netcdf", "h5netcdf", ""),
 ]
 
 # Dependencies that contain compiled extensions for windows platform

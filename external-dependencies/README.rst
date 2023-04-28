@@ -74,7 +74,6 @@ two exceptions:
         ``pip3 wheel -w . --no-binary=h5py --no-deps h5py==2.10.0``
   On linux, it means ``apt install python3-h5py``.
 
-
 Our dependency handling
 -----------------------
 

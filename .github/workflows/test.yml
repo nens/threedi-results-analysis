@@ -18,20 +18,8 @@ jobs:
       # Checkout the code.
       - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: cache
-        with:
-          path: ~/docker-cache
-          key: ${{ hashFiles('docker-compose.yml', 'Dockerfile', 'requirements-dev.txt', 'constraints.txt') }}
-
       - name: build
-        run: |
-          # If the docker cache is still valid, use the cached docker image.
-          scripts/cache-ok.sh && \
-          cat ~/docker-cache/our-image.tar | docker load || true
-          # Rebuild the docker image, but only if the docker cache isn't valid anymore.
-          scripts/cache-ok.sh || \
-          docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
+        run: docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
 
       - name: test
         run: |
@@ -42,14 +30,6 @@ jobs:
           docker-compose run qgis-desktop make zip
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-
-      - name: store cache, if needed
-        run: |
-          df -h
-          docker image ls
-          # mkdir -p ~/docker-cache
-          # scripts/cache-ok.sh || docker save threeditoolbox_qgis-desktop > ~/docker-cache/our-image.tar
-          # scripts/cache-ok.sh || scripts/create-checksum.sh
 
       - name: Publish package
         if: startsWith(github.event.ref, 'refs/tags')

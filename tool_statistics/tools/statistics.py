@@ -17,6 +17,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import text
 from sqlalchemy import MetaData
+from sqlalchemy import text
 from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 from sqlite3 import dbapi2

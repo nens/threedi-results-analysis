@@ -471,12 +471,7 @@ class Importer(object):
 
         con_list = (
             session.query(ConnectionNode)
-            .options(
-                load_only(
-                    ConnectionNode.id,
-                    ConnectionNode.code,
-                )
-            )
+            .options(load_only(ConnectionNode.id, ConnectionNode.code))
             .order_by(ConnectionNode.id)
             .all()
         )
@@ -700,12 +695,7 @@ class Importer(object):
 
         imp_list = (
             session.query(ImperviousSurface)
-            .options(
-                load_only(
-                    ImperviousSurface.id,
-                    ImperviousSurface.code,
-                )
-            )
+            .options(load_only(ImperviousSurface.id, ImperviousSurface.code))
             .order_by(ImperviousSurface.id)
             .all()
         )

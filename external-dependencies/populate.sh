@@ -13,7 +13,6 @@ rm -rf build
 
 # Download pure python dependencies and convert them to wheels.
 pip3 wheel --constraint ../constraints.txt --no-deps \
-packaging \
 GeoAlchemy2 \
 alembic \
 cached-property \
