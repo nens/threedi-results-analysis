@@ -174,6 +174,25 @@ class SideViewPlotWidget(pg.PlotWidget):
         mouse_point_x = self.plotItem.vb.mapSceneToView(evt[0]).x()
         self.profile_hovered.emit(mouse_point_x)
 
+    @staticmethod
+    def aggregate_route_parts(route_part):
+        for count, (begin_dist, end_dist, _, direction, feature) in enumerate(route_part):
+            if count == 0:
+                last_feature = feature
+                feature_begin_dist = begin_dist
+                feature_end_dist = end_dist
+                feature_direction = direction
+                continue
+            if feature["id"] == last_feature["id"]:
+                feature_end_dist = end_dist
+                continue
+            yield feature_begin_dist, feature_end_dist, feature_direction, last_feature
+            last_feature = feature
+            feature_begin_dist = begin_dist
+            feature_end_dist = end_dist
+            feature_direction = direction
+        yield feature_begin_dist, feature_end_dist, feature_direction, last_feature
+
     def set_sideprofile(self, route_path):
 
         self.sideview_nodes = []  # Required to plot nodes and water level
@@ -188,17 +207,16 @@ class SideViewPlotWidget(pg.PlotWidget):
             logger.error("NEW ROUTE PART")
             first_node = True
 
-            for count, (begin_dist, end_dist, distance, direction, feature) in enumerate(route_part):
+            for (begin_dist, end_dist_2, direction, feature) in SideViewPlotWidget.aggregate_route_parts(route_part):
 
                 begin_dist = float(begin_dist)
-                end_dist = float(end_dist)
+                end_dist = float(end_dist_2)
 
                 begin_node_id = feature["calculation_node_id_start"]
                 end_node_id = feature["calculation_node_id_end"]
                 if direction != 1:
                     begin_node_id, end_node_id = end_node_id, begin_node_id
 
-                # 2 contours based on structure or pipe
                 begin_level, end_level, begin_height, end_height, crest_level, ltype = SideViewGraphGenerator.retrieve_profile_info_from_flowline(h5_file, feature["id"])
                 if direction != 1:
                     begin_level, end_level = end_level, begin_level
