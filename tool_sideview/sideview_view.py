@@ -220,6 +220,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                         middle_line.append((end_dist, crest_level, ltype))
                 else:
                     logger.error(f"Unknown line type: {ltype}")
+                    return
 
                 node_level_1, node_height_1 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, begin_node_id)
                 node_level_2, node_height_2 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, end_node_id)
@@ -514,15 +515,17 @@ class SideViewDockWidget(QDockWidget):
             clicked_coordinate: (lon, lat) (transformed) of the click
         """
 
+        # TODO: is this still required?
         def haversine_clicked(coordinate):
             """Calculate the distance w.r.t. the clicked location."""
             lon1, lat1 = clicked_coordinate
             lon2, lat2 = coordinate.x(), coordinate.y()
             return haversine(lon1, lat1, lon2, lat2)
 
+        # Only look at first and last vertex
         selected_coordinates = reduce(
             lambda accum, f: accum
-            + [f.geometry().vertexAt(0), f.geometry().vertexAt(1)],
+            + [f.geometry().vertexAt(0), f.geometry().vertexAt(len(f.geometry().asPolyline())-1)],
             selected_features,
             [],
         )
@@ -588,7 +591,6 @@ class SideViewDockWidget(QDockWidget):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.dock_widget_content = QWidget(self)
-        self.dock_widget_content.setObjectName("dockWidgetContent")
 
         self.main_vlayout = QVBoxLayout(self)
         self.dock_widget_content.setLayout(self.main_vlayout)

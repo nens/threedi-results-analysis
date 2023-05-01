@@ -94,7 +94,7 @@ class Route(object):
         if id_point == -1:
             return False, "point is not on a vertex of the route graph"
         else:
-            distance = 0
+            distance = 0.0
             if len(self.path_points) > 0:
                 # not first point, get path between previous point and point
                 success, path, p = self.get_path(
@@ -156,8 +156,8 @@ class Route(object):
                  - Message in case of not succesful found a path or
                    a list of path line elements, represent as a tuple, with:
                    - begin distance of part (from initial start_point),
-                   - end distance of part
-                   - Some other distance (length of line?)
+                   - end distance of part (from initial start_point)
+                   - Length of line segment
                    - direction of path equal to direction of feature definition
                      1 in case ot is, -1 in case it is the opposite direction
                    - feature

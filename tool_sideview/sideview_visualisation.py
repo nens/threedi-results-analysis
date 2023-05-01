@@ -77,25 +77,15 @@ class SideViewMapVisualisation(object):
             self.graph_layer_crs, QgsProject.instance().crs(), QgsProject.instance()
         )
 
-        """
-            Path elements consist of:
-                   - begin distance of part (from initial start_point),
-                   - end distance of part
-                   - segment length
-                   - direction of path equal to direction of feature definition
-                     1 in case ot is, -1 in case it is the opposite direction
-                   - feature
-        """
+        # Clamp meters_from_start to route endpoints
         if meters_from_start < 0.0:
             meters_from_start = 0.0
-        elif (
-            len(self.active_route.path) > 0
-            and meters_from_start > self.active_route.path[-1][-1][1]
-        ):
+        elif (len(self.active_route.path) > 0 and meters_from_start > self.active_route.path[-1][-1][1]):
             meters_from_start = self.active_route.path[-1][-1][1]
 
-        for route_part in self.active_route.path:
+        for count, route_part in enumerate(self.active_route.path):
             if meters_from_start <= route_part[-1][1]:
+                distance_on_feature = 0.0
                 for part in route_part:
                     if meters_from_start <= part[1]:
 
@@ -110,21 +100,19 @@ class SideViewMapVisualisation(object):
                                 QgsUnitTypes.DistanceMeters, QgsUnitTypes.DistanceDegrees
                             )
 
-                        length = distance_on_line * conversion_factor
+                        length = (distance_on_line + distance_on_feature) * conversion_factor
                         # Note that interpolate() uses absolute length (instead of normalized weight)
                         point = part[4].geometry().interpolate(length)
                         if point.isEmpty():
+                            # Because interpolation seems to happen cartesian, the ellipsoid length (used by GraphBuilder) can
+                            # exceed the cartesian length, yielding an empty point at the end
                             return
-                        self.hover_marker.setCenter(
-                            transform.transform(point.asPoint())
-                        )
+
+                        self.hover_marker.setCenter(transform.transform(point.asPoint()))
                         return
 
-    def hover_map(self, point_geometry):
-        pass
-
-    def show_selectable_points(self, graph_tree):
-        pass
-
-    def hide_selectable_points(self):
-        pass
+                    # if next part is same feature:
+                    if count < (len(route_part)-1) and (part[4]["id"] == route_part[count+1][4]["id"]):
+                        distance_on_feature += part[2]
+                    else:
+                        distance_on_feature = 0.0
