@@ -176,6 +176,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
     @staticmethod
     def aggregate_route_parts(route_part):
+        """This function yields route parts, but combines segments belonging to the same feature"""
         for count, (begin_dist, end_dist, _, direction, feature) in enumerate(route_part):
             if count == 0:
                 last_feature = feature
