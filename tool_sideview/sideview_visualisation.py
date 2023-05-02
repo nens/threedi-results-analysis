@@ -84,7 +84,7 @@ class SideViewMapVisualisation(object):
         elif (len(self.active_route.path) > 0 and meters_from_start > self.active_route.path[-1][-1][1]):
             meters_from_start = self.active_route.path[-1][-1][1]
 
-        for count, route_part in enumerate(self.active_route.path):
+        for route_part in self.active_route.path:
             if meters_from_start <= route_part[-1][1]:
                 for (begin_dist, end_dist, direction, feature) in Route.aggregate_route_parts(route_part):
                     if meters_from_start <= end_dist:
@@ -102,14 +102,11 @@ class SideViewMapVisualisation(object):
 
                         length = distance_on_line * conversion_factor
 
-                        logger.info(f"{meters_from_start}, {distance_on_line}, {conversion_factor}")
-
                         # Note that interpolate() uses absolute length (instead of normalized weight)
                         point = feature.geometry().interpolate(length)
                         if point.isEmpty():
                             # Because interpolation seems to happen cartesian, the ellipsoid length (used by GraphBuilder) can
                             # exceed the cartesian length, yielding an empty point at the end
-                            logger.error("point empty")
                             return
 
                         self.hover_marker.setCenter(transform.transform(point.asPoint()))
