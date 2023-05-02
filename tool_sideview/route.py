@@ -207,12 +207,16 @@ class Route(object):
             request = QgsFeatureRequest().setFilterExpression(filt)
             feature = next(self.graph_layer.getFeatures(request))
 
-            if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):
-                # current point on tree (end point of this line) is equal to
-                # begin of original feature, so direction is opposite: -1
-                route_direction_feature = -1
+            # In order to determine the direction of this segment in the path,
+            # compare the first point on the feature to the first vertex of
+            # the geometry
+            if len(path_props) > 0 and path_props[0][4]["id"] == feature["id"]:
+                route_direction_feature = path_props[0][3]
             else:
-                route_direction_feature = 1
+                if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):
+                    route_direction_feature = -1
+                else:
+                    route_direction_feature = 1
 
             path_props.insert(0, [None, None, dist, route_direction_feature, feature])
 
