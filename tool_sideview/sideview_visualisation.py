@@ -1,4 +1,5 @@
 from qgis.gui import QgsRubberBand, QgsVertexMarker
+from threedi_results_analysis.tool_sideview.route import Route
 from qgis.core import QgsDistanceArea, QgsProject, QgsCoordinateTransform, QgsWkbTypes, QgsPointXY, QgsUnitTypes
 from qgis.PyQt.QtCore import Qt
 
@@ -85,14 +86,13 @@ class SideViewMapVisualisation(object):
 
         for count, route_part in enumerate(self.active_route.path):
             if meters_from_start <= route_part[-1][1]:
-                distance_on_feature = 0.0
-                for part in route_part:
-                    if meters_from_start <= part[1]:
+                for (begin_dist, end_dist, direction, feature) in Route.aggregate_route_parts(route_part):
+                    if meters_from_start <= end_dist:
 
-                        if part[3] == 1:
-                            distance_on_line = meters_from_start - part[0]
+                        if direction == 1:
+                            distance_on_line = meters_from_start - begin_dist
                         else:
-                            distance_on_line = part[1] - meters_from_start
+                            distance_on_line = end_dist - meters_from_start
 
                         conversion_factor = 1
                         if self.graph_layer_crs.isGeographic():
@@ -100,19 +100,17 @@ class SideViewMapVisualisation(object):
                                 QgsUnitTypes.DistanceMeters, QgsUnitTypes.DistanceDegrees
                             )
 
-                        length = (distance_on_line + distance_on_feature) * conversion_factor
+                        length = distance_on_line * conversion_factor
+
+                        logger.info(f"{meters_from_start}, {distance_on_line}, {conversion_factor}")
+
                         # Note that interpolate() uses absolute length (instead of normalized weight)
-                        point = part[4].geometry().interpolate(length)
+                        point = feature.geometry().interpolate(length)
                         if point.isEmpty():
                             # Because interpolation seems to happen cartesian, the ellipsoid length (used by GraphBuilder) can
                             # exceed the cartesian length, yielding an empty point at the end
+                            logger.error("point empty")
                             return
 
                         self.hover_marker.setCenter(transform.transform(point.asPoint()))
                         return
-
-                    # if next part is same feature:
-                    if count < (len(route_part)-1) and (part[4]["id"] == route_part[count+1][4]["id"]):
-                        distance_on_feature += part[2]
-                    else:
-                        distance_on_feature = 0.0

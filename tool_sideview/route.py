@@ -145,6 +145,26 @@ class Route(object):
         if self._virtual_tree_layer:
             self.update_virtual_tree_layer()
 
+    @staticmethod
+    def aggregate_route_parts(route_part):
+        """This function yields route segments, but combines segments belonging to the same feature"""
+        for count, (begin_dist, end_dist, _, direction, feature) in enumerate(route_part):
+            if count == 0:
+                last_feature = feature
+                feature_begin_dist = begin_dist
+                feature_end_dist = end_dist
+                feature_direction = direction
+                continue
+            if feature["id"] == last_feature["id"]:
+                feature_end_dist = end_dist
+                continue
+            yield feature_begin_dist, feature_end_dist, feature_direction, last_feature
+            last_feature = feature
+            feature_begin_dist = begin_dist
+            feature_end_dist = end_dist
+            feature_direction = direction
+        yield feature_begin_dist, feature_end_dist, feature_direction, last_feature
+
     def get_path(self, id_start_point, id_end_point, begin_distance=0):
         """
         get path between the two graph points

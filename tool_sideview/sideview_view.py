@@ -174,26 +174,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         mouse_point_x = self.plotItem.vb.mapSceneToView(evt[0]).x()
         self.profile_hovered.emit(mouse_point_x)
 
-    @staticmethod
-    def aggregate_route_parts(route_part):
-        """This function yields route parts, but combines segments belonging to the same feature"""
-        for count, (begin_dist, end_dist, _, direction, feature) in enumerate(route_part):
-            if count == 0:
-                last_feature = feature
-                feature_begin_dist = begin_dist
-                feature_end_dist = end_dist
-                feature_direction = direction
-                continue
-            if feature["id"] == last_feature["id"]:
-                feature_end_dist = end_dist
-                continue
-            yield feature_begin_dist, feature_end_dist, feature_direction, last_feature
-            last_feature = feature
-            feature_begin_dist = begin_dist
-            feature_end_dist = end_dist
-            feature_direction = direction
-        yield feature_begin_dist, feature_end_dist, feature_direction, last_feature
-
     def set_sideprofile(self, route_path):
 
         self.sideview_nodes = []  # Required to plot nodes and water level
@@ -208,10 +188,10 @@ class SideViewPlotWidget(pg.PlotWidget):
             logger.error("NEW ROUTE PART")
             first_node = True
 
-            for (begin_dist, end_dist_2, direction, feature) in SideViewPlotWidget.aggregate_route_parts(route_part):
+            for (begin_dist, end_dist, direction, feature) in Route.aggregate_route_parts(route_part):
 
                 begin_dist = float(begin_dist)
-                end_dist = float(end_dist_2)
+                end_dist = float(end_dist)
 
                 begin_node_id = feature["calculation_node_id_start"]
                 end_node_id = feature["calculation_node_id_end"]
@@ -260,10 +240,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         if len(route_path) > 0:
             # Draw data into graph, split lines into seperate parts for the different line types
-
-            # determine max and min x value to draw absolute bottom line
-            # x_min = min([point[0] for point in bottom_line])
-            # x_max = max([point[0] for point in bottom_line])
 
             tables = {
                 LineType.PIPE: [],
