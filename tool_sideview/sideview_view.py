@@ -183,7 +183,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         bottom_line = []  # Bottom of structures
         upper_line = []  # Top of structures
         middle_line = []  # Typically crest-level
-        top_line = []  # exchange level
+        exchange_line = []  # exchange level
         upper_limit_line = []  # For top fill of weirs and orifices
 
         h5_file = self.model.get_results(checked_only=False)[0].parent().path
@@ -238,9 +238,10 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node_level_1, node_height_1 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, begin_node_id)
                 node_level_2, node_height_2 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, end_node_id)
 
+                # Only draw exchange when nodes have heights
                 if (node_height_1 > 0.0 and node_height_2 > 0.0):
-                    top_line.append((begin_dist, node_level_1 + node_height_1))
-                    top_line.append((end_dist, node_level_2 + node_height_2))
+                    exchange_line.append((begin_dist, node_level_1 + node_height_1))
+                    exchange_line.append((end_dist, node_level_2 + node_height_2))
 
                 # store node information for water level line
                 if first_node:
@@ -269,7 +270,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                 tables[point[2]].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in bottom_line], dtype=float)
-            ts_exchange_table = np.array(top_line, dtype=float)
+            ts_exchange_table = np.array(exchange_line, dtype=float)
 
             self.exchange_plot.setData(ts_exchange_table, connect="pairs")
             self.bottom_plot.setData(ts_table, connect="pairs")
