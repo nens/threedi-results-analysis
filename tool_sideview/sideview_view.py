@@ -79,12 +79,14 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(250, 217, 213), width=1)
         self.weir_middle_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.weir_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.weir_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(0, 255, 0), width=1)
         self.orifice_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         pen = pg.mkPen(color=QColor(208, 240, 192), width=1)
         self.orifice_middle_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.orifice_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(0, 200, 0), width=2, style=Qt.DashLine)
         self.exchange_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -102,22 +104,19 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255)
         )
 
-        pen = pg.mkPen(color=QColor(0, 0, 0), width=1)
-        self.absolute_top = pg.PlotDataItem(np.array([(0.0, 10000), (10000, 10000)]), pen=pen)
-
         # Add some structure specific fills
         self.orifice_opening_fill = pg.FillBetweenItem(
             self.orifice_upper_plot, self.orifice_middle_plot, pg.mkBrush(208, 240, 192)
         )
         self.orifice_full_fill = pg.FillBetweenItem(
-            self.absolute_top, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
+            self.orifice_top_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
         )
 
         self.weir_opening_fill = pg.FillBetweenItem(
             self.weir_upper_plot, self.weir_middle_plot, pg.mkBrush(250, 217, 213)
         )
         self.weir_full_fill = pg.FillBetweenItem(
-            self.absolute_top, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
+            self.weir_top_plot, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
         )
 
         self.sewer_top_fill = pg.FillBetweenItem(
@@ -136,9 +135,13 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.culvert_bottom_plot)
         self.addItem(self.culvert_upper_plot)
         self.addItem(self.weir_bottom_plot)
+        self.addItem(self.weir_middle_plot)
         self.addItem(self.weir_upper_plot)
+        self.addItem(self.weir_top_plot)
         self.addItem(self.orifice_bottom_plot)
         self.addItem(self.orifice_upper_plot)
+        self.addItem(self.orifice_middle_plot)
+        self.addItem(self.orifice_top_plot)
         self.addItem(self.water_level_plot)
         self.addItem(self.node_plot)
 
@@ -181,6 +184,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         upper_line = []  # Top of structures
         middle_line = []  # Typically crest-level
         top_line = []  # exchange level
+        upper_limit_line = [] # For top fill of weirs and orifices
 
         h5_file = self.model.get_results(checked_only=False)[0].parent().path
 
@@ -210,13 +214,23 @@ class SideViewPlotWidget(pg.PlotWidget):
                     bottom_line.append((begin_dist, begin_level, ltype))
                     bottom_line.append((end_dist, end_level, ltype))
 
-                    upper_line.append((begin_dist, begin_level + begin_height, ltype))
-                    upper_line.append((end_dist, end_level + end_height, ltype))
-
                     if (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR):
-                        # Orifices and weirs require different visualisation
+                        # Orifices and weirs require different visualisation, and their height is relative to crest level
                         middle_line.append((begin_dist, crest_level, ltype))
                         middle_line.append((end_dist, crest_level, ltype))
+                        upper_line.append((begin_dist, crest_level + begin_height, ltype))
+                        upper_line.append((end_dist, crest_level + end_height, ltype))
+
+                        if begin_height == 0.0 and end_height == 0.0:  # Open cross section
+                            upper_limit_line.append((begin_dist, crest_level, ltype))
+                            upper_limit_line.append((end_dist, crest_level, ltype))
+                        else:
+                            upper_limit_line.append((begin_dist, 10000.0, ltype))
+                            upper_limit_line.append((end_dist, 10000.0, ltype))
+                    else:
+                        upper_line.append((begin_dist, begin_level + begin_height, ltype))
+                        upper_line.append((end_dist, end_level + end_height, ltype))
+
                 else:
                     logger.error(f"Unknown line type: {ltype}")
                     return
@@ -254,18 +268,14 @@ class SideViewPlotWidget(pg.PlotWidget):
                 tables[point[2]].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in bottom_line], dtype=float)
-            ts_bottom_table = np.array([(b[0], -10000) for b in bottom_line], dtype=float)
-            ts_top_table = np.array([(b[0], 10000) for b in bottom_line], dtype=float)
             ts_exchange_table = np.array(top_line, dtype=float)
 
             self.exchange_plot.setData(ts_exchange_table, connect="pairs")
             self.bottom_plot.setData(ts_table, connect="pairs")
-            self.absolute_bottom.setData(ts_bottom_table, connect="pairs")
-            self.absolute_top.setData(ts_top_table, connect="pairs")
+            self.absolute_bottom.setData(np.array([(b[0], -10000) for b in bottom_line], dtype=float), connect="pairs")
 
             # pyqtgraph has difficulties with filling between lines consisting of different
             # number of segments, therefore we need to draw a dedicated sewer-exchange line
-
             sewer_top_table = []
             for point in tables[LineType.PIPE]:
                 dist = point[0]
@@ -276,7 +286,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                         break
 
             self.sewer_top_plot.setData(np.array(sewer_top_table, dtype=float), connect="pairs")
-
             self.sewer_bottom_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="pairs")
             self.channel_bottom_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="pairs")
             self.culvert_bottom_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
@@ -315,6 +324,21 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             self.weir_middle_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
             self.orifice_middle_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
+            
+            tables = {
+                LineType.PIPE: [],
+                LineType.CHANNEL: [],
+                LineType.CULVERT: [],
+                LineType.PUMP: [],
+                LineType.WEIR: [],
+                LineType.ORIFICE: [],
+            }
+
+            for point in upper_limit_line:
+                tables[point[2]].append((point[0], point[1]))
+            
+            self.weir_top_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
+            self.orifice_top_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
 
             # draw nodes
             node_table = []
