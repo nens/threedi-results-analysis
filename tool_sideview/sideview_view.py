@@ -184,7 +184,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         upper_line = []  # Top of structures
         middle_line = []  # Typically crest-level
         top_line = []  # exchange level
-        upper_limit_line = [] # For top fill of weirs and orifices
+        upper_limit_line = []  # For top fill of weirs and orifices
 
         h5_file = self.model.get_results(checked_only=False)[0].parent().path
 
@@ -276,6 +276,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             # pyqtgraph has difficulties with filling between lines consisting of different
             # number of segments, therefore we need to draw a dedicated sewer-exchange line
+
             sewer_top_table = []
             for point in tables[LineType.PIPE]:
                 dist = point[0]
@@ -324,7 +325,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             self.weir_middle_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
             self.orifice_middle_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
-            
+
             tables = {
                 LineType.PIPE: [],
                 LineType.CHANNEL: [],
@@ -336,7 +337,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             for point in upper_limit_line:
                 tables[point[2]].append((point[0], point[1]))
-            
+
             self.weir_top_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
             self.orifice_top_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
 
