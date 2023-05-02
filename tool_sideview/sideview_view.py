@@ -120,7 +120,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         self.sewer_top_fill = pg.FillBetweenItem(
-            self.sewer_top_plot, self.sewer_upper_plot, pg.mkBrush(200, 200, 200)
+            self.exchange_plot, self.sewer_top_plot, pg.mkBrush(200, 200, 200)
         )
 
         self.addItem(self.water_fill)
@@ -238,8 +238,9 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node_level_1, node_height_1 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, begin_node_id)
                 node_level_2, node_height_2 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, end_node_id)
 
-                top_line.append((begin_dist, node_level_1 + node_height_1))
-                top_line.append((end_dist, node_level_2 + node_height_2))
+                if (node_height_1 > 0.0 and node_height_2 > 0.0):
+                    top_line.append((begin_dist, node_level_1 + node_height_1))
+                    top_line.append((end_dist, node_level_2 + node_height_2))
 
                 # store node information for water level line
                 if first_node:
@@ -274,19 +275,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.bottom_plot.setData(ts_table, connect="pairs")
             self.absolute_bottom.setData(np.array([(b[0], -10000) for b in bottom_line], dtype=float), connect="pairs")
 
-            # pyqtgraph has difficulties with filling between lines consisting of different
-            # number of segments, therefore we need to draw a dedicated sewer-exchange line
-
-            sewer_top_table = []
-            for point in tables[LineType.PIPE]:
-                dist = point[0]
-                # find the corresponding exchange height at this distance
-                for exchange_point in ts_exchange_table:
-                    if exchange_point[0] == dist:
-                        sewer_top_table.append((dist, exchange_point[1]))
-                        break
-
-            self.sewer_top_plot.setData(np.array(sewer_top_table, dtype=float), connect="pairs")
             self.sewer_bottom_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="pairs")
             self.channel_bottom_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="pairs")
             self.culvert_bottom_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
@@ -310,6 +298,25 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.culvert_upper_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
             self.weir_upper_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
             self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
+
+            # pyqtgraph has difficulties with filling between lines consisting of different
+            # number of segments, therefore we need to draw a dedicated sewer-exchange line
+
+            sewer_top_table = []
+            for point_index in range(0, len(tables[LineType.PIPE]), 2):
+                point_1 = tables[LineType.PIPE][point_index]
+                point_2 = tables[LineType.PIPE][point_index+1]
+                # find the corresponding exchange height at this distance
+                for exchange_point_index in range(0, len(ts_exchange_table), 2):
+                    exchange_point_1 = ts_exchange_table[exchange_point_index]
+                    exchange_point_2 = ts_exchange_table[exchange_point_index+1]
+                    if exchange_point_1[0] == point_1[0] and exchange_point_2[0] == point_2[0]:
+                        logger.error(f"Appending {(point_1[0], point_1[1])} and {(point_2[0], point_2[1])}to sewer_top_table")
+                        sewer_top_table.append((point_1[0], point_1[1]))
+                        sewer_top_table.append((point_2[0], point_2[1]))
+                        break
+
+            self.sewer_top_plot.setData(np.array(sewer_top_table, dtype=float), connect="pairs")
 
             tables = {
                 LineType.PIPE: [],
