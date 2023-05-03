@@ -209,7 +209,8 @@ class Route(object):
 
             # In order to determine the direction of this segment in the path,
             # compare the first point on the feature to the first vertex of
-            # the geometry
+            # the geometry. In case the previous segment belonged to the
+            # same feature, take that direction.
             if len(path_props) > 0 and path_props[0][4]["id"] == feature["id"]:
                 route_direction_feature = path_props[0][3]
             else:

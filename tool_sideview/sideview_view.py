@@ -68,7 +68,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         pen = pg.mkPen(color=QColor(50, 50, 50), width=2)
         self.channel_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.channel_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(150, 75, 0), width=4)
         self.culvert_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -131,7 +130,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.sewer_upper_plot)
         self.addItem(self.sewer_top_plot)
         self.addItem(self.channel_bottom_plot)
-        self.addItem(self.channel_upper_plot)
         self.addItem(self.culvert_bottom_plot)
         self.addItem(self.culvert_upper_plot)
         self.addItem(self.weir_bottom_plot)
@@ -295,7 +293,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                 tables[point[2]].append((point[0], point[1]))
 
             self.sewer_upper_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="pairs")
-            self.channel_upper_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="pairs")
             self.culvert_upper_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
             self.weir_upper_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
             self.orifice_upper_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
@@ -372,7 +369,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.sewer_bottom_plot.setData(ts_table)
             self.sewer_upper_plot.setData(ts_table)
             self.channel_bottom_plot.setData(ts_table)
-            self.channel_upper_plot.setData(ts_table)
             self.culvert_bottom_plot.setData(ts_table)
             self.culvert_upper_plot.setData(ts_table)
             self.weir_bottom_plot.setData(ts_table)
@@ -436,6 +432,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         ts_table = np.array(water_level_line, dtype=float)
         self.water_level_plot.setData(ts_table)
+
+        self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
 
     def on_close(self):
         """
