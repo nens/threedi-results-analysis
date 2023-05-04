@@ -7,6 +7,7 @@ from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
+from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QDockWidget, QSplitter
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
@@ -472,7 +473,7 @@ class SideViewDockWidget(QDockWidget):
         self.nr = nr
         self.model = model  # Global Result manager model
         self.sideview_result_model = QStandardItemModel(self)  # Specific sideview model to store loaded results
-        self.sideview_result_model.setHorizontalHeaderLabels(["bla", "vllalfd"])
+        self.sideview_result_model.setHorizontalHeaderLabels(["result", "grid", "pattern"])
 
         self.setup_ui()
 
@@ -517,7 +518,9 @@ class SideViewDockWidget(QDockWidget):
 
     @pyqtSlot(ThreeDiResultItem)
     def result_added(self, item: ThreeDiResultItem):
-        self.sideview_result_model.appendRow(QStandardItem(item.text()))
+        table_item = QStandardItem(item.text())
+        table_item.setCheckable(True)
+        self.sideview_result_model.appendRow(table_item)
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, item: ThreeDiGridItem):
@@ -635,10 +638,12 @@ class SideViewDockWidget(QDockWidget):
         plotContainerWidget = QSplitter(self)
         self.side_view_plot_widget = SideViewPlotWidget(plotContainerWidget, self.model)
         plotContainerWidget.addWidget(self.side_view_plot_widget)
-
         self.table_view = QTableView(self)
         self.table_view.setModel(self.sideview_result_model)
         self.table_view.horizontalHeader().setStretchLastSection(True)
+        self.table_view.verticalHeader().hide()
+        self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_view.resizeColumnsToContents()
         plotContainerWidget.addWidget(self.table_view)
         plotContainerWidget.setStretchFactor(0, 8)
         plotContainerWidget.setStretchFactor(1, 1)
