@@ -1,6 +1,6 @@
 from qgis.PyQt.QtCore import Qt, QObject, pyqtSlot
 from threedi_results_analysis.tool_sideview.sideview_view import SideViewDockWidget
-from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from qgis.core import QgsDateTimeRange
 import qgis
 import os
@@ -37,6 +37,12 @@ class ThreeDiSideView(QObject):
         """
         for widget in self.dock_widgets:
             widget.close()
+
+    @pyqtSlot(ThreeDiGridItem)
+    def result_added(self, item: ThreeDiResultItem):
+        for i in range(0, len(self.dock_widgets)):
+            widget = self.dock_widgets[i]
+            widget.result_added(item)
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_added(self, _: ThreeDiGridItem):

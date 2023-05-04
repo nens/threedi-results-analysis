@@ -182,6 +182,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.grid_added.connect(self.sideview_tool.grid_added)
         self.model.grid_removed.connect(self.sideview_tool.grid_removed)
         self.model.grid_changed.connect(self.sideview_tool.grid_changed)
+        self.model.result_added.connect(self.sideview_tool.result_added)
         tc.updateTemporalRange.connect(self.sideview_tool.update_waterlevels)
 
         self.init_state_sync()

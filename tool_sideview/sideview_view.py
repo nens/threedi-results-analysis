@@ -6,6 +6,7 @@ from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from qgis.PyQt.QtWidgets import QDockWidget, QSplitter
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
@@ -20,7 +21,7 @@ from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
-from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from qgis.utils import iface
 from bisect import bisect_left
 import logging
@@ -397,14 +398,14 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node["timeseries"] = ds.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
 
             tc = iface.mapCanvas().temporalController()
-            self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()))
+            self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()), True)
         else:
             # reset water level line
             logger.error("No DS_ITEM!")
             self.water_level_plot.setData(np.array(np.array([(0.0, np.nan)]), dtype=float))
 
     @pyqtSlot(QgsDateTimeRange)
-    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
+    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange, update_range=False):
 
         result_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
         if not result_item:
@@ -434,7 +435,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         ts_table = np.array(water_level_line, dtype=float)
         self.water_level_plot.setData(ts_table)
 
-        self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
+        if update_range:
+            self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
 
     def on_close(self):
         """
@@ -468,7 +470,9 @@ class SideViewDockWidget(QDockWidget):
 
         self.iface = iface
         self.nr = nr
-        self.model = model
+        self.model = model  # Global Result manager model
+        self.sideview_result_model = QStandardItemModel(self)  # Specific sideview model to store loaded results
+        self.sideview_result_model.setHorizontalHeaderLabels(["bla", "vllalfd"])
 
         self.setup_ui()
 
@@ -510,6 +514,10 @@ class SideViewDockWidget(QDockWidget):
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
         self.side_view_plot_widget.update_waterlevel(qgs_dt_range)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_added(self, item: ThreeDiResultItem):
+        self.sideview_result_model.appendRow(QStandardItem(item.text()))
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, item: ThreeDiGridItem):
@@ -627,7 +635,11 @@ class SideViewDockWidget(QDockWidget):
         plotContainerWidget = QSplitter(self)
         self.side_view_plot_widget = SideViewPlotWidget(plotContainerWidget, self.model)
         plotContainerWidget.addWidget(self.side_view_plot_widget)
-        plotContainerWidget.addWidget(QTableView(self))
+
+        self.table_view = QTableView(self)
+        self.table_view.setModel(self.sideview_result_model)
+        self.table_view.horizontalHeader().setStretchLastSection(True)
+        plotContainerWidget.addWidget(self.table_view)
         plotContainerWidget.setStretchFactor(0, 8)
         plotContainerWidget.setStretchFactor(1, 1)
         self.main_vlayout.addWidget(plotContainerWidget)
