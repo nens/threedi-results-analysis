@@ -6,12 +6,13 @@ from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QDockWidget
+from qgis.PyQt.QtWidgets import QDockWidget, QSplitter
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
@@ -39,8 +40,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
     def __init__(
         self,
-        parent=None,
-        model=None,
+        parent,
+        model,
     ):
         """
 
@@ -469,18 +470,12 @@ class SideViewDockWidget(QDockWidget):
         self.nr = nr
         self.model = model
 
-        # setup ui
         self.setup_ui()
 
-        # add listeners
-        self.select_sideview_button.clicked.connect(self.toggle_route_tool)
-        self.reset_sideview_button.clicked.connect(self.reset_sideview)
+        return
 
         # init class attributes
         self.route_tool_active = False
-
-        self.side_view_plot_widget = SideViewPlotWidget(self, self.model)
-        self.main_vlayout.addWidget(self.side_view_plot_widget)
 
         layer_id = self.model.get_results(checked_only=False)[0].parent().layer_ids["flowline"]
         self.graph_layer = QgsProject.instance().mapLayer(layer_id)
@@ -608,37 +603,38 @@ class SideViewDockWidget(QDockWidget):
         event.accept()
 
     def setup_ui(self):
-        """
-        initiate main Qt building blocks of interface
-        :param dock_widget: QDockWidget instance
-        """
 
         self.setObjectName("dock_widget")
         self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setWindowTitle(f"3Di Sideview Plot {self.nr}: ")
 
         self.dock_widget_content = QWidget(self)
 
         self.main_vlayout = QVBoxLayout(self)
         self.dock_widget_content.setLayout(self.main_vlayout)
 
-        # add button to add objects to graphs
         self.button_bar_hlayout = QHBoxLayout(self)
-
-        # add title to graph
-        self.setWindowTitle(f"3Di Sideview Plot {self.nr}: ")
-
         self.select_sideview_button = QPushButton("Choose sideview trajectory", self.dock_widget_content)
         self.select_sideview_button.setObjectName("SelectedSideview")
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
-
         self.reset_sideview_button = QPushButton("Reset sideview trajectory", self.dock_widget_content)
         self.reset_sideview_button.setObjectName("ResetSideview")
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
-
         spacer_item = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
         self.main_vlayout.addItem(self.button_bar_hlayout)
 
-        # add dockwidget
+        plotContainerWidget = QSplitter(self)
+        self.side_view_plot_widget = SideViewPlotWidget(plotContainerWidget, self.model)
+        plotContainerWidget.addWidget(self.side_view_plot_widget)
+        plotContainerWidget.addWidget(QTableView(self))
+        plotContainerWidget.setStretchFactor(0, 8)
+        plotContainerWidget.setStretchFactor(1, 1)
+        self.main_vlayout.addWidget(plotContainerWidget)
+
         self.setWidget(self.dock_widget_content)
         QMetaObject.connectSlotsByName(self)
+
+        # add listeners
+        self.select_sideview_button.clicked.connect(self.toggle_route_tool)
+        self.reset_sideview_button.clicked.connect(self.reset_sideview)
