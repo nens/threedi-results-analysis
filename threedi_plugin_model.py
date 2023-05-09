@@ -218,6 +218,24 @@ class ThreeDiPluginModel(QStandardItemModel):
         if isinstance(item, ThreeDiResultItem):
             return self.remove_result(item)
 
+    def get_grids(self) -> List[ThreeDiGridItem]:
+        """Returns the list of grids"""
+        def _get_grids(
+            results: List[ThreeDiGridItem],
+            item: QStandardItemModel
+        ):
+            if isinstance(item, ThreeDiGridItem):
+                results.append(item)
+
+            if item.hasChildren():
+                for i in range(item.rowCount()):
+                    _get_grids(results, item.child(i))
+            return results
+
+        results = []
+        _get_grids(results, self.invisibleRootItem())
+        return results
+
     def get_results(self, checked_only: bool) -> List[ThreeDiResultItem]:
         """Returns the list of selected results (traversal)"""
         def _get_results(

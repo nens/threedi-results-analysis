@@ -613,7 +613,7 @@ class GraphWidget(QWidget):
             return False
 
         if len(self.model.get_results(checked_only=False)) == 0:
-            logger.warning("No results loaded for this grid")
+            logger.warning("No results loaded")
             return False
 
         # Retrieve summary of existing items in model (!= graph plots)

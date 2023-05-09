@@ -3,16 +3,17 @@ from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from qgis.core import QgsDateTimeRange
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
+from qgis.PyQt.QtGui import QStandardItemModel
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QDockWidget, QSplitter
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
+from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QWidget
@@ -464,6 +465,14 @@ class SideViewDockWidget(QDockWidget):
 
     closingWidget = pyqtSignal(int)
 
+    available_styles = [
+            Qt.SolidLine,
+            Qt.DashLine,
+            Qt.DotLine,
+            Qt.DashDotLine,
+            Qt.DashDotDotLine,
+        ]
+
     def __init__(
         self, iface, nr, model, datasources, parent=None
     ):
@@ -473,13 +482,72 @@ class SideViewDockWidget(QDockWidget):
         self.nr = nr
         self.model = model  # Global Result manager model
         self.sideview_result_model = QStandardItemModel(self)  # Specific sideview model to store loaded results
-        self.sideview_result_model.setHorizontalHeaderLabels(["result", "grid", "pattern"])
+        self.sideview_result_model.setHorizontalHeaderLabels(["result", "pattern"])
 
         self.setup_ui()
 
-        return
+    @pyqtSlot(QgsDateTimeRange)
+    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
+        self.side_view_plot_widget.update_waterlevel(qgs_dt_range)
 
-        # init class attributes
+    @pyqtSlot(ThreeDiResultItem)
+    def result_added(self, item: ThreeDiResultItem):
+        # result_table_item = QStandardItem(item.text())
+        # result_table_item.setCheckable(True)
+        # result_table_item.setEditable(False)
+
+        # pattern_table_item = QStandardItem(item.text())
+        # pattern_table_item.setCheckable(True)
+        # pattern_table_item.setEditable(False)
+
+        # self.sideview_result_model.appendRow([result_table_item, pattern_table_item])
+        pass
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_changed(self, item: ThreeDiResultItem):
+        pass
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_removed(self, item: ThreeDiResultItem):
+        pass
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_changed(self, item: ThreeDiGridItem):
+        idx = self.select_grid_combobox.findData(item.id)
+        logger.info(f"Adjusting item at index {idx}")
+        assert idx != -1
+        self.select_grid_combobox.setItemText(idx, item.text())
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_added(self, item: ThreeDiGridItem):
+        self.select_grid_combobox.addItem(item.text(), item.id)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_removed(self, item: ThreeDiGridItem):
+        idx = self.select_grid_combobox.findData(item.id)
+        assert idx != -1
+        logger.info(f"Removing item at index {idx}")
+        self.select_grid_combobox.removeItem(idx)
+
+    @pyqtSlot(int)
+    def grid_selected(self, grid_index: int):
+        logger.info(f"Selected item {self.select_grid_combobox.itemText(grid_index)}")
+        self.initialize()
+
+    def unset_route_tool(self):
+        if self.route_tool_active:
+            self.route_tool_active = False
+            self.iface.mapCanvas().unsetMapTool(self.route_tool)
+
+    def toggle_route_tool(self):
+        if self.route_tool_active:
+            self.route_tool_active = False
+            self.iface.mapCanvas().unsetMapTool(self.route_tool)
+        else:
+            self.route_tool_active = True
+            self.iface.mapCanvas().setMapTool(self.route_tool)
+
+    def initialize(self):
         self.route_tool_active = False
 
         layer_id = self.model.get_results(checked_only=False)[0].parent().layer_ids["flowline"]
@@ -511,33 +579,6 @@ class SideViewDockWidget(QDockWidget):
         )
 
         QgsProject.instance().addMapLayer(self.vl_tree_layer)
-
-    @pyqtSlot(QgsDateTimeRange)
-    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
-        self.side_view_plot_widget.update_waterlevel(qgs_dt_range)
-
-    @pyqtSlot(ThreeDiResultItem)
-    def result_added(self, item: ThreeDiResultItem):
-        table_item = QStandardItem(item.text())
-        table_item.setCheckable(True)
-        self.sideview_result_model.appendRow(table_item)
-
-    @pyqtSlot(ThreeDiGridItem)
-    def grid_changed(self, item: ThreeDiGridItem):
-        self.setWindowTitle(f"3Di Sideview Plot: {item.text()}")
-
-    def unset_route_tool(self):
-        if self.route_tool_active:
-            self.route_tool_active = False
-            self.iface.mapCanvas().unsetMapTool(self.route_tool)
-
-    def toggle_route_tool(self):
-        if self.route_tool_active:
-            self.route_tool_active = False
-            self.iface.mapCanvas().unsetMapTool(self.route_tool)
-        else:
-            self.route_tool_active = True
-            self.iface.mapCanvas().setMapTool(self.route_tool)
 
     def on_route_point_select(self, selected_features, clicked_coordinate):
         """Select and add the closest point from the list of selected features.
@@ -585,8 +626,7 @@ class SideViewDockWidget(QDockWidget):
 
     def on_close(self):
         """
-        unloading widget and remove all required stuff
-        :return:
+        unloading widget
         """
         QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
 
@@ -605,17 +645,12 @@ class SideViewDockWidget(QDockWidget):
         self.side_view_plot_widget.on_close()
 
     def closeEvent(self, event):
-        """
-        overwrite of QDockWidget class to emit signal
-        :param event: QEvent
-        """
         self.on_close()
         self.closingWidget.emit(self.nr)
         event.accept()
 
     def setup_ui(self):
 
-        self.setObjectName("dock_widget")
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle(f"3Di Sideview Plot {self.nr}: ")
 
@@ -626,14 +661,21 @@ class SideViewDockWidget(QDockWidget):
 
         self.button_bar_hlayout = QHBoxLayout(self)
         self.select_sideview_button = QPushButton("Choose sideview trajectory", self.dock_widget_content)
-        self.select_sideview_button.setObjectName("SelectedSideview")
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
         self.reset_sideview_button = QPushButton("Reset sideview trajectory", self.dock_widget_content)
-        self.reset_sideview_button.setObjectName("ResetSideview")
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
         spacer_item = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
+        self.button_bar_hlayout.addWidget(QLabel("Grid: ", self.dock_widget_content))
+        self.select_grid_combobox = QComboBox(self.dock_widget_content)
+        self.button_bar_hlayout.addWidget(self.select_grid_combobox)
         self.main_vlayout.addItem(self.button_bar_hlayout)
+
+        # populate the combobox
+        for grid in self.model.get_grids():
+            self.select_grid_combobox.addItem(grid.text(), grid.id)
+
+        self.select_grid_combobox.activated.connect(self.grid_selected)
 
         plotContainerWidget = QSplitter(self)
         self.side_view_plot_widget = SideViewPlotWidget(plotContainerWidget, self.model)
@@ -644,14 +686,13 @@ class SideViewDockWidget(QDockWidget):
         self.table_view.verticalHeader().hide()
         self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_view.resizeColumnsToContents()
+        self.table_view.setSelectionMode(QAbstractItemView.SingleSelection)
         plotContainerWidget.addWidget(self.table_view)
         plotContainerWidget.setStretchFactor(0, 8)
         plotContainerWidget.setStretchFactor(1, 1)
         self.main_vlayout.addWidget(plotContainerWidget)
 
         self.setWidget(self.dock_widget_content)
-        QMetaObject.connectSlotsByName(self)
 
-        # add listeners
         self.select_sideview_button.clicked.connect(self.toggle_route_tool)
         self.reset_sideview_button.clicked.connect(self.reset_sideview)

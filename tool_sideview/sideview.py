@@ -40,29 +40,39 @@ class ThreeDiSideView(QObject):
 
     @pyqtSlot(ThreeDiGridItem)
     def result_added(self, item: ThreeDiResultItem):
-        for i in range(0, len(self.dock_widgets)):
-            widget = self.dock_widgets[i]
-            widget.result_added(item)
+        for dock_widget in self.dock_widgets:
+            dock_widget.result_added(item)
 
     @pyqtSlot(ThreeDiGridItem)
-    def grid_added(self, _: ThreeDiGridItem):
+    def result_removed(self, item: ThreeDiResultItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.result_removed(item)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def result_changed(self, item: ThreeDiResultItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.result_changed(item)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_added(self, item: ThreeDiGridItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.grid_added(item)
         self.action_icon.setEnabled(self.model.number_of_grids() > 0)
 
     @pyqtSlot(ThreeDiGridItem)
-    def grid_removed(self, _: ThreeDiGridItem):
-        self.action_icon.setEnabled(self.model.number_of_grids() > 0)
+    def grid_removed(self, item: ThreeDiGridItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.grid_removed(item)
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, item: ThreeDiGridItem):
-        for i in range(0, len(self.dock_widgets)):
-            widget = self.dock_widgets[i]
-            widget.grid_changed(item)
+        for dock_widget in self.dock_widgets:
+            dock_widget.grid_changed(item)
 
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevels(self, qgs_dt_range: QgsDateTimeRange):
-        for i in range(0, len(self.dock_widgets)):
-            widget = self.dock_widgets[i]
-            widget.update_waterlevel(qgs_dt_range)
+        for dock_widget in self.dock_widgets:
+            dock_widget.update_waterlevel(qgs_dt_range)
 
     def on_close_child_widget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""
