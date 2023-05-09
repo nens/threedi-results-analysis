@@ -179,7 +179,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         mouse_point_x = self.plotItem.vb.mapSceneToView(evt[0]).x()
         self.profile_hovered.emit(mouse_point_x)
 
-    def set_sideprofile(self, route_path):
+    def set_sideprofile(self, route_path, current_grid: ThreeDiGridItem):
 
         self.sideview_nodes = []  # Required to plot nodes and water level
         bottom_line = []  # Bottom of structures
@@ -187,8 +187,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         middle_line = []  # Typically crest-level
         exchange_line = []  # exchange level
         upper_limit_line = []  # For top fill of weirs and orifices
-
-        h5_file = self.model.get_results(checked_only=False)[0].parent().path
 
         for route_part in route_path:
             logger.error("NEW ROUTE PART")
@@ -204,7 +202,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                 if direction != 1:
                     begin_node_id, end_node_id = end_node_id, begin_node_id
 
-                begin_level, end_level, begin_height, end_height, crest_level, ltype = SideViewGraphGenerator.retrieve_profile_info_from_flowline(h5_file, feature["id"])
+                begin_level, end_level, begin_height, end_height, crest_level, ltype = SideViewGraphGenerator.retrieve_profile_info_from_flowline(current_grid.path, feature["id"])
                 if direction != 1:
                     begin_level, end_level = end_level, begin_level
                     begin_height, end_height = end_height, begin_height
@@ -237,8 +235,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                     logger.error(f"Unknown line type: {ltype}")
                     return
 
-                node_level_1, node_height_1 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, begin_node_id)
-                node_level_2, node_height_2 = SideViewGraphGenerator.retrieve_profile_info_from_node(h5_file, end_node_id)
+                node_level_1, node_height_1 = SideViewGraphGenerator.retrieve_profile_info_from_node(current_grid.path, begin_node_id)
+                node_level_2, node_height_2 = SideViewGraphGenerator.retrieve_profile_info_from_node(current_grid.path, end_node_id)
 
                 # Only draw exchange when nodes have heights
                 if (node_height_1 > 0.0 and node_height_2 > 0.0):
@@ -441,17 +439,9 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
 
     def on_close(self):
-        """
-        unloading widget and remove all required stuff
-        :return:
-        """
         self.profile_route_updated.disconnect(self.update_water_level_cache)
 
     def closeEvent(self, event):
-        """
-        overwrite of QDockWidget class to emit signal
-        :param event: QEvent
-        """
         self.on_close()
         event.accept()
 
@@ -474,7 +464,7 @@ class SideViewDockWidget(QDockWidget):
         ]
 
     def __init__(
-        self, iface, nr, model, datasources, parent=None
+        self, iface, nr, model, parent=None
     ):
         super().__init__(parent)
 
@@ -526,31 +516,38 @@ class SideViewDockWidget(QDockWidget):
     def grid_removed(self, item: ThreeDiGridItem):
         idx = self.select_grid_combobox.findData(item.id)
         assert idx != -1
+        # TODO: Check whether currently viewed, in that case reset sideview as well
         logger.info(f"Removing item at index {idx}")
         self.select_grid_combobox.removeItem(idx)
 
     @pyqtSlot(int)
     def grid_selected(self, grid_index: int):
         logger.info(f"Selected item {self.select_grid_combobox.itemText(grid_index)}")
-        self.initialize()
+        item_id = self.select_grid_combobox.itemData(grid_index)
+        for grid in self.model.get_grids():
+            if item_id == grid.id:
+                self.initialize_route(grid)
+                return
+
+        raise Exception("Grid in combobox not present in results model")
 
     def unset_route_tool(self):
-        if self.route_tool_active:
-            self.route_tool_active = False
+        logger.info("Unsetting route tool")
+        if self.iface.mapCanvas().mapTool() is self.route_tool:
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
+            self.select_sideview_button.setChecked(False)
 
     def toggle_route_tool(self):
-        if self.route_tool_active:
-            self.route_tool_active = False
+        if self.iface.mapCanvas().mapTool() is self.route_tool:
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
+            self.select_sideview_button.setChecked(False)
         else:
-            self.route_tool_active = True
             self.iface.mapCanvas().setMapTool(self.route_tool)
+            self.select_sideview_button.setChecked(True)
 
-    def initialize(self):
-        self.route_tool_active = False
-
-        layer_id = self.model.get_results(checked_only=False)[0].parent().layer_ids["flowline"]
+    def initialize_route(self, grid_item: ThreeDiGridItem):
+        self.current_grid_id = grid_item.id
+        layer_id = grid_item.layer_ids["flowline"]
         self.graph_layer = QgsProject.instance().mapLayer(layer_id)
 
         # Init route (for shortest path)
@@ -615,14 +612,19 @@ class SideViewDockWidget(QDockWidget):
             statusbar_message(msg)
             return
 
-        self.side_view_plot_widget.set_sideprofile(self.route.path)
+        # TODO: add function to model for this getter?
+        for grid in self.model.get_grids():
+            if grid.id == self.current_grid_id:
+                self.side_view_plot_widget.set_sideprofile(self.route.path, grid)
+                break
+
         self.map_visualisation.set_sideview_route(self.route)
 
     def reset_sideview(self):
+        self.current_grid_id = None
         self.route.reset()
         self.map_visualisation.reset()
-
-        self.side_view_plot_widget.set_sideprofile([])
+        self.side_view_plot_widget.set_sideprofile([], None)
 
     def on_close(self):
         """
@@ -694,5 +696,6 @@ class SideViewDockWidget(QDockWidget):
 
         self.setWidget(self.dock_widget_content)
 
+        self.select_sideview_button.setCheckable(True)
         self.select_sideview_button.clicked.connect(self.toggle_route_tool)
         self.reset_sideview_button.clicked.connect(self.reset_sideview)

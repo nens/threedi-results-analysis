@@ -9,13 +9,11 @@ import os
 class ThreeDiSideView(QObject):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, model, datasources):
+    def __init__(self, iface, model):
         QObject.__init__(self)
 
         self.iface = iface
         self.model = model
-        self.datasources = datasources  # temp
-
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_route.png")
         self.menu_text = u"Show sideview of 3Di model with results"
 
@@ -102,8 +100,7 @@ class ThreeDiSideView(QObject):
         new_widget = SideViewDockWidget(
             self.iface,
             nr=self.widget_nr,
-            model=self.model,
-            datasources=self.datasources,
+            model=self.model
         )
         self.dock_widgets.append(new_widget)
 

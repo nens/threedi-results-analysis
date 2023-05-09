@@ -236,28 +236,23 @@ class ThreeDiPluginModel(QStandardItemModel):
         _get_grids(results, self.invisibleRootItem())
         return results
 
-    def get_results(self, checked_only: bool) -> List[ThreeDiResultItem]:
-        """Returns the list of selected results (traversal)"""
-        def _get_results(
-            results: List[ThreeDiResultItem],
-            item: QStandardItemModel,
-            checked_only: bool
-        ):
-            if isinstance(item, ThreeDiResultItem):
-                if checked_only:
-                    if item.checkState() == Qt.CheckState.Checked:
-                        results.append(item)
-                else:
+    def get_results_from_item(self, item: QStandardItem, checked_only: bool, results: List[ThreeDiResultItem]) -> None:
+        """Returns the list of results of a provided item"""
+        if isinstance(item, ThreeDiResultItem):
+            if checked_only:
+                if item.checkState() == Qt.CheckState.Checked:
                     results.append(item)
+            else:
+                results.append(item)
 
             if item.hasChildren():
                 for i in range(item.rowCount()):
-                    _get_results(results, item.child(i), checked_only)
+                    self.get_results_from_item(item.child(i), checked_only, results)
 
-            return results
-
+    def get_results(self, checked_only: bool) -> List[ThreeDiResultItem]:
+        """Returns the list of all results (traversal)"""
         results = []
-        _get_results(results, self.invisibleRootItem(), checked_only)
+        self.get_results_from_item(self.invisibleRootItem(), checked_only, results)
         return results
 
     def get_result_field_names(self, layer_id):
