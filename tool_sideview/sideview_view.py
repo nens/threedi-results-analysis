@@ -21,7 +21,7 @@ from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import LineType
-from threedi_results_analysis.tool_sideview.utils import PenStyleWidget
+from threedi_results_analysis.tool_sideview.utils import PenStyleWidget, available_styles
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
@@ -456,14 +456,6 @@ class SideViewDockWidget(QDockWidget):
 
     closingWidget = pyqtSignal(int)
 
-    available_styles = [
-            Qt.SolidLine,
-            Qt.DashLine,
-            Qt.DotLine,
-            Qt.DashDotLine,
-            Qt.DashDotDotLine,
-        ]
-
     def __init__(
         self, iface, nr, model, parent=None
     ):
@@ -488,7 +480,7 @@ class SideViewDockWidget(QDockWidget):
         result_table_item.setEditable(False)
 
         # pick new pattern
-        pattern = self.available_styles[self.sideview_result_model.rowCount() % 5]
+        pattern = available_styles[self.sideview_result_model.rowCount() % 5]
         pattern_table_item = QStandardItem(str(pattern))
         pattern_table_item.setCheckable(False)
         pattern_table_item.setEditable(False)

@@ -4,6 +4,14 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtCore import Qt
 
+available_styles = [
+        Qt.SolidLine,
+        Qt.DashLine,
+        Qt.DotLine,
+        Qt.DashDotLine,
+        Qt.DashDotDotLine,
+    ]
+
 
 class PenStyleWidget(QWidget):
     """A simple widget than can be used to display examples of pen styles"""
