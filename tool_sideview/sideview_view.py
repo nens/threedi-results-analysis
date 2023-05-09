@@ -21,6 +21,7 @@ from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import LineType
+from threedi_results_analysis.tool_sideview.utils import PenStyleWidget
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
@@ -486,12 +487,15 @@ class SideViewDockWidget(QDockWidget):
         result_table_item.setCheckable(True)
         result_table_item.setEditable(False)
 
-        pattern_table_item = QStandardItem(item.text())
-        pattern_table_item.setCheckable(True)
+        # pick new pattern
+        pattern = self.available_styles[self.sideview_result_model.rowCount() % 5]
+        pattern_table_item = QStandardItem(str(pattern))
+        pattern_table_item.setCheckable(False)
         pattern_table_item.setEditable(False)
+        self.sideview_result_model.appendRow(result_table_item)
 
-        self.sideview_result_model.appendRow([result_table_item, pattern_table_item])
-        pass
+        index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
+        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, Qt.blue, self.table_view))
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, item: ThreeDiResultItem):

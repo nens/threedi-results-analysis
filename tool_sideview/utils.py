@@ -1,4 +1,29 @@
 import math
+from PyQt5.QtGui import QPainter, QPen
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtCore import Qt
+
+
+class PenStyleWidget(QWidget):
+    """A simple widget than can be used to display examples of pen styles"""
+    def __init__(
+        self,
+        pen_style: Qt.PenStyle,
+        pen_color: QColor,
+        parent : QWidget,
+    ):
+        super().__init__(parent)
+        self.pen_style = pen_style
+        self.pen_color = pen_color
+
+    def paintEvent(self, event):
+        qp = QPainter(self)
+        qp.begin(self)
+        pen = QPen(self.pen_color, 2, self.pen_style)
+        qp.setPen(pen)
+        qp.drawLine(0, round(self.height()/2.0), self.width(), round(self.height()/2.0))
+        qp.end()
 
 
 class LineType:
