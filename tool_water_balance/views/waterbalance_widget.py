@@ -1,12 +1,13 @@
-from ..config.waterbalance.sum_configs import serie_settings
-from ..models.wb_item import WaterbalanceItemModel
 from qgis.core import Qgis
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsProject
 from qgis.core import QgsWkbTypes
-from qgis.gui import QgsMapToolIdentify
+from qgis.core import QgsGeometry
 from qgis.gui import QgsHighlight
+from qgis.gui import QgsMapToolIdentify
+from qgis.gui import QgsRubberBand
+from qgis.gui import QgsVertexMarker
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
@@ -30,10 +31,11 @@ from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
 from threedi_results_analysis.utils.user_messages import messagebar_message
-from qgis.core import QgsGeometry
-from qgis.gui import QgsRubberBand
-from qgis.gui import QgsVertexMarker
 
+from ..utils import PolygonWithCRS
+from ..config import SERIE_SETTINGS
+from ..config import INPUT_SERIES
+from ..models.wb_item import WaterbalanceItemModel
 
 import copy
 import functools
@@ -44,53 +46,11 @@ import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
 
-serie_settings = {s["name"]: s for s in serie_settings}
-
 MSG_TITLE = "Water Balance Tool"
 QCOLOR_RED = QColor(255, 0, 0)
 POLYGON_TYPES = (
     QgsWkbTypes.Polygon, QgsWkbTypes.PolygonZ, QgsWkbTypes.Polygon25D,
 )
-
-# serie_name, index, modelpart for bars, modelpart for graph
-INPUT_SERIES = [
-    ("2d_in", 0, "2d", "2d"),
-    ("2d_out", 1, "2d", "2d"),
-    ("1d_in", 2, "1d", "1d"),
-    ("1d_out", 3, "1d", "1d"),
-    ("2d_bound_in", 4, "2d", "2d"),
-    ("2d_bound_out", 5, "2d", "2d"),
-    ("1d_bound_in", 6, "1d", "1d"),
-    ("1d_bound_out", 7, "1d", "1d"),
-    ("1d__1d_2d_flow_in", 8, "1d", "1d2d"),
-    ("1d__1d_2d_flow_out", 9, "1d", "1d2d"),
-    ("1d__1d_2d_exch_in", 10, "1d", "1d2d"),
-    ("1d__1d_2d_exch_out", 11, "1d", "1d2d"),
-    ("pump_in", 12, "1d", "1d"),
-    ("pump_out", 13, "1d", "1d"),
-    ("rain", 14, "2d", "2d"),
-    ("infiltration_rate_simple", 15, "2d", "2d"),
-    ("lat_2d", 16, "2d", "2d"),
-    ("lat_1d", 17, "1d", "1d"),
-    ("d_2d_vol", 18, "2d", "2d"),
-    ("d_1d_vol", 19, "1d", "1d"),
-    ("error_2d", 20, "error_2d", "2d"),
-    ("error_1d", 21, "error_1d", "2d"),
-    ("error_1d_2d", 22, "error_1d_2d", "2d"),
-    ("2d_groundwater_in", 23, "2d", "2d"),
-    ("2d_groundwater_out", 24, "2d", "2d"),
-    ("d_2d_groundwater_vol", 25, "2d", "2d"),
-    ("leak", 26, "2d", "2d"),
-    ("inflow", 27, "1d", "1d"),
-    ("2d_vertical_infiltration_pos", 28, "2d_vert", "2d_vert"),
-    ("2d_vertical_infiltration_neg", 29, "2d_vert", "2d_vert"),
-    ("2d__1d_2d_flow_in", 30, "2d", "1d2d"),
-    ("2d__1d_2d_flow_out", 31, "2d", "1d2d"),
-    ("2d__1d_2d_exch_in", 32, "2d", "1d2d"),
-    ("2d__1d_2d_exch_out", 33, "2d", "1d2d"),
-    ("intercepted_volume", 34, "2d", "2d"),
-    ("q_sss", 35, "2d", "2d"),
-]
 
 
 # some helper functions and classes
@@ -108,13 +68,6 @@ def _get_feature_iterator(layer, request_filter):
         return layer.getFeatures(request_filter)
     else:
         return []
-
-
-class NotSynchronizedTimestampsError(Exception):
-    def __init__(self, message, data):
-        self.message = message
-        self.data = data
-        super().__init__(self.message)
 
 #######################
 
@@ -373,7 +326,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         self.model = model
         self.model.dataChanged.connect(self.data_changed)
         self.model.rowsInserted.connect(self.on_insert)
-        self.model.rowsAboutToBeRemoved.connect(self.on_remove)
+        self.model.rowsRemoved.connect(self.on_remove)
 
     def on_remove(self):
         self.draw_timeseries()
@@ -673,11 +626,12 @@ class WaterBalanceWidget(QDockWidget):
         },
     ]
 
-    def __init__(self, title, iface, calc):
+    def __init__(self, title, iface, manager):
         super().__init__(title)
 
         self.iface = iface
-        self.calc = calc
+        self.manager = manager
+        self.calc = None
 
         # setup ui
         self.setup_ui(self)
@@ -689,7 +643,7 @@ class WaterBalanceWidget(QDockWidget):
 
         # fill comboboxes with selections
         self.modelpart_combo_box.insertItems(0, ["1d and 2d", "1d", "2d"])
-        self.sum_type_combo_box.insertItems(0, list(serie_settings.keys()))
+        self.sum_type_combo_box.insertItems(0, list(SERIE_SETTINGS.keys()))
         self.agg_combo_box.insertItems(0, ["m3/s", "m3 cumulative"])
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
 
@@ -705,10 +659,8 @@ class WaterBalanceWidget(QDockWidget):
         self.activate_all_button.clicked.connect(self.activate_layers)
         self.deactivate_all_button.clicked.connect(self.deactivate_layers)
 
-        # TODO: is this a good default?
         # initially turn on tool
-        self.wb_highlight = None
-        self.wb_polygon = None
+        self.wb_polygon_highlight = None
 
     def _get_io_series_net(self):
         io_series_net = [
@@ -765,12 +717,10 @@ class WaterBalanceWidget(QDockWidget):
         return time_divisor
 
     def show_barchart(self):
-        if self.wb_polygon is None:
+        if self.manager.polygon is None:
             return
 
-        # always use domain '1d and 2d' to get all flows in the barchart
-        wb_barchart_modelpart = "1d and 2d"
-        ts, ts_series = self.calc_wb_barchart(wb_barchart_modelpart)
+        ts, ts_series = self.calc.time, self.calc.flow
 
         io_series_net = self._get_io_series_net()
         io_series_2d = self._get_io_series_2d()
@@ -804,7 +754,7 @@ class WaterBalanceWidget(QDockWidget):
         text = "Water balance from t=%.2f to t=%.2f \n Model name: %s" % (
             t_start,
             t2,
-            self.calc.result.threedi_result.short_model_slug,
+            self.calc.wrapper.threedi_result.short_model_slug,
         )
         layout.addLabel(text, row=0, col=0, colspan=3)
 
@@ -1056,7 +1006,7 @@ class WaterBalanceWidget(QDockWidget):
 
         Uses the cached self.qgs_lines/self.qgs_points.
         """
-        if self.wb_polygon is None:
+        if self.manager.polygon is None:
             return
 
         # TODO 1: generate this dict
@@ -1141,6 +1091,9 @@ class WaterBalanceWidget(QDockWidget):
     def _set_map_tool(self):
         self.iface.mapCanvas().setMapTool(self.map_tool_select_polygon)
 
+    def _unset_map_tool(self):
+        self.iface.mapCanvas().unsetMapTool(self.map_tool_select_polygon)
+
     def activate_layers(self):
         for item in self.model.rows:
             item.active.value = True
@@ -1156,19 +1109,21 @@ class WaterBalanceWidget(QDockWidget):
         return modelpart_graph_series
 
     def update_wb(self):
-        try:
-            ts, graph_series = self.calc_wb_graph(
-                self.modelpart_combo_box.currentText(),
-                self.agg_combo_box.currentText(),
-                serie_settings[self.sum_type_combo_box.currentText()],
-            )
-        except NotSynchronizedTimestampsError as e:
-            msg = f"Couldn't draw series: {e.message}"
-            messagebar_message(MSG_TITLE, msg, Qgis.Warning, 3)
-            logger.warning(e.message, e.data)
+        """ Runs after comboboxes change. """
+        self.model.removeRows(0, len(self.model.rows))
+
+        for calc in self.manager:
+            # TODO update all calculations, not just the first
+            self.calc = calc
+            break
+        else:
+            self.calc = None
             return
 
-        self.model.removeRows(0, len(self.model.rows))
+        ts, graph_series = self.calc_wb_graph(
+            self.modelpart_combo_box.currentText(),
+            self.agg_combo_box.currentText(),
+        )
         time_units = self.ts_units_combo_box.currentText()
         self.model.ts = ts / self.time_units_divisor
 
@@ -1194,34 +1149,26 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_upper)
         self.plot_widget.addItem(text_lower)
 
-    def calc_wb_graph(self, model_part, aggregation_type, settings):
-        lines = self.calc.result.lines
-        points = self.calc.result.points
-        pumps = self.calc.result.pumps
-        link_ids, pump_ids = self.calc.get_incoming_and_outcoming_link_ids(
-            self.wb_polygon, model_part
-        )
-        node_ids = self.calc.get_nodes(self.wb_polygon, model_part)
-        ts, total_time = self.calc.get_aggregated_flows(
-            link_ids, pump_ids, node_ids, model_part
-        )
-        graph_series = self.make_graph_series(
-            ts, total_time, model_part, aggregation_type, settings
-        )
-        self.prepare_and_visualize_selection(
-            link_ids, pump_ids, node_ids, lines, pumps, points
-        )
-        return ts, graph_series
+    def calc_wb_graph(self, model_part, aggregation_type):
+        lines = self.calc.wrapper.lines
+        points = self.calc.wrapper.points
+        pumps = self.calc.wrapper.pumps
+        time, flow = self.calc.time, self.calc.flow
 
-    def calc_wb_barchart(self, bc_model_part):
-        bc_link_ids, bc_pump_ids = self.calc.get_incoming_and_outcoming_link_ids(
-            self.wb_polygon, bc_model_part
+        settings = SERIE_SETTINGS[self.sum_type_combo_box.currentText()]
+        graph_series = self.make_graph_series(
+            time, flow, model_part, aggregation_type, settings
         )
-        bc_node_ids = self.calc.get_nodes(self.wb_polygon, bc_model_part)
-        bc_ts, bc_total_time = self.calc.get_aggregated_flows(
-            bc_link_ids, bc_pump_ids, bc_node_ids, bc_model_part
+
+        self.prepare_and_visualize_selection(
+            self.calc.flowline_ids,
+            self.calc.pump_ids,
+            self.calc.node_ids,
+            lines,
+            pumps,
+            points,
         )
-        return bc_ts, bc_total_time
+        return time, graph_series
 
     def prepare_and_visualize_selection(
         self, link_ids, pump_ids, node_ids, lines, pumps, points
@@ -1291,30 +1238,17 @@ class WaterBalanceWidget(QDockWidget):
     def make_graph_series(self, ts, total_time, model_part, aggregation_type, settings):
         settings = copy.deepcopy(settings)
 
-        if model_part == "1d and 2d":
-            input_series = dict(
-                [
-                    (x, y)
-                    for (x, y, z, part) in self.INPUT_SERIES
-                    if part in ["1d", "2d", "2d_vert", "1d2d"]
-                ]
-            )
-        elif model_part == "2d":
-            input_series = dict(
-                [
-                    (x, y)
-                    for (x, y, z, part) in self.INPUT_SERIES
-                    if part in ["2d", "2d_vert", "1d2d"]
-                ]
-            )
-        elif model_part == "1d":
-            input_series = dict(
-                [
-                    (x, y)
-                    for (x, y, z, part) in self.INPUT_SERIES
-                    if part in ["1d", "1d2d"]
-                ]
-            )
+        graph_model_parts = {
+            "1d and 2d": ["1d", "2d", "2d_vert", "1d2d"],
+            "2d": ["2d", "2d_vert", "1d2d"],
+            "1d": ["1d", "1d2d"],
+        }[model_part]
+
+        input_series = {
+            serie_name: index
+            for serie_name, index, _, graph_model_part in self.INPUT_SERIES
+            if graph_model_part in graph_model_parts
+        }
 
         # set layers to True (layer is tickled in wb_item_table (right box
         # where one can tickle layer(s), but more important: based on this we
@@ -1406,6 +1340,8 @@ class WaterBalanceWidget(QDockWidget):
         self.activate_all_button.clicked.disconnect(self.activate_layers)
         self.deactivate_all_button.clicked.disconnect(self.deactivate_layers)
 
+        self.unset_wb_polygon()
+        self._unset_map_tool()
         self.closingWidget.emit()
         event.accept()
 
@@ -1507,25 +1443,18 @@ class WaterBalanceWidget(QDockWidget):
         highlight.setColor(QColor(0, 0, 255, 127))
         # highlight.setWidth(3)
 
-        # transform to 3di result crs
-        tr = QgsCoordinateTransform(
-            layer.crs(),
-            self.calc.result.lines.crs(),
-            QgsProject.instance(),
-        )
-        polygon.transform(tr)
-
-        self.wb_polygon = polygon
-        self.wb_highlight = highlight
+        self.wb_polygon_highlight = highlight
+        self.manager.polygon = PolygonWithCRS(polygon=polygon, crs=layer.crs())
         self.update_wb()
 
     def unset_wb_polygon(self):
         """ De-highlight and unset the current waterbalance polygon."""
-        if self.wb_polygon is None:
+        if self.manager.polygon is None:
             return
-        self.iface.mapCanvas().scene().removeItem(self.wb_highlight)
-        self.wb_highlight = None
-        self.wb_polygon = None
+        self.iface.mapCanvas().scene().removeItem(self.wb_polygon_highlight)
+        self.wb_polygon_highlight = None
+        self.manager.polygon = None
+        self.update_wb()
 
 
 class SelectionVisualisation(object):
@@ -1600,7 +1529,7 @@ class SelectPolygonTool(QgsMapToolIdentify):
             mode=self.IdentifyMode.LayerSelection,
         )
         if not identify_results:
-            msg = 'No polygons found in this location.'
+            msg = 'No geometries found in this location.'
             messagebar_message(MSG_TITLE, msg, Qgis.Warning, 3)
             return
 
@@ -1609,6 +1538,9 @@ class SelectPolygonTool(QgsMapToolIdentify):
         feature = identify_result.mFeature
 
         polygon = feature.geometry()
-        assert polygon.wkbType() in POLYGON_TYPES
+        if not polygon.wkbType() in POLYGON_TYPES:
+            msg = 'Not a (suitable) polygon.'
+            messagebar_message(MSG_TITLE, msg, Qgis.Warning, 3)
+            return
 
         self.widget.set_wb_polygon(polygon=polygon, layer=layer)

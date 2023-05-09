@@ -71,9 +71,10 @@ def ts_datasources(tmp_path):
     return result
 
 
-@pytest.fixture()
-def three_di_result_item(tmp_path):
+@pytest.fixture(scope='session')
+def three_di_result_item(tmpdir_factory):
     """ Result pointing to the bergermeer test model. """
+    tmp_path = tmpdir_factory.mktemp("testdata")
     shutil.copytree(BERGERMEER_DIR, tmp_path / "v2_bergermeer")
 
     path_gpkg = tmp_path / "v2_bergermeer" / "gridadmin.gpkg"
