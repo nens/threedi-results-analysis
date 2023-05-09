@@ -22,7 +22,7 @@ class PenStyleWidget(QWidget):
         qp.begin(self)
         pen = QPen(self.pen_color, 2, self.pen_style)
         qp.setPen(pen)
-        qp.drawLine(0, round(self.height()/2.0), self.width(), round(self.height()/2.0))
+        qp.drawLine(round(0.1*self.width()), round(self.height()/2.0), round(0.9*self.width()), round(self.height()/2.0))
         qp.end()
 
 
