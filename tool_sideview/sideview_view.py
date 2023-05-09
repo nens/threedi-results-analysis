@@ -505,7 +505,11 @@ class SideViewDockWidget(QDockWidget):
     def grid_changed(self, item: ThreeDiGridItem):
         idx = self.select_grid_combobox.findData(item.id)
         assert idx != -1
+        # Change name in combobox
         self.select_grid_combobox.setItemText(idx, item.text())
+        item_id = self.select_grid_combobox.itemData(idx)
+        if self.current_grid_id == item_id:
+            self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {item.text()}")
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_added(self, item: ThreeDiGridItem):
@@ -519,6 +523,7 @@ class SideViewDockWidget(QDockWidget):
         if self.current_grid_id == item_id:
             logger.info(f"Removing item at index {idx}")
             self.deinitialize_route()
+            self.setWindowTitle(f"3Di Sideview Plot {self.nr}:")
 
         self.select_grid_combobox.removeItem(idx)
 
@@ -528,6 +533,7 @@ class SideViewDockWidget(QDockWidget):
         for grid in self.model.get_grids():
             if item_id == grid.id:
                 self.initialize_route(grid)
+                self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {grid.text()}")
                 return
 
         raise Exception("Grid in combobox not present in results model")
