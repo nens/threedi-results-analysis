@@ -6,9 +6,11 @@ from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from threedi_results_analysis.tests.test_init import TEST_DATA_DIR
 from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initialized
-from threedi_results_analysis.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
-from threedi_results_analysis.tool_water_balance.tools.waterbalance import ResultHelper
-from threedi_results_analysis.tool_water_balance.views import waterbalance_widget
+
+from .tools import WaterBalanceCalculation
+from .tools import WaterBalanceCalculationManager
+from .tools import ResultWrapper
+from .views import waterbalance_widget
 
 import mock
 import numpy as np
@@ -156,71 +158,46 @@ def wb_polygon():
 
 
 @pytest.fixture()
-def wb_calculation(three_di_result_item):
-    result = ResultHelper(three_di_result_item)
+def wb_calculation(three_di_result_item, wb_polygon):
+    wrapper = ResultWrapper(three_di_result_item)
     ensure_qgis_app_is_initialized()
-    wb_calculation = WaterBalanceCalculation(result=result)
+    wb_calculation = WaterBalanceCalculation(wrapper=wrapper, polygon=wb_polygon)
     return wb_calculation
 
 
-@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
-def test_get_incoming_and_outcoming_link_ids(
-    progress_bar_mock, wb_calculation, wb_polygon
-):
-    """We mock StatusProgressBar which is not refered from
-    'utils.user_messages.StatusProgressBar', but from
-    .tool_result_selection.models.StatusProgressBar'"""
-    links = wb_calculation.get_incoming_and_outcoming_link_ids(wb_polygon, None)
+def test_get_incoming_and_outcoming_link_ids(wb_calculation):
+    links = wb_calculation.flowline_ids, wb_calculation.pump_ids
     assert links == LINKS_EXPECTED
 
 
-@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
-def test_get_nodes(progress_bar_mock, wb_calculation, wb_polygon):
-    nodes = wb_calculation.get_nodes(wb_polygon, None)
+def test_get_nodes(wb_calculation):
+    nodes = wb_calculation.node_ids
     assert nodes == NODES_EXPECTED
 
 
-@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
-def test_time_steps_get_aggregated_flows(progress_bar_mock, wb_calculation):
+def test_time_steps_get_aggregated_flows(wb_calculation):
     """test A) number of timesteps, B) wheter we get a time series for each link,
     pump and node"""
-    link_ids = LINKS_EXPECTED[0]
-    pump_ids = LINKS_EXPECTED[1]
-    node_ids = NODES_EXPECTED
-    aggregated_flows = wb_calculation.get_aggregated_flows(
-        link_ids, pump_ids, node_ids, None
-    )
-    assert len(aggregated_flows) == 2
-    time_steps = aggregated_flows[0]
-    total_time = aggregated_flows[1]
+    time = wb_calculation.time
+    flow = wb_calculation.flow
 
     assert (
-        _helper_round_numpy(time_steps) == _helper_round_numpy(TIMESTEPS_EXPECTED)
+        _helper_round_numpy(time) == _helper_round_numpy(TIMESTEPS_EXPECTED)
     ).all(), (
         "aggregation timesteps array is not what we expected (even when "
         "we round numbers)"
     )
-    assert (
-        len(time_steps) == total_time.shape[0]
-    ), "Number of time_steps is not equal to number of values in time_series"
+    assert len(time) == len(flow), (
+        "Number of time_steps is not equal to number of values in time_series"
+    )
 
-    assert len(waterbalance_widget.INPUT_SERIES) == total_time.shape[1], (
+    assert len(waterbalance_widget.INPUT_SERIES) == flow.shape[1], (
         "For all INPUT_SERIES elements " "a time series should be calculated"
     )
 
 
-@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
-def test_get_aggregated_flows_2d_and_1d(progress_bar_mock, wb_calculation):
-    link_ids = LINKS_EXPECTED[0]
-    pump_ids = LINKS_EXPECTED[1]
-    node_ids = NODES_EXPECTED
-    # empty values of dicts 'pumps' and 'nodes', but keep their keys so
-    # that less aggregated flows have to be calculated
-    pump_ids = pump_ids.fromkeys(pump_ids, [])
-    node_ids = node_ids.fromkeys(node_ids, [])
-    aggregated_flows = wb_calculation.get_aggregated_flows(
-        link_ids, pump_ids, node_ids, None
-    )
+def test_get_aggregated_flows_2d_and_1d(wb_calculation):
+    aggregated_flows = wb_calculation.time, wb_calculation.flow
 
     EXPECTED_CUMM_2D_IN = 719.93930714
     ID = _helper_get_input_series_id("2d_in")
@@ -249,12 +226,12 @@ def test_get_aggregated_flows_2d_and_1d(progress_bar_mock, wb_calculation):
 )
 def wb_widget(pt, wb_calculation):
     ensure_qgis_app_is_initialized()
+    manager = WaterBalanceCalculationManager
     iface = mock.Mock()
     wb_widget = waterbalance_widget.WaterBalanceWidget(
-        "3Di water balance",
-        iface=iface,
-        calc=wb_calculation,
+        "3Di water balance", iface=iface, manager=manager,
     )
+    wb_widget.calc = wb_calculation
     return wb_widget
 
 
@@ -353,26 +330,6 @@ def test_barmanger_2d_groundwater(wb_widget):
     assert bm_2d_groundwater.xlabels == expected_labels
 
 
-@pytest.fixture()
-@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
-def waterbalance_widget_timeseries(progress_bar_mock, wb_widget, wb_polygon):
-    # always use domain '1d and 2d' to get all flows in the barchart
-    wb_widget.wb_polygon = wb_polygon
-    wb_barchart_modelpart = "1d and 2d"
-    timesteps, ts_series = wb_widget.calc_wb_barchart(wb_barchart_modelpart)
-    return timesteps, ts_series
-
-
-def test_waterbalance_widget_timesteps(waterbalance_widget_timeseries):
-    # It looks like that we tested this before (in test_time_steps_get_aggregated_flows),
-    # but those timesteps were retrieved from the WaterBalanceCalculation.
-    # These are retrieved from WaterBalanceWidget (they must be the same)
-    timesteps, ts_series = waterbalance_widget_timeseries
-    assert (
-        _helper_round_numpy(timesteps) == _helper_round_numpy(TIMESTEPS_EXPECTED)
-    ).all()
-
-
 def helper_get_flows_and_dvol(domain=None):
     STORAGE_CHANGE_LABELS = ["net change in storage", "change in storage"]
     sum_inflow = 0
@@ -389,15 +346,13 @@ def helper_get_flows_and_dvol(domain=None):
     return sum_inflow, sum_outflow, d_vol
 
 
-@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
-def test_waterbalance_closure(
-    progress_bar_mock, wb_widget, wb_polygon, waterbalance_widget_timeseries
-):
+def test_waterbalance_closure(wb_calculation, wb_widget, wb_polygon):
     # The netto inflows and outflows of the three sub-domains (1d, 2d,
     # 2d_groundwater) must equal the netto inflow and outflow"""
-    timesteps, time_series = waterbalance_widget_timeseries
-    t1 = min(timesteps)
-    t2 = max(timesteps)
+    time = wb_calculation.time
+    flow = wb_calculation.flow
+    t1 = min(time)
+    t2 = max(time)
 
     io_series_net = wb_widget._get_io_series_net()
     io_series_2d = wb_widget._get_io_series_2d()
@@ -410,21 +365,21 @@ def test_waterbalance_closure(
     bm_1d = waterbalance_widget.BarManager(io_series_1d)
 
     # netto domain
-    bm_net.calc_balance(timesteps, time_series, t1, t2, net=True)
+    bm_net.calc_balance(time, flow, t1, t2, net=True)
     sum_inflow, sum_outflow, d_vol_net = helper_get_flows_and_dvol(domain=bm_net)
     assert _helper_round_numpy(d_vol_net) == _helper_round_numpy(
         sum([sum_inflow, sum_outflow])
     )
 
     # 1d domain
-    bm_1d.calc_balance(timesteps, time_series, t1, t2)
+    bm_1d.calc_balance(time, flow, t1, t2)
     sum_inflow, sum_outflow, d_vol_1d = helper_get_flows_and_dvol(domain=bm_1d)
     assert _helper_round_numpy(d_vol_1d) == _helper_round_numpy(
         sum([sum_inflow, sum_outflow])
     )
 
     # 2d domain
-    bm_2d.calc_balance(timesteps, time_series, t1, t2)
+    bm_2d.calc_balance(time, flow, t1, t2)
     sum_inflow, sum_outflow, d_vol_2d = helper_get_flows_and_dvol(domain=bm_2d)
     assert _helper_round_numpy(d_vol_2d) == _helper_round_numpy(
         sum([sum_inflow, sum_outflow])
@@ -432,7 +387,7 @@ def test_waterbalance_closure(
 
     # 2d_groundwater domain
     bm_2d_groundwater.calc_balance(
-        timesteps, time_series, t1, t2, invert=["in/exfiltration (domain exchange)"]
+        time, flow, t1, t2, invert=["in/exfiltration (domain exchange)"]
     )
     sum_inflow, sum_outflow, d_vol_2d_gr = helper_get_flows_and_dvol(
         domain=bm_2d_groundwater
