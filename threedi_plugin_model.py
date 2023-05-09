@@ -245,9 +245,9 @@ class ThreeDiPluginModel(QStandardItemModel):
             else:
                 results.append(item)
 
-            if item.hasChildren():
-                for i in range(item.rowCount()):
-                    self.get_results_from_item(item.child(i), checked_only, results)
+        if item.hasChildren():
+            for i in range(item.rowCount()):
+                self.get_results_from_item(item.child(i), checked_only, results)
 
     def get_results(self, checked_only: bool) -> List[ThreeDiResultItem]:
         """Returns the list of all results (traversal)"""
