@@ -5,7 +5,7 @@ from qgis.core import QgsDateTimeRange
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtGui import QStandardItemModel
+from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QDockWidget, QSplitter
 from qgis.PyQt.QtWidgets import QHBoxLayout
@@ -482,15 +482,15 @@ class SideViewDockWidget(QDockWidget):
 
     @pyqtSlot(ThreeDiResultItem)
     def result_added(self, item: ThreeDiResultItem):
-        # result_table_item = QStandardItem(item.text())
-        # result_table_item.setCheckable(True)
-        # result_table_item.setEditable(False)
+        result_table_item = QStandardItem(item.text())
+        result_table_item.setCheckable(True)
+        result_table_item.setEditable(False)
 
-        # pattern_table_item = QStandardItem(item.text())
-        # pattern_table_item.setCheckable(True)
-        # pattern_table_item.setEditable(False)
+        pattern_table_item = QStandardItem(item.text())
+        pattern_table_item.setCheckable(True)
+        pattern_table_item.setEditable(False)
 
-        # self.sideview_result_model.appendRow([result_table_item, pattern_table_item])
+        self.sideview_result_model.appendRow([result_table_item, pattern_table_item])
         pass
 
     @pyqtSlot(ThreeDiResultItem)
@@ -621,7 +621,6 @@ class SideViewDockWidget(QDockWidget):
         self.map_visualisation.set_sideview_route(self.route)
 
     def reset_sideview(self):
-        self.current_grid_id = None
         self.route.reset()
         self.map_visualisation.reset()
         self.side_view_plot_widget.set_sideprofile([], None)
