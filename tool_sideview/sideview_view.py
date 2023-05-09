@@ -504,7 +504,6 @@ class SideViewDockWidget(QDockWidget):
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, item: ThreeDiGridItem):
         idx = self.select_grid_combobox.findData(item.id)
-        logger.info(f"Adjusting item at index {idx}")
         assert idx != -1
         self.select_grid_combobox.setItemText(idx, item.text())
 
@@ -516,13 +515,15 @@ class SideViewDockWidget(QDockWidget):
     def grid_removed(self, item: ThreeDiGridItem):
         idx = self.select_grid_combobox.findData(item.id)
         assert idx != -1
-        # TODO: Check whether currently viewed, in that case reset sideview as well
-        logger.info(f"Removing item at index {idx}")
+        item_id = self.select_grid_combobox.itemData(idx)
+        if self.current_grid_id == item_id:
+            logger.info(f"Removing item at index {idx}")
+            self.deinitialize_route()
+
         self.select_grid_combobox.removeItem(idx)
 
     @pyqtSlot(int)
     def grid_selected(self, grid_index: int):
-        logger.info(f"Selected item {self.select_grid_combobox.itemText(grid_index)}")
         item_id = self.select_grid_combobox.itemData(grid_index)
         for grid in self.model.get_grids():
             if item_id == grid.id:
@@ -548,10 +549,14 @@ class SideViewDockWidget(QDockWidget):
     def initialize_route(self, grid_item: ThreeDiGridItem):
         self.current_grid_id = grid_item.id
         layer_id = grid_item.layer_ids["flowline"]
+        # Note that we are NOT owner of this layer (that is results manager)
         self.graph_layer = QgsProject.instance().mapLayer(layer_id)
 
         # Init route (for shortest path)
         self.route = Route(self.graph_layer)
+
+        # Add graph layer to canvas for testing
+        QgsProject.instance().addMapLayer(self.route.get_graph_layer(), True)
 
         # Link route map tool (allows node selection)
         self.route_tool = RouteMapTool(
@@ -566,7 +571,6 @@ class SideViewDockWidget(QDockWidget):
 
         # Add tree layer to map (service area, for fun and testing purposes)
         self.vl_tree_layer = self.route.get_virtual_tree_layer()
-
         self.vl_tree_layer.loadNamedStyle(
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
@@ -576,6 +580,20 @@ class SideViewDockWidget(QDockWidget):
         )
 
         QgsProject.instance().addMapLayer(self.vl_tree_layer)
+
+    def deinitialize_route(self):
+        self.reset_sideview()
+
+        self.current_grid_id = None
+        self.graph_layer = None  # We are not owner of this layer
+        # Note that route.graph_layer is an interal layer used to build the graph,
+        # only added to canvas for testing purposes
+        QgsProject.instance().removeMapLayer(self.route.get_graph_layer())
+        self.route = None
+        self.route_tool = None
+        self.map_visualisation = None
+        QgsProject.instance().removeMapLayer(self.vl_tree_layer)
+        self.vl_tree_layer = None
 
     def on_route_point_select(self, selected_features, clicked_coordinate):
         """Select and add the closest point from the list of selected features.

@@ -51,7 +51,6 @@ class Route(object):
         self.graph_layer.updateFields()
         self.graph_layer.dataProvider().addFeatures(features_1d)
         self.graph_layer.commitChanges()
-        QgsProject.instance().addMapLayer(self.graph_layer, True)
 
         # A search graph is constructed using a so-called Director.
         # Don't use information about road direction from attributes, all edges are treated as two-ways
