@@ -465,7 +465,9 @@ class SideViewDockWidget(QDockWidget):
         self.nr = nr
         self.model = model  # Global Result manager model
         self.sideview_result_model = QStandardItemModel(self)  # Specific sideview model to store loaded results
-        self.sideview_result_model.setHorizontalHeaderLabels(["result", "pattern"])
+        self.sideview_result_model.setHorizontalHeaderLabels(["active", "pattern", "result"])
+        # Also used to check whether we have a current grid
+        self.current_grid_id = None
 
         self.setup_ui()
 
@@ -475,27 +477,21 @@ class SideViewDockWidget(QDockWidget):
 
     @pyqtSlot(ThreeDiResultItem)
     def result_added(self, item: ThreeDiResultItem):
-        result_table_item = QStandardItem(item.text())
-        result_table_item.setCheckable(True)
-        result_table_item.setEditable(False)
+        if item.parent().id != self.current_grid_id:
+            return
 
-        # pick new pattern
-        pattern = available_styles[self.sideview_result_model.rowCount() % 5]
-        pattern_table_item = QStandardItem(str(pattern))
-        pattern_table_item.setCheckable(False)
-        pattern_table_item.setEditable(False)
-        self.sideview_result_model.appendRow(result_table_item)
-
-        index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
-        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, Qt.blue, self.table_view))
+        self._add_result_to_table(item)
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, item: ThreeDiResultItem):
-        pass
+        if item.parent().id != self.current_grid_id:
+            return
 
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, item: ThreeDiResultItem):
-        pass
+        if item.parent().id != self.current_grid_id:
+            return
+        # Update table and redraw result sideview
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, item: ThreeDiGridItem):
@@ -509,7 +505,9 @@ class SideViewDockWidget(QDockWidget):
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_added(self, item: ThreeDiGridItem):
+        currentIndex = self.select_grid_combobox.currentIndex()
         self.select_grid_combobox.addItem(item.text(), item.id)
+        self.select_grid_combobox.setCurrentIndex(currentIndex)
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_removed(self, item: ThreeDiGridItem):
@@ -535,12 +533,18 @@ class SideViewDockWidget(QDockWidget):
         raise Exception("Grid in combobox not present in results model")
 
     def unset_route_tool(self):
+        if self.current_grid_id is None:
+            return
+
         logger.info("Unsetting route tool")
         if self.iface.mapCanvas().mapTool() is self.route_tool:
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
             self.select_sideview_button.setChecked(False)
 
     def toggle_route_tool(self):
+        if self.current_grid_id is None:
+            return
+
         if self.iface.mapCanvas().mapTool() is self.route_tool:
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
             self.select_sideview_button.setChecked(False)
@@ -557,6 +561,9 @@ class SideViewDockWidget(QDockWidget):
         # Init route (for shortest path)
         self.route = Route(self.graph_layer)
 
+        # Retrieve relevant results and put in table
+        self._populate_result_table(grid_item)
+
         # Add graph layer to canvas for testing
         QgsProject.instance().addMapLayer(self.route.get_graph_layer(), True)
 
@@ -571,6 +578,10 @@ class SideViewDockWidget(QDockWidget):
         # connect graph hover to point visualisation on map
         self.side_view_plot_widget.profile_hovered.connect(self.map_visualisation.hover_graph)
 
+        # Enable buttons
+        self.select_sideview_button.setEnabled(True)
+        self.reset_sideview_button.setEnabled(True)
+
         # Add tree layer to map (service area, for fun and testing purposes)
         self.vl_tree_layer = self.route.get_virtual_tree_layer()
         self.vl_tree_layer.loadNamedStyle(
@@ -580,13 +591,15 @@ class SideViewDockWidget(QDockWidget):
                 "tree.qml",
             )
         )
-
         QgsProject.instance().addMapLayer(self.vl_tree_layer)
 
     def deinitialize_route(self):
         self.reset_sideview()
 
         self.current_grid_id = None
+        self.select_sideview_button.setEnabled(False)
+        self.reset_sideview_button.setEnabled(False)
+
         self.graph_layer = None  # We are not owner of this layer
         # Note that route.graph_layer is an interal layer used to build the graph,
         # only added to canvas for testing purposes
@@ -596,6 +609,32 @@ class SideViewDockWidget(QDockWidget):
         self.map_visualisation = None
         QgsProject.instance().removeMapLayer(self.vl_tree_layer)
         self.vl_tree_layer = None
+
+    def _populate_result_table(self, grid_item: ThreeDiGridItem):
+        results = []
+        self.model.get_results_from_item(grid_item, False, results)
+
+        for result in results:
+            self._add_result_to_table(result)
+
+    def _add_result_to_table(self, result_item: ThreeDiResultItem):
+        checkbox_table_item = QStandardItem("")
+        checkbox_table_item.setCheckable(True)
+        checkbox_table_item.setEditable(False)
+
+        result_table_item = QStandardItem(result_item.text())
+        result_table_item.setEditable(False)
+
+        # pick new pattern
+        pattern = available_styles[self.sideview_result_model.rowCount() % 5]
+        pattern_table_item = QStandardItem(str(pattern))
+        pattern_table_item.setCheckable(False)
+        pattern_table_item.setEditable(False)
+        self.sideview_result_model.appendRow([checkbox_table_item, None, result_table_item])
+
+        # Add a PenStyle example in the table
+        index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
+        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, Qt.blue, self.table_view))
 
     def on_route_point_select(self, selected_features, clicked_coordinate):
         """Select and add the closest point from the list of selected features.
@@ -684,6 +723,8 @@ class SideViewDockWidget(QDockWidget):
         self.select_sideview_button = QPushButton("Choose sideview trajectory", self.dock_widget_content)
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
         self.reset_sideview_button = QPushButton("Reset sideview trajectory", self.dock_widget_content)
+        self.select_sideview_button.setEnabled(False)
+        self.reset_sideview_button.setEnabled(False)
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
         spacer_item = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
@@ -692,10 +733,10 @@ class SideViewDockWidget(QDockWidget):
         self.button_bar_hlayout.addWidget(self.select_grid_combobox)
         self.main_vlayout.addItem(self.button_bar_hlayout)
 
-        # populate the combobox
+        # populate the combobox, but select none
         for grid in self.model.get_grids():
             self.select_grid_combobox.addItem(grid.text(), grid.id)
-
+        self.select_grid_combobox.setCurrentIndex(-1)
         self.select_grid_combobox.activated.connect(self.grid_selected)
 
         plotContainerWidget = QSplitter(self)
