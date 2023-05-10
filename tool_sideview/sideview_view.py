@@ -45,6 +45,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self,
         parent,
         model,
+        sideview_result_model,
     ):
         """
 
@@ -52,7 +53,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         """
         super().__init__(parent)
 
-        self.model = model
+        self.model = model  # global model from result manager
+        self.sideview_result_model = sideview_result_model  # Sideview model containing patterns and selections
         self.sideview_nodes = []
         self.waterlevel_plots = {}  # map from result id to (plot, fill)
         self.current_grid_id = None
@@ -378,27 +380,27 @@ class SideViewPlotWidget(pg.PlotWidget):
             for plot, fill in self.waterlevel_plots.values():
                 self.removeItem(plot)
                 self.removeItem(fill)
-            
+
             self.waterlevel_plots = {}
             # Clear node list used to draw results
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-        if len(self.model.get_results(False)) == 0:
-            return
-        
-        # TODO: add function to model for this getter?
-        current_grid = None
-        for grid in self.model.get_grids():
-            if grid.id == self.current_grid_id:
-                current_grid = grid
-                break
 
-        results = []
-        self.model.get_results_from_item(current_grid, False, results)
-        for result in results:
+        # Iterate through the selection model
+        for row_number in range(self.sideview_result_model.rowCount()):
+            # Get checkbox item (this contains result object)
+            check_item = self.sideview_result_model.item(row_number, 0)
+            if check_item.checkState() != Qt.Checked:
+                continue
+
+            result = check_item.data()
+            pattern_item = self.sideview_result_model.item(row_number, 1)
+            plot_pattern = pattern_item.data()
+
+            logger.error(f"Retrieved result: {result.id} with pattern {plot_pattern} from model")
             # Create the waterlevel plots
-            pen = pg.mkPen(color=QColor(0, 0, 255), width=2)
+            pen = pg.mkPen(color=QColor(0, 0, 255), width=2, style=plot_pattern)
             water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
             water_level_plot.setZValue(100)  # always visible
             water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255))
@@ -409,9 +411,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             logger.info("Updating water level cache")
             for node in self.sideview_nodes:
-                if not "timeseries" in node:
+                if "timeseries" not in node:
                     node["timeseries"] = {}
-
                 node["timeseries"][result.id] = result.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
 
         tc = iface.mapCanvas().temporalController()
@@ -423,7 +424,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         if len(self.model.get_results(False)) == 0:
             return
 
-       # TODO: add function to model for this getter?
+        # TODO: add function to model for this getter?
         current_grid = None
         for grid in self.model.get_grids():
             if grid.id == self.current_grid_id:
@@ -648,7 +649,9 @@ class SideViewDockWidget(QDockWidget):
 
     def _add_result_to_table(self, result_item: ThreeDiResultItem):
         checkbox_table_item = QStandardItem("")
+        checkbox_table_item.setData(result_item)
         checkbox_table_item.setCheckable(True)
+        checkbox_table_item.setCheckState(Qt.Checked)
         checkbox_table_item.setEditable(False)
 
         result_table_item = QStandardItem(result_item.text())
@@ -656,12 +659,12 @@ class SideViewDockWidget(QDockWidget):
 
         # pick new pattern
         pattern = available_styles[self.sideview_result_model.rowCount() % 5]
-        pattern_table_item = QStandardItem(str(pattern))
-        pattern_table_item.setCheckable(False)
+        pattern_table_item = QStandardItem("")
         pattern_table_item.setEditable(False)
-        self.sideview_result_model.appendRow([checkbox_table_item, None, result_table_item])
+        pattern_table_item.setData(pattern)
+        self.sideview_result_model.appendRow([checkbox_table_item, pattern_table_item, result_table_item])
 
-        # Add a PenStyle example in the table
+        # Add a PenStyle display in the table
         index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
         self.table_view.setIndexWidget(index, PenStyleWidget(pattern, Qt.blue, self.table_view))
 
@@ -769,7 +772,7 @@ class SideViewDockWidget(QDockWidget):
         self.select_grid_combobox.activated.connect(self.grid_selected)
 
         plotContainerWidget = QSplitter(self)
-        self.side_view_plot_widget = SideViewPlotWidget(plotContainerWidget, self.model)
+        self.side_view_plot_widget = SideViewPlotWidget(plotContainerWidget, self.model, self.sideview_result_model)
         plotContainerWidget.addWidget(self.side_view_plot_widget)
         self.table_view = QTableView(self)
         self.table_view.setModel(self.sideview_result_model)
