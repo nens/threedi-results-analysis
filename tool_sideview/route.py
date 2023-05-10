@@ -350,7 +350,6 @@ class RouteMapTool(QgsMapTool):
         selected = self.graph_layer.getFeatures(filter)
 
         clicked_point = self.canvas.getCoordinateTransform().toMapCoordinates(x, y)
-        # transform to wgs84 (lon, lat) if not already:
         transformed_point = transform.transform(clicked_point)
 
         selected_points = [s for s in selected]

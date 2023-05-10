@@ -1,6 +1,6 @@
 from qgis.gui import QgsRubberBand, QgsVertexMarker
 from threedi_results_analysis.tool_sideview.route import Route
-from qgis.core import QgsDistanceArea, QgsProject, QgsCoordinateTransform, QgsWkbTypes, QgsPointXY, QgsUnitTypes
+from qgis.core import QgsDistanceArea, QgsProject, QgsCoordinateTransform, QgsWkbTypes, QgsPointXY
 from qgis.PyQt.QtCore import Qt
 
 import logging
@@ -96,9 +96,7 @@ class SideViewMapVisualisation(object):
 
                         conversion_factor = 1
                         if self.graph_layer_crs.isGeographic():
-                            conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
-                                QgsUnitTypes.DistanceMeters, QgsUnitTypes.DistanceDegrees
-                            )
+                            raise Exception("Unsupported")
 
                         length = distance_on_line * conversion_factor
 

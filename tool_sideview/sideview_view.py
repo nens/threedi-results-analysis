@@ -19,7 +19,6 @@ from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
-from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.utils import PenStyleWidget, available_styles
 from threedi_results_analysis.utils.user_messages import statusbar_message
@@ -102,7 +101,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
-        pen = pg.mkPen(color=QColor(0, 255, 255), width=2)
+        pen = pg.mkPen(color=QColor(0, 0, 255), width=2)
         self.water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.water_fill = pg.FillBetweenItem(
             self.water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255)
@@ -392,28 +391,25 @@ class SideViewPlotWidget(pg.PlotWidget):
             return
 
         ds_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS
-        if ds_item:
-            logger.info("Updating water level cache")
-            ds = ds_item.threedi_result
-            for node in self.sideview_nodes:
-                node["timeseries"] = ds.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
+        logger.info("Updating water level cache")
+        for node in self.sideview_nodes:
+            node["timeseries"] = ds_item.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
 
-            tc = iface.mapCanvas().temporalController()
-            self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()), True)
-        else:
-            # reset water level line
-            logger.error("No DS_ITEM!")
-            self.water_level_plot.setData(np.array(np.array([(0.0, np.nan)]), dtype=float))
+        tc = iface.mapCanvas().temporalController()
+        self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()), True)
 
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange, update_range=False):
+
+        if len(self.model.get_results(False)) == 0:
+            return
 
         result_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
         if not result_item:
             return
 
         threedi_result = result_item.threedi_result
-        # TODO: refactor the following to an util function and check (first datetime yields idx 1)
+        # TODO: refactor the following to an util function and check
         current_datetime = qgs_dt_range.begin().toPyDateTime()
         begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
         end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
@@ -424,7 +420,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
         timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
 
-        # timestamp_nr = 1
         logger.info(f"Drawing result for nr {timestamp_nr}")
 
         water_level_line = []
@@ -553,6 +548,9 @@ class SideViewDockWidget(QDockWidget):
             self.select_sideview_button.setChecked(True)
 
     def initialize_route(self, grid_item: ThreeDiGridItem):
+        if self.current_grid_id is not None:
+            self.deinitialize_route()
+
         self.current_grid_id = grid_item.id
         layer_id = grid_item.layer_ids["flowline"]
         # Note that we are NOT owner of this layer (that is results manager)
@@ -611,6 +609,9 @@ class SideViewDockWidget(QDockWidget):
         self.vl_tree_layer = None
 
     def _populate_result_table(self, grid_item: ThreeDiGridItem):
+        self.sideview_result_model.clear()
+        self.sideview_result_model.setHorizontalHeaderLabels(["active", "pattern", "result"])
+
         results = []
         self.model.get_results_from_item(grid_item, False, results)
 
@@ -641,15 +642,17 @@ class SideViewDockWidget(QDockWidget):
 
         Args:
             selected_features: list of features selected by click
-            clicked_coordinate: (lon, lat) (transformed) of the click
+            clicked_coordinate: (transformed) of the click
         """
+        logger.error(f"{len(selected_features)} features")
+        if self.graph_layer.crs().isGeographic():
+            raise Exception("Unsupported")
 
-        # TODO: is this still required?
-        def haversine_clicked(coordinate):
-            """Calculate the distance w.r.t. the clicked location."""
-            lon1, lat1 = clicked_coordinate
-            lon2, lat2 = coordinate.x(), coordinate.y()
-            return haversine(lon1, lat1, lon2, lat2)
+        def squared_distance_clicked(coordinate):
+            """Calculate the squared distance w.r.t. the clicked location."""
+            x1, y1 = clicked_coordinate
+            x2, y2 = coordinate.x(), coordinate.y()
+            return ((x1-x2)**2 + (y1-y2)**2)
 
         # Only look at first and last vertex
         selected_coordinates = reduce(
@@ -659,10 +662,14 @@ class SideViewDockWidget(QDockWidget):
             [],
         )
 
+        lon1, lat1 = clicked_coordinate
+        logger.error(f"{lon1}, {lat1}")
+        logger.error(f"{selected_coordinates} coords, click {clicked_coordinate}")
+
         if len(selected_coordinates) == 0:
             return
 
-        closest_point = min(selected_coordinates, key=haversine_clicked)
+        closest_point = min(selected_coordinates, key=squared_distance_clicked)
         next_point = QgsPointXY(closest_point)
 
         success, msg = self.route.add_point(next_point)
