@@ -54,6 +54,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.model = model
         self.sideview_nodes = []
+        self.waterlevel_plots = {}  # map from result id to (plot, fill)
+        self.current_grid_id = None
 
         self.showGrid(True, True, 0.5)
         self.setLabel("bottom", "Distance", "m")
@@ -101,12 +103,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
-        pen = pg.mkPen(color=QColor(0, 0, 255), width=2)
-        self.water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.water_fill = pg.FillBetweenItem(
-            self.water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255)
-        )
-
         # Add some structure specific fills
         self.orifice_opening_fill = pg.FillBetweenItem(
             self.orifice_upper_plot, self.orifice_middle_plot, pg.mkBrush(208, 240, 192)
@@ -126,7 +122,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.exchange_plot, self.sewer_top_plot, pg.mkBrush(200, 200, 200)
         )
 
-        self.addItem(self.water_fill)
         self.addItem(self.bottom_fill)
         self.addItem(self.sewer_top_fill)
         self.addItem(self.bottom_plot)
@@ -144,18 +139,14 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_upper_plot)
         self.addItem(self.orifice_middle_plot)
         self.addItem(self.orifice_top_plot)
-        self.addItem(self.water_level_plot)
         self.addItem(self.node_plot)
-
         self.addItem(self.orifice_full_fill)
         self.addItem(self.orifice_opening_fill)
         self.addItem(self.weir_full_fill)
         self.addItem(self.weir_opening_fill)
-
         self.addItem(self.exchange_plot)
 
         # Set the z-order of the curves (note that fill take minimum of its two defining curve as z-value)
-        self.water_level_plot.setZValue(100)  # always visible
         self.exchange_plot.setZValue(100)
         self.node_plot.setZValue(60)
         self.orifice_full_fill.setZValue(20)
@@ -164,7 +155,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.weir_opening_fill.setZValue(21)
         self.bottom_fill.setZValue(3)
         self.sewer_top_fill.setZValue(3)
-        self.water_fill.setZValue(0)
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
@@ -187,6 +177,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         middle_line = []  # Typically crest-level
         exchange_line = []  # exchange level
         upper_limit_line = []  # For top fill of weirs and orifices
+
+        self.current_grid_id = current_grid.id if current_grid else None
 
         for route_part in route_path:
             logger.error("NEW ROUTE PART")
@@ -355,12 +347,13 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node_table.append((node["distance"], node["level"] + node["height"]))
             self.node_plot.setData(np.array(node_table, dtype=float), connect="pairs")
 
-            # reset water level line
+            # reset water level lines
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
-            self.water_level_plot.setData(ts_table)
+            for plot, fill in self.waterlevel_plots.values():
+                plot.setData(ts_table)
 
             # Only let specific set of plots determine range
-            self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
+            self.autoRange(items=[self.bottom_plot, self.exchange_plot])
 
             self.profile_route_updated.emit()
         else:
@@ -381,19 +374,45 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_middle_plot.setData(ts_table)
             self.exchange_plot.setData(ts_table)
             self.node_plot.setData(ts_table)
-            self.water_level_plot.setData(ts_table)
 
+            for plot, fill in self.waterlevel_plots.values():
+                self.removeItem(plot)
+                self.removeItem(fill)
+            
+            self.waterlevel_plots = {}
             # Clear node list used to draw results
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
         if len(self.model.get_results(False)) == 0:
             return
+        
+        # TODO: add function to model for this getter?
+        current_grid = None
+        for grid in self.model.get_grids():
+            if grid.id == self.current_grid_id:
+                current_grid = grid
+                break
 
-        ds_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS
-        logger.info("Updating water level cache")
-        for node in self.sideview_nodes:
-            node["timeseries"] = ds_item.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
+        results = []
+        self.model.get_results_from_item(current_grid, False, results)
+        for result in results:
+            # Create the waterlevel plots
+            pen = pg.mkPen(color=QColor(0, 0, 255), width=2)
+            water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+            water_level_plot.setZValue(100)  # always visible
+            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255))
+            water_fill.setZValue(0)
+            self.addItem(water_level_plot)
+            self.addItem(water_fill)
+            self.waterlevel_plots[result.id] = (water_level_plot, water_fill)
+
+            logger.info("Updating water level cache")
+            for node in self.sideview_nodes:
+                if not "timeseries" in node:
+                    node["timeseries"] = {}
+
+                node["timeseries"][result.id] = result.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
 
         tc = iface.mapCanvas().temporalController()
         self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()), True)
@@ -404,35 +423,44 @@ class SideViewPlotWidget(pg.PlotWidget):
         if len(self.model.get_results(False)) == 0:
             return
 
-        result_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
-        if not result_item:
-            return
+       # TODO: add function to model for this getter?
+        current_grid = None
+        for grid in self.model.get_grids():
+            if grid.id == self.current_grid_id:
+                current_grid = grid
+                break
 
-        threedi_result = result_item.threedi_result
-        # TODO: refactor the following to an util function and check
-        current_datetime = qgs_dt_range.begin().toPyDateTime()
-        begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
-        end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
-        current_datetime = max(begin_datetime, min(current_datetime, end_datetime))
-        current_delta = (current_datetime - begin_datetime)
-        current_seconds = current_delta.total_seconds()
-        parameter_timestamps = threedi_result.get_timestamps("s1")
-        timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
-        timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
+        results = []
+        self.model.get_results_from_item(current_grid, False, results)
+        for result in results:
+            threedi_result = result.threedi_result
+            # TODO: refactor the following to an util function and check
+            current_datetime = qgs_dt_range.begin().toPyDateTime()
+            begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
+            end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
+            current_datetime = max(begin_datetime, min(current_datetime, end_datetime))
+            current_delta = (current_datetime - begin_datetime)
+            current_seconds = current_delta.total_seconds()
+            parameter_timestamps = threedi_result.get_timestamps("s1")
+            timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
+            timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
 
-        logger.info(f"Drawing result for nr {timestamp_nr}")
+            logger.info(f"Drawing for result {result.id} for nr {timestamp_nr}")
 
-        water_level_line = []
-        for node in self.sideview_nodes:
-            water_level = node["timeseries"][timestamp_nr][1]
-            water_level_line.append((node["distance"], water_level))
-            # logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
+            water_level_line = []
+            for node in self.sideview_nodes:
+                water_level = node["timeseries"][result.id][timestamp_nr][1]
+                water_level_line.append((node["distance"], water_level))
+                # logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
 
-        ts_table = np.array(water_level_line, dtype=float)
-        self.water_level_plot.setData(ts_table)
+            self.waterlevel_plots[result.id][0].setData(np.array(water_level_line, dtype=float))
 
         if update_range:
-            self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
+            range_plots = [self.bottom_plot, self.exchange_plot]
+            for waterlevel_plot, _ in self.waterlevel_plots.values():
+                range_plots.append(waterlevel_plot)
+
+            self.autoRange(items=range_plots)
 
     def on_close(self):
         self.profile_route_updated.disconnect(self.update_water_level_cache)
@@ -644,9 +672,7 @@ class SideViewDockWidget(QDockWidget):
             selected_features: list of features selected by click
             clicked_coordinate: (transformed) of the click
         """
-        logger.error(f"{len(selected_features)} features")
-        if self.graph_layer.crs().isGeographic():
-            raise Exception("Unsupported")
+        assert not self.graph_layer.crs().isGeographic()
 
         def squared_distance_clicked(coordinate):
             """Calculate the squared distance w.r.t. the clicked location."""
@@ -661,10 +687,6 @@ class SideViewDockWidget(QDockWidget):
             selected_features,
             [],
         )
-
-        lon1, lat1 = clicked_coordinate
-        logger.error(f"{lon1}, {lat1}")
-        logger.error(f"{selected_coordinates} coords, click {clicked_coordinate}")
 
         if len(selected_coordinates) == 0:
             return
