@@ -425,6 +425,9 @@ class SideViewPlotWidget(pg.PlotWidget):
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange, update_range=False):
 
+        if not self.waterlevel_plots:
+            return
+
         for row_number in range(self.sideview_result_model.rowCount()):
             # Get checkbox item (this contains result object)
             check_item = self.sideview_result_model.item(row_number, 0)
