@@ -516,7 +516,19 @@ class SideViewDockWidget(QDockWidget):
     def result_removed(self, item: ThreeDiResultItem):
         if item.parent().id != self.current_grid_id:
             return
+
         # Update table and redraw result sideview
+        for row_number in range(self.sideview_result_model.rowCount()):
+            # Get checkbox item (this contains result object id)
+            check_item = self.sideview_result_model.item(row_number, 0)
+            result_id = check_item.data()
+            if item.id == result_id:
+                self.sideview_result_model.removeRow(row_number)
+                self.side_view_plot_widget.update_water_level_cache()
+                return
+
+        # We should never reach this
+        raise Exception("Result should be in sideview model!")
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, item: ThreeDiGridItem):
@@ -553,8 +565,8 @@ class SideViewDockWidget(QDockWidget):
         self.initialize_route(grid)
         self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {grid.text()}")
 
-    def result_item_toggled(self, item: QStandardItem):
-        # For now, just redraw the whole thing
+    def result_item_toggled(self, _: QStandardItem):
+        # For now, just rebuild and redraw the whole sideview, taking into account new checks
         self.side_view_plot_widget.update_water_level_cache()
 
     def unset_route_tool(self):

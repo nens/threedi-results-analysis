@@ -229,7 +229,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                 return grid
 
         return None
-    
+
     def get_result(self, result_id: str) -> ThreeDiResultItem:
         """Returns the result with this id, or None when not exists
 
