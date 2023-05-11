@@ -45,6 +45,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self,
         parent,
         model,
+        sideview_result_model,
     ):
         """
 
@@ -52,8 +53,11 @@ class SideViewPlotWidget(pg.PlotWidget):
         """
         super().__init__(parent)
 
-        self.model = model
+        self.model = model  # global model from result manager
+        self.sideview_result_model = sideview_result_model  # Sideview model containing patterns and selections
         self.sideview_nodes = []
+        self.waterlevel_plots = {}  # map from result id to (plot, fill)
+        self.current_grid_id = None
 
         self.showGrid(True, True, 0.5)
         self.setLabel("bottom", "Distance", "m")
@@ -101,12 +105,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
-        pen = pg.mkPen(color=QColor(0, 0, 255), width=2)
-        self.water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.water_fill = pg.FillBetweenItem(
-            self.water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255)
-        )
-
         # Add some structure specific fills
         self.orifice_opening_fill = pg.FillBetweenItem(
             self.orifice_upper_plot, self.orifice_middle_plot, pg.mkBrush(208, 240, 192)
@@ -126,7 +124,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.exchange_plot, self.sewer_top_plot, pg.mkBrush(200, 200, 200)
         )
 
-        self.addItem(self.water_fill)
         self.addItem(self.bottom_fill)
         self.addItem(self.sewer_top_fill)
         self.addItem(self.bottom_plot)
@@ -144,18 +141,14 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_upper_plot)
         self.addItem(self.orifice_middle_plot)
         self.addItem(self.orifice_top_plot)
-        self.addItem(self.water_level_plot)
         self.addItem(self.node_plot)
-
         self.addItem(self.orifice_full_fill)
         self.addItem(self.orifice_opening_fill)
         self.addItem(self.weir_full_fill)
         self.addItem(self.weir_opening_fill)
-
         self.addItem(self.exchange_plot)
 
         # Set the z-order of the curves (note that fill take minimum of its two defining curve as z-value)
-        self.water_level_plot.setZValue(100)  # always visible
         self.exchange_plot.setZValue(100)
         self.node_plot.setZValue(60)
         self.orifice_full_fill.setZValue(20)
@@ -164,7 +157,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.weir_opening_fill.setZValue(21)
         self.bottom_fill.setZValue(3)
         self.sewer_top_fill.setZValue(3)
-        self.water_fill.setZValue(0)
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
@@ -188,8 +180,9 @@ class SideViewPlotWidget(pg.PlotWidget):
         exchange_line = []  # exchange level
         upper_limit_line = []  # For top fill of weirs and orifices
 
+        self.current_grid_id = current_grid.id if current_grid else None
+
         for route_part in route_path:
-            logger.error("NEW ROUTE PART")
             first_node = True
 
             for (begin_dist, end_dist, direction, feature) in Route.aggregate_route_parts(route_part):
@@ -311,7 +304,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                     exchange_point_1 = ts_exchange_table[exchange_point_index]
                     exchange_point_2 = ts_exchange_table[exchange_point_index+1]
                     if exchange_point_1[0] == point_1[0] and exchange_point_2[0] == point_2[0]:
-                        logger.error(f"Appending {(point_1[0], point_1[1])} and {(point_2[0], point_2[1])}to sewer_top_table")
+                        logger.error(f"Appending {(point_1[0], point_1[1])} and {(point_2[0], point_2[1])} to sewer_top_table")
                         sewer_top_table.append((point_1[0], point_1[1]))
                         sewer_top_table.append((point_2[0], point_2[1]))
                         break
@@ -355,12 +348,13 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node_table.append((node["distance"], node["level"] + node["height"]))
             self.node_plot.setData(np.array(node_table, dtype=float), connect="pairs")
 
-            # reset water level line
+            # reset water level lines
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
-            self.water_level_plot.setData(ts_table)
+            for plot, fill in self.waterlevel_plots.values():
+                plot.setData(ts_table)
 
             # Only let specific set of plots determine range
-            self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
+            self.autoRange(items=[self.bottom_plot, self.exchange_plot])
 
             self.profile_route_updated.emit()
         else:
@@ -381,19 +375,49 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_middle_plot.setData(ts_table)
             self.exchange_plot.setData(ts_table)
             self.node_plot.setData(ts_table)
-            self.water_level_plot.setData(ts_table)
+
+            for plot, fill in self.waterlevel_plots.values():
+                self.removeItem(plot)
+                self.removeItem(fill)
+            self.waterlevel_plots = {}
 
             # Clear node list used to draw results
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-        if len(self.model.get_results(False)) == 0:
-            return
 
-        ds_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS
-        logger.info("Updating water level cache")
-        for node in self.sideview_nodes:
-            node["timeseries"] = ds_item.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
+        for plot, fill in self.waterlevel_plots.values():
+            self.removeItem(plot)
+            self.removeItem(fill)
+        self.waterlevel_plots = {}
+
+        # Iterate through the selection model
+        for row_number in range(self.sideview_result_model.rowCount()):
+            # Get checkbox item (this contains result object id)
+            check_item = self.sideview_result_model.item(row_number, 0)
+            if check_item.checkState() != Qt.Checked:
+                continue
+
+            result_id = check_item.data()
+            pattern_item = self.sideview_result_model.item(row_number, 1)
+            plot_pattern = pattern_item.data()
+
+            logger.error(f"Retrieved result: {result_id} with pattern {plot_pattern} from model")
+            # Create the waterlevel plots
+            pen = pg.mkPen(color=QColor(0, 0, 255), width=2, style=plot_pattern)
+            water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+            water_level_plot.setZValue(100)  # always visible
+            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255))
+            water_fill.setZValue(0)
+            self.addItem(water_level_plot)
+            self.addItem(water_fill)
+            self.waterlevel_plots[result_id] = (water_level_plot, water_fill)
+
+            result = self.model.get_result(result_id)
+            for node in self.sideview_nodes:
+                if "timeseries" not in node:
+                    node["timeseries"] = {}
+                node["timeseries"][result.id] = result.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
 
         tc = iface.mapCanvas().temporalController()
         self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()), True)
@@ -401,38 +425,43 @@ class SideViewPlotWidget(pg.PlotWidget):
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange, update_range=False):
 
-        if len(self.model.get_results(False)) == 0:
-            return
+        for row_number in range(self.sideview_result_model.rowCount()):
+            # Get checkbox item (this contains result object)
+            check_item = self.sideview_result_model.item(row_number, 0)
+            if check_item.checkState() != Qt.Checked:
+                continue
 
-        result_item = self.model.get_results(False)[0]  # TODO: PLOT MULTIPLE RESULTS?
-        if not result_item:
-            return
+            result_id = check_item.data()
+            result = self.model.get_result(result_id)
+            threedi_result = result.threedi_result
 
-        threedi_result = result_item.threedi_result
-        # TODO: refactor the following to an util function and check
-        current_datetime = qgs_dt_range.begin().toPyDateTime()
-        begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
-        end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
-        current_datetime = max(begin_datetime, min(current_datetime, end_datetime))
-        current_delta = (current_datetime - begin_datetime)
-        current_seconds = current_delta.total_seconds()
-        parameter_timestamps = threedi_result.get_timestamps("s1")
-        timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
-        timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
+            # TODO: refactor the following to an util function and check
+            current_datetime = qgs_dt_range.begin().toPyDateTime()
+            begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
+            end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
+            current_datetime = max(begin_datetime, min(current_datetime, end_datetime))
+            current_delta = (current_datetime - begin_datetime)
+            current_seconds = current_delta.total_seconds()
+            parameter_timestamps = threedi_result.get_timestamps("s1")
+            timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
+            timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
 
-        logger.info(f"Drawing result for nr {timestamp_nr}")
+            logger.info(f"Drawing for result {result.id} for nr {timestamp_nr}")
 
-        water_level_line = []
-        for node in self.sideview_nodes:
-            water_level = node["timeseries"][timestamp_nr][1]
-            water_level_line.append((node["distance"], water_level))
-            # logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
+            water_level_line = []
+            for node in self.sideview_nodes:
+                water_level = node["timeseries"][result.id][timestamp_nr][1]
+                water_level_line.append((node["distance"], water_level))
+                # logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
 
-        ts_table = np.array(water_level_line, dtype=float)
-        self.water_level_plot.setData(ts_table)
+            self.waterlevel_plots[result.id][0].setData(np.array(water_level_line, dtype=float))
 
         if update_range:
-            self.autoRange(items=[self.bottom_plot, self.water_level_plot, self.exchange_plot])
+            range_plots = [self.bottom_plot, self.exchange_plot]
+            for waterlevel_plot, _ in self.waterlevel_plots.values():
+                range_plots.append(waterlevel_plot)
+
+            self.autoRange(items=range_plots)
 
     def on_close(self):
         self.profile_route_updated.disconnect(self.update_water_level_cache)
@@ -461,6 +490,7 @@ class SideViewDockWidget(QDockWidget):
         self.model = model  # Global Result manager model
         self.sideview_result_model = QStandardItemModel(self)  # Specific sideview model to store loaded results
         self.sideview_result_model.setHorizontalHeaderLabels(["active", "pattern", "result"])
+        self.sideview_result_model.itemChanged.connect(self.result_item_toggled)
         # Also used to check whether we have a current grid
         self.current_grid_id = None
 
@@ -475,18 +505,45 @@ class SideViewDockWidget(QDockWidget):
         if item.parent().id != self.current_grid_id:
             return
 
+        # Update table and redraw sideview
         self._add_result_to_table(item)
+        self.side_view_plot_widget.update_water_level_cache()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, item: ThreeDiResultItem):
         if item.parent().id != self.current_grid_id:
             return
 
+        # Update table, no need to redraw anything
+        for row_number in range(self.sideview_result_model.rowCount()):
+            # Get checkbox item (this contains result object id)
+            check_item = self.sideview_result_model.item(row_number, 0)
+            result_id = check_item.data()
+            if item.id == result_id:
+                name_item = self.sideview_result_model.item(row_number, 2)
+                name_item.setText(item.text())
+                return
+
+        # We should never reach this
+        raise Exception("Result should be in sideview model!")
+
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, item: ThreeDiResultItem):
         if item.parent().id != self.current_grid_id:
             return
-        # Update table and redraw result sideview
+
+        # Update table and redraw sideview
+        for row_number in range(self.sideview_result_model.rowCount()):
+            # Get checkbox item (this contains result object id)
+            check_item = self.sideview_result_model.item(row_number, 0)
+            result_id = check_item.data()
+            if item.id == result_id:
+                self.sideview_result_model.removeRow(row_number)
+                self.side_view_plot_widget.update_water_level_cache()
+                return
+
+        # We should never reach this
+        raise Exception("Result should be in sideview model!")
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, item: ThreeDiGridItem):
@@ -500,6 +557,7 @@ class SideViewDockWidget(QDockWidget):
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_added(self, item: ThreeDiGridItem):
+        assert item.id != self.current_grid_id
         currentIndex = self.select_grid_combobox.currentIndex()
         self.select_grid_combobox.addItem(item.text(), item.id)
         self.select_grid_combobox.setCurrentIndex(currentIndex)
@@ -510,8 +568,10 @@ class SideViewDockWidget(QDockWidget):
         assert idx != -1
         item_id = self.select_grid_combobox.itemData(idx)
         if self.current_grid_id == item_id:
-            logger.info(f"Removing item at index {idx}")
+            # Also removes all waterlevel plots
             self.deinitialize_route()
+            # Removes all plots from table
+            self.sideview_result_model.clear()
             self.setWindowTitle(f"3Di Sideview Plot {self.nr}:")
 
         self.select_grid_combobox.removeItem(idx)
@@ -519,19 +579,19 @@ class SideViewDockWidget(QDockWidget):
     @pyqtSlot(int)
     def grid_selected(self, grid_index: int):
         item_id = self.select_grid_combobox.itemData(grid_index)
-        for grid in self.model.get_grids():
-            if item_id == grid.id:
-                self.initialize_route(grid)
-                self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {grid.text()}")
-                return
+        grid = self.model.get_grid(item_id)
+        assert grid
+        self.initialize_route(grid)
+        self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {grid.text()}")
 
-        raise Exception("Grid in combobox not present in results model")
+    def result_item_toggled(self, _: QStandardItem):
+        # For now, just rebuild and redraw the whole sideview, taking into account new checks
+        self.side_view_plot_widget.update_water_level_cache()
 
     def unset_route_tool(self):
         if self.current_grid_id is None:
             return
 
-        logger.info("Unsetting route tool")
         if self.iface.mapCanvas().mapTool() is self.route_tool:
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
             self.select_sideview_button.setChecked(False)
@@ -620,7 +680,9 @@ class SideViewDockWidget(QDockWidget):
 
     def _add_result_to_table(self, result_item: ThreeDiResultItem):
         checkbox_table_item = QStandardItem("")
+        checkbox_table_item.setData(result_item.id)
         checkbox_table_item.setCheckable(True)
+        checkbox_table_item.setCheckState(Qt.Checked)
         checkbox_table_item.setEditable(False)
 
         result_table_item = QStandardItem(result_item.text())
@@ -628,12 +690,12 @@ class SideViewDockWidget(QDockWidget):
 
         # pick new pattern
         pattern = available_styles[self.sideview_result_model.rowCount() % 5]
-        pattern_table_item = QStandardItem(str(pattern))
-        pattern_table_item.setCheckable(False)
+        pattern_table_item = QStandardItem("")
         pattern_table_item.setEditable(False)
-        self.sideview_result_model.appendRow([checkbox_table_item, None, result_table_item])
+        pattern_table_item.setData(pattern)
+        self.sideview_result_model.appendRow([checkbox_table_item, pattern_table_item, result_table_item])
 
-        # Add a PenStyle example in the table
+        # Add a PenStyle display in the table
         index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
         self.table_view.setIndexWidget(index, PenStyleWidget(pattern, Qt.blue, self.table_view))
 
@@ -644,9 +706,7 @@ class SideViewDockWidget(QDockWidget):
             selected_features: list of features selected by click
             clicked_coordinate: (transformed) of the click
         """
-        logger.error(f"{len(selected_features)} features")
-        if self.graph_layer.crs().isGeographic():
-            raise Exception("Unsupported")
+        assert not self.graph_layer.crs().isGeographic()
 
         def squared_distance_clicked(coordinate):
             """Calculate the squared distance w.r.t. the clicked location."""
@@ -662,10 +722,6 @@ class SideViewDockWidget(QDockWidget):
             [],
         )
 
-        lon1, lat1 = clicked_coordinate
-        logger.error(f"{lon1}, {lat1}")
-        logger.error(f"{selected_coordinates} coords, click {clicked_coordinate}")
-
         if len(selected_coordinates) == 0:
             return
 
@@ -678,37 +734,28 @@ class SideViewDockWidget(QDockWidget):
             statusbar_message(msg)
             return
 
-        # TODO: add function to model for this getter?
-        for grid in self.model.get_grids():
-            if grid.id == self.current_grid_id:
-                self.side_view_plot_widget.set_sideprofile(self.route.path, grid)
-                break
-
+        self.side_view_plot_widget.set_sideprofile(self.route.path, self.model.get_grid(self.current_grid_id))
         self.map_visualisation.set_sideview_route(self.route)
 
     def reset_sideview(self):
         self.route.reset()
         self.map_visualisation.reset()
+        # Also removes all waterlevel plots
         self.side_view_plot_widget.set_sideprofile([], None)
 
     def on_close(self):
         """
         unloading widget
         """
-        QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
+        if self.current_grid_id is not None:
+            QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
+            self.route_tool.deactivated.disconnect(self.unset_route_tool)
+            self.unset_route_tool()
+            self.map_visualisation.close()
+            self.side_view_plot_widget.profile_hovered.disconnect(self.map_visualisation.hover_graph)
 
         self.select_sideview_button.clicked.disconnect(self.toggle_route_tool)
         self.reset_sideview_button.clicked.disconnect(self.reset_sideview)
-
-        self.route_tool.deactivated.disconnect(self.unset_route_tool)
-
-        self.unset_route_tool()
-
-        self.side_view_plot_widget.profile_hovered.disconnect(
-            self.map_visualisation.hover_graph
-        )
-        self.map_visualisation.close()
-
         self.side_view_plot_widget.on_close()
 
     def closeEvent(self, event):
@@ -747,7 +794,7 @@ class SideViewDockWidget(QDockWidget):
         self.select_grid_combobox.activated.connect(self.grid_selected)
 
         plotContainerWidget = QSplitter(self)
-        self.side_view_plot_widget = SideViewPlotWidget(plotContainerWidget, self.model)
+        self.side_view_plot_widget = SideViewPlotWidget(plotContainerWidget, self.model, self.sideview_result_model)
         plotContainerWidget.addWidget(self.side_view_plot_widget)
         self.table_view = QTableView(self)
         self.table_view.setModel(self.sideview_result_model)

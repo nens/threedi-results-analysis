@@ -57,6 +57,15 @@ class TestGrid(unittest.TestCase):
         item2 = ThreeDiGridItem(self.grid_path.with_suffix('.gpkg'), "text")
         self.assertFalse(self.model.add_grid(item2))
 
+    def test_grid_can_be_retrieved_via_id(self):
+        item = ThreeDiGridItem(self.grid_path, "text")
+        self.assertTrue(self.model.add_grid(item))
+        retrieved_item = self.model.get_grid(item.id)
+        self.assertTrue(item is retrieved_item)
+
+        nonexisting_item = self.model.get_grid("thisidprobablydoesntexist")
+        self.assertTrue(nonexisting_item is None)
+
 
 class TestResult(unittest.TestCase):
     def setUp(self):
@@ -96,12 +105,21 @@ class TestResult(unittest.TestCase):
         self.assertTrue(self.model.remove_index(item.index()))
         self.assertEqual(self.model.number_of_results(), 0)
 
-    def test_result_can_be_retrieved(self):
+    def test_results_can_be_retrieved(self):
         item = ThreeDiResultItem(self.result_path, "text")
         self.assertTrue(self.model.add_result(item, self.grid_item))
         results = self.model.get_results(checked_only=False)
         self.assertEqual(len(results), 1)
         self.assertTrue(results[0] is item)
+
+    def test_result_can_be_retrieved(self):
+        item = ThreeDiResultItem(self.result_path, "text")
+        self.assertTrue(self.model.add_result(item, self.grid_item))
+        retrieved_item = self.model.get_result(item.id)
+        self.assertTrue(item is retrieved_item)
+
+        retrieved_item = self.model.get_result("thisidisprobablynotused")
+        self.assertFalse(retrieved_item)
 
     def test_parent_should_be_provided(self):
         item = ThreeDiResultItem(self.result_path, "text")
