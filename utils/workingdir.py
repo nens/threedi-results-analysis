@@ -32,7 +32,7 @@ def bypass_max_path_limit(path, is_file=False):
 class LocalRevision:
     """Local revision directory structure representation."""
 
-    def __init__(self, local_schematisation, revision_number=None):
+    def __init__(self, local_schematisation, revision_number):
         self.local_schematisation = local_schematisation
         self.number = revision_number
 
@@ -44,38 +44,33 @@ class LocalRevision:
     @property
     def sub_dir(self):
         """Get schematisation revision subdirectory name."""
-        if self.number:
-            subdirectory = f"revision {self.number}"
-            return subdirectory
+        subdirectory = f"revision {self.number}"
+        return subdirectory
 
     @property
     def main_dir(self):
         """Get schematisation revision main directory path."""
-        if self.number:
-            schematisation_dir_path = self.local_schematisation.main_dir
-            schematisation_revision_dir_path = os.path.join(schematisation_dir_path, self.sub_dir)
-            return schematisation_revision_dir_path
+        schematisation_dir_path = self.local_schematisation.main_dir
+        schematisation_revision_dir_path = os.path.join(schematisation_dir_path, self.sub_dir)
+        return schematisation_revision_dir_path
 
     @property
     def admin_dir(self):
         """Get schematisation revision admin directory path."""
-        if self.number:
-            admin_dir_path = os.path.join(self.main_dir, "admin")
-            return admin_dir_path
+        admin_dir_path = os.path.join(self.main_dir, "admin")
+        return admin_dir_path
 
     @property
     def grid_dir(self):
         """Get schematisation revision grid directory path."""
-        if self.number:
-            grid_dir_path = os.path.join(self.main_dir, "grid")
-            return grid_dir_path
+        grid_dir_path = os.path.join(self.main_dir, "grid")
+        return grid_dir_path
 
     @property
     def results_dir(self):
         """Get schematisation revision results directory path."""
-        if self.number:
-            grid_dir_path = os.path.join(self.main_dir, "results")
-            return grid_dir_path
+        grid_dir_path = os.path.join(self.main_dir, "results")
+        return grid_dir_path
 
     @property
     def results_dirs(self):
@@ -85,16 +80,14 @@ class LocalRevision:
     @property
     def schematisation_dir(self):
         """Get schematisation revision schematisation directory path."""
-        if self.number:
-            grid_dir_path = os.path.join(self.main_dir, "schematisation")
-            return grid_dir_path
+        grid_dir_path = os.path.join(self.main_dir, "schematisation")
+        return grid_dir_path
 
     @property
     def raster_dir(self):
         """Get schematisation revision raster directory path."""
-        if self.number:
-            rasters_dir_path = os.path.join(self.main_dir, "schematisation", "rasters")
-            return rasters_dir_path
+        rasters_dir_path = os.path.join(self.main_dir, "schematisation", "rasters")
+        return rasters_dir_path
 
     @property
     def subpaths(self):

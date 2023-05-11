@@ -3,10 +3,10 @@
 
 
 3.1.4 (unreleased)
-2.5.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Sideview feature-complete for multiple results and grids (#806, #811, #812, #670, #808, #789)
+- Result Manager: fixed bug when working dir contained a revision with number 0 (#822)
 
 
 3.1.3 (2023-03-21)
