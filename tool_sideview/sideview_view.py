@@ -544,6 +544,7 @@ class SideViewDockWidget(QDockWidget):
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_added(self, item: ThreeDiGridItem):
+        assert item.id != self.current_grid_id
         currentIndex = self.select_grid_combobox.currentIndex()
         self.select_grid_combobox.addItem(item.text(), item.id)
         self.select_grid_combobox.setCurrentIndex(currentIndex)
@@ -554,7 +555,10 @@ class SideViewDockWidget(QDockWidget):
         assert idx != -1
         item_id = self.select_grid_combobox.itemData(idx)
         if self.current_grid_id == item_id:
+            # Also removes all waterlevel plots
             self.deinitialize_route()
+            # Removes all plots from table
+            self.sideview_result_model.clear()
             self.setWindowTitle(f"3Di Sideview Plot {self.nr}:")
 
         self.select_grid_combobox.removeItem(idx)
@@ -723,6 +727,7 @@ class SideViewDockWidget(QDockWidget):
     def reset_sideview(self):
         self.route.reset()
         self.map_visualisation.reset()
+        # Also removes all waterlevel plots
         self.side_view_plot_widget.set_sideprofile([], None)
 
     def on_close(self):
