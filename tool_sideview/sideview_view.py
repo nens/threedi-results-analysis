@@ -183,7 +183,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.current_grid_id = current_grid.id if current_grid else None
 
         for route_part in route_path:
-            logger.error("NEW ROUTE PART")
             first_node = True
 
             for (begin_dist, end_dist, direction, feature) in Route.aggregate_route_parts(route_part):
@@ -305,7 +304,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                     exchange_point_1 = ts_exchange_table[exchange_point_index]
                     exchange_point_2 = ts_exchange_table[exchange_point_index+1]
                     if exchange_point_1[0] == point_1[0] and exchange_point_2[0] == point_2[0]:
-                        logger.error(f"Appending {(point_1[0], point_1[1])} and {(point_2[0], point_2[1])}to sewer_top_table")
+                        logger.error(f"Appending {(point_1[0], point_1[1])} and {(point_2[0], point_2[1])} to sewer_top_table")
                         sewer_top_table.append((point_1[0], point_1[1]))
                         sewer_top_table.append((point_2[0], point_2[1]))
                         break
@@ -387,18 +386,23 @@ class SideViewPlotWidget(pg.PlotWidget):
 
     def update_water_level_cache(self):
 
+        for plot, fill in self.waterlevel_plots.values():
+            self.removeItem(plot)
+            self.removeItem(fill)
+        self.waterlevel_plots = {}
+
         # Iterate through the selection model
         for row_number in range(self.sideview_result_model.rowCount()):
-            # Get checkbox item (this contains result object)
+            # Get checkbox item (this contains result object id)
             check_item = self.sideview_result_model.item(row_number, 0)
             if check_item.checkState() != Qt.Checked:
                 continue
 
-            result = check_item.data()
+            result_id = check_item.data()
             pattern_item = self.sideview_result_model.item(row_number, 1)
             plot_pattern = pattern_item.data()
 
-            logger.error(f"Retrieved result: {result.id} with pattern {plot_pattern} from model")
+            logger.error(f"Retrieved result: {result_id} with pattern {plot_pattern} from model")
             # Create the waterlevel plots
             pen = pg.mkPen(color=QColor(0, 0, 255), width=2, style=plot_pattern)
             water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -407,9 +411,9 @@ class SideViewPlotWidget(pg.PlotWidget):
             water_fill.setZValue(0)
             self.addItem(water_level_plot)
             self.addItem(water_fill)
-            self.waterlevel_plots[result.id] = (water_level_plot, water_fill)
+            self.waterlevel_plots[result_id] = (water_level_plot, water_fill)
 
-            logger.info("Updating water level cache")
+            result = self.model.get_result(result_id)
             for node in self.sideview_nodes:
                 if "timeseries" not in node:
                     node["timeseries"] = {}
@@ -421,16 +425,16 @@ class SideViewPlotWidget(pg.PlotWidget):
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange, update_range=False):
 
-        if len(self.model.get_results(False)) == 0:
-            return
+        for row_number in range(self.sideview_result_model.rowCount()):
+            # Get checkbox item (this contains result object)
+            check_item = self.sideview_result_model.item(row_number, 0)
+            if check_item.checkState() != Qt.Checked:
+                continue
 
-        current_grid = self.model.get_grid(self.current_grid_id)
-        assert current_grid
-
-        results = []
-        self.model.get_results_from_item(current_grid, False, results)
-        for result in results:
+            result_id = check_item.data()
+            result = self.model.get_result(result_id)
             threedi_result = result.threedi_result
+
             # TODO: refactor the following to an util function and check
             current_datetime = qgs_dt_range.begin().toPyDateTime()
             begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
@@ -486,6 +490,7 @@ class SideViewDockWidget(QDockWidget):
         self.model = model  # Global Result manager model
         self.sideview_result_model = QStandardItemModel(self)  # Specific sideview model to store loaded results
         self.sideview_result_model.setHorizontalHeaderLabels(["active", "pattern", "result"])
+        self.sideview_result_model.itemChanged.connect(self.result_item_toggled)
         # Also used to check whether we have a current grid
         self.current_grid_id = None
 
@@ -535,7 +540,6 @@ class SideViewDockWidget(QDockWidget):
         assert idx != -1
         item_id = self.select_grid_combobox.itemData(idx)
         if self.current_grid_id == item_id:
-            logger.info(f"Removing item at index {idx}")
             self.deinitialize_route()
             self.setWindowTitle(f"3Di Sideview Plot {self.nr}:")
 
@@ -544,19 +548,19 @@ class SideViewDockWidget(QDockWidget):
     @pyqtSlot(int)
     def grid_selected(self, grid_index: int):
         item_id = self.select_grid_combobox.itemData(grid_index)
-        for grid in self.model.get_grids():
-            if item_id == grid.id:
-                self.initialize_route(grid)
-                self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {grid.text()}")
-                return
+        grid = self.model.get_grid(item_id)
+        assert grid
+        self.initialize_route(grid)
+        self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {grid.text()}")
 
-        raise Exception("Grid in combobox not present in results model")
+    def result_item_toggled(self, item: QStandardItem):
+        # For now, just redraw the whole thing
+        self.side_view_plot_widget.update_water_level_cache()
 
     def unset_route_tool(self):
         if self.current_grid_id is None:
             return
 
-        logger.info("Unsetting route tool")
         if self.iface.mapCanvas().mapTool() is self.route_tool:
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
             self.select_sideview_button.setChecked(False)
@@ -645,7 +649,7 @@ class SideViewDockWidget(QDockWidget):
 
     def _add_result_to_table(self, result_item: ThreeDiResultItem):
         checkbox_table_item = QStandardItem("")
-        checkbox_table_item.setData(result_item)
+        checkbox_table_item.setData(result_item.id)
         checkbox_table_item.setCheckable(True)
         checkbox_table_item.setCheckState(Qt.Checked)
         checkbox_table_item.setEditable(False)

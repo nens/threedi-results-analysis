@@ -229,6 +229,18 @@ class ThreeDiPluginModel(QStandardItemModel):
                 return grid
 
         return None
+    
+    def get_result(self, result_id: str) -> ThreeDiResultItem:
+        """Returns the result with this id, or None when not exists
+
+            Not fully optimal, retrieves a list with all results
+            and searches through that list.
+        """
+        for result in self.get_results(checked_only=False):
+            if result.id == result_id:
+                return result
+
+        return None
 
     def get_grids(self) -> List[ThreeDiGridItem]:
         """Returns the list of grids"""
