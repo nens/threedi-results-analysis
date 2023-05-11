@@ -505,7 +505,9 @@ class SideViewDockWidget(QDockWidget):
         if item.parent().id != self.current_grid_id:
             return
 
+        # Update table and redraw sideview
         self._add_result_to_table(item)
+        self.side_view_plot_widget.update_water_level_cache()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, item: ThreeDiResultItem):
@@ -517,7 +519,7 @@ class SideViewDockWidget(QDockWidget):
         if item.parent().id != self.current_grid_id:
             return
 
-        # Update table and redraw result sideview
+        # Update table and redraw sideview
         for row_number in range(self.sideview_result_model.rowCount()):
             # Get checkbox item (this contains result object id)
             check_item = self.sideview_result_model.item(row_number, 0)
