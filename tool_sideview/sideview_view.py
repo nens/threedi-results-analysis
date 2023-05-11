@@ -734,20 +734,15 @@ class SideViewDockWidget(QDockWidget):
         """
         unloading widget
         """
-        QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
+        if self.current_grid_id is not None:
+            QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
+            self.route_tool.deactivated.disconnect(self.unset_route_tool)
+            self.unset_route_tool()
+            self.map_visualisation.close()
+            self.side_view_plot_widget.profile_hovered.disconnect(self.map_visualisation.hover_graph)
 
         self.select_sideview_button.clicked.disconnect(self.toggle_route_tool)
         self.reset_sideview_button.clicked.disconnect(self.reset_sideview)
-
-        self.route_tool.deactivated.disconnect(self.unset_route_tool)
-
-        self.unset_route_tool()
-
-        self.side_view_plot_widget.profile_hovered.disconnect(
-            self.map_visualisation.hover_graph
-        )
-        self.map_visualisation.close()
-
         self.side_view_plot_widget.on_close()
 
     def closeEvent(self, event):
