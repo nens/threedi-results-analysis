@@ -380,8 +380,8 @@ class SideViewPlotWidget(pg.PlotWidget):
             for plot, fill in self.waterlevel_plots.values():
                 self.removeItem(plot)
                 self.removeItem(fill)
-
             self.waterlevel_plots = {}
+
             # Clear node list used to draw results
             self.sideview_nodes = []
 
@@ -424,12 +424,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         if len(self.model.get_results(False)) == 0:
             return
 
-        # TODO: add function to model for this getter?
-        current_grid = None
-        for grid in self.model.get_grids():
-            if grid.id == self.current_grid_id:
-                current_grid = grid
-                break
+        current_grid = self.model.get_grid(self.current_grid_id)
+        assert current_grid
 
         results = []
         self.model.get_results_from_item(current_grid, False, results)
@@ -703,12 +699,7 @@ class SideViewDockWidget(QDockWidget):
             statusbar_message(msg)
             return
 
-        # TODO: add function to model for this getter?
-        for grid in self.model.get_grids():
-            if grid.id == self.current_grid_id:
-                self.side_view_plot_widget.set_sideprofile(self.route.path, grid)
-                break
-
+        self.side_view_plot_widget.set_sideprofile(self.route.path, self.model.get_grid(self.current_grid_id))
         self.map_visualisation.set_sideview_route(self.route)
 
     def reset_sideview(self):
