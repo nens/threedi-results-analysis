@@ -514,6 +514,19 @@ class SideViewDockWidget(QDockWidget):
         if item.parent().id != self.current_grid_id:
             return
 
+        # Update table, no need to redraw anything
+        for row_number in range(self.sideview_result_model.rowCount()):
+            # Get checkbox item (this contains result object id)
+            check_item = self.sideview_result_model.item(row_number, 0)
+            result_id = check_item.data()
+            if item.id == result_id:
+                name_item = self.sideview_result_model.item(row_number, 2)
+                name_item.setText(item.text())
+                return
+
+        # We should never reach this
+        raise Exception("Result should be in sideview model!")
+
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, item: ThreeDiResultItem):
         if item.parent().id != self.current_grid_id:
