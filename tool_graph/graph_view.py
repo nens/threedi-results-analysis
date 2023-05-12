@@ -647,6 +647,20 @@ class GraphWidget(QWidget):
                     }
                     new_items.append(item)
 
+        # Small usability tweak, if we are adding a pump flowline, set a specific parameter
+        if not existing_items and "pump" in layer.objectName() and new_items:
+            logger.error(self.parameters)
+            # Find the corresponding name for q_cum, set parameter (and set combobox)
+            pump_params = [p for p in self.parameters.values() if p["parameters"] == "q_pump"]
+            if pump_params:
+                self.graph_plot.set_parameter(pump_params[0], self.ts_units_combo_box.currentText())
+                combo_idx = self.parameter_combo_box.findText(pump_params[0]["name"])
+                assert combo_idx != -1
+                # Prevent the combobox to trigger other signals (and set the parameter again)
+                self.parameter_combo_box.blockSignals(True)
+                self.parameter_combo_box.setCurrentIndex(combo_idx)
+                self.parameter_combo_box.blockSignals(False)
+
         if len(new_items) > 20:
             msg = (
                 "%i new objects selected. Adding those to the plot can "

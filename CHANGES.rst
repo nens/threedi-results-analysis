@@ -9,6 +9,8 @@
 - Result Manager: fixed bug when working dir contained a revision with number 0 (#822)
 - Graph tool: maptools are disabled when tabs are switched (#824)
 - Graph tool: Fixed bug where deactivated plots were added again when parameter/units or absoluteness was changed (#825)
+- Graph tool: default variable for pump should be 'discharge pump' (#819)
+- Removed wiki related files (wiki has been disabled)
 
 
 3.1.3 (2023-03-21)
@@ -32,7 +34,6 @@
 - Minor changes to animation styling and class bound calculations (#784).
 - Added support for special symbols in paths (#782).
 - Make temporal controller visible when checking (visualizing) result (#768).
-- Removed wiki related files (wiki has been disabled)
 
 
 3.1.1 (2023-02-10)
