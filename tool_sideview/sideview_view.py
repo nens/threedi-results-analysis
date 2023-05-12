@@ -21,7 +21,7 @@ from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.utils import PenStyleWidget, available_styles
-from threedi_results_analysis.utils.user_messages import statusbar_message
+from threedi_results_analysis.utils.user_messages import statusbar_message, StatusProgressBar
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from qgis.utils import iface
@@ -72,7 +72,10 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(100, 100, 100), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.sewer_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+
+        # Required for top fill of sewers
         self.sewer_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.sewer_exchange_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(50, 50, 50), width=2)
         self.channel_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -121,7 +124,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         self.sewer_top_fill = pg.FillBetweenItem(
-            self.exchange_plot, self.sewer_top_plot, pg.mkBrush(200, 200, 200)
+            self.sewer_exchange_plot, self.sewer_top_plot, pg.mkBrush(200, 200, 200)
         )
 
         self.addItem(self.bottom_fill)
@@ -130,6 +133,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.sewer_bottom_plot)
         self.addItem(self.sewer_upper_plot)
         self.addItem(self.sewer_top_plot)
+        self.addItem(self.sewer_exchange_plot)
         self.addItem(self.channel_bottom_plot)
         self.addItem(self.culvert_bottom_plot)
         self.addItem(self.culvert_upper_plot)
@@ -294,8 +298,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             # pyqtgraph has difficulties with filling between lines consisting of different
             # number of segments, therefore we need to draw a dedicated sewer-exchange line
-
             sewer_top_table = []
+            sewer_exchange_table = []
             for point_index in range(0, len(tables[LineType.PIPE]), 2):
                 point_1 = tables[LineType.PIPE][point_index]
                 point_2 = tables[LineType.PIPE][point_index+1]
@@ -307,9 +311,12 @@ class SideViewPlotWidget(pg.PlotWidget):
                         logger.error(f"Appending {(point_1[0], point_1[1])} and {(point_2[0], point_2[1])} to sewer_top_table")
                         sewer_top_table.append((point_1[0], point_1[1]))
                         sewer_top_table.append((point_2[0], point_2[1]))
+                        sewer_exchange_table.append((point_1[0], exchange_point_1[1]))
+                        sewer_exchange_table.append((point_2[0], exchange_point_2[1]))
                         break
 
             self.sewer_top_plot.setData(np.array(sewer_top_table, dtype=float), connect="pairs")
+            self.sewer_exchange_plot.setData(np.array(sewer_exchange_table, dtype=float), connect="pairs")
 
             tables = {
                 LineType.PIPE: [],
@@ -362,6 +369,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.bottom_plot.setData(ts_table)
             self.sewer_top_plot.setData(ts_table)
+            self.sewer_exchange_plot.setData(ts_table)
             self.sewer_bottom_plot.setData(ts_table)
             self.sewer_upper_plot.setData(ts_table)
             self.channel_bottom_plot.setData(ts_table)
