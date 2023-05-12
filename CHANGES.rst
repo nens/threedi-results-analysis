@@ -5,7 +5,7 @@
 3.1.4 (unreleased)
 ------------------
 
-- Sideview feature-complete for multiple results and grids (#806, #811, #812, #670, #808, #789)
+- Sideview feature-complete for multiple results and grids (#806, #811, #812, #670, #808, #789, #826)
 - Result Manager: fixed bug when working dir contained a revision with number 0 (#822)
 - Graph tool: maptools are disabled when tabs are switched (#824)
 

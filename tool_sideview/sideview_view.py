@@ -172,6 +172,19 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.scene().sigMouseMoved, rateLimit=10, slot=self.mouse_hover
         )
 
+        # Hijack the "A" button (it always autoscales to all plots, causing the interesting part to be flattened)
+        self.getPlotItem().autoBtn.mode = ""
+        self.getPlotItem().autoBtn.clicked.connect(self.auto_scale)
+
+    def auto_scale(self, include_waterlevels: bool = True) -> None:
+        range_plots = [self.bottom_plot, self.exchange_plot]
+        if include_waterlevels:
+            for waterlevel_plot, _ in self.waterlevel_plots.values():
+                range_plots.append(waterlevel_plot)
+
+        self.autoRange(items=range_plots)
+        logger.error("vla")
+
     def mouse_hover(self, evt):
         mouse_point_x = self.plotItem.vb.mapSceneToView(evt[0]).x()
         self.profile_hovered.emit(mouse_point_x)
@@ -363,8 +376,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             for plot, fill in self.waterlevel_plots.values():
                 plot.setData(ts_table)
 
-            # Only let specific set of plots determine range
-            self.autoRange(items=[self.bottom_plot, self.exchange_plot])
+            self.auto_scale(include_waterlevels=False)
 
             self.profile_route_updated.emit()
         else:
@@ -473,11 +485,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.waterlevel_plots[result.id][0].setData(np.array(water_level_line, dtype=float))
 
         if update_range:
-            range_plots = [self.bottom_plot, self.exchange_plot]
-            for waterlevel_plot, _ in self.waterlevel_plots.values():
-                range_plots.append(waterlevel_plot)
-
-            self.autoRange(items=range_plots)
+            self.auto_scale(include_waterlevels=True)
 
     def on_close(self):
         self.profile_route_updated.disconnect(self.update_water_level_cache)
