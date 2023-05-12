@@ -726,6 +726,9 @@ class GraphDockWidget(QDockWidget):
         self.map_tool_add_node.setButton(self.addNodeButton)
         self.map_tool_add_node.setCursor(Qt.CrossCursor)
 
+        # In case this dock widget becomes (in)visible, we disable the route tools
+        self.visibilityChanged.connect(self.unset_map_tools)
+
     def on_close(self):
         """
         unloading widget and remove all required stuff
@@ -865,6 +868,12 @@ class GraphDockWidget(QDockWidget):
         self.iface.mapCanvas().setMapTool(
             self.map_tool_add_node,
         )
+
+    def unset_map_tools(self):
+        if self.iface.mapCanvas().mapTool() is self.map_tool_add_node:
+            self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node)
+        elif self.iface.mapCanvas().mapTool() is self.map_tool_add_flowline_pump:
+            self.iface.mapCanvas().unsetMapTool(self.map_tool_add_flowline_pump)
 
     def add_results(self, results, feature_type):
         """
