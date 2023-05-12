@@ -14,6 +14,7 @@ from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QWidget
@@ -21,7 +22,7 @@ from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.utils import PenStyleWidget, available_styles
-from threedi_results_analysis.utils.user_messages import statusbar_message, StatusProgressBar
+from threedi_results_analysis.utils.user_messages import statusbar_message, messagebar_message, messagebar_pop_message
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from qgis.utils import iface
@@ -188,6 +189,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         for route_part in route_path:
             first_node = True
+            messagebar_message("Sideview", "Profile being generated, this might take a while...", 0, 0)
+            QApplication.processEvents()
 
             for (begin_dist, end_dist, direction, feature) in Route.aggregate_route_parts(route_part):
 
@@ -391,6 +394,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             # Clear node list used to draw results
             self.sideview_nodes = []
+            messagebar_pop_message()
 
     def update_water_level_cache(self):
 
@@ -429,6 +433,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         tc = iface.mapCanvas().temporalController()
         self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()), True)
+        messagebar_pop_message()
 
     @pyqtSlot(QgsDateTimeRange)
     def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange, update_range=False):

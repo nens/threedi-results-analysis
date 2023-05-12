@@ -47,6 +47,13 @@ def messagebar_message(title, msg, level=None, duration=0):
     iface.messageBar().pushMessage(title, msg, level, duration)
 
 
+def messagebar_pop_message():
+    """Remove the currently displayed item from the bar and display the next item in the stack.
+       If no remaining items are present, the bar will be hidden."""
+    iface.messageBar().popWidget()
+    QApplication.processEvents()
+
+
 def pop_up_question(msg="", title="", parent=None):
     """Message box question (Yes or No).
 

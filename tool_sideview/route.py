@@ -244,7 +244,6 @@ class Route(object):
         if self.tree_layer_up_to_date:
             return
 
-        logger.info("Updating virtual tree")
         ids = [feat.id() for feat in self._virtual_tree_layer.getFeatures()]
         self._virtual_tree_layer.dataProvider().deleteFeatures(ids)
 
