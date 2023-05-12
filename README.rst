@@ -19,11 +19,6 @@ The main features are:
 - An extensible toolbox with custom Python scripts (for e.g. statistical analysis)
 - Import of sufhyd files
 
-Take a look at the `Wiki`_ for more information.
-
-.. _`Wiki`: https://github.com/nens/ThreeDiToolbox/wiki
-
-
 Installation on windows
 -----------------------
 
