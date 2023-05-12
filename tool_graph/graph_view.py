@@ -128,9 +128,10 @@ class GraphPlot(pg.PlotWidget):
                 item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute)
             )
 
-            self.addItem(
-                 item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=absolute)
-            )
+            if item.active.value:
+                self.addItem(
+                    item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=absolute)
+                )
 
         self.absolute = absolute
         self.plotItem.vb.menu.viewAll.triggered.emit()
@@ -230,6 +231,9 @@ class GraphPlot(pg.PlotWidget):
         self.current_time_units = time_units
 
         for item in self.location_model.rows:
+            if not item.active.value:
+                continue
+
             self.removeItem(
                 item.plots(old_parameter["parameters"], time_units=old_time_units, absolute=self.absolute)
             )
