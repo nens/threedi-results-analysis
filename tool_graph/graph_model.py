@@ -166,7 +166,7 @@ class LocationTimeseriesModel(BaseModel):
                 logger.info(f"Creating plot item for {result_key}: {parameters}")
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(ts_table, pen=pen)
 
-            logger.info(f"Retrieving plot for {result_key}: {parameters}")
+            # logger.info(f"Retrieving plot for {result_key}: {parameters}")
             return self._plots[str(parameters)][result_key]
 
         def timeseries_table(self, parameters, absolute, time_units):

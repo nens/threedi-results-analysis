@@ -8,6 +8,7 @@
 - Sideview feature-complete for multiple results and grids (#806, #811, #812, #670, #808, #789, #826)
 - Result Manager: fixed bug when working dir contained a revision with number 0 (#822)
 - Graph tool: maptools are disabled when tabs are switched (#824)
+- Graph tool: Fixed bug where deactivated plots were added again when parameter/units or absoluteness was changed (#825)
 
 
 3.1.3 (2023-03-21)
@@ -49,6 +50,7 @@
 ----------------
 
 - Initial beta version of results analysis feature.
+
 2.5.2 (2023-04-26)
 ------------------
 
