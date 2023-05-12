@@ -32,6 +32,7 @@
 - Minor changes to animation styling and class bound calculations (#784).
 - Added support for special symbols in paths (#782).
 - Make temporal controller visible when checking (visualizing) result (#768).
+- Removed wiki related files (wiki has been disabled)
 
 
 3.1.1 (2023-02-10)
