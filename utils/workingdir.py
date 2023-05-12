@@ -5,29 +5,6 @@ import re
 import os
 from threedi_results_analysis.utils.utils import listdirs
 
-UNC_PREFIX = "\\\\?\\"
-FILE_MAX_PATH = 260
-DIR_MAX_PATH = 248
-
-
-def bypass_max_path_limit(path, is_file=False):
-    """Check and modify path to bypass Windows MAX_PATH limitation."""
-    path_str = str(path)
-    if path_str.startswith(UNC_PREFIX):
-        valid_path = path_str
-    else:
-        if is_file:
-            if len(path_str) >= FILE_MAX_PATH:
-                valid_path = f"{UNC_PREFIX}{path_str}"
-            else:
-                valid_path = path_str
-        else:
-            if len(path_str) > DIR_MAX_PATH:
-                valid_path = f"{UNC_PREFIX}{path_str}"
-            else:
-                valid_path = path_str
-    return valid_path
-
 
 class LocalRevision:
     """Local revision directory structure representation."""
