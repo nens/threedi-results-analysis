@@ -16,7 +16,7 @@ class ThreeDiGraph(QObject):
         self.model = model
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_graph.png")
-        self.menu_text = "Show 3Di results in Graph"
+        self.menu_text = "Time Series Plotter"
 
         self.dock_widgets = []
         self.widget_nr = 0

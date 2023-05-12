@@ -14,7 +14,7 @@ class ThreeDiSideView(QObject):
         self.iface = iface
         self.model = model
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_route.png")
-        self.menu_text = u"Show sideview of 3Di model with results"
+        self.menu_text = u"Sideview Tool"
         self.dock_widgets = []
         self.widget_nr = 0
 

@@ -860,7 +860,7 @@ class GraphDockWidget(QDockWidget):
 
         # add dockwidget
         self.setWidget(self.dockWidgetContent)
-        self.setWindowTitle("3Di Result Plots %i" % self.nr)
+        self.setWindowTitle("3Di Time Series Plot %i" % self.nr)
         QMetaObject.connectSlotsByName(self)
 
     def add_flowline_pump_button_clicked(self):
