@@ -7,7 +7,6 @@ import os
 
 
 class ThreeDiSideView(QObject):
-    """QGIS Plugin Implementation."""
 
     def __init__(self, iface, model):
         QObject.__init__(self)
@@ -16,22 +15,12 @@ class ThreeDiSideView(QObject):
         self.model = model
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_route.png")
         self.menu_text = u"Show sideview of 3Di model with results"
-
         self.dock_widgets = []
         self.widget_nr = 0
-        self._active = False
-
-    @property
-    def active(self):
-        return self._active
-
-    @active.setter
-    def active(self, activate):
-        self._active = activate
 
     def on_unload(self):
         """
-        on close of graph plugin
+        on close of sideview plugin
         """
         for widget in self.dock_widgets:
             widget.close()
@@ -89,13 +78,8 @@ class ThreeDiSideView(QObject):
 
             del self.dock_widgets[nr]
 
-        self.active = False
-
     def run(self):
-        """
-        Run method that loads and starts the plugin (docked graph widget)
-        """
-        # create the dockwidget
+
         self.widget_nr += 1
         new_widget = SideViewDockWidget(
             self.iface,
@@ -110,11 +94,9 @@ class ThreeDiSideView(QObject):
         # show the dockwidget
         self.iface.addDockWidget(Qt.BottomDockWidgetArea, new_widget)
 
-        # make stack of graph widgets (instead of next to each other)
+        # make stack of dock widgets (instead of next to each other)
         if len(self.dock_widgets) > 1:
             window = qgis.core.QgsApplication.activeWindow()
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)
-
-        self.active = True
 
         new_widget.show()

@@ -510,6 +510,9 @@ class SideViewDockWidget(QDockWidget):
         # Also used to check whether we have a current grid
         self.current_grid_id = None
 
+        # In case this dock widget becomes (in)visible, we disable the route tool
+        self.visibilityChanged.connect(self.unset_route_tool)
+
         self.setup_ui()
 
     @pyqtSlot(QgsDateTimeRange)
