@@ -52,7 +52,7 @@ VALID_PROVIDERS = ["spatialite", "memory", "ogr"]
 PROVIDERS_WITHOUT_PRIMARY_KEY = ["memory", "ogr"]
 
 FLOWLINE_OR_PUMP = 'flowline_or_pump'
-NODE = 'node'
+NODE_OR_CELL = 'node_or_cell'
 
 
 def is_threedi_layer(vector_layer: QgsVectorLayer) -> bool:
@@ -69,7 +69,7 @@ def is_threedi_layer(vector_layer: QgsVectorLayer) -> bool:
 
     if provider.name() in ["spatialite", "memory", "ogr"] and valid_object_type:
         return True
-    elif vector_layer.objectName() in ("flowline", "node", "pump_linestring", "pump"):
+    elif vector_layer.objectName() in ("flowline", "node", "pump_linestring", "cell"):
         return True
 
     return False
@@ -611,7 +611,7 @@ class GraphWidget(QWidget):
         """
 
         if not is_threedi_layer(layer):
-            msg = """Please select results from either the 'flowlines', 'nodes' or
+            msg = """Please select results from either the 'flowlines', 'nodes', 'cells' or
             'pumplines' layer."""
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
             return False
@@ -722,7 +722,7 @@ class GraphDockWidget(QDockWidget):
             self,
             self.model,
             parameter_config["h"],
-            "Nodes",
+            "Nodes && cells",
             QgsWkbTypes.Point,
         )
         self.graphTabWidget.addTab(self.q_graph_widget, self.q_graph_widget.name)
@@ -730,7 +730,7 @@ class GraphDockWidget(QDockWidget):
 
         # add listeners
         self.addFlowlinePumpButton.clicked.connect(self.add_flowline_pump_button_clicked)
-        self.addNodeButton.clicked.connect(self.add_node_button_clicked)
+        self.addNodeCellButton.clicked.connect(self.add_node_cell_button_clicked)
 
         # add map tools
         self.map_tool_add_flowline_pump = AddFlowlinePumpMapTool(
@@ -738,11 +738,11 @@ class GraphDockWidget(QDockWidget):
         )
         self.map_tool_add_flowline_pump.setButton(self.addFlowlinePumpButton)
         self.map_tool_add_flowline_pump.setCursor(Qt.CrossCursor)
-        self.map_tool_add_node = AddNodeMapTool(
+        self.map_tool_add_node_cell = AddNodeCellMapTool(
             widget=self, canvas=self.iface.mapCanvas(),
         )
-        self.map_tool_add_node.setButton(self.addNodeButton)
-        self.map_tool_add_node.setCursor(Qt.CrossCursor)
+        self.map_tool_add_node_cell.setButton(self.addNodeCellButton)
+        self.map_tool_add_node_cell.setCursor(Qt.CrossCursor)
 
         # In case this dock widget becomes (in)visible, we disable the route tools
         self.visibilityChanged.connect(self.unset_map_tools)
@@ -753,10 +753,10 @@ class GraphDockWidget(QDockWidget):
         :return:
         """
         self.addFlowlinePumpButton.clicked.disconnect(self.add_flowline_pump_button_clicked)
-        self.addNodeButton.clicked.disconnect(self.add_node_button_clicked)
+        self.addNodeCellButton.clicked.disconnect(self.add_node_cell_button_clicked)
 
         self.map_tool_add_flowline_pump = None
-        self.map_tool_add_node = None
+        self.map_tool_add_node_cell = None
 
         # self.q_graph_widget.close()
         # self.h_graph_widget.close()
@@ -841,14 +841,12 @@ class GraphDockWidget(QDockWidget):
         self.buttonBarHLayout = QHBoxLayout(self)
 
         self.addFlowlinePumpButton = QPushButton(text="Add flowlines/pumps", parent=self.dockWidgetContent)
-        self.addFlowlinePumpButton.setObjectName("addFlowlinePumpButton")
         self.addFlowlinePumpButton.setCheckable(True)
         self.buttonBarHLayout.addWidget(self.addFlowlinePumpButton)
 
-        self.addNodeButton = QPushButton(text="Add nodes", parent=self.dockWidgetContent)
-        self.addNodeButton.setObjectName("addNodeButton")
-        self.addNodeButton.setCheckable(True)
-        self.buttonBarHLayout.addWidget(self.addNodeButton)
+        self.addNodeCellButton = QPushButton(text="Add nodes/cells", parent=self.dockWidgetContent)
+        self.addNodeCellButton.setCheckable(True)
+        self.buttonBarHLayout.addWidget(self.addNodeCellButton)
 
         self.absoluteCheckbox = QCheckBox("Absolute", parent=self.dockWidgetContent)
         self.absoluteCheckbox.setChecked(False)
@@ -882,14 +880,14 @@ class GraphDockWidget(QDockWidget):
             self.map_tool_add_flowline_pump,
         )
 
-    def add_node_button_clicked(self):
+    def add_node_cell_button_clicked(self):
         self.iface.mapCanvas().setMapTool(
-            self.map_tool_add_node,
+            self.map_tool_add_node_cell,
         )
 
     def unset_map_tools(self):
-        if self.iface.mapCanvas().mapTool() is self.map_tool_add_node:
-            self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node)
+        if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
+            self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
         elif self.iface.mapCanvas().mapTool() is self.map_tool_add_flowline_pump:
             self.iface.mapCanvas().unsetMapTool(self.map_tool_add_flowline_pump)
 
@@ -900,8 +898,8 @@ class GraphDockWidget(QDockWidget):
         if feature_type == FLOWLINE_OR_PUMP:
             layer_keys = ['flowline', 'pump_linestring']
             graph_widget = self.q_graph_widget
-        elif feature_type == NODE:
-            layer_keys = ['node']
+        elif feature_type == NODE_OR_CELL:
+            layer_keys = ['node', 'cell']
             graph_widget = self.h_graph_widget
         item = self.model.invisibleRootItem()
 
@@ -947,5 +945,5 @@ class AddFlowlinePumpMapTool(BaseAddMapTool):
     feature_type = FLOWLINE_OR_PUMP
 
 
-class AddNodeMapTool(BaseAddMapTool):
-    feature_type = NODE
+class AddNodeCellMapTool(BaseAddMapTool):
+    feature_type = NODE_OR_CELL

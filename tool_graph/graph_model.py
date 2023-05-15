@@ -79,11 +79,13 @@ class LocationTimeseriesModel(BaseModel):
             updated_item = self.rows[index.row()]
             updated_feature_id = updated_item.object_id.value
             updated_grid = updated_item.result.value.parent()
+            updated_object_type = updated_item.object_type.value
             assert updated_grid
             new_label = updated_item.object_label.value
             for item in self.rows:
                 if (item.object_id.value == updated_feature_id and
-                        item.result.value.parent() is updated_grid):
+                        item.result.value.parent() is updated_grid and
+                        item.object_type.value == updated_object_type):  # e.g. flowline
                     self.blockSignals(True)
                     item.object_label.value = new_label
                     self.blockSignals(False)
