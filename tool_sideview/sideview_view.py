@@ -35,6 +35,9 @@ import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
 
+UPPER_LIMIT = 10000
+LOWER_LIMIT = -10000
+
 
 class SideViewPlotWidget(pg.PlotWidget):
     """Side view plot element"""
@@ -104,7 +107,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         # Required for fill in bottom of graph
         pen = pg.mkPen(color=QColor(0, 0, 0), width=1)
-        self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
+        self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, LOWER_LIMIT), (10000, LOWER_LIMIT)]), pen=pen)
         self.bottom_fill = pg.FillBetweenItem(
             self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
@@ -238,8 +241,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                             upper_limit_line.append((begin_dist, crest_level, ltype))
                             upper_limit_line.append((end_dist, crest_level, ltype))
                         else:
-                            upper_limit_line.append((begin_dist, 10000.0, ltype))
-                            upper_limit_line.append((end_dist, 10000.0, ltype))
+                            upper_limit_line.append((begin_dist, UPPER_LIMIT, ltype))
+                            upper_limit_line.append((end_dist, UPPER_LIMIT, ltype))
                     else:
                         upper_line.append((begin_dist, begin_level + begin_height, ltype))
                         upper_line.append((end_dist, end_level + end_height, ltype))
@@ -287,7 +290,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             self.exchange_plot.setData(ts_exchange_table, connect="pairs")
             self.bottom_plot.setData(ts_table, connect="pairs")
-            self.absolute_bottom.setData(np.array([(b[0], -10000) for b in bottom_line], dtype=float), connect="pairs")
+            self.absolute_bottom.setData(np.array([(b[0], LOWER_LIMIT) for b in bottom_line], dtype=float), connect="pairs")
 
             self.sewer_bottom_plot.setData(np.array(tables[LineType.PIPE], dtype=float), connect="pairs")
             self.channel_bottom_plot.setData(np.array(tables[LineType.CHANNEL], dtype=float), connect="pairs")
