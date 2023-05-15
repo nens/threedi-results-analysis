@@ -971,28 +971,61 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.doubleSpinBoxThreshold.setSingleStep(1)
         self.doubleSpinBoxThreshold.setMinimum(0)
         self.doubleSpinBoxThreshold.setValue(DEFAULT_THRESHOLD)
-
         self.doubleSpinBoxStartTime.valueChanged.connect(self.start_time_changed)
         self.doubleSpinBoxEndTime.valueChanged.connect(self.end_time_changed)
-
         self.checkBoxUpstream.stateChanged.connect(self.checkbox_upstream_state_changed)
         self.checkBoxDownstream.stateChanged.connect(self.checkbox_downstream_state_changed)
-
         self.pushButtonClickOnCanvas.clicked.connect(self.pushbutton_click_on_canvas_clicked)
         self.pushButtonCatchmentForSelectedNodes.clicked.connect(self.pushbutton_catchment_for_selected_nodes_clicked)
         self.pushButtonCatchmentForPolygons.clicked.connect(self.pushbutton_catchment_for_polygons_clicked)
-
         self.checkBoxBrowseResultSets.stateChanged.connect(self.checkbox_browse_result_sets_state_changed)
         self.spinBoxBrowseResultSets.valueChanged.connect(self.spinbox_browse_result_sets_value_changed)
         self.pushButtonClearResults.clicked.connect(self.pushbutton_clear_results_clicked)
+
         QgsProject.instance().cleared.connect(self.close)
-        self.update_gr()
+        self.comboBoxResult.activated.connect(self.select_result)
+        self._populate_results()
+        self.comboBoxResult.setCurrentIndex(-1)
+
+    def _populate_results(self) -> None:
+        self.comboBoxResult.clear()
+        for result in self.model.get_results(checked_only=False):
+            self.comboBoxResult.addItem(result.text(), result.id)
+
+    def select_result(self, index: int) -> None:
+        result_id = self.comboBoxResult.itemData(index)
+        result = self.model.get_result(result_id)
+        results_3di = result.path
+        gridadmin = result.parent().path.with_suffix('.h5')
+        assert os.path.isfile(results_3di) and os.path.isfile(gridadmin)
+
+        self.disconnect_gq()
+        self.connect_gq()
+        gr = GridH5ResultAdmin(str(gridadmin), str(results_3di))
+        self.gq.end_time = int(gr.nodes.timestamps[-1])
+        if self.doubleSpinBoxThreshold.value() is not None:
+            self.gq.threshold = self.doubleSpinBoxThreshold.value()
+        else:
+            self.gq.threshold = DEFAULT_THRESHOLD
+        update_gr_task = UpdateGridAdminTask(
+            description="Preprocess 3Di Results for Network Analysis", parent=self, gr=gr
+        )
+        self.iface.messageBar().pushMessage(
+            MESSAGE_CATEGORY, "Started pre-processing simulation results", Qgis.Info
+        )
+        self.tm.addTask(update_gr_task)
+        self.iface.mainWindow().repaint()  # to show the message before the task starts
 
     def add_result(self, result_item: ThreeDiResultItem) -> None:
-        self.comboBoxResult.addItem(result_item.text())
+        currentIndex = self.comboBoxResult.currentIndex()
+        self.comboBoxResult.addItem(result_item.text(), result_item.id)
+        self.comboBoxResult.setCurrentIndex(currentIndex)
 
     def remove_result(self, result_item: ThreeDiResultItem):
-        pass
+        idx = self.comboBoxResult.findData(result_item.id)
+        assert idx != -1
+        # TODO: if current, clean up
+        self.comboBoxResult.removeItem(idx)
 
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)
@@ -1012,41 +1045,6 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if self.gq.layer_group is not None:
             self.gq.remove_layer_group()
         self.gq = None
-
-    def update_gr(self):
-        # results_3di = self.QgsFileWidget3DiResults.filePath()
-        # gridadmin = self.QgsFileWidgetGridAdmin.filePath()
-        # if os.path.isfile(results_3di) and os.path.isfile(gridadmin):
-        #     self.disconnect_gq()
-        #     self.connect_gq()
-        #     gr = GridH5ResultAdmin(gridadmin, results_3di)
-        #     self.gq.end_time = int(gr.nodes.timestamps[-1])
-        #     if self.doubleSpinBoxThreshold.value() is not None:
-        #         self.gq.threshold = self.doubleSpinBoxThreshold.value()
-        #     else:
-        #         self.gq.threshold = DEFAULT_THRESHOLD
-        #     update_gr_task = UpdateGridAdminTask(
-        #         description="Preprocess 3Di Results for Network Analysis", parent=self, gr=gr
-        #     )
-        #     self.iface.messageBar().pushMessage(
-        #         MESSAGE_CATEGORY, "Started pre-processing simulation results", Qgis.Info
-        #     )
-        #     self.tm.addTask(update_gr_task)
-        #     self.iface.mainWindow().repaint()  # to show the message before the task starts
-        pass
-
-    def results_3di_selected(self):
-        # results_3di = self.QgsFileWidget3DiResults.filePath()
-        # if os.path.isfile(results_3di):
-        #     results_3di_dir = os.path.dirname(results_3di)
-        #     gridadmin = os.path.join(results_3di_dir, "gridadmin.h5")
-        #     if os.path.isfile(gridadmin):
-        #         self.QgsFileWidgetGridAdmin.setFilePath(gridadmin)
-        #         # now update_gr will be fired because gridadmin valueChanged() signal will be emitted
-        pass
-
-    def gridadmin_selected(self):
-        self.update_gr()
 
     def sqlite_selected(self):
         uri = QgsDataSourceUri()
