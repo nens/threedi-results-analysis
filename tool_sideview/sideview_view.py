@@ -72,6 +72,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         pen = pg.mkPen(color=QColor(0, 0, 0), width=2, style=Qt.DashLine)
         self.node_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        pen = pg.mkPen(color=QColor(190, 190, 190))
+        self.node_indicator_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -150,6 +152,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_middle_plot)
         self.addItem(self.orifice_top_plot)
         self.addItem(self.node_plot)
+        self.addItem(self.node_indicator_plot)
         self.addItem(self.orifice_full_fill)
         self.addItem(self.orifice_opening_fill)
         self.addItem(self.weir_full_fill)
@@ -159,6 +162,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         # Set the z-order of the curves (note that fill take minimum of its two defining curve as z-value)
         self.exchange_plot.setZValue(100)
         self.node_plot.setZValue(60)
+        self.node_indicator_plot.setZValue(55)
         self.orifice_full_fill.setZValue(20)
         self.orifice_opening_fill.setZValue(21)
         self.weir_full_fill.setZValue(20)
@@ -374,6 +378,12 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node_table.append((node["distance"], node["level"] + node["height"]))
             self.node_plot.setData(np.array(node_table, dtype=float), connect="pairs")
 
+            node_indicator_table = []
+            for node in self.sideview_nodes:
+                node_indicator_table.append((node["distance"], LOWER_LIMIT))
+                node_indicator_table.append((node["distance"], UPPER_LIMIT))
+            self.node_indicator_plot.setData(np.array(node_indicator_table, dtype=float), connect="pairs")
+
             # reset water level lines
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             for plot, fill in self.waterlevel_plots.values():
@@ -401,6 +411,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_middle_plot.setData(ts_table)
             self.exchange_plot.setData(ts_table)
             self.node_plot.setData(ts_table)
+            self.node_indicator_plot.setData(ts_table)
 
             for plot, fill in self.waterlevel_plots.values():
                 self.removeItem(plot)
