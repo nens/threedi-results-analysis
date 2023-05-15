@@ -37,8 +37,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>361</width>
-         <height>863</height>
+         <width>357</width>
+         <height>855</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -69,45 +69,12 @@
            <item>
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>3Di results NetCDF:</string>
+              <string>3Di results:</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QgsFileWidget" name="QgsFileWidget3DiResults">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="acceptDrops">
-              <bool>true</bool>
-             </property>
-             <property name="filter">
-              <string>results_3di.nc</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>3Di gridadmin file:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QgsFileWidget" name="QgsFileWidgetGridAdmin">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="filter">
-              <string>gridadmin.h5</string>
-             </property>
-            </widget>
+            <widget class="QComboBox" name="comboBoxResult"/>
            </item>
            <item>
             <widget class="QLabel" name="labelSqlite">

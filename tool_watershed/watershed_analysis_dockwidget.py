@@ -45,6 +45,7 @@ from .watershed_analysis_networkx import Graph3Di
 from .result_aggregation.threedigrid_ogr import threedigrid_to_ogr
 from .ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
 from .smoothing import polygon_gaussian_smooth
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "watershed_analysis_dockwidget_base.ui"))
@@ -948,7 +949,7 @@ class CatchmentMapTool(QgsMapToolIdentify):
 class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     closingWidget = pyqtSignal()
 
-    def __init__(self, iface, tdi_root_tool, parent=None):
+    def __init__(self, iface, model, parent=None):
         """Constructor."""
         super(WatershedAnalystDockWidget, self).__init__(parent)
         # Set up the user interface from Designer.
@@ -959,14 +960,11 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
 
         self.iface = iface
-        self.tdi_root_tool = tdi_root_tool
+        self.model = model
         self.catchment_map_tool = None
         self.tm = QgsApplication.taskManager()
-        self.setup_ds()
         self.connect_gq()
         self.mMapLayerComboBoxTargetPolygons.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.QgsFileWidget3DiResults.fileChanged.connect(self.results_3di_selected)
-        self.QgsFileWidgetGridAdmin.fileChanged.connect(self.gridadmin_selected)
         self.QgsFileWidgetSqlite.fileChanged.connect(self.sqlite_selected)
 
         self.doubleSpinBoxThreshold.valueChanged.connect(self.threshold_changed)
@@ -990,17 +988,11 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         QgsProject.instance().cleared.connect(self.close)
         self.update_gr()
 
-    def setup_ds(self):
-        if self.tdi_root_tool.rows:
-            active_ts_datasource = self.tdi_root_tool.rows[0]
-            threedi_result = active_ts_datasource.threedi_result()
-            results_path = str(threedi_result.file_path)
-            gridadmin_path = str(threedi_result.gridadmin.grid_file)
-            spatialite_path = str(self.tdi_root_tool.model_spatialite_filepath)
-            self.QgsFileWidget3DiResults.setFilePath(results_path)
-            self.QgsFileWidgetGridAdmin.setFilePath(gridadmin_path)
-            if spatialite_path:
-                self.QgsFileWidgetSqlite.setFilePath(spatialite_path)
+    def add_result(self, result_item: ThreeDiResultItem) -> None:
+        self.comboBoxResult.addItem(result_item.text())
+
+    def remove_result(self, result_item: ThreeDiResultItem):
+        pass
 
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)
@@ -1022,34 +1014,36 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.gq = None
 
     def update_gr(self):
-        results_3di = self.QgsFileWidget3DiResults.filePath()
-        gridadmin = self.QgsFileWidgetGridAdmin.filePath()
-        if os.path.isfile(results_3di) and os.path.isfile(gridadmin):
-            self.disconnect_gq()
-            self.connect_gq()
-            gr = GridH5ResultAdmin(gridadmin, results_3di)
-            self.gq.end_time = int(gr.nodes.timestamps[-1])
-            if self.doubleSpinBoxThreshold.value() is not None:
-                self.gq.threshold = self.doubleSpinBoxThreshold.value()
-            else:
-                self.gq.threshold = DEFAULT_THRESHOLD
-            update_gr_task = UpdateGridAdminTask(
-                description="Preprocess 3Di Results for Network Analysis", parent=self, gr=gr
-            )
-            self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Started pre-processing simulation results", Qgis.Info
-            )
-            self.tm.addTask(update_gr_task)
-            self.iface.mainWindow().repaint()  # to show the message before the task starts
+        # results_3di = self.QgsFileWidget3DiResults.filePath()
+        # gridadmin = self.QgsFileWidgetGridAdmin.filePath()
+        # if os.path.isfile(results_3di) and os.path.isfile(gridadmin):
+        #     self.disconnect_gq()
+        #     self.connect_gq()
+        #     gr = GridH5ResultAdmin(gridadmin, results_3di)
+        #     self.gq.end_time = int(gr.nodes.timestamps[-1])
+        #     if self.doubleSpinBoxThreshold.value() is not None:
+        #         self.gq.threshold = self.doubleSpinBoxThreshold.value()
+        #     else:
+        #         self.gq.threshold = DEFAULT_THRESHOLD
+        #     update_gr_task = UpdateGridAdminTask(
+        #         description="Preprocess 3Di Results for Network Analysis", parent=self, gr=gr
+        #     )
+        #     self.iface.messageBar().pushMessage(
+        #         MESSAGE_CATEGORY, "Started pre-processing simulation results", Qgis.Info
+        #     )
+        #     self.tm.addTask(update_gr_task)
+        #     self.iface.mainWindow().repaint()  # to show the message before the task starts
+        pass
 
     def results_3di_selected(self):
-        results_3di = self.QgsFileWidget3DiResults.filePath()
-        if os.path.isfile(results_3di):
-            results_3di_dir = os.path.dirname(results_3di)
-            gridadmin = os.path.join(results_3di_dir, "gridadmin.h5")
-            if os.path.isfile(gridadmin):
-                self.QgsFileWidgetGridAdmin.setFilePath(gridadmin)
-                # now update_gr will be fired because gridadmin valueChanged() signal will be emitted
+        # results_3di = self.QgsFileWidget3DiResults.filePath()
+        # if os.path.isfile(results_3di):
+        #     results_3di_dir = os.path.dirname(results_3di)
+        #     gridadmin = os.path.join(results_3di_dir, "gridadmin.h5")
+        #     if os.path.isfile(gridadmin):
+        #         self.QgsFileWidgetGridAdmin.setFilePath(gridadmin)
+        #         # now update_gr will be fired because gridadmin valueChanged() signal will be emitted
+        pass
 
     def gridadmin_selected(self):
         self.update_gr()

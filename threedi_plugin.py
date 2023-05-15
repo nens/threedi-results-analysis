@@ -83,7 +83,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.sideview_tool = ThreeDiSideView(iface, self.model)
         self.stats_tool = StatisticsTool(iface, self.ts_datasources)
         self.water_balance_tool = WaterBalanceTool(iface, self.model)
-        self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.ts_datasources)
+        self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.model)
         self.logfile_tool = ShowLogfile(iface)
 
         self.tools = [  # second item indicates enabled on startup
@@ -95,7 +95,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.sideview_tool, False),
             (self.stats_tool, True),
             (self.water_balance_tool, True),
-            (self.watershed_tool, True),
+            (self.watershed_tool, False),
             (self.logfile_tool, True),
         ]
 
@@ -186,6 +186,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_removed.connect(self.sideview_tool.result_removed)
         self.model.result_changed.connect(self.sideview_tool.result_changed)
         tc.updateTemporalRange.connect(self.sideview_tool.update_waterlevels)
+
+        # watershed signals
+        self.model.result_added.connect(self.watershed_tool.result_added)
+        self.model.result_removed.connect(self.watershed_tool.result_removed)
+        # self.model.result_changed.connect(self.sideview_tool.result_changed)
 
         self.init_state_sync()
 

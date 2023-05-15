@@ -1,21 +1,17 @@
 # -*- coding: utf-8 -*-
 import os
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QObject
 from .watershed_analysis_dockwidget import WatershedAnalystDockWidget
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from qgis.PyQt.QtCore import pyqtSlot
 
 
-class ThreeDiWatershedAnalyst:
-    def __init__(self, iface, tdi_root_tool):
-        """Constructor.
-
-        :param iface: An interface instance that will be passed to this class
-            which provides the hook by which you can manipulate the QGIS
-            application at run time.
-        :type iface: QgsInterface
-        """
-        # Save reference to the QGIS interface
+class ThreeDiWatershedAnalyst(QObject):
+    def __init__(self, iface, model):
+        QObject.__init__(self)
         self.iface = iface
-        self.tdi_root_tool = tdi_root_tool
+        self.model = model
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_watershed.png")
         self.menu_text = "Watershed Tool"
@@ -41,8 +37,24 @@ class ThreeDiWatershedAnalyst:
         """Run method that loads and starts the tool"""
         if not self.active:
             if self.dock_widget is None:
-                self.dock_widget = WatershedAnalystDockWidget(self.iface, self.tdi_root_tool)
+                self.dock_widget = WatershedAnalystDockWidget(self.iface, self.model)
             self.dock_widget.closingWidget.connect(self.on_close_child_widget)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
             self.dock_widget.show()
             self._active = True
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_added(self, result_item: ThreeDiResultItem) -> None:
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+        if not self.active:
+            return
+
+        self.dock_widget.add_result(result_item)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_removed(self, result_item: ThreeDiResultItem) -> None:
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+        if not self.active:
+            return
+
+        self.dock_widget.remove_result(result_item)
