@@ -702,6 +702,7 @@ class SideViewDockWidget(QDockWidget):
 
     def deinitialize_route(self):
         self.reset_sideview()
+        self.unset_route_tool()
 
         self.current_grid_id = None
         self.select_sideview_button.setEnabled(False)
@@ -718,6 +719,7 @@ class SideViewDockWidget(QDockWidget):
         self.map_visualisation = None
         QgsProject.instance().removeMapLayer(self.vl_tree_layer)
         self.vl_tree_layer = None
+        self.iface.mapCanvas().refreshAllLayers()
 
     def _populate_result_table(self, grid_item: ThreeDiGridItem):
         self.sideview_result_model.clear()
