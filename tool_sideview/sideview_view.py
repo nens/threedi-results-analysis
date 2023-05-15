@@ -672,8 +672,8 @@ class SideViewDockWidget(QDockWidget):
         # Retrieve relevant results and put in table
         self._populate_result_table(grid_item)
 
-        # Add graph layer to canvas for testing
-        QgsProject.instance().addMapLayer(self.route.get_graph_layer(), True)
+        # Add (internal) graph layer to canvas for testing
+        # QgsProject.instance().addMapLayer(self.route.get_graph_layer(), True)
 
         # Link route map tool (allows node selection)
         self.route_tool = RouteMapTool(
@@ -709,9 +709,11 @@ class SideViewDockWidget(QDockWidget):
         self.reset_sideview_button.setEnabled(False)
 
         self.graph_layer = None  # We are not owner of this layer
+        
         # Note that route.graph_layer is an interal layer used to build the graph,
         # only added to canvas for testing purposes
-        QgsProject.instance().removeMapLayer(self.route.get_graph_layer())
+        # QgsProject.instance().removeMapLayer(self.route.get_graph_layer())
+        
         self.route = None
         self.route_tool = None
         self.map_visualisation = None

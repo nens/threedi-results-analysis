@@ -6,6 +6,7 @@ from qgis.analysis import QgsVectorLayerDirector
 from qgis.core import QgsFeature
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsField
+from qgis.core import QgsMapLayer
 from qgis.core import QgsGeometry
 from qgis.core import QgsCoordinateTransform
 from qgis.gui import QgsMapTool
@@ -269,6 +270,7 @@ class Route(object):
         self._virtual_tree_layer.commitChanges()
         self._virtual_tree_layer.updateExtents()
         self._virtual_tree_layer.triggerRepaint()
+        self._virtual_tree_layer.setFlags(QgsMapLayer.Private)
 
     def get_virtual_tree_layer(self):
         """
