@@ -898,7 +898,7 @@ class GraphDockWidget(QDockWidget):
         Add results for features of specific types.
         """
         if feature_type == FLOWLINE_OR_PUMP:
-            layer_keys = ['flowline', 'pump_linestring', 'pump']
+            layer_keys = ['flowline', 'pump_linestring']
             graph_widget = self.q_graph_widget
         elif feature_type == NODE:
             layer_keys = ['node']
