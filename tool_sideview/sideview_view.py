@@ -709,11 +709,11 @@ class SideViewDockWidget(QDockWidget):
         self.reset_sideview_button.setEnabled(False)
 
         self.graph_layer = None  # We are not owner of this layer
-        
+
         # Note that route.graph_layer is an interal layer used to build the graph,
         # only added to canvas for testing purposes
         # QgsProject.instance().removeMapLayer(self.route.get_graph_layer())
-        
+
         self.route = None
         self.route_tool = None
         self.map_visualisation = None
