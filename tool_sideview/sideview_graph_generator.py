@@ -102,7 +102,8 @@ class SideViewGraphGenerator():
                     assert upper_level >= bottom_level
 
                 if upper_level < bottom_level:
-                    # logger.warning(f"Derived upper level of node is below bottom level for node {node_id}")
+                    logger.warning(f"Derived upper level of node is below bottom level for node {node_id}")
+                    # Flip
                     upper_level, bottom_level = bottom_level, upper_level
 
                 height = (upper_level-bottom_level)

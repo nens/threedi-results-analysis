@@ -332,7 +332,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                     exchange_point_1 = ts_exchange_table[exchange_point_index]
                     exchange_point_2 = ts_exchange_table[exchange_point_index+1]
                     if exchange_point_1[0] == point_1[0] and exchange_point_2[0] == point_2[0]:
-                        logger.error(f"Appending {(point_1[0], point_1[1])} and {(point_2[0], point_2[1])} to sewer_top_table")
                         sewer_top_table.append((point_1[0], point_1[1]))
                         sewer_top_table.append((point_2[0], point_2[1]))
                         sewer_exchange_table.append((point_1[0], exchange_point_1[1]))
