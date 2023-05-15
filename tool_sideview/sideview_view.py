@@ -63,7 +63,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.waterlevel_plots = {}  # map from result id to (plot, fill)
         self.current_grid_id = None
 
-        self.showGrid(True, True, 0.5)
+        self.showGrid(False, True, 0.5)
         self.setLabel("bottom", "Distance", "m")
         self.setLabel("left", "Height", "mNAP")
 
@@ -130,7 +130,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         self.sewer_top_fill = pg.FillBetweenItem(
-            self.sewer_exchange_plot, self.sewer_top_plot, pg.mkBrush(200, 200, 200)
+            self.sewer_exchange_plot, self.sewer_top_plot, pg.mkBrush(240, 240, 240)
         )
 
         self.addItem(self.bottom_fill)
@@ -327,6 +327,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                 point_1 = tables[LineType.PIPE][point_index]
                 point_2 = tables[LineType.PIPE][point_index+1]
                 # find the corresponding exchange height at this distance
+                exchange_point_found = False
                 for exchange_point_index in range(0, len(ts_exchange_table), 2):
                     exchange_point_1 = ts_exchange_table[exchange_point_index]
                     exchange_point_2 = ts_exchange_table[exchange_point_index+1]
@@ -336,7 +337,15 @@ class SideViewPlotWidget(pg.PlotWidget):
                         sewer_top_table.append((point_2[0], point_2[1]))
                         sewer_exchange_table.append((point_1[0], exchange_point_1[1]))
                         sewer_exchange_table.append((point_2[0], exchange_point_2[1]))
+                        exchange_point_found = True
                         break
+
+                # In case no exchange level, fill to top
+                if not exchange_point_found:
+                    sewer_top_table.append((point_1[0], point_1[1]))
+                    sewer_top_table.append((point_2[0], point_2[1]))
+                    sewer_exchange_table.append((point_1[0], UPPER_LIMIT))
+                    sewer_exchange_table.append((point_2[0], UPPER_LIMIT))
 
             self.sewer_top_plot.setData(np.array(sewer_top_table, dtype=float), connect="pairs")
             self.sewer_exchange_plot.setData(np.array(sewer_exchange_table, dtype=float), connect="pairs")
@@ -738,7 +747,7 @@ class SideViewDockWidget(QDockWidget):
 
         # Add a PenStyle display in the table
         index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
-        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, Qt.blue, self.table_view))
+        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, QColor(153, 214, 255), self.table_view))
 
     def on_route_point_select(self, selected_features, clicked_coordinate):
         """Select and add the closest point from the list of selected features.
