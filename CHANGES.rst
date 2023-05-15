@@ -12,6 +12,7 @@
 - Graph tool: default variable for pump should be 'discharge pump' (#819)
 - Removed wiki related files (wiki has been disabled)
 - Graph tool: pump can now only be added as line feature (no longer also as node feature) (#829)
+- Graph tool: change "Nodes" to "Nodes & cells" (#818)
 
 
 3.1.3 (2023-03-21)
