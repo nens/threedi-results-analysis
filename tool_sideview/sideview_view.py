@@ -67,13 +67,13 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.setLabel("bottom", "Distance", "m")
         self.setLabel("left", "Height", "mNAP")
 
-        pen = pg.mkPen(color=QColor(200, 200, 200), width=1)
+        pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(0, 0, 0), width=2, style=Qt.DashLine)
         self.node_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(100, 100, 100), width=2)
+        pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.sewer_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
@@ -81,7 +81,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.sewer_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.sewer_exchange_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(50, 50, 50), width=2)
+        pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
         self.channel_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(150, 75, 0), width=4)
@@ -102,14 +102,14 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.orifice_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(0, 200, 0), width=2, style=Qt.DashLine)
+        pen = pg.mkPen(color=QColor(200, 200, 200), width=2)
         self.exchange_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         # Required for fill in bottom of graph
-        pen = pg.mkPen(color=QColor(0, 0, 0), width=1)
+        pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, LOWER_LIMIT), (10000, LOWER_LIMIT)]), pen=pen)
         self.bottom_fill = pg.FillBetweenItem(
-            self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
+            self.bottom_plot, self.absolute_bottom, pg.mkBrush(240, 240, 240)
         )
 
         # Add some structure specific fills
@@ -431,10 +431,10 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             logger.error(f"Retrieved result: {result_id} with pattern {plot_pattern} from model")
             # Create the waterlevel plots
-            pen = pg.mkPen(color=QColor(0, 0, 255), width=2, style=plot_pattern)
+            pen = pg.mkPen(color=QColor(153, 214, 255), width=2, style=plot_pattern)
             water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
             water_level_plot.setZValue(100)  # always visible
-            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255))
+            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(204, 235, 255))
             water_fill.setZValue(0)
             self.addItem(water_level_plot)
             self.addItem(water_fill)
