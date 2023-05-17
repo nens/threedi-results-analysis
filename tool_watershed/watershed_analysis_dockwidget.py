@@ -883,7 +883,7 @@ class Graph3DiQgsConnector:
 
 class CatchmentMapTool(QgsMapToolIdentify):
     def __init__(self, parent_widget, parent_button, gq: Graph3DiQgsConnector, upstream=False, downstream=False):
-        super().__init__(gq.canvas)
+        super().__init__(gq.iface.mapCanvas())
         self.gq = gq
         self.upstream = upstream
         self.downstream = downstream
@@ -948,42 +948,15 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     closingWidget = pyqtSignal()
 
     def __init__(self, iface, model, parent=None):
-        """Constructor."""
         super(WatershedAnalystDockWidget, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
-        self.setupUi(self)
 
         self.iface = iface
         self.model = model
         self.catchment_map_tool = None
         self.tm = QgsApplication.taskManager()
         self.connect_gq()
-        self.mMapLayerComboBoxTargetPolygons.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.QgsFileWidgetSqlite.fileChanged.connect(self.sqlite_selected)
 
-        self.doubleSpinBoxThreshold.valueChanged.connect(self.threshold_changed)
-        self.doubleSpinBoxThreshold.setSingleStep(1)
-        self.doubleSpinBoxThreshold.setMinimum(0)
-        self.doubleSpinBoxThreshold.setValue(DEFAULT_THRESHOLD)
-        self.doubleSpinBoxStartTime.valueChanged.connect(self.start_time_changed)
-        self.doubleSpinBoxEndTime.valueChanged.connect(self.end_time_changed)
-        self.checkBoxUpstream.stateChanged.connect(self.checkbox_upstream_state_changed)
-        self.checkBoxDownstream.stateChanged.connect(self.checkbox_downstream_state_changed)
-        self.pushButtonClickOnCanvas.clicked.connect(self.pushbutton_click_on_canvas_clicked)
-        self.pushButtonCatchmentForSelectedNodes.clicked.connect(self.pushbutton_catchment_for_selected_nodes_clicked)
-        self.pushButtonCatchmentForPolygons.clicked.connect(self.pushbutton_catchment_for_polygons_clicked)
-        self.checkBoxBrowseResultSets.stateChanged.connect(self.checkbox_browse_result_sets_state_changed)
-        self.spinBoxBrowseResultSets.valueChanged.connect(self.spinbox_browse_result_sets_value_changed)
-        self.pushButtonClearResults.clicked.connect(self.pushbutton_clear_results_clicked)
-
-        QgsProject.instance().cleared.connect(self.close)
-        self.comboBoxResult.activated.connect(self.select_result)
-        self._populate_results()
-        self.comboBoxResult.setCurrentIndex(-1)
+        self.setUpUI()
 
     def _populate_results(self) -> None:
         self.comboBoxResult.clear()
@@ -1187,6 +1160,30 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.spinbox_browse_result_sets_value_changed()
         else:
             self.checkBoxBrowseResultSets.setEnabled(False)
+
+    def setUpUI(self):
+        self.setupUi(self)
+        self.mMapLayerComboBoxTargetPolygons.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.QgsFileWidgetSqlite.fileChanged.connect(self.sqlite_selected)
+        self.doubleSpinBoxThreshold.valueChanged.connect(self.threshold_changed)
+        self.doubleSpinBoxThreshold.setSingleStep(1)
+        self.doubleSpinBoxThreshold.setMinimum(0)
+        self.doubleSpinBoxThreshold.setValue(DEFAULT_THRESHOLD)
+        self.doubleSpinBoxStartTime.valueChanged.connect(self.start_time_changed)
+        self.doubleSpinBoxEndTime.valueChanged.connect(self.end_time_changed)
+        self.checkBoxUpstream.stateChanged.connect(self.checkbox_upstream_state_changed)
+        self.checkBoxDownstream.stateChanged.connect(self.checkbox_downstream_state_changed)
+        self.pushButtonClickOnCanvas.clicked.connect(self.pushbutton_click_on_canvas_clicked)
+        self.pushButtonCatchmentForSelectedNodes.clicked.connect(self.pushbutton_catchment_for_selected_nodes_clicked)
+        self.pushButtonCatchmentForPolygons.clicked.connect(self.pushbutton_catchment_for_polygons_clicked)
+        self.checkBoxBrowseResultSets.stateChanged.connect(self.checkbox_browse_result_sets_state_changed)
+        self.spinBoxBrowseResultSets.valueChanged.connect(self.spinbox_browse_result_sets_value_changed)
+        self.pushButtonClearResults.clicked.connect(self.pushbutton_clear_results_clicked)
+
+        QgsProject.instance().cleared.connect(self.close)
+        self.comboBoxResult.activated.connect(self.select_result)
+        self._populate_results()
+        self.comboBoxResult.setCurrentIndex(-1)
 
 
 class UpdateGridAdminTask(QgsTask):
