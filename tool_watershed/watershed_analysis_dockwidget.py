@@ -465,16 +465,15 @@ class Graph3DiQgsConnector:
         request = QgsFeatureRequest()
         request.setFilterExpression(f"id IN ({ids_str})")
         idx = self.target_node_layer.fields().indexFromName("result_sets")
-        self.target_node_layer.startEditing()
         for feat in self.target_node_layer.getFeatures(request):
             old_result_sets = feat["result_sets"]
             old_result_sets = str(old_result_sets or '')
             result_sets_list = old_result_sets.split(",")
             result_sets_list.append(result_set)
             new_result_sets = ",".join(map(str, result_sets_list))
-            if not self.target_node_layer.changeAttributeValue(feat.id(), idx, new_result_sets):
+            if not self.target_node_layer.dataProvider().changeAttributeValues({feat.id(): {idx: new_result_sets}}):
                 logger.error("Unable to update result sets")
-        self.target_node_layer.commitChanges()
+        self.target_node_layer.triggerRepaint()
         self.update_layer_filters()
 
     def find_cells(self, target_node_ids: List, upstream: bool, result_set: int):
