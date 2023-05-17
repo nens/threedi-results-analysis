@@ -109,7 +109,6 @@ class Graph3DiQgsConnector:
         self._filter = None
         self.parent_dock = parent_dock
         self.iface = parent_dock.iface
-        self.canvas = parent_dock.iface.mapCanvas()
         self.epsg = None
         self.graph_3di = Graph3Di(subset=None)
         self._sqlite = None
@@ -359,7 +358,7 @@ class Graph3DiQgsConnector:
         if remove_group:
             self.remove_layer_group()
 
-        self.canvas.refresh()
+        self.iface.mapCanvas().refresh()
 
     def create_layer_group(self):
         root = QgsProject.instance().layerTreeRoot()
@@ -869,7 +868,7 @@ class Graph3DiQgsConnector:
 
         if transformed_bbox is not None:
             transformed_bbox.scale(1.1)
-            self.canvas.setExtent(transformed_bbox)
+            self.iface.mapCanvas().setExtent(transformed_bbox)
         return
 
     def clear_all(self):
@@ -879,7 +878,7 @@ class Graph3DiQgsConnector:
         self.clear_catchment_layer()
         self.clear_impervious_surface_layer()
         self.result_sets = []
-        self.canvas.refreshAllLayers()
+        self.iface.mapCanvas().refreshAllLayers()
 
 
 class CatchmentMapTool(QgsMapToolIdentify):
@@ -891,7 +890,6 @@ class CatchmentMapTool(QgsMapToolIdentify):
         self.parent_widget = parent_widget
         self.parent_button = parent_button
         self.set_cursor()
-        self.tm = QgsApplication.taskManager()
 
     @property
     def upstream(self):
