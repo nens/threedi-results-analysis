@@ -18,6 +18,7 @@ import os
 import pathlib
 import processing
 import numpy as np
+import logging
 from typing import Iterable, List
 from qgis.PyQt import QtGui, QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QVariant
@@ -45,7 +46,9 @@ from .watershed_analysis_networkx import Graph3Di
 from .result_aggregation.threedigrid_ogr import threedigrid_to_ogr
 from .ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
 from .smoothing import polygon_gaussian_smooth
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
+
+logger = logging.getLogger(__name__)
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "watershed_analysis_dockwidget_base.ui"))
@@ -57,7 +60,7 @@ MESSAGE_CATEGORY = "Watershed Analysis"
 
 
 class LayerExistsError(Exception):
-    """Raised when attempting to create a target_node_layer that already exists"""
+    """Raised when attempting to create a that already exists"""
 
     pass
 
@@ -104,7 +107,7 @@ class Graph3DiQgsConnector:
         "from_polygon": ogr.OFTInteger,
     }
 
-    def __init__(self, parent_dock):
+    def __init__(self, grid_item: ThreeDiGridItem, model, parent_dock):
         """Constructor."""
         self._filter = None
         self.parent_dock = parent_dock
@@ -112,6 +115,11 @@ class Graph3DiQgsConnector:
         self.epsg = None
         self.graph_3di = Graph3Di(subset=None)
         self._sqlite = None
+
+        self.model = model
+        self.grid_id = None  # Id of grid_item containing gridadmin
+        if grid_item:
+            self.grid_id = grid_item.id
 
         self.layer_group = None
         self.target_node_layer = None
@@ -371,19 +379,28 @@ class Graph3DiQgsConnector:
             pass
 
     def create_target_node_layer(self):
-        if isinstance(self.gr, GridH5ResultAdmin):
-            nodes = self.gr.nodes
-            nodes_ds = MEMORY_DRIVER.CreateDataSource("")
-            attributes = {"result_sets": [""] * nodes.count}
-            attr_data_types = {"result_sets": ogr.OFTString}
-            threedigrid_to_ogr(
-                threedigrid_src=nodes, tgt_ds=nodes_ds, attributes=attributes, attr_data_types=attr_data_types
-            )
-            ogr_lyr = nodes_ds.GetLayerByName("node")
-            self.target_node_layer = as_qgis_memory_layer(ogr_lyr, "Target nodes")
-            qml = os.path.join(STYLE_DIR, "target_nodes.qml")
-            self.target_node_layer.loadNamedStyle(qml)
-            self.add_to_layer_tree_group(self.target_node_layer)
+        # We'll use the node layer of the computational grid
+        # Note that this uses an attribute called "result_sets"
+        logger.info(f"Creating node layer based on grid item {self.grid_id}")
+        grid_item = self.model.get_grid(self.grid_id)
+        assert grid_item
+        layer_id = grid_item.layer_ids["node"]
+        self.target_node_layer = QgsProject.instance().mapLayer(layer_id)
+
+        # Add additional feature ("result_sets")
+        provider = self.target_node_layer.dataProvider()
+        result_field = QgsField("result_sets", QVariant.String)
+        if (self.target_node_layer.fields().indexFromName("result_sets") != -1):
+            logger.error("Field already exist, aborting addition.")
+            return
+        if not provider.addAttributes([result_field]):
+            logger.error("Unable to add attributes, aborting...")
+            return
+
+        # Load appropriate style (TODO: when to reset?)
+        self.target_node_layer.updateFields()
+        qml = os.path.join(STYLE_DIR, "target_nodes.qml")
+        self.target_node_layer.loadNamedStyle(qml)
 
     def clear_target_node_layer(self):
         """Empty the result_set field of all features in the target_node_layer"""
@@ -400,8 +417,7 @@ class Graph3DiQgsConnector:
         try:
             if self.target_node_layer is not None:
                 self.protect_layers = False
-                project = QgsProject.instance()
-                project.removeMapLayer(self.target_node_layer)
+                # QgsProject.instance().removeMapLayer(self.target_node_layer)
                 self.protect_layers = True
         except AttributeError:
             pass
@@ -954,7 +970,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.model = model
         self.catchment_map_tool = None
         self.tm = QgsApplication.taskManager()
-        self.connect_gq()
+        self.connect_gq(None)
 
         self.setUpUI()
 
@@ -971,7 +987,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         assert os.path.isfile(results_3di) and os.path.isfile(gridadmin)
 
         self.disconnect_gq()
-        self.connect_gq()
+        self.connect_gq(result.parent())
         gr = GridH5ResultAdmin(str(gridadmin), str(results_3di))
         self.gq.end_time = int(gr.nodes.timestamps[-1])
         if self.doubleSpinBoxThreshold.value() is not None:
@@ -1004,8 +1020,8 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.closingWidget.emit()
         event.accept()
 
-    def connect_gq(self):
-        self.gq = Graph3DiQgsConnector(parent_dock=self)
+    def connect_gq(self, grid_item: ThreeDiGridItem):
+        self.gq = Graph3DiQgsConnector(grid_item=grid_item, model=self.model, parent_dock=self)
         self.gq.start_time = 0  # initial value of widget is 0, so valueChanged() signal will not be emitted when ...
         # ... a 3Di result is loaded for the first time
 
