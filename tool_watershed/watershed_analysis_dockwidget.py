@@ -387,9 +387,12 @@ class Graph3DiQgsConnector:
         layer_id = grid_item.layer_ids["node"]
         self.target_node_layer = QgsProject.instance().mapLayer(layer_id)
 
-        # Add additional feature ("result_sets")
+        # Add additional feature
         provider = self.target_node_layer.dataProvider()
         result_field = QgsField("result_sets", QVariant.String)
+        # Unable to set using default value using this, going to loop below..
+        # default_value = QgsDefaultValue("''")
+        # result_field.setDefaultValueDefinition(default_value)
         if (self.target_node_layer.fields().indexFromName("result_sets") != -1):
             logger.error("Field already exist, aborting addition.")
             return
@@ -397,8 +400,15 @@ class Graph3DiQgsConnector:
             logger.error("Unable to add attributes, aborting...")
             return
 
-        # Load appropriate style (TODO: when to reset?)
         self.target_node_layer.updateFields()
+
+        attr_idx = self.target_node_layer.fields().indexFromName("result_sets")
+        id_list = [f.id() for f in self.target_node_layer.getFeatures()]
+        update_dict = {i: {attr_idx: ""} for i in id_list}
+        if provider.changeAttributeValues(update_dict):
+            logger.error("Unable to set default values in 'result_set' attribute.")
+
+        # Load appropriate style (TODO: when to reset?)
         qml = os.path.join(STYLE_DIR, "target_nodes.qml")
         msg, res = self.target_node_layer.loadNamedStyle(qml)
         if not res:
@@ -414,7 +424,9 @@ class Graph3DiQgsConnector:
             idx = self.target_node_layer.fields().indexFromName("result_sets")
             self.target_node_layer.startEditing()
             for feat in self.target_node_layer.getFeatures(request):
-                self.target_node_layer.changeAttributeValue(feat.id(), idx, "")
+                logger.error("Setting default value")
+                if not self.target_node_layer.changeAttributeValue(feat.id(), idx, ""):
+                    logger.error("Unable to set default values in 'result_set' attribute.")
             self.target_node_layer.commitChanges()
 
     def remove_target_node_layer(self):
@@ -456,10 +468,12 @@ class Graph3DiQgsConnector:
         self.target_node_layer.startEditing()
         for feat in self.target_node_layer.getFeatures(request):
             old_result_sets = feat["result_sets"]
+            old_result_sets = str(old_result_sets or '')
             result_sets_list = old_result_sets.split(",")
             result_sets_list.append(result_set)
             new_result_sets = ",".join(map(str, result_sets_list))
-            self.target_node_layer.changeAttributeValue(feat.id(), idx, new_result_sets)
+            if not self.target_node_layer.changeAttributeValue(feat.id(), idx, new_result_sets):
+                logger.error("Unable to update result sets")
         self.target_node_layer.commitChanges()
         self.update_layer_filters()
 
