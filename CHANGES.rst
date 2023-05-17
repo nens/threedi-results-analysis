@@ -5,7 +5,9 @@ ThreeDiToolBox changelog
 2.5.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Bump threedi-modelchecker to 2.2.0
+- Bump threedi-schema to 0.217.*
+- Bump hydxlib to 1.5.1
 
 
 2.5.2 (2023-04-26)
