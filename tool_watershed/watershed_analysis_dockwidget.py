@@ -400,7 +400,11 @@ class Graph3DiQgsConnector:
         # Load appropriate style (TODO: when to reset?)
         self.target_node_layer.updateFields()
         qml = os.path.join(STYLE_DIR, "target_nodes.qml")
-        self.target_node_layer.loadNamedStyle(qml)
+        msg, res = self.target_node_layer.loadNamedStyle(qml)
+        if not res:
+            logger.error(f"Unable to load style: {msg}")
+
+        self.target_node_layer.triggerRepaint()
 
     def clear_target_node_layer(self):
         """Empty the result_set field of all features in the target_node_layer"""
