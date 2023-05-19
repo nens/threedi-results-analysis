@@ -2,7 +2,7 @@
 <qgis simplifyAlgorithm="0" simplifyDrawingTol="1" minScale="0" symbologyReferenceScale="-1" styleCategories="LayerConfiguration|Symbology|Forms|Rendering" hasScaleBasedVisibilityFlag="0" simplifyMaxScale="1" version="3.28.5-Firenze" maxScale="0" simplifyDrawingHints="0" simplifyLocal="1" readOnly="1">
   <flags>
     <Identifiable>1</Identifiable>
-    <Removable>1</Removable>
+    <Removable>0</Removable>
     <Searchable>1</Searchable>
     <Private>0</Private>
   </flags>

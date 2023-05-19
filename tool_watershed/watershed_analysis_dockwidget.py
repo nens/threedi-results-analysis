@@ -47,6 +47,7 @@ from .result_aggregation.threedigrid_ogr import threedigrid_to_ogr
 from .ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
 from .smoothing import polygon_gaussian_smooth
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
+from threedi_results_analysis.utils.qprojects import set_read_only
 
 logger = logging.getLogger(__name__)
 
@@ -131,11 +132,6 @@ class Graph3DiQgsConnector:
         self.result_sets = []
         self.dissolved_result_sets = []
         self.smooth_result_catchments = []
-        QgsProject.instance().layersWillBeRemoved.connect(self.qgs_project_layers_will_be_removed)
-        self.protect_layers = True
-
-    def __del__(self):
-        QgsProject.instance().layersWillBeRemoved.disconnect(self.qgs_project_layers_will_be_removed)
 
     @property
     def gr(self):
@@ -216,59 +212,6 @@ class Graph3DiQgsConnector:
             return area / count
         else:
             return None
-
-    def qgs_project_layers_will_be_removed(self, layer_ids):
-        if self.protect_layers:
-            layer_replaced = False
-            try:
-                if self.target_node_layer is not None:
-                    if self.target_node_layer.id() in layer_ids:
-                        self.target_node_layer = None
-                        self.create_target_node_layer()
-                        layer_replaced = True
-            except AttributeError:
-                pass
-
-            try:
-                if self.result_cell_layer is not None:
-                    if self.result_cell_layer.id() in layer_ids:
-                        self.result_cell_layer = None
-                        self.create_result_cell_layer()
-                        layer_replaced = True
-            except AttributeError:
-                pass
-
-            try:
-                if self.result_flowline_layer is not None:
-                    if self.result_flowline_layer.id() in layer_ids:
-                        self.result_flowline_layer = None
-                        self.create_result_flowline_layer()
-                        layer_replaced = True
-            except AttributeError:
-                pass
-
-            try:
-                if self.result_catchment_layer is not None:
-                    if self.result_catchment_layer.id() in layer_ids:
-                        self.result_catchment_layer = None
-                        self.create_catchment_layer()
-                        layer_replaced = True
-            except AttributeError:
-                pass
-
-            try:
-                if self.impervious_surface_layer is not None:
-                    if self.impervious_surface_layer.id() in layer_ids:
-                        self.impervious_surface_layer = None
-                        self.create_impervious_surface_layer()
-                        layer_replaced = True
-            except AttributeError:
-                pass
-
-            if layer_replaced:
-                self.iface.messageBar().pushMessage(
-                    MESSAGE_CATEGORY, "Oops, I needed the layer(s) you deleted! I created them again", Qgis.Info
-                )
 
     def update_layer_filters(self):
         filtered_ids = set(self.result_sets) & set(self.filter if self.filter is not None else self.result_sets)
@@ -376,7 +319,6 @@ class Graph3DiQgsConnector:
     def create_target_node_layer(self):
         # We'll use the node layer of the computational grid
         # Note that this uses an attribute called "result_sets"
-        logger.info(f"Creating node layer based on grid item {self.grid_id}")
         grid_item = self.model.get_grid(self.grid_id)
         assert grid_item
         layer_id = grid_item.layer_ids["node"]
@@ -412,7 +354,6 @@ class Graph3DiQgsConnector:
     def clear_target_node_layer(self):
         """Empty the result_set field of all features in the target_node_layer"""
         if self.target_node_layer is not None:
-            logger.info("Clearing target results.")
             request = QgsFeatureRequest()
             request.setFilterExpression("result_sets != ''")
             attr_idx = self.target_node_layer.fields().indexFromName("result_sets")
@@ -445,6 +386,7 @@ class Graph3DiQgsConnector:
 
         qgs_lyr_name = "Result cells"
         self.result_cell_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
+        set_read_only(self.result_cell_layer, True)
         qml = os.path.join(STYLE_DIR, "result_cells.qml")
         self.result_cell_layer.loadNamedStyle(qml)
         self.add_to_layer_tree_group(self.result_cell_layer)
@@ -511,10 +453,8 @@ class Graph3DiQgsConnector:
     def remove_result_cell_layer(self):
         """Remove layer that contains the upstream and/or downstream cells"""
         if self.result_cell_layer is not None:
-            self.protect_layers = False
             QgsProject.instance().removeMapLayer(self.result_cell_layer)
             self.result_cell_layer = None
-            self.protect_layers = True
 
     def create_result_flowline_layer(self):
         try:
@@ -533,6 +473,7 @@ class Graph3DiQgsConnector:
 
         qgs_lyr_name = "Result flowlines (1D)"
         self.result_flowline_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
+        set_read_only(self.result_flowline_layer, True)
         qml = os.path.join(STYLE_DIR, "result_flowlines.qml")
         self.result_flowline_layer.loadNamedStyle(qml)
         self.add_to_layer_tree_group(self.result_flowline_layer)
@@ -575,10 +516,8 @@ class Graph3DiQgsConnector:
     def remove_result_flowline_layer(self):
         """Remove layer that contains the upstream and/or downstream flowlines"""
         if self.result_flowline_layer is not None:
-            self.protect_layers = False
             QgsProject.instance().removeMapLayer(self.result_flowline_layer)
             self.result_flowline_layer = None
-            self.protect_layers = True
 
     def create_catchment_layer(self):
         try:
@@ -598,6 +537,8 @@ class Graph3DiQgsConnector:
 
         qgs_lyr_name = "Result catchments"
         self.result_catchment_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
+        set_read_only(self.result_catchment_layer, True)
+
         qml = os.path.join(STYLE_DIR, "result_catchments.qml")
         self.result_catchment_layer.loadNamedStyle(qml)
         self.add_to_layer_tree_group(self.result_catchment_layer)
@@ -661,10 +602,8 @@ class Graph3DiQgsConnector:
     def remove_catchment_layer(self):
         """Remove layer that contains the upstream and/or downstream catchments"""
         if self.result_catchment_layer is not None:
-            self.protect_layers = False
             QgsProject.instance().removeMapLayer(self.result_catchment_layer)
             self.result_catchment_layer = None
-            self.protect_layers = True
 
     def create_impervious_surface_layer(self):
         # This layer is different from the other result layers, because it is a copy of an existing layer from the
@@ -727,10 +666,8 @@ class Graph3DiQgsConnector:
         Remove layer that contains the upstream and/or downstream flowlines
         """
         if self.impervious_surface_layer is not None:
-            self.protect_layers = False
             QgsProject.instance().removeMapLayer(self.impervious_surface_layer)
             self.impervious_surface_layer = None
-            self.protect_layers = True
 
     def find_impervious_surfaces(self, node_ids: List, result_set: int = None):
         """
@@ -1050,14 +987,13 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if not self.gq:
             return
 
-        logger.info("Unsetting map tool.")
         self.unset_map_tool()
-        logger.info("Removing empty layers")
         self.gq.remove_empty_layers()
         self.gq.clear_all()
         if self.gq.layer_group is not None:
             self.gq.remove_layer_group()
         self.gq = None
+        
 
     def sqlite_selected(self):
         uri = QgsDataSourceUri()
