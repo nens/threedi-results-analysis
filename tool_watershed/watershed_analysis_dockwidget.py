@@ -953,12 +953,13 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def remove_result(self, result_item: ThreeDiResultItem):
         idx = self.comboBoxResult.findData(result_item.id)
+        logger.info(f"Removing result {result_item.id} at index {idx}")
         assert idx != -1
         if idx == self.comboBoxResult.currentIndex():
             self.disconnect_gq()
+            self.comboBoxResult.setCurrentIndex(-1)
 
         self.comboBoxResult.removeItem(idx)
-        self.comboBoxResult.setCurrentIndex(-1)
 
     def remove_grid(self, grid_item: ThreeDiGridItem):
         # Check whether it is the currently used grid, if so, remove references.
@@ -986,6 +987,8 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def disconnect_gq(self):
         if not self.gq:
             return
+
+        logger.info("Disconnecting gq")
 
         self.unset_map_tool()
         self.gq.remove_empty_layers()
