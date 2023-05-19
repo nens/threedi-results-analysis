@@ -400,7 +400,7 @@ class Graph3DiQgsConnector:
         attr_idx = self.target_node_layer.fields().indexFromName("result_sets")
         id_list = [f.id() for f in self.target_node_layer.getFeatures()]
         update_dict = {i: {attr_idx: ""} for i in id_list}
-        if provider.changeAttributeValues(update_dict):
+        if not provider.changeAttributeValues(update_dict):
             logger.error("Unable to set default values in 'result_set' attribute.")
 
         # Load appropriate style (TODO: when to reset?)
@@ -421,7 +421,7 @@ class Graph3DiQgsConnector:
             id_list = [f.id() for f in self.target_node_layer.getFeatures(request)]
             update_dict = {i: {attr_idx: ""} for i in id_list}
             if not self.target_node_layer.dataProvider().changeAttributeValues(update_dict):
-                logger.error("Unable to set default values in 'result_set' attribute.")
+                logger.error("Unable to set default values in 'result_set' attribute for clearing.")
 
             self.target_node_layer.triggerRepaint()
 
