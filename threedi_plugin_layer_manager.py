@@ -211,15 +211,17 @@ class ThreeDiPluginLayerManager(QObject):
 
         # In case the corresponding grid contains no more (selected) results, the
         # original styling should be reset
+        reset_styling = True
         grid_item = threedi_result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
         if grid_item.hasChildren():
             for i in range(grid_item.rowCount()):
                 result_item = grid_item.child(i)
                 if (result_item.checkState() == Qt.Checked and threedi_result_item is not result_item):
-                    return True
+                    reset_styling = False
 
-        self.reset_styling(grid_item)
+        if reset_styling:
+            self.reset_styling(grid_item)
 
         self.result_unloaded.emit(threedi_result_item)
         return True

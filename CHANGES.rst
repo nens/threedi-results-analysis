@@ -13,6 +13,7 @@
 - Removed wiki related files (wiki has been disabled)
 - Graph tool: pump can now only be added as line feature (no longer also as node feature) (#829)
 - Graph tool: change "Nodes" to "Nodes & cells" (#818)
+- Result manager: fixed bug that result was not removed when other result was checked.
 - Initial work on Watershed tool (#668)
 - Bump threedi-modelchecker to 2.2.0
 - Bump threedi-schema to 0.217.*
