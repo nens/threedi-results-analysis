@@ -1522,10 +1522,14 @@ class SelectPolygonTool(QgsMapToolIdentify):
 
     def canvasReleaseEvent(self, event):
         self.widget.unset_wb_polygon()
+        layer_list = [
+            layer for layer in self.parent().layers()
+            if layer.wkbType() in POLYGON_TYPES
+        ]
         identify_results = self.identify(
             x=int(event.pos().x()),
             y=int(event.pos().y()),
-            layerList=self.parent().layers(),
+            layerList=layer_list,
             mode=self.IdentifyMode.LayerSelection,
         )
         if not identify_results:
