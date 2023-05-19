@@ -17,6 +17,7 @@
 - Bump threedi-modelchecker to 2.2.0
 - Bump threedi-schema to 0.217.*
 - Bump hydxlib to 1.5.1
+- Bump threedigrid-builder to at least 1.11.4
 
 
 3.1.3 (2023-03-21)

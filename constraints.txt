@@ -4,8 +4,8 @@ GeoAlchemy2==0.13.*
 lizard-connector==0.7.3
 pyqtgraph>=0.13.2
 threedigrid>=2.0.3
-threedi-schema==0.216.4
-threedi-modelchecker==2.1.0
+threedi-schema==0.217.*
+threedi-modelchecker==2.2.0
 threedidepth==0.5
 click>=8.0
 cftime>=1.5.0
@@ -21,6 +21,6 @@ colorama
 networkx
 condenser>=0.2.1
 Shapely>=2.0.0
-threedigrid_builder==1.10.0
-hydxlib==1.5.*
+threedigrid_builder>=1.11.4
+hydxlib==1.5.1
 h5netcdf
