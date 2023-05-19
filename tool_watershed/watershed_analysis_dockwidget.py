@@ -322,10 +322,7 @@ class Graph3DiQgsConnector:
     def remove_empty_layers(self):
         """For all locked layers, remove locks or layers themselves"""
         remove_group = True
-        try:
-            self.remove_target_node_layer()
-        except AttributeError:
-            pass
+        self.remove_target_node_layer()
 
         try:
             if self.result_cell_layer is not None:
@@ -375,8 +372,8 @@ class Graph3DiQgsConnector:
     def remove_layer_group(self):
         try:
             QgsProject.instance().layerTreeRoot().removeChildNode(self.layer_group)
-        except RuntimeError:
-            pass
+        except RuntimeError as e:
+            logger.error(str(e))
 
     def create_target_node_layer(self):
         # We'll use the node layer of the computational grid
@@ -387,7 +384,7 @@ class Graph3DiQgsConnector:
         layer_id = grid_item.layer_ids["node"]
         self.target_node_layer = QgsProject.instance().mapLayer(layer_id)
 
-        # Add additional feature
+        # Add additional result feature
         provider = self.target_node_layer.dataProvider()
         result_field = QgsField("result_sets", QVariant.String)
         # Unable to set using default value using this, going to loop below..
@@ -421,22 +418,16 @@ class Graph3DiQgsConnector:
         if self.target_node_layer is not None:
             request = QgsFeatureRequest()
             request.setFilterExpression("result_sets != ''")
-            idx = self.target_node_layer.fields().indexFromName("result_sets")
-            self.target_node_layer.startEditing()
-            for feat in self.target_node_layer.getFeatures(request):
-                logger.error("Setting default value")
-                if not self.target_node_layer.changeAttributeValue(feat.id(), idx, ""):
-                    logger.error("Unable to set default values in 'result_set' attribute.")
-            self.target_node_layer.commitChanges()
+            attr_idx = self.target_node_layer.fields().indexFromName("result_sets")
+            id_list = [f.id() for f in self.target_node_layer.getFeatures(request)]
+            update_dict = {i: {attr_idx: ""} for i in id_list}
+            if not self.target_node_layer.dataProvider().changeAttributeValues(update_dict):
+                logger.error("Unable to set default values in 'result_set' attribute.")
+
+            self.target_node_layer.triggerRepaint()
 
     def remove_target_node_layer(self):
-        try:
-            if self.target_node_layer is not None:
-                self.protect_layers = False
-                # QgsProject.instance().removeMapLayer(self.target_node_layer)
-                self.protect_layers = True
-        except AttributeError:
-            pass
+        # We are not owner of the node layer
         self.target_node_layer = None
 
     def create_result_cell_layer(self):
@@ -915,12 +906,12 @@ class Graph3DiQgsConnector:
 
 
 class CatchmentMapTool(QgsMapToolIdentify):
-    def __init__(self, parent_widget, parent_button, gq: Graph3DiQgsConnector, upstream=False, downstream=False):
+    def __init__(self, iface, parent_button, gq: Graph3DiQgsConnector, upstream=False, downstream=False):
         super().__init__(gq.iface.mapCanvas())
         self.gq = gq
         self.upstream = upstream
         self.downstream = downstream
-        self.parent_widget = parent_widget
+        self.iface = iface
         self.parent_button = parent_button
         self.set_cursor()
 
@@ -946,7 +937,7 @@ class CatchmentMapTool(QgsMapToolIdentify):
 
         identify_results = self.identify(x=int(x), y=int(y), layerList=[self.gq.target_node_layer])
         if len(identify_results) == 0:
-            self.parent_widget.iface.messageBar().pushMessage(
+            self.iface.messageBar().pushMessage(
                 MESSAGE_CATEGORY, "Please click on a target node", level=Qgis.Info
             )
         else:
@@ -1091,7 +1082,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def pushbutton_click_on_canvas_clicked(self):
         if self.pushButtonClickOnCanvas.isChecked() and self.gq.graph_3di.isready:
             self.catchment_map_tool = CatchmentMapTool(
-                parent_widget=self,
+                self.iface,
                 parent_button=self.pushButtonClickOnCanvas,
                 gq=self.gq,
                 upstream=self.checkBoxUpstream.isChecked(),
