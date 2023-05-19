@@ -401,7 +401,7 @@ class Graph3DiQgsConnector:
         if not provider.changeAttributeValues(update_dict):
             logger.error("Unable to set default values in 'result_set' attribute.")
 
-        # Load appropriate style (TODO: when to reset?)
+        # Load appropriate style
         qml = os.path.join(STYLE_DIR, "target_nodes.qml")
         msg, res = self.target_node_layer.loadNamedStyle(qml)
         if not res:
@@ -425,6 +425,7 @@ class Graph3DiQgsConnector:
 
     def remove_target_node_layer(self):
         # We are not owner of the node layer
+        logger.info("Dereferencing target node layer")
         self.target_node_layer = None
 
     def create_result_cell_layer(self):
@@ -1022,6 +1023,13 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.comboBoxResult.removeItem(idx)
         self.comboBoxResult.setCurrentIndex(-1)
 
+    def remove_grid(self, grid_item: ThreeDiGridItem):
+        # Check whether it is the currently used grid, if so, remove references.
+        logger.info("grid removal")
+        if self.gq and self.gq.grid_id == grid_item.id:
+            logger.info("gq disconnect")
+            self.disconnect_gq()
+
     def change_result(self, result_item: ThreeDiResultItem):
         idx = self.comboBoxResult.findData(result_item.id)
         assert idx != -1
@@ -1039,7 +1047,12 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # ... a 3Di result is loaded for the first time
 
     def disconnect_gq(self):
+        if not self.gq:
+            return
+
+        logger.info("Unsetting map tool.")
         self.unset_map_tool()
+        logger.info("Removing empty layers")
         self.gq.remove_empty_layers()
         self.gq.clear_all()
         if self.gq.layer_group is not None:

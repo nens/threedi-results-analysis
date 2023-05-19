@@ -96,7 +96,7 @@ class TestResult(unittest.TestCase):
         item = ThreeDiResultItem(self.result_path, "text")
         item.setCheckState(Qt.CheckState.Checked)
         item2 = ThreeDiResultItem(("c:/test2/results_3di.nc"), "text")
-        
+
         self.assertTrue(self.model.add_result(item, self.grid_item))
         self.assertTrue(self.model.add_result(item2, self.grid_item))
         self.assertEqual(self.model.number_of_results(), 2)

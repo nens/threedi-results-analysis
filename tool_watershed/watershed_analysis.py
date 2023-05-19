@@ -3,7 +3,7 @@ import os
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QObject
 from .watershed_analysis_dockwidget import WatershedAnalystDockWidget
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtCore import pyqtSlot
 
 
@@ -58,6 +58,13 @@ class ThreeDiWatershedAnalyst(QObject):
             return
 
         self.dock_widget.remove_result(result_item)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_removed(self, grid_item: ThreeDiGridItem) -> None:
+        if not self.active:
+            return
+
+        self.dock_widget.remove_grid(grid_item)
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem) -> None:
