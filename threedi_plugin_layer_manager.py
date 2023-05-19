@@ -240,8 +240,9 @@ class ThreeDiPluginLayerManager(QObject):
 
         self.reset_styling(grid_item)
 
+    @pyqtSlot(ThreeDiGridItem)
     def reset_styling(self, grid_item: ThreeDiGridItem) -> None:
-        """Sets all the grid layers back to their original name and style"""
+        """Sets all the grid layers for a given grid back to their original name and style"""
         for layer_name, table_name in gpkg_layers.items():
 
             # Some models do not contain pump or obstacle layers.

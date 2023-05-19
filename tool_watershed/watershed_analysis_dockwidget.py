@@ -366,7 +366,6 @@ class Graph3DiQgsConnector:
 
     def remove_target_node_layer(self):
         # We are not owner of the node layer
-        logger.info("Dereferencing target node layer")
         self.target_node_layer = None
 
     def create_result_cell_layer(self):
@@ -904,7 +903,7 @@ class CatchmentMapTool(QgsMapToolIdentify):
 
 
 class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
-    closingWidget = pyqtSignal()
+    closingWidget = pyqtSignal(ThreeDiGridItem)
 
     def __init__(self, iface, model, parent=None):
         super(WatershedAnalystDockWidget, self).__init__(parent)
@@ -963,9 +962,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def remove_grid(self, grid_item: ThreeDiGridItem):
         # Check whether it is the currently used grid, if so, remove references.
-        logger.info("grid removal")
         if self.gq and self.gq.grid_id == grid_item.id:
-            logger.info("gq disconnect")
             self.disconnect_gq()
 
     def change_result(self, result_item: ThreeDiResultItem):
@@ -975,8 +972,12 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)
+        grid_id = self.gq.grid_id if self.gq else None
         self.disconnect_gq()
-        self.closingWidget.emit()
+        if grid_id:
+            grid = self.model.get_grid(grid_id)
+            assert grid
+            self.closingWidget.emit(grid)
         event.accept()
 
     def connect_gq(self, grid_item: ThreeDiGridItem):
@@ -987,8 +988,6 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def disconnect_gq(self):
         if not self.gq:
             return
-
-        logger.info("Disconnecting gq")
 
         self.unset_map_tool()
         self.gq.remove_empty_layers()

@@ -192,6 +192,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_removed.connect(self.watershed_tool.result_removed)
         self.model.result_changed.connect(self.watershed_tool.result_changed)
         self.model.grid_removed.connect(self.watershed_tool.grid_removed)
+        self.watershed_tool.closing.connect(self.loader.reset_styling)
 
         self.init_state_sync()
 
