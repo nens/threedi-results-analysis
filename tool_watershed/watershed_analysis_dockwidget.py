@@ -390,12 +390,10 @@ class Graph3DiQgsConnector:
         # Unable to set using default value using this, going to loop below..
         # default_value = QgsDefaultValue("''")
         # result_field.setDefaultValueDefinition(default_value)
-        if (self.target_node_layer.fields().indexFromName("result_sets") != -1):
-            logger.error("Field already exist, aborting addition.")
-            return
-        if not provider.addAttributes([result_field]):
-            logger.error("Unable to add attributes, aborting...")
-            return
+        if (self.target_node_layer.fields().indexFromName("result_sets") == -1):
+            if not provider.addAttributes([result_field]):
+                logger.error("Unable to add attributes, aborting...")
+                return
 
         self.target_node_layer.updateFields()
 
@@ -416,6 +414,7 @@ class Graph3DiQgsConnector:
     def clear_target_node_layer(self):
         """Empty the result_set field of all features in the target_node_layer"""
         if self.target_node_layer is not None:
+            logger.info("Clearing target results.")
             request = QgsFeatureRequest()
             request.setFilterExpression("result_sets != ''")
             attr_idx = self.target_node_layer.fields().indexFromName("result_sets")
