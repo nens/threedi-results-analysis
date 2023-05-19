@@ -370,10 +370,8 @@ class Graph3DiQgsConnector:
         self.layer_group = root.insertGroup(0, "3Di Watershed Analysis")
 
     def remove_layer_group(self):
-        try:
-            QgsProject.instance().layerTreeRoot().removeChildNode(self.layer_group)
-        except RuntimeError as e:
-            logger.error(str(e))
+        QgsProject.instance().layerTreeRoot().removeChildNode(self.layer_group)
+        self.layer_group = None
 
     def create_target_node_layer(self):
         # We'll use the node layer of the computational grid
