@@ -249,7 +249,7 @@ class Graph3DiQgsConnector:
             self.create_layer_group()
             # Note: the sequence is deliberate; the target nodes are below the result layers because otherwise, if \
             # zoomed out too much, the target nodes will cover the result.
-            self.create_target_node_layer()
+            self.prepare_target_node_layer()
             self.create_result_cell_layer()
             self.create_result_flowline_layer()
             self.create_catchment_layer()
@@ -316,7 +316,7 @@ class Graph3DiQgsConnector:
         QgsProject.instance().layerTreeRoot().removeChildNode(self.layer_group)
         self.layer_group = None
 
-    def create_target_node_layer(self):
+    def prepare_target_node_layer(self):
         # We'll use the node layer of the computational grid
         # Note that this uses an attribute called "result_sets"
         grid_item = self.model.get_grid(self.grid_id)
@@ -335,7 +335,7 @@ class Graph3DiQgsConnector:
                 logger.error("Unable to add attributes, aborting...")
                 return
 
-        self.target_node_layer.updateFields()
+            self.target_node_layer.updateFields()
 
         attr_idx = self.target_node_layer.fields().indexFromName("result_sets")
         id_list = [f.id() for f in self.target_node_layer.getFeatures()]
@@ -957,6 +957,12 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if idx == self.comboBoxResult.currentIndex():
             self.disconnect_gq()
             self.comboBoxResult.setCurrentIndex(-1)
+        else:
+            # The style can be reset by the anim tool, reload appropriate style (TODO: better solution)
+            if self.gq and self.gq.target_node_layer:
+                msg, res = self.gq.target_node_layer.loadNamedStyle(os.path.join(STYLE_DIR, "target_nodes.qml"))
+                if not res:
+                    logger.error(f"Unable to load style: {msg}")
 
         self.comboBoxResult.removeItem(idx)
 
