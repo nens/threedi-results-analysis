@@ -1,4 +1,5 @@
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel, ThreeDiGridItem, ThreeDiResultItem
+from qgis.PyQt.QtCore import Qt
 import unittest
 from pathlib import Path
 
@@ -89,6 +90,18 @@ class TestResult(unittest.TestCase):
         self.assertTrue(self.model.add_result(item, self.grid_item))
         self.assertEqual(self.model.number_of_results(), 1)
         self.assertTrue(self.model.remove_result(item))
+        self.assertEqual(self.model.number_of_results(), 0)
+
+    def test_checked_results_also_removed(self):
+        item = ThreeDiResultItem(self.result_path, "text")
+        item2 = ThreeDiResultItem(self.result_path, "text")
+        item.self.setCheckState(Qt.CheckState.Checked)
+
+        self.assertTrue(self.model.add_result(item, self.grid_item))
+        self.assertTrue(self.model.add_result(item2, self.grid_item))
+        self.assertEqual(self.model.number_of_results(), 2)
+        self.assertTrue(self.model.remove_result(item))
+        self.assertTrue(self.model.remove_result(item2))
         self.assertEqual(self.model.number_of_results(), 0)
 
     def test_removing_grid_removes_result(self):
