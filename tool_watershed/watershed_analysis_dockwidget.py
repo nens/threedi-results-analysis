@@ -1019,6 +1019,11 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # TODO: if current, clean up
         self.comboBoxResult.removeItem(idx)
 
+    def change_result(self, result_item: ThreeDiResultItem):
+        idx = self.comboBoxResult.findData(result_item.id)
+        assert idx != -1
+        self.comboBoxResult.setItemText(idx, result_item.text())
+
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)
         self.disconnect_gq()

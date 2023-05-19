@@ -190,7 +190,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # watershed signals
         self.model.result_added.connect(self.watershed_tool.result_added)
         self.model.result_removed.connect(self.watershed_tool.result_removed)
-        # self.model.result_changed.connect(self.sideview_tool.result_changed)
+        self.model.result_changed.connect(self.watershed_tool.result_changed)
 
         self.init_state_sync()
 

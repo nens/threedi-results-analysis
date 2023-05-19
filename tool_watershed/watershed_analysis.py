@@ -58,3 +58,10 @@ class ThreeDiWatershedAnalyst(QObject):
             return
 
         self.dock_widget.remove_result(result_item)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_changed(self, result_item: ThreeDiResultItem) -> None:
+        if not self.active:
+            return
+
+        self.dock_widget.change_result(result_item)
