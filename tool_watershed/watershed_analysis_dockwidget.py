@@ -993,7 +993,6 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if self.gq.layer_group is not None:
             self.gq.remove_layer_group()
         self.gq = None
-        
 
     def sqlite_selected(self):
         uri = QgsDataSourceUri()

@@ -9,18 +9,20 @@ import os
 
 logger = logging.getLogger()
 
+
 def set_read_only(layer: QgsVectorLayer, enable: bool) -> bool:
     """Marks the layer as readonly, but also removes the Removable flag"""
     if not layer.setReadOnly(enable):
-        logger.error(f"Unable to set layer to read-only")
+        logger.error("Unable to set layer to read-only")
         return False
-    
-    if enable: 
+
+    if enable:
         layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable)
     else:
         layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable | QgsMapLayer.Removable)
 
     return True
+
 
 class ProjectStateMixin(object):
     """class mixin for writing and loading states of tools to the Qgis Project
