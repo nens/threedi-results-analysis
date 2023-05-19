@@ -31,6 +31,7 @@ class ThreeDiWatershedAnalyst(QObject):
     def on_unload(self):
         if self.dock_widget is not None:
             self.dock_widget.close()
+        logger.error("on_unload")
 
     def on_close_child_widget(self, last_grid_item: ThreeDiGridItem):
         """Cleanup necessary items here when plugin dock widget is closed"""
@@ -46,8 +47,9 @@ class ThreeDiWatershedAnalyst(QObject):
                 self.dock_widget = WatershedAnalystDockWidget(self.iface, self.model)
             self.dock_widget.closingWidget.connect(self.on_close_child_widget)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
-            self.dock_widget.show()
-            self._active = True
+
+        self.dock_widget.show()
+        self._active = True
 
     @pyqtSlot(ThreeDiResultItem)
     def result_added(self, result_item: ThreeDiResultItem) -> None:
