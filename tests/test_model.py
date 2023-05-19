@@ -94,15 +94,14 @@ class TestResult(unittest.TestCase):
 
     def test_checked_results_also_removed(self):
         item = ThreeDiResultItem(self.result_path, "text")
-        item2 = ThreeDiResultItem(self.result_path, "text")
-        item.self.setCheckState(Qt.CheckState.Checked)
-
+        item.setCheckState(Qt.CheckState.Checked)
+        item2 = ThreeDiResultItem(("c:/test2/results_3di.nc"), "text")
+        
         self.assertTrue(self.model.add_result(item, self.grid_item))
         self.assertTrue(self.model.add_result(item2, self.grid_item))
         self.assertEqual(self.model.number_of_results(), 2)
         self.assertTrue(self.model.remove_result(item))
-        self.assertTrue(self.model.remove_result(item2))
-        self.assertEqual(self.model.number_of_results(), 0)
+        self.assertEqual(self.model.number_of_results(), 1)
 
     def test_removing_grid_removes_result(self):
         item = ThreeDiResultItem(self.result_path, "text")
