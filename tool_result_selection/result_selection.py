@@ -2,13 +2,13 @@
 from io import IOBase
 from qgis.core import QgsNetworkAccessManager
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 from qgis.PyQt.QtWidgets import QFileDialog
 from threedi_results_analysis.tool_result_selection import models
 from threedi_results_analysis.tool_result_selection import result_selection_view
+from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import pop_up_info
 from urllib.parse import urlparse
@@ -43,7 +43,7 @@ def get_valid_filename(s):
     return re.sub(r"(?u)[^-\w.]", "", s)
 
 
-class ThreeDiResultSelection(QObject):
+class ThreeDiResultSelection(ThreeDiPluginTool):
     """QGIS Plugin Implementation."""
 
     # TODO: Reinout suggests to use requests library and get rid e.g. QNetworkRequest,

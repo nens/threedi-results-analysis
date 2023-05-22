@@ -11,6 +11,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
 from threedigrid_builder.constants import LineType
 from threedigrid_builder.constants import NodeType
+from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 
 from .config import INPUT_SERIES
 from .views.waterbalance_widget import WaterBalanceWidget
@@ -1081,7 +1082,7 @@ class WaterBalanceCalculation(object):
         return times, all_flows
 
 
-class WaterBalanceTool(object):
+class WaterBalanceTool(ThreeDiPluginTool):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, model):
@@ -1091,6 +1092,7 @@ class WaterBalanceTool(object):
             application at run time.
         :type iface: QgsInterface
         """
+        super().__init__()
         self.iface = iface
         self.icon_path = str(Path(__file__).parent.parent / 'icons' / 'weight-scale.png')
         self.menu_text = u"Water Balance Tool"

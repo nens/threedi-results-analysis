@@ -1,15 +1,16 @@
-from qgis.PyQt.QtCore import Qt, QObject, pyqtSlot
+from qgis.PyQt.QtCore import Qt, pyqtSlot
 from threedi_results_analysis.tool_sideview.sideview_view import SideViewDockWidget
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from qgis.core import QgsDateTimeRange
 import qgis
 import os
 
 
-class ThreeDiSideView(QObject):
+class ThreeDiSideView(ThreeDiPluginTool):
 
     def __init__(self, iface, model):
-        QObject.__init__(self)
+        super().__init__()
 
         self.iface = iface
         self.model = model

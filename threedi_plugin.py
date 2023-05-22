@@ -60,7 +60,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.validator = ThreeDiPluginModelValidator(self.model)
 
         QgsProject.instance().writeProject.connect(self.write)
-        QgsProject.instance().writeMapLayer.connect(self.write_map_layer)
+        QgsProject.instance().writeMapLayer.connect(self.write_map_layer)  # Called after write()
         QgsProject.instance().readProject.connect(self.read)
         QgsProject.instance().removeAll.connect(self.model.clear)
 
@@ -133,7 +133,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             )
 
         # Connect the signals
-
         self.dockwidget.grid_file_selected.connect(self.validator.validate_grid)
         self.dockwidget.result_file_selected.connect(self.validator.validate_result_grid)
         self.validator.result_valid.connect(self.loader.load_result)
@@ -204,7 +203,13 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
     def write(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
-        return ThreeDiPluginModelSerializer.write(self.model, doc, resolver)
+        res = ThreeDiPluginModelSerializer.write(self.model, doc, resolver)
+        if not res:
+            logger.error("Unable to write model to QGIS project file.")
+
+        # Allow each tool to save additional info to project
+        for tool, _ in self.tools:
+            tool.write(doc)
 
     def write_map_layer(self, layer: QgsMapLayer, elem: QDomElement, _: QDomDocument):
         # Ensure all our dynamically added attributes are not serialized

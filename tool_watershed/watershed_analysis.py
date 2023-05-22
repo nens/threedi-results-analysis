@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 import os
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtCore import QObject
 from .watershed_analysis_dockwidget import WatershedAnalystDockWidget
+from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
+from qgis.PyQt.QtXml import QDomDocument
 from qgis.PyQt.QtCore import pyqtSlot, pyqtSignal
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class ThreeDiWatershedAnalyst(QObject):
+class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
     closing = pyqtSignal(ThreeDiGridItem)
 
     def __init__(self, iface, model):
-        QObject.__init__(self)
+        super().__init__()
         self.iface = iface
         self.model = model
 
@@ -23,6 +24,10 @@ class ThreeDiWatershedAnalyst(QObject):
 
         self.dock_widget = None
         self._active = False
+
+    def write(self, _: QDomDocument) -> bool:
+        logger.error("Writing in ThreeDiWatershedAnalyst")
+        return True
 
     @property
     def active(self):

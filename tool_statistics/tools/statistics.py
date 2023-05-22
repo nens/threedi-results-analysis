@@ -21,6 +21,7 @@ from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 from sqlite3 import dbapi2
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
+from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.utils.threedi_database import load_spatialite
 from threedi_results_analysis.utils.user_messages import pop_up_info
 from threedi_results_analysis.utils.user_messages import pop_up_question
@@ -77,7 +78,7 @@ class DataSourceAdapter(object):
         return self.proxied_datasource.get_timestamps()
 
 
-class StatisticsTool(object):
+class StatisticsTool(ThreeDiPluginTool):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasources):
@@ -88,6 +89,7 @@ class StatisticsTool(object):
         :type iface: QgsInterface
         """
         # Save reference to the QGIS interface
+        super().__init__()
         self.iface = iface
         self.ts_datasources = ts_datasources
 
@@ -102,10 +104,6 @@ class StatisticsTool(object):
         self.modeldb_meta = None
         self.db = None
         self.db_meta = None
-
-    def on_unload(self):
-        """Cleanup necessary items here when plugin dockwidget is closed"""
-        pass
 
     def get_modeldb_session(self):
 

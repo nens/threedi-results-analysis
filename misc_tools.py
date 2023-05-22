@@ -2,7 +2,6 @@
 """
 Miscellaneous tools.
 """
-from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsProject
 from threedi_results_analysis import PLUGIN_DIR
@@ -12,6 +11,7 @@ from threedi_results_analysis.utils.layer_from_netCDF import NODES_LAYER_NAME
 from threedi_results_analysis.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
 from threedi_results_analysis.utils.user_messages import pop_up_info
 from threedi_results_analysis.utils.user_messages import pop_up_question
+from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 
 import logging
 import os
@@ -25,10 +25,11 @@ IDENTIFIER_LIKE = [FLOWLINES_LAYER_NAME, NODES_LAYER_NAME, PUMPLINES_LAYER_NAME]
 logger = logging.getLogger(__name__)
 
 
-class About(object):
+class About(ThreeDiPluginTool):
     """Add 3Di logo and about info."""
 
     def __init__(self, iface):
+        super().__init__()
         self.iface = iface
         self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon.png")
         self.menu_text = "3Di about"
@@ -43,14 +44,12 @@ class About(object):
             "3Di Toolbox version %s" % version, "About2", self.iface.mainWindow()
         )
 
-    def on_unload(self):
-        pass
 
-
-class ShowLogfile(object):
+class ShowLogfile(ThreeDiPluginTool):
     """Show link to the logfile."""
 
     def __init__(self, iface):
+        super().__init__()
         self.iface = iface
         self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon_logfile.png")
         # ^^^ logo: LGPL, made by Oxygen Team, see
@@ -71,11 +70,8 @@ class ShowLogfile(object):
         message = "Logfile location: <a href='file:///%s'>%s</a>" % (location, location)
         pop_up_info(message, title, self.iface.mainWindow())
 
-    def on_unload(self):
-        pass
 
-
-class CacheClearer(object):
+class CacheClearer(ThreeDiPluginTool):
     """Tool to delete cache files."""
 
     def __init__(self, iface, ts_datasources):
@@ -85,6 +81,7 @@ class CacheClearer(object):
             iface: QGIS interface
             ts_datasources: TimeseriesDatasourceModel instance
         """
+        super().__init__()
         self.iface = iface
         self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon_broom.png")
         self.menu_text = "Clear cache"
@@ -149,11 +146,8 @@ class CacheClearer(object):
                 "Cache cleared. You may need to restart QGIS and reload your data."
             )
 
-    def on_unload(self):
-        pass
 
-
-class ToggleResultsManager(QObject):
+class ToggleResultsManager(ThreeDiPluginTool):
     """Add 3Di logo and about info."""
     triggered = pyqtSignal()
 
@@ -166,6 +160,3 @@ class ToggleResultsManager(QObject):
     def run(self):
         """Shows dialog with version information."""
         self.triggered.emit()
-
-    def on_unload(self):
-        pass

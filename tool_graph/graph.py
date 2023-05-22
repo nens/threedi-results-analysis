@@ -1,16 +1,16 @@
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtCore import QObject
 from threedi_results_analysis.tool_graph.graph_view import GraphDockWidget
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from qgis.PyQt.QtCore import pyqtSlot
 import qgis
 import os
 
 
-class ThreeDiGraph(QObject):
+class ThreeDiGraph(ThreeDiPluginTool):
 
     def __init__(self, iface, model):
-        QObject.__init__(self)
+        super().__init__()
 
         self.iface = iface
         self.model = model

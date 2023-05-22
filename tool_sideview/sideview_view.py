@@ -190,7 +190,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                 range_plots.append(waterlevel_plot)
 
         self.autoRange(items=range_plots)
-        logger.error("vla")
 
     def mouse_hover(self, evt):
         mouse_point_x = self.plotItem.vb.mapSceneToView(evt[0]).x()
