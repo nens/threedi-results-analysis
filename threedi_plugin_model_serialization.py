@@ -4,6 +4,7 @@ from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from qgis.PyQt.QtGui import QStandardItem
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from typing import Tuple
 from pathlib import Path
 import logging
 import re
@@ -93,12 +94,14 @@ class ThreeDiPluginModelSerializer:
         return True
 
     @staticmethod
-    def write(model: ThreeDiPluginModel, doc: QDomDocument, resolver) -> bool:
+    def write(model: ThreeDiPluginModel, doc: QDomDocument, resolver) -> Tuple[bool, QDomElement]:
         """Add the model to the provided XML DomDocument
 
-        Recursively traverses down the model tree. Returns True
-        on success. QGIS' resolver is used to convert between relative
-        and absolute paths.
+        Recursively traverses down the model tree. QGIS' resolver is used to convert
+        between relative and absolute paths.
+
+        Returns True on success and the newly created dedicated QDomElement that
+        the tools can use to persist data.
         """
         # Find and remove the existing element corresponding to the result model
         results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
@@ -118,9 +121,9 @@ class ThreeDiPluginModelSerializer:
         # Traverse through the model and save the nodes
         if not ThreeDiPluginModelSerializer._write_recursive(doc, results_node, model.invisibleRootItem(), resolver):
             logger.error("Unable to write model")
-            return False
+            return False, results_node
 
-        return True
+        return True, results_node
 
     @staticmethod
     def _write_recursive(doc: QDomDocument, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:

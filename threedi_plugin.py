@@ -203,13 +203,17 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
     def write(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
-        res = ThreeDiPluginModelSerializer.write(self.model, doc, resolver)
+        res, node = ThreeDiPluginModelSerializer.write(self.model, doc, resolver)
         if not res:
             logger.error("Unable to write model to QGIS project file.")
+            return False
 
-        # Allow each tool to save additional info to project
+        # Allow each tool to save additional info to the xml node
         for tool, _ in self.tools:
-            tool.write(doc)
+            if not tool.write(doc, node):
+                return False
+
+        return True
 
     def write_map_layer(self, layer: QgsMapLayer, elem: QDomElement, _: QDomDocument):
         # Ensure all our dynamically added attributes are not serialized
