@@ -903,7 +903,7 @@ class CatchmentMapTool(QgsMapToolIdentify):
 
 
 class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
-    closingWidget = pyqtSignal(ThreeDiGridItem)
+    closingWidget = pyqtSignal(object)  # ThreeDiGridItem or None
 
     def __init__(self, iface, model, parent=None):
         super(WatershedAnalystDockWidget, self).__init__(parent)
@@ -984,6 +984,9 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             grid = self.model.get_grid(grid_id)
             assert grid
             self.closingWidget.emit(grid)
+        else:
+            self.closingWidget.emit(None)
+
         event.accept()
 
     def connect_gq(self, grid_item: ThreeDiGridItem):

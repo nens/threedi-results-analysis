@@ -36,7 +36,8 @@ class ThreeDiWatershedAnalyst(QObject):
     def on_close_child_widget(self, last_grid_item: ThreeDiGridItem):
         """Cleanup necessary items here when plugin dock widget is closed"""
         self.dock_widget.closingWidget.disconnect(self.on_close_child_widget)
-        self.closing.emit(last_grid_item)
+        if last_grid_item:
+            self.closing.emit(last_grid_item)
         self.dock_widget = None
         self._active = False
 
