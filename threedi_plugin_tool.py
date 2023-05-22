@@ -15,5 +15,5 @@ class ThreeDiPluginTool(QObject):
     def write(self, _: QDomDocument) -> bool:
         return True
 
-    def on_unload():
+    def on_unload(self):
         pass
