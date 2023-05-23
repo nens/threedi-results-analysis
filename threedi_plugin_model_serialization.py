@@ -18,9 +18,11 @@ class ThreeDiPluginModelSerializer:
     def read(loader: ThreeDiPluginLayerManager, doc: QDomDocument, resolver) -> bool:
         """Reads the model from the provided XML DomDocument
 
-        Recursively traverses down the XML tree. Returns True
-        on success. Resolver is used to convert between relative
+        Recursively traverses down the XML tree. Resolver is used to convert between relative
         and absolute paths.
+
+        Returns True on success and the dedicated QDomElement that
+        the tools can use read persistent data from (can be None).
         """
 
         # Find existing element corresponding to the result model
@@ -28,9 +30,9 @@ class ThreeDiPluginModelSerializer:
 
         if results_nodes.length() > 1:
             logger.error("XML file contains multiple toolbox root elements, aborting load.")
-            return False
+            return False, None
         elif results_nodes.length() == 0:
-            return True  # Nothing to load
+            return True, None  # Nothing to load
 
         results_node = results_nodes.at(0)
         assert results_node.parentNode() is not None
@@ -38,9 +40,15 @@ class ThreeDiPluginModelSerializer:
         # Now traverse through the XML tree and add model items
         if not ThreeDiPluginModelSerializer._read_recursive(loader, results_node, None, resolver):
             logger.error("Unable to read XML, aborting read")
-            return False
+            return False, None
 
-        return True
+        # Retrieve dedicated XML node for tools
+        tools_node = results_node.firstChildElement("tools")
+        if not tools_node:
+            logger.error("Unable to read XML (no dedicated tool node), aborting read")
+            return False, None
+
+        return True, tools_node
 
     @staticmethod
     def _read_recursive(loader: ThreeDiPluginLayerManager, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
@@ -82,6 +90,8 @@ class ThreeDiPluginModelSerializer:
 
                 elif tag_name == "layer":  # Subelement of grid
                     continue  # Leaf of XML tree, no processing
+                elif tag_name == "tools":  # Node dedicated for tools
+                    continue
                 else:
                     logger.error("Unexpected XML item type, aborting read")
                     return False
@@ -121,9 +131,13 @@ class ThreeDiPluginModelSerializer:
         # Traverse through the model and save the nodes
         if not ThreeDiPluginModelSerializer._write_recursive(doc, results_node, model.invisibleRootItem(), resolver):
             logger.error("Unable to write model")
-            return False, results_node
+            return False, None
 
-        return True, results_node
+        # Add a dedicated node for the tools to persist information
+        tool_node = doc.createElement("tools")
+        tool_node = results_node.appendChild(tool_node)
+
+        return True, tool_node
 
     @staticmethod
     def _write_recursive(doc: QDomDocument, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:

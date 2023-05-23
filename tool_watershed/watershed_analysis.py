@@ -25,29 +25,38 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         self.dock_widget = None
         self._active = False
 
+    def read(self, xml_elem: QDomElement) -> bool:
+        logger.error("READ")
+        tool_node = xml_elem.firstChildElement("water_shed")
+        if not tool_node:
+            logger.error("Unable to read XML (no dedicated watershed node)")
+            return False
+        return True
+
     def write(self, doc: QDomDocument, xml_elem: QDomElement) -> bool:
         results_node = doc.createElement("water_shed")
         xml_elem.appendChild(results_node)
 
-        layer_element = doc.createElement("layer")
-        layer_element.setAttribute("id", self.dock_widget.gq.result_cell_layer.id())
-        layer_element.setAttribute("table_name", "cell")
-        results_node.appendChild(layer_element)
+        if self.dock_widget.gq.grid_id is not None:
+            layer_element = doc.createElement("layer")
+            layer_element.setAttribute("id", self.dock_widget.gq.result_cell_layer.id())
+            layer_element.setAttribute("table_name", "cell")
+            results_node.appendChild(layer_element)
 
-        layer_element = doc.createElement("layer")
-        layer_element.setAttribute("id", self.dock_widget.gq.result_flowline_layer.id())
-        layer_element.setAttribute("table_name", "flowline")
-        results_node.appendChild(layer_element)
+            layer_element = doc.createElement("layer")
+            layer_element.setAttribute("id", self.dock_widget.gq.result_flowline_layer.id())
+            layer_element.setAttribute("table_name", "flowline")
+            results_node.appendChild(layer_element)
 
-        layer_element = doc.createElement("layer")
-        layer_element.setAttribute("id", self.dock_widget.gq.result_catchment_layer.id())
-        layer_element.setAttribute("table_name", "catchment")
-        results_node.appendChild(layer_element)
+            layer_element = doc.createElement("layer")
+            layer_element.setAttribute("id", self.dock_widget.gq.result_catchment_layer.id())
+            layer_element.setAttribute("table_name", "catchment")
+            results_node.appendChild(layer_element)
 
-        # layer_element = doc.createElement("layer")
-        # layer_element.setAttribute("id", self.dock_widget.gq.impervious_surface_layer.id())
-        # layer_element.setAttribute("table_name", "surface")
-        # results_node.appendChild(layer_element)
+            # layer_element = doc.createElement("layer")
+            # layer_element.setAttribute("id", self.dock_widget.gq.impervious_surface_layer.id())
+            # layer_element.setAttribute("table_name", "surface")
+            # results_node.appendChild(layer_element)
         return True
 
     @property
@@ -57,7 +66,6 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
     def on_unload(self):
         if self.dock_widget is not None:
             self.dock_widget.close()
-        logger.error("on_unload")
 
     def on_close_child_widget(self, last_grid_item: ThreeDiGridItem):
         """Cleanup necessary items here when plugin dock widget is closed"""

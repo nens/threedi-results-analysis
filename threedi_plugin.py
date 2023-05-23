@@ -228,9 +228,15 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
-        if not ThreeDiPluginModelSerializer.read(self.loader, doc, resolver):
+        res, tool_node = ThreeDiPluginModelSerializer.read(self.loader, doc, resolver)
+        if not res:
             self.model.clear()
             return False
+
+        # Allow each tool to read additional info from the dedicated xml node
+        for tool, _ in self.tools:
+            if not tool.read(tool_node):
+                return False
 
         return True
 
