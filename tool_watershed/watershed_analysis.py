@@ -6,6 +6,7 @@ from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtXml import QDomElement, QDomDocument
 from qgis.PyQt.QtCore import pyqtSlot, pyqtSignal
+from qgis.core import QgsProject
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,12 +26,26 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         self.dock_widget = None
         self._active = False
 
+        # Layers stored and loaded from QGIS project
+        self.preloaded_layers = {}
+
     def read(self, xml_elem: QDomElement) -> bool:
-        logger.error("READ")
+        self.preloaded_layers.clear()
+
         tool_node = xml_elem.firstChildElement("water_shed")
         if not tool_node:
             logger.error("Unable to read XML (no dedicated watershed node)")
             return False
+
+        layer_nodes = xml_elem.elementsByTagName("layer")
+        for i in range(layer_nodes.count()):
+            layer_node = layer_nodes.item(i).toElement()
+            layer_id = layer_node.attribute("id")
+            self.preloaded_layers[layer_node.attribute("table_name")] = QgsProject.instance().mapLayer(layer_id)
+
+        if self.active:
+            self.dock_widget.update_layers(self.preloaded_layers)
+
         return True
 
     def write(self, doc: QDomDocument, xml_elem: QDomElement) -> bool:
@@ -80,6 +95,8 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         if not self.active:
             if self.dock_widget is None:
                 self.dock_widget = WatershedAnalystDockWidget(self.iface, self.model)
+
+            self.dock_widget.update_layers(self.preloaded_layers)
             self.dock_widget.closingWidget.connect(self.on_close_child_widget)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
 
