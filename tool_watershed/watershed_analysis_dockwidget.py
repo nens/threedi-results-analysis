@@ -58,6 +58,7 @@ STYLE_DIR = os.path.join(os.path.dirname(__file__), "style")
 MEMORY_DRIVER = ogr.GetDriverByName("MEMORY")
 DEFAULT_THRESHOLD = 1
 MESSAGE_CATEGORY = "Watershed Analysis"
+ATTRIBUTE_NAME = "watershed_result_sets"
 
 
 class LayerExistsError(Exception):
@@ -218,11 +219,11 @@ class Graph3DiQgsConnector:
         filtered_ids_str = ",".join(map(str, filtered_ids))
         if self.filter is None:
             subset_string = ""
-            target_node_layer_analyzed_nodes_rule_str = "result_sets != ''"
+            target_node_layer_analyzed_nodes_rule_str = f"{ATTRIBUTE_NAME} != ''"
         else:
             subset_string = "catchment_id IN ({})".format(filtered_ids_str)
             target_node_layer_analyzed_nodes_rule_str = (
-                f'array_intersect( string_to_array("result_sets"),  array({filtered_ids_str}))'
+                f'array_intersect( string_to_array("{ATTRIBUTE_NAME}"),  array({filtered_ids_str}))'
             )
         # filter to leave subset_string out if empty
         flowline_subset_string = " AND ".join(filter(None, [subset_string, "kcu != 100"]))
@@ -326,18 +327,18 @@ class Graph3DiQgsConnector:
 
         # Add additional result feature
         provider = self.target_node_layer.dataProvider()
-        result_field = QgsField("result_sets", QVariant.String)
+        result_field = QgsField(ATTRIBUTE_NAME, QVariant.String)
         # Unable to set using default value using this, going to loop below..
         # default_value = QgsDefaultValue("''")
         # result_field.setDefaultValueDefinition(default_value)
-        if (self.target_node_layer.fields().indexFromName("result_sets") == -1):
+        if (self.target_node_layer.fields().indexFromName(ATTRIBUTE_NAME) == -1):
             if not provider.addAttributes([result_field]):
                 logger.error("Unable to add attributes, aborting...")
                 return
 
             self.target_node_layer.updateFields()
 
-        attr_idx = self.target_node_layer.fields().indexFromName("result_sets")
+        attr_idx = self.target_node_layer.fields().indexFromName(ATTRIBUTE_NAME)
         id_list = [f.id() for f in self.target_node_layer.getFeatures()]
         update_dict = {i: {attr_idx: ""} for i in id_list}
         if not provider.changeAttributeValues(update_dict):
@@ -355,8 +356,8 @@ class Graph3DiQgsConnector:
         """Empty the result_set field of all features in the target_node_layer"""
         if self.target_node_layer is not None:
             request = QgsFeatureRequest()
-            request.setFilterExpression("result_sets != ''")
-            attr_idx = self.target_node_layer.fields().indexFromName("result_sets")
+            request.setFilterExpression(f"{ATTRIBUTE_NAME} != ''")
+            attr_idx = self.target_node_layer.fields().indexFromName(ATTRIBUTE_NAME)
             id_list = [f.id() for f in self.target_node_layer.getFeatures(request)]
             update_dict = {i: {attr_idx: ""} for i in id_list}
             if not self.target_node_layer.dataProvider().changeAttributeValues(update_dict):
@@ -394,9 +395,9 @@ class Graph3DiQgsConnector:
         ids_str = ",".join(map(str, target_node_ids))
         request = QgsFeatureRequest()
         request.setFilterExpression(f"id IN ({ids_str})")
-        idx = self.target_node_layer.fields().indexFromName("result_sets")
+        idx = self.target_node_layer.fields().indexFromName(ATTRIBUTE_NAME)
         for feat in self.target_node_layer.getFeatures(request):
-            old_result_sets = feat["result_sets"]
+            old_result_sets = feat[ATTRIBUTE_NAME]
             old_result_sets = str(old_result_sets or '')
             result_sets_list = old_result_sets.split(",")
             result_sets_list.append(result_set)
@@ -783,7 +784,7 @@ class Graph3DiQgsConnector:
 
         # target nodes
         if self.target_node_layer is not None:
-            request = QgsFeatureRequest(QgsExpression("result_sets != ''"))
+            request = QgsFeatureRequest(QgsExpression(f"{ATTRIBUTE_NAME} != ''"))
             features = self.target_node_layer.getFeatures(request)
             nodes_bbox = bbox_of_features(features=features)
             if nodes_bbox is not None:
