@@ -59,7 +59,7 @@ MEMORY_DRIVER = ogr.GetDriverByName("MEMORY")
 DEFAULT_THRESHOLD = 1
 MESSAGE_CATEGORY = "Watershed Analysis"
 ATTRIBUTE_NAME = "watershed_result_sets"
-GROUP_NAME = "3Di Watershed Analysis"
+GROUP_NAME = "Watershed tool outputs"
 
 
 class FindImperviousSurfaceError(Exception):
@@ -103,7 +103,7 @@ class Graph3DiQgsConnector:
         "from_polygon": ogr.OFTInteger,
     }
 
-    def __init__(self, grid_item: ThreeDiGridItem, preloaded_layers: dict[str, QgsVectorLayer], model, parent_dock):
+    def __init__(self, result_item: ThreeDiResultItem, model, parent_dock, preloaded_layers):
         """Constructor."""
         self._filter = None
         self.parent_dock = parent_dock
@@ -113,16 +113,22 @@ class Graph3DiQgsConnector:
         self._sqlite = None
 
         self.model = model
-        self.grid_id = None  # Id of grid_item containing gridadmin
-        if grid_item:
-            self.grid_id = grid_item.id
+        self.result_id = None  # Id of grid_item containing gridadmin
+        if result_item:
+            self.result_id = result_item.id
 
-        self.layer_group = None
+        self.result_group = None
         self.target_node_layer = None
 
-        self.result_cell_layer = preloaded_layers["cell"] if preloaded_layers else None
-        self.result_flowline_layer = preloaded_layers["flowline"] if preloaded_layers else None
-        self.result_catchment_layer = preloaded_layers["catchment"] if preloaded_layers else None
+        self.preloaded_layers = preloaded_layers
+
+        # self.result_cell_layer = preloaded_layers["cell"] if preloaded_layers else None
+        # self.result_flowline_layer = preloaded_layers["flowline"] if preloaded_layers else None
+        # self.result_catchment_layer = preloaded_layers["catchment"] if preloaded_layers else None
+        self.result_cell_layer = None
+        self.result_flowline_layer = None
+        self.result_catchment_layer = None
+
         # TODO: preload impervious surface layer as well?
         self.impervious_surface_layer = None
 
@@ -243,14 +249,19 @@ class Graph3DiQgsConnector:
         """Executed when a new 3Di result is selected (self.gr is changed)"""
         if isinstance(self.graph_3di.gr, GridH5ResultAdmin):
             self.epsg = int(self.graph_3di.gr.epsg_code)
-            self.create_layer_group()
+
+            # prepare caching of result item layers
+            if self.result_id not in self.preloaded_layers:
+                self.preloaded_layers[self.result_id] = {}
+
+            self.prepare_result_layer_group()
             # Note: the sequence is deliberate; the target nodes are below the result layers because otherwise, if \
             # zoomed out too much, the target nodes will cover the result.
             self.prepare_target_node_layer()
 
-            self.create_result_cell_layer()
-            self.create_result_flowline_layer()
-            self.create_catchment_layer()
+            self.prepare_result_cell_layer()
+            self.prepare_result_flowline_layer()
+            self.prepare_catchment_layer()
 
     def add_to_layer_tree_group(self, layer):
         """
@@ -258,58 +269,37 @@ class Graph3DiQgsConnector:
         """
         project = QgsProject.instance()
         project.addMapLayer(layer, addToLegend=False)
-        self.layer_group.insertLayer(0, layer)
+        self.result_group.insertLayer(0, layer)
 
-    def remove_empty_layers(self):
-        """For all locked layers, remove locks or layers themselves"""
-        remove_group = True
-        # We are not owner of the node layer
-        self.target_node_layer = None
+    def prepare_result_layer_group(self):
+        assert self.result_id
 
-        if self.result_cell_layer is not None:
-            if self.result_cell_layer.featureCount() == 0:
-                self.remove_result_cell_layer()
-            else:
-                remove_group = False
+        # Check if group is cached
+        if "group" in self.preloaded_layers[self.result_id]:
+            logger.info("Retrieving result group from cache")
+            self.result_group = self.preloaded_layers[self.result_id]["group"]
+        else:
+            # We'll place the result layers in the grid group
+            result = self.model.get_result(self.result_id)
+            grid_item = result.parent()
+            assert grid_item
+            tool_group = grid_item.layer_group.findGroup(GROUP_NAME)
+            if not tool_group:
+                logger.info("Creating new group for watershed tool results.")
+                tool_group = grid_item.layer_group.insertGroup(0, GROUP_NAME)
 
-        if self.result_flowline_layer is not None:
-            if self.result_flowline_layer.featureCount() == 0:
-                self.remove_result_flowline_layer()
-            else:
-                remove_group = False
+            # Add result group
+            result_group = tool_group.findGroup(result.text())
+            if not result_group:
+                self.result_group = tool_group.addGroup(result.text())
 
-        if self.result_catchment_layer is not None:
-            if self.result_catchment_layer.featureCount() == 0:
-                self.remove_catchment_layer()
-            else:
-                remove_group = False
-
-        if self.impervious_surface_layer is not None:
-            if self.impervious_surface_layer.featureCount() == 0:
-                self.remove_impervious_surface_layer()
-            else:
-                remove_group = False
-
-        if remove_group:
-            self.remove_layer_group()
-
-        self.iface.mapCanvas().refresh()
-
-    def create_layer_group(self):
-        # Check whether a group with the same name exist, if not, we'll create one.
-        root = QgsProject.instance().layerTreeRoot()
-        self.layer_group = root.findGroup(GROUP_NAME)
-        if not self.layer_group:
-            self.layer_group = root.insertGroup(0, GROUP_NAME)
-
-    def remove_layer_group(self):
-        QgsProject.instance().layerTreeRoot().removeChildNode(self.layer_group)
-        self.layer_group = None
+            # Cache
+            self.preloaded_layers[self.result_id]["group"] = self.result_group
 
     def prepare_target_node_layer(self):
         # We'll use the node layer of the computational grid
-        # Note that this uses an attribute called "result_sets"
-        grid_item = self.model.get_grid(self.grid_id)
+        result = self.model.get_result(self.result_id)
+        grid_item = result.parent()
         assert grid_item
         layer_id = grid_item.layer_ids["node"]
         self.target_node_layer = QgsProject.instance().mapLayer(layer_id)
@@ -354,8 +344,12 @@ class Graph3DiQgsConnector:
 
             self.target_node_layer.triggerRepaint()
 
-    def create_result_cell_layer(self):
-        if self.result_cell_layer is None:
+    def prepare_result_cell_layer(self):
+        # Check whether this layer is cached.
+        if "cell" in self.preloaded_layers[self.result_id]:
+            logger.info("Retrieving result cell layer from cache")
+            self.result_cell_layer = self.preloaded_layers[self.result_id]["cell"]
+        else:
             logger.info("Watershed: creating new cell result layer.")
             ogr_driver = ogr.GetDriverByName("Memory")
             ogr_data_source = ogr_driver.CreateDataSource("")
@@ -371,8 +365,11 @@ class Graph3DiQgsConnector:
             set_read_only(self.result_cell_layer, True)
             self.add_to_layer_tree_group(self.result_cell_layer)
 
-        qml = os.path.join(STYLE_DIR, "result_cells.qml")
-        self.result_cell_layer.loadNamedStyle(qml)
+            qml = os.path.join(STYLE_DIR, "result_cells.qml")
+            self.result_cell_layer.loadNamedStyle(qml)
+
+            # cache
+            self.preloaded_layers[self.result_id]["cell"] = self.result_cell_layer
 
     def update_analyzed_target_cells(self, target_node_ids, result_set):
         ids_str = ",".join(map(str, target_node_ids))
@@ -433,14 +430,12 @@ class Graph3DiQgsConnector:
         if self.result_cell_layer is not None:
             self.result_cell_layer.dataProvider().truncate()
 
-    def remove_result_cell_layer(self):
-        """Remove layer that contains the upstream and/or downstream cells"""
-        if self.result_cell_layer is not None:
-            QgsProject.instance().removeMapLayer(self.result_cell_layer)
-            self.result_cell_layer = None
-
-    def create_result_flowline_layer(self):
-        if self.result_flowline_layer is None:
+    def prepare_result_flowline_layer(self):
+        # Check whether this layer is cached.
+        if "flowline" in self.preloaded_layers[self.result_id]:
+            logger.info("Retrieving result flowline layer from cache")
+            self.result_flowline_layer = self.preloaded_layers[self.result_id]["flowline"]
+        else:
             logger.info("Watershed: creating new flowline result layer.")
             ogr_driver = ogr.GetDriverByName("Memory")
             ogr_data_source = ogr_driver.CreateDataSource("")
@@ -456,9 +451,11 @@ class Graph3DiQgsConnector:
             set_read_only(self.result_flowline_layer, True)
             self.add_to_layer_tree_group(self.result_flowline_layer)
 
-        self.result_flowline_layer.setSubsetString("kcu != 100")
-        qml = os.path.join(STYLE_DIR, "result_flowlines.qml")
-        self.result_flowline_layer.loadNamedStyle(qml)
+            self.result_flowline_layer.setSubsetString("kcu != 100")
+            qml = os.path.join(STYLE_DIR, "result_flowlines.qml")
+            self.result_flowline_layer.loadNamedStyle(qml)
+
+            self.preloaded_layers[self.result_id]["flowline"] = self.result_flowline_layer
 
     def find_flowlines(self, node_ids: List, upstream: bool, result_set: int):
         """Find flowlines that connect the input nodes \
@@ -494,14 +491,12 @@ class Graph3DiQgsConnector:
         if self.result_flowline_layer is not None:
             self.result_flowline_layer.dataProvider().truncate()
 
-    def remove_result_flowline_layer(self):
-        """Remove layer that contains the upstream and/or downstream flowlines"""
-        if self.result_flowline_layer is not None:
-            QgsProject.instance().removeMapLayer(self.result_flowline_layer)
-            self.result_flowline_layer = None
+    def prepare_catchment_layer(self):
 
-    def create_catchment_layer(self):
-        if self.result_catchment_layer is None:
+        if "catchment" in self.preloaded_layers[self.result_id]:
+            logger.info("Retrieving result catchment layer from cache")
+            self.result_catchment_layer = self.preloaded_layers[self.result_id]["catchment"]
+        else:
             logger.info("Watershed: creating new catchment result layer.")
             ogr_driver = ogr.GetDriverByName("Memory")
             ogr_data_source = ogr_driver.CreateDataSource("")
@@ -518,8 +513,10 @@ class Graph3DiQgsConnector:
             set_read_only(self.result_catchment_layer, True)
             self.add_to_layer_tree_group(self.result_catchment_layer)
 
-        qml = os.path.join(STYLE_DIR, "result_catchments.qml")
-        self.result_catchment_layer.loadNamedStyle(qml)
+            qml = os.path.join(STYLE_DIR, "result_catchments.qml")
+            self.result_catchment_layer.loadNamedStyle(qml)
+
+            self.preloaded_layers[self.result_id]["catchment"] = self.result_catchment_layer
 
     def clear_catchment_layer(self):
         """Remove all features from layer that contains the upstream and/or downstream cells"""
@@ -577,12 +574,6 @@ class Graph3DiQgsConnector:
         self.result_catchment_layer.commitChanges()
         self.result_catchment_layer.setSubsetString(saved_subsetstring)
 
-    def remove_catchment_layer(self):
-        """Remove layer that contains the upstream and/or downstream catchments"""
-        if self.result_catchment_layer is not None:
-            QgsProject.instance().removeMapLayer(self.result_catchment_layer)
-            self.result_catchment_layer = None
-
     def create_impervious_surface_layer(self):
         # This layer is different from the other result layers, because it is a copy of an existing layer from the
         # spatialite; It is easier to copy the layer using the QGIS API
@@ -638,14 +629,6 @@ class Graph3DiQgsConnector:
         """
         if self.impervious_surface_layer is not None:
             self.impervious_surface_layer.dataProvider().truncate()
-
-    def remove_impervious_surface_layer(self):
-        """
-        Remove layer that contains the upstream and/or downstream flowlines
-        """
-        if self.impervious_surface_layer is not None:
-            QgsProject.instance().removeMapLayer(self.impervious_surface_layer)
-            self.impervious_surface_layer = None
 
     def find_impervious_surfaces(self, node_ids: List, result_set: int = None):
         """
@@ -884,25 +867,21 @@ class CatchmentMapTool(QgsMapToolIdentify):
 class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     closingWidget = pyqtSignal(object)  # ThreeDiGridItem or None
 
-    def __init__(self, iface, model, parent=None):
+    def __init__(self, iface, model, preloaded_layers, parent=None):
         super(WatershedAnalystDockWidget, self).__init__(parent)
 
         self.iface = iface
         self.model = model
         self.catchment_map_tool = None
         self.tm = QgsApplication.taskManager()
-        self.preloaded_layers = {}
         self.connect_gq(None, None)
-
+        self.preloaded_layers = preloaded_layers
         self.setUpUI()
 
     def _populate_results(self) -> None:
         self.comboBoxResult.clear()
         for result in self.model.get_results(checked_only=False):
             self.comboBoxResult.addItem(result.text(), result.id)
-
-    def update_layers(self, preloaded_layers: dict[str, QgsVectorLayer]) -> None:
-        self.preloaded_layers = preloaded_layers
 
     def select_result(self, index: int) -> None:
         result_id = self.comboBoxResult.itemData(index)
@@ -912,7 +891,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         assert os.path.isfile(results_3di) and os.path.isfile(gridadmin)
 
         self.disconnect_gq()
-        self.connect_gq(result.parent(), self.preloaded_layers)
+        self.connect_gq(result, self.preloaded_layers)
         gr = GridH5ResultAdmin(str(gridadmin), str(results_3di))
         self.gq.end_time = int(gr.nodes.timestamps[-1])
         if self.doubleSpinBoxThreshold.value() is not None:
@@ -972,8 +951,8 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         event.accept()
 
-    def connect_gq(self, grid_item: ThreeDiGridItem, preloaded_layers: dict[str, QgsVectorLayer]):
-        self.gq = Graph3DiQgsConnector(grid_item=grid_item, preloaded_layers=preloaded_layers, model=self.model, parent_dock=self)
+    def connect_gq(self, result_item: ThreeDiResultItem, preloaded_layers):
+        self.gq = Graph3DiQgsConnector(result_item=result_item, model=self.model, parent_dock=self, preloaded_layers=preloaded_layers)
         self.gq.start_time = 0  # initial value of widget is 0, so valueChanged() signal will not be emitted when ...
         # ... a 3Di result is loaded for the first time
 
@@ -982,10 +961,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             return
 
         self.unset_map_tool()
-        self.gq.remove_empty_layers()
         self.gq.clear_all()
-        if self.gq.layer_group is not None:
-            self.gq.remove_layer_group()
         self.gq = None
 
     def sqlite_selected(self):

@@ -6,7 +6,7 @@ from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtXml import QDomElement, QDomDocument
 from qgis.PyQt.QtCore import pyqtSlot, pyqtSignal
-from qgis.core import QgsProject
+# from qgis.core import QgsProject
 import logging
 
 logger = logging.getLogger(__name__)
@@ -26,52 +26,52 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         self.dock_widget = None
         self._active = False
 
-        # Layers stored and loaded from QGIS project
+        # Cache Layer (ids) and group (reference) per result (id)
         self.preloaded_layers = {}
 
     def read(self, xml_elem: QDomElement) -> bool:
-        self.preloaded_layers.clear()
+        # self.preloaded_layers.clear()
 
-        tool_node = xml_elem.firstChildElement("water_shed")
-        if not tool_node:
-            logger.error("Unable to read XML (no dedicated watershed node)")
-            return False
+        # tool_node = xml_elem.firstChildElement("water_shed")
+        # if not tool_node:
+        #     logger.error("Unable to read XML (no dedicated watershed node)")
+        #     return False
 
-        layer_nodes = xml_elem.elementsByTagName("layer")
-        for i in range(layer_nodes.count()):
-            layer_node = layer_nodes.item(i).toElement()
-            layer_id = layer_node.attribute("id")
-            self.preloaded_layers[layer_node.attribute("table_name")] = QgsProject.instance().mapLayer(layer_id)
+        # layer_nodes = xml_elem.elementsByTagName("layer")
+        # for i in range(layer_nodes.count()):
+        #     layer_node = layer_nodes.item(i).toElement()
+        #     layer_id = layer_node.attribute("id")
+        #     self.preloaded_layers[layer_node.attribute("table_name")] = QgsProject.instance().mapLayer(layer_id)
 
-        if self.active:
-            self.dock_widget.update_layers(self.preloaded_layers)
+        # if self.active:
+        #     self.dock_widget.update_layers(self.preloaded_layers)
 
         return True
 
     def write(self, doc: QDomDocument, xml_elem: QDomElement) -> bool:
-        results_node = doc.createElement("water_shed")
-        xml_elem.appendChild(results_node)
+        # results_node = doc.createElement("water_shed")
+        # xml_elem.appendChild(results_node)
 
-        if self.dock_widget.gq.grid_id is not None:
-            layer_element = doc.createElement("layer")
-            layer_element.setAttribute("id", self.dock_widget.gq.result_cell_layer.id())
-            layer_element.setAttribute("table_name", "cell")
-            results_node.appendChild(layer_element)
+        # if self.dock_widget.gq and self.dock_widget.gq.result_id is not None:
+        #     layer_element = doc.createElement("layer")
+        #     layer_element.setAttribute("id", self.dock_widget.gq.result_cell_layer.id())
+        #     layer_element.setAttribute("table_name", "cell")
+        #     results_node.appendChild(layer_element)
 
-            layer_element = doc.createElement("layer")
-            layer_element.setAttribute("id", self.dock_widget.gq.result_flowline_layer.id())
-            layer_element.setAttribute("table_name", "flowline")
-            results_node.appendChild(layer_element)
+        #     layer_element = doc.createElement("layer")
+        #     layer_element.setAttribute("id", self.dock_widget.gq.result_flowline_layer.id())
+        #     layer_element.setAttribute("table_name", "flowline")
+        #     results_node.appendChild(layer_element)
 
-            layer_element = doc.createElement("layer")
-            layer_element.setAttribute("id", self.dock_widget.gq.result_catchment_layer.id())
-            layer_element.setAttribute("table_name", "catchment")
-            results_node.appendChild(layer_element)
+        #     layer_element = doc.createElement("layer")
+        #     layer_element.setAttribute("id", self.dock_widget.gq.result_catchment_layer.id())
+        #     layer_element.setAttribute("table_name", "catchment")
+        #     results_node.appendChild(layer_element)
 
-            # layer_element = doc.createElement("layer")
-            # layer_element.setAttribute("id", self.dock_widget.gq.impervious_surface_layer.id())
-            # layer_element.setAttribute("table_name", "surface")
-            # results_node.appendChild(layer_element)
+        #     # layer_element = doc.createElement("layer")
+        #     # layer_element.setAttribute("id", self.dock_widget.gq.impervious_surface_layer.id())
+        #     # layer_element.setAttribute("table_name", "surface")
+        #     # results_node.appendChild(layer_element)
         return True
 
     @property
@@ -94,9 +94,8 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         """Run method that loads and starts the tool"""
         if not self.active:
             if self.dock_widget is None:
-                self.dock_widget = WatershedAnalystDockWidget(self.iface, self.model)
+                self.dock_widget = WatershedAnalystDockWidget(self.iface, self.model, self.preloaded_layers)
 
-            self.dock_widget.update_layers(self.preloaded_layers)
             self.dock_widget.closingWidget.connect(self.on_close_child_widget)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
 
