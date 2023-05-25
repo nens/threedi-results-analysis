@@ -133,7 +133,12 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
 
             # Remove group
             result_group = layer_dict["group"]
-            result_group.parent().removeChildNode(result_group)
+            tool_group = result_group.parent()
+            tool_group.removeChildNode(result_group)
+
+            # In case the tool ("watershed") group is now empty, we'll remove that too
+            if len(tool_group.children()) == 0:
+                tool_group.parent().removeChildNode(tool_group)
 
             # Remove from dict
             del self.preloaded_layers[result_item.id]
