@@ -34,8 +34,8 @@ class ThreeDiModelItem(QStandardItem):
     """
     id: str  # uuid
 
-    def __init__(self, *args, **kwargs):
-        self.id = _generate_identifier()
+    def __init__(self, id: str, *args, **kwargs):
+        self.id = id if id else _generate_identifier()
         super().__init__(*args, **kwargs)
 
 
@@ -43,13 +43,13 @@ class ThreeDiGridItem(ThreeDiModelItem):
     """
     A model item for computation grids
     """
-    def __init__(self, path: Path, text: str, *args, **kwargs):
+    def __init__(self, path: Path, text: str, id: str = None, *args, **kwargs):
         """
         Args:
             path: Path to gridadmin.gpkg
             text: Name in the GUI
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(id, *args, **kwargs)
         self.path = path
         self.setSelectable(True)
         self.setEditable(True)
@@ -70,12 +70,12 @@ class ThreeDiResultItem(ThreeDiModelItem):
     """
     A model item for 3Di results.
     """
-    def __init__(self, path: Path, *args, **kwargs):
+    def __init__(self, path: Path, id: str = None, *args, **kwargs):
         """
         Args:
             path: Path tp results_3di.nc
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(id, *args, **kwargs)
         self.path = path
         self.setCheckable(True)
         self.setCheckState(Qt.CheckState.Unchecked)

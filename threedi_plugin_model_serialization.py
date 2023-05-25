@@ -3,7 +3,7 @@ from threedi_results_analysis.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from qgis.PyQt.QtGui import QStandardItem
-from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem, already_used_ids
 from typing import Tuple
 from pathlib import Path
 import logging
@@ -67,8 +67,10 @@ class ThreeDiPluginModelSerializer:
                 model_node = None
                 if tag_name == "grid":
 
-                    model_node = ThreeDiGridItem(Path(resolver.readPath(xml_element_node.attribute("path"))), xml_element_node.attribute("text"))
+                    id = xml_element_node.attribute("id")
+                    already_used_ids.append(id)
 
+                    model_node = ThreeDiGridItem(Path(resolver.readPath(xml_element_node.attribute("path"))), xml_element_node.attribute("text"), id)
                     assert xml_node.hasChildNodes()
                     layer_nodes = xml_element_node.elementsByTagName("layer")
                     for i in range(layer_nodes.count()):
@@ -80,7 +82,10 @@ class ThreeDiPluginModelSerializer:
 
                 elif tag_name == "result":
 
-                    model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))))
+                    id = xml_element_node.attribute("id")
+                    already_used_ids.append(id)
+
+                    model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))), id)
                     model_node.setCheckState(int(xml_element_node.attribute("check_state")))
                     model_node.setText(xml_element_node.attribute("text"))
 
@@ -155,6 +160,7 @@ class ThreeDiPluginModelSerializer:
                     xml_node.setTagName("grid")
                     xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
                     xml_node.setAttribute("text", model_node.text())
+                    xml_node.setAttribute("id", model_node.id)
 
                     # Write corresponding layer id's
                     for table_name, layer_id in model_node.layer_ids.items():
@@ -167,6 +173,7 @@ class ThreeDiPluginModelSerializer:
                     xml_node.setTagName("result")
                     xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
                     xml_node.setAttribute("text", model_node.text())
+                    xml_node.setAttribute("id", model_node.id)
                     xml_node.setAttribute("check_state", str(model_node.checkState()))
                 else:
                     logger.error("Unknown node type for serialization")

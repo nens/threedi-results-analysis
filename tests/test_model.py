@@ -67,6 +67,11 @@ class TestGrid(unittest.TestCase):
         nonexisting_item = self.model.get_grid("thisidprobablydoesntexist")
         self.assertTrue(nonexisting_item is None)
 
+    def test_id_can_be_set(self):
+        item = ThreeDiGridItem(self.grid_path, "text", "anewid")
+        self.assertTrue(self.model.add_grid(item))
+        self.assertEqual(item.id, "anewid")
+
 
 class TestResult(unittest.TestCase):
     def setUp(self):
