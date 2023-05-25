@@ -30,43 +30,47 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         self.preloaded_layers = {}
 
     def read(self, xml_elem: QDomElement) -> bool:
-        # self.preloaded_layers.clear()
+        self.preloaded_layers.clear()
 
-        # tool_node = xml_elem.firstChildElement("water_shed")
-        # if not tool_node:
-        #     logger.error("Unable to read XML (no dedicated watershed node)")
-        #     return False
+        watershed_node = xml_elem.firstChildElement("water_shed")
+        if not watershed_node:
+            logger.error("Unable to read XML (no dedicated watershed node)")
+            return False
 
-        # layer_nodes = xml_elem.elementsByTagName("layer")
-        # for i in range(layer_nodes.count()):
-        #     layer_node = layer_nodes.item(i).toElement()
-        #     layer_id = layer_node.attribute("id")
-        #     self.preloaded_layers[layer_node.attribute("table_name")] = QgsProject.instance().mapLayer(layer_id)
+        result_nodes = watershed_node.elementsByTagName("result")
+        for i in range(result_nodes.count()):
+            result_node = result_nodes.item(i).toElement()
+            result_id = result_node.attribute("id")
+            self.preloaded_layers[result_id] = {}
 
-        # if self.active:
-        #     self.dock_widget.update_layers(self.preloaded_layers)
+            layer_nodes = result_node.elementsByTagName("layer")
+            for i in range(layer_nodes.count()):
+                layer_node = layer_nodes.item(i).toElement()
+                layer_id = layer_node.attribute("id")
+                layer_table_name = layer_node.attribute("table_name")
+                if layer_table_name not in ["cell", "flowline", "catchment"]:
+                    continue
+                self.preloaded_layers[result_id][layer_table_name] = layer_id
 
         return True
 
     def write(self, doc: QDomDocument, xml_elem: QDomElement) -> bool:
-        # results_node = doc.createElement("water_shed")
-        # xml_elem.appendChild(results_node)
+        watershed_node = doc.createElement("water_shed")
+        xml_elem.appendChild(watershed_node)
 
-        # if self.dock_widget.gq and self.dock_widget.gq.result_id is not None:
-        #     layer_element = doc.createElement("layer")
-        #     layer_element.setAttribute("id", self.dock_widget.gq.result_cell_layer.id())
-        #     layer_element.setAttribute("table_name", "cell")
-        #     results_node.appendChild(layer_element)
+        for result_id, layer_dict in self.preloaded_layers.items():
+            result_element = doc.createElement("result")
+            result_element.setAttribute("id", result_id)
+            result_element = watershed_node.appendChild(result_element)
 
-        #     layer_element = doc.createElement("layer")
-        #     layer_element.setAttribute("id", self.dock_widget.gq.result_flowline_layer.id())
-        #     layer_element.setAttribute("table_name", "flowline")
-        #     results_node.appendChild(layer_element)
-
-        #     layer_element = doc.createElement("layer")
-        #     layer_element.setAttribute("id", self.dock_widget.gq.result_catchment_layer.id())
-        #     layer_element.setAttribute("table_name", "catchment")
-        #     results_node.appendChild(layer_element)
+            # We only write out relevant items of the dictionary
+            for table_name, id in layer_dict.items():
+                if table_name not in ["cell", "flowline", "catchment"]:
+                    continue
+                layer_element = doc.createElement("layer")
+                layer_element.setAttribute("table_name", table_name)
+                layer_element.setAttribute("id", id)
+                layer_element = result_element.appendChild(layer_element)
 
         #     # layer_element = doc.createElement("layer")
         #     # layer_element.setAttribute("id", self.dock_widget.gq.impervious_surface_layer.id())

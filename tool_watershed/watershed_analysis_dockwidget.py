@@ -122,9 +122,6 @@ class Graph3DiQgsConnector:
 
         self.preloaded_layers = preloaded_layers
 
-        # self.result_cell_layer = preloaded_layers["cell"] if preloaded_layers else None
-        # self.result_flowline_layer = preloaded_layers["flowline"] if preloaded_layers else None
-        # self.result_catchment_layer = preloaded_layers["catchment"] if preloaded_layers else None
         self.result_cell_layer = None
         self.result_flowline_layer = None
         self.result_catchment_layer = None
@@ -289,8 +286,8 @@ class Graph3DiQgsConnector:
                 tool_group = grid_item.layer_group.insertGroup(0, GROUP_NAME)
 
             # Add result group
-            result_group = tool_group.findGroup(result.text())
-            if not result_group:
+            self.result_group = tool_group.findGroup(result.text())
+            if not self.result_group:
                 self.result_group = tool_group.addGroup(result.text())
 
             # Cache
@@ -348,7 +345,8 @@ class Graph3DiQgsConnector:
         # Check whether this layer is cached.
         if "cell" in self.preloaded_layers[self.result_id]:
             logger.info("Retrieving result cell layer from cache")
-            self.result_cell_layer = self.preloaded_layers[self.result_id]["cell"]
+            layer_id = self.preloaded_layers[self.result_id]["cell"]
+            self.result_cell_layer = QgsProject.instance().mapLayer(layer_id)
         else:
             logger.info("Watershed: creating new cell result layer.")
             ogr_driver = ogr.GetDriverByName("Memory")
@@ -369,7 +367,7 @@ class Graph3DiQgsConnector:
             self.result_cell_layer.loadNamedStyle(qml)
 
             # cache
-            self.preloaded_layers[self.result_id]["cell"] = self.result_cell_layer
+            self.preloaded_layers[self.result_id]["cell"] = self.result_cell_layer.id()
 
     def update_analyzed_target_cells(self, target_node_ids, result_set):
         ids_str = ",".join(map(str, target_node_ids))
@@ -434,7 +432,8 @@ class Graph3DiQgsConnector:
         # Check whether this layer is cached.
         if "flowline" in self.preloaded_layers[self.result_id]:
             logger.info("Retrieving result flowline layer from cache")
-            self.result_flowline_layer = self.preloaded_layers[self.result_id]["flowline"]
+            layer_id = self.preloaded_layers[self.result_id]["flowline"]
+            self.result_flowline_layer = QgsProject.instance().mapLayer(layer_id)
         else:
             logger.info("Watershed: creating new flowline result layer.")
             ogr_driver = ogr.GetDriverByName("Memory")
@@ -455,7 +454,7 @@ class Graph3DiQgsConnector:
             qml = os.path.join(STYLE_DIR, "result_flowlines.qml")
             self.result_flowline_layer.loadNamedStyle(qml)
 
-            self.preloaded_layers[self.result_id]["flowline"] = self.result_flowline_layer
+            self.preloaded_layers[self.result_id]["flowline"] = self.result_flowline_layer.id()
 
     def find_flowlines(self, node_ids: List, upstream: bool, result_set: int):
         """Find flowlines that connect the input nodes \
@@ -495,7 +494,8 @@ class Graph3DiQgsConnector:
 
         if "catchment" in self.preloaded_layers[self.result_id]:
             logger.info("Retrieving result catchment layer from cache")
-            self.result_catchment_layer = self.preloaded_layers[self.result_id]["catchment"]
+            layer_id = self.preloaded_layers[self.result_id]["catchment"]
+            self.result_catchment_layer = QgsProject.instance().mapLayer(layer_id)
         else:
             logger.info("Watershed: creating new catchment result layer.")
             ogr_driver = ogr.GetDriverByName("Memory")
@@ -516,7 +516,7 @@ class Graph3DiQgsConnector:
             qml = os.path.join(STYLE_DIR, "result_catchments.qml")
             self.result_catchment_layer.loadNamedStyle(qml)
 
-            self.preloaded_layers[self.result_id]["catchment"] = self.result_catchment_layer
+            self.preloaded_layers[self.result_id]["catchment"] = self.result_catchment_layer.id()
 
     def clear_catchment_layer(self):
         """Remove all features from layer that contains the upstream and/or downstream cells"""
@@ -930,8 +930,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def remove_grid(self, grid_item: ThreeDiGridItem):
         # Check whether it is the currently used grid, if so, remove references.
-        if self.gq and self.gq.grid_id == grid_item.id:
-            self.disconnect_gq()
+        pass
 
     def change_result(self, result_item: ThreeDiResultItem):
         idx = self.comboBoxResult.findData(result_item.id)
@@ -940,14 +939,15 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)
-        grid_id = self.gq.grid_id if self.gq else None
+        # TODO
+        # grid_id = self.gq.grid_id if self.gq else None
         self.disconnect_gq()
-        if grid_id:
-            grid = self.model.get_grid(grid_id)
-            assert grid
-            self.closingWidget.emit(grid)
-        else:
-            self.closingWidget.emit(None)
+        # if grid_id:
+        #     grid = self.model.get_grid(grid_id)
+        #     assert grid
+        #     self.closingWidget.emit(grid)
+        # else:
+        #     self.closingWidget.emit(None)
 
         event.accept()
 
