@@ -6,10 +6,12 @@ from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtXml import QDomElement, QDomDocument
 from qgis.PyQt.QtCore import pyqtSlot, pyqtSignal
-# from qgis.core import QgsProject
+from qgis.core import QgsProject
 import logging
 
 logger = logging.getLogger(__name__)
+
+layer_names = ["cell", "flowline", "catchment"]
 
 
 class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
@@ -48,7 +50,7 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 layer_node = layer_nodes.item(i).toElement()
                 layer_id = layer_node.attribute("id")
                 layer_table_name = layer_node.attribute("table_name")
-                if layer_table_name not in ["cell", "flowline", "catchment"]:
+                if layer_table_name not in layer_names:
                     continue
                 self.preloaded_layers[result_id][layer_table_name] = layer_id
 
@@ -65,7 +67,7 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
 
             # We only write out relevant items of the dictionary
             for table_name, id in layer_dict.items():
-                if table_name not in ["cell", "flowline", "catchment"]:
+                if table_name not in layer_names:
                     continue
                 layer_element = doc.createElement("layer")
                 layer_element.setAttribute("table_name", table_name)
@@ -120,7 +122,21 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         if not self.active:
             return
 
+        # Remove from combobox etc
         self.dock_widget.remove_result(result_item)
+
+        # Removed cached layers and groups
+        if result_item.id in self.preloaded_layers:
+            layer_dict = self.preloaded_layers[result_item.id]
+            for table_name in layer_names:
+                QgsProject.instance().removeMapLayer(layer_dict[table_name])
+
+            # Remove group
+            result_group = layer_dict["group"]
+            result_group.parent().removeChildNode(result_group)
+
+            # Remove from dict
+            del self.preloaded_layers[result_item.id]
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_removed(self, grid_item: ThreeDiGridItem) -> None:

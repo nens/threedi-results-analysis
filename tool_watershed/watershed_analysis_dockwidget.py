@@ -920,7 +920,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.disconnect_gq()
             self.comboBoxResult.setCurrentIndex(-1)
         else:
-            # The style can be reset by the anim tool, reload appropriate style (TODO: better solution)
+            # The style can be reset by the anim tool, reload appropriate style (TODO: better solution?)
             if self.gq and self.gq.target_node_layer:
                 msg, res = self.gq.target_node_layer.loadNamedStyle(os.path.join(STYLE_DIR, "target_nodes.qml"))
                 if not res:
