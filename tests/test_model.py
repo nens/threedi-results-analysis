@@ -72,6 +72,11 @@ class TestGrid(unittest.TestCase):
         self.assertTrue(self.model.add_grid(item))
         self.assertEqual(item.id, "anewid")
 
+    def test_id_will_be_set(self):
+        item = ThreeDiGridItem(self.grid_path, "text")
+        self.assertTrue(self.model.add_grid(item))
+        self.assertIsNotNone(item.id)
+
 
 class TestResult(unittest.TestCase):
     def setUp(self):
