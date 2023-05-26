@@ -377,7 +377,6 @@ class GraphWidget(QWidget):
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
-        self.model.result_removed.connect(self.result_removed)
 
         # init parameter selection
         self.set_parameter_list(parameter_config)
@@ -810,6 +809,8 @@ class GraphDockWidget(QDockWidget):
 
     def result_removed(self, result_item: ThreeDiResultItem):
         parameter_config = self._get_active_parameter_config(result_item)
+        self.q_graph_widget.result_removed(result_item)
+        self.h_graph_widget.result_removed(result_item)
         self.q_graph_widget.set_parameter_list(parameter_config["q"])
         self.h_graph_widget.set_parameter_list(parameter_config["h"])
 
