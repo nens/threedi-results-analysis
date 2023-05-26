@@ -937,6 +937,11 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         assert idx != -1
         self.comboBoxResult.setItemText(idx, result_item.text())
 
+        # also rename result layer groups
+        if result_item.id in self.preloaded_layers:
+            layer_result_group = self.preloaded_layers[result_item.id]["group"]
+            layer_result_group.setName(result_item.text())
+
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)
         # TODO
