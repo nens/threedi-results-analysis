@@ -68,7 +68,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def _remove_current_index_clicked(self):
         # note that index is the "current", not the "selected"
         index = self.treeView.selectionModel().currentIndex()
-        if index is not None:
+        if index is not None and index.isValid():
             item = self.treeView.model().itemFromIndex(index)
             if isinstance(item, ThreeDiGridItem):
                 self.grid_removal_selected.emit(item)

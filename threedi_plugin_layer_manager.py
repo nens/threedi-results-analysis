@@ -113,8 +113,6 @@ class ThreeDiPluginLayerManager(QObject):
     def unload_grid(self, item: ThreeDiGridItem) -> bool:
         """Removes the corresponding layers from the group in the project"""
 
-        # TODO: does the layer also need to be removed from registry?
-
         # It could be possible that some layers have been dragged outside the
         # layer group. Delete the individual layers first
         for layer_id in item.layer_ids.values():
