@@ -201,7 +201,8 @@ class ThreeDiPluginModel(QStandardItemModel):
 
         item.setCheckState(Qt.CheckState.Unchecked)
         self.result_removed.emit(item)
-        return grid_item.removeRow(item.row())
+        grid_item.removeRow(item.row())  # QStandardItem.removeRow does not return bool
+        return True
 
     @pyqtSlot(QModelIndex)
     def remove_index(self, index: QModelIndex) -> bool:
