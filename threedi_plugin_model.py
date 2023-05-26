@@ -321,18 +321,22 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.setColumnCount(2)
 
     def _clear_recursive(self, item: QStandardItemModel):
-        """Traverses through the subthree top-down, emits grid_removed and
-        result_removed for each subsequent item"""
+        """Traverses through the subthree top-down post-order, emits grid_removed and
+        result_removed for each subsequent item. Because of post-order traversal, result_removed is
+        emitted before grid_removed.
+
+        https://en.wikipedia.org/wiki/Tree_traversal#Arbitrary_trees
+        """
+        # Traverse into the children
+        if item.hasChildren():
+            for i in range(item.rowCount()):
+                self._clear_recursive(item.child(i))
+
         if isinstance(item, ThreeDiGridItem):
             self.grid_removed.emit(item)
         elif isinstance(item, ThreeDiResultItem):
             item.setCheckState(Qt.CheckState.Unchecked)
             self.result_removed.emit(item)
-
-        # Traverse into the children
-        if item.hasChildren():
-            for i in range(item.rowCount()):
-                self._clear_recursive(item.child(i))
 
     def contains(self, path: Path, ignore_suffix: bool = False) -> bool:
         """Return if any item has a path attribute equal to path."""

@@ -133,6 +133,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             )
 
         # Connect the signals
+
+        # Addition signals
         self.dockwidget.grid_file_selected.connect(self.validator.validate_grid)
         self.dockwidget.result_file_selected.connect(self.validator.validate_result_grid)
         self.validator.result_valid.connect(self.loader.load_result)
@@ -143,11 +145,12 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.grid_added.connect(self.dockwidget.expand_grid)
 
         # Removal signals
-        self.dockwidget.result_removal_selected.connect(self.loader.unload_result)
-        self.dockwidget.grid_removal_selected.connect(self.loader.unload_grid)
-        self.loader.grid_unloaded.connect(self.model.remove_grid)
-        self.loader.result_unloaded.connect(self.model.remove_result)
+        # (note that model.remove_grid -> loader.unload_grid is connected
+        # later so that tools get the signals first)
+        self.dockwidget.result_removal_selected.connect(self.model.remove_result)
+        self.dockwidget.grid_removal_selected.connect(self.model.remove_grid)
 
+        # Modification signals
         self.model.grid_changed.connect(self.loader.update_grid)
         self.model.result_changed.connect(self.loader.update_result)
         self.model.result_unchecked.connect(self.loader.result_unchecked)
@@ -192,6 +195,14 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_changed.connect(self.watershed_tool.result_changed)
         self.model.grid_removed.connect(self.watershed_tool.grid_removed)
         self.watershed_tool.closing.connect(self.loader.reset_styling)
+
+        # Further administrative signals that need to happens last:
+        # https://doc.qt.io/qt-5/signalsandslots.html#signals
+        # If several slots are connected to one signal, the slots will be executed one after the other,
+        # in the order they have been connected, when the signal is emitted.
+
+        self.model.grid_removed.connect(self.loader.unload_grid)
+        self.model.result_removed.connect(self.loader.unload_result)
 
         self.init_state_sync()
 
