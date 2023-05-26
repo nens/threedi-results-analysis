@@ -290,6 +290,11 @@ class Graph3DiQgsConnector:
             if not self.result_group:
                 self.result_group = tool_group.addGroup(result.text())
 
+            # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
+            # infinite signal loop because the model only emits the result_changed when the text has actually
+            # changed.
+            self.result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+
             # Cache
             self.preloaded_layers[self.result_id]["group"] = self.result_group
 
@@ -929,7 +934,6 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.comboBoxResult.removeItem(idx)
 
     def remove_grid(self, grid_item: ThreeDiGridItem):
-        # Check whether it is the currently used grid, if so, remove references.
         pass
 
     def change_result(self, result_item: ThreeDiResultItem):
