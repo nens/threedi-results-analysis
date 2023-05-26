@@ -191,12 +191,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         return True
 
     def remove_grid(self, item: ThreeDiGridItem) -> bool:
-        """Removes a grid (and children) from the model, emits grid_removed"""
-        # Emit the removed signals for the node and its children
+        """Removes a grid (and children) from the model, possibly emits results_removed and emits grid_removed"""
         self._clear_recursive(item)
-
-        # Remove the actual grid
-        return self.removeRows(self.indexFromItem(item).row(), 1)
 
     def remove_result(self, item: ThreeDiResultItem) -> bool:
         """Removes a result from the model, emits result_removed"""
@@ -206,7 +202,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         item.setCheckState(Qt.CheckState.Unchecked)
         self.result_removed.emit(item)
         grid_item.removeRow(item.row())
-
         return True
 
     @pyqtSlot(QModelIndex)
@@ -307,36 +302,35 @@ class ThreeDiPluginModel(QStandardItemModel):
         return count
 
     @pyqtSlot()
-    def clear(self, emit: bool = True) -> None:
+    def clear(self) -> None:
         """Removes all items from the model.
 
-        Traverses through the three top-down, emits grid_removed and result_removed
-        for each subsequent item (if emit is True), then clears the tree.
+        Traverses through the three top-down post-order, emits grid_removed and result_removed
+        for each subsequent item.
         """
         # Traverse and emit if desired
-        if emit:
-            self._clear_recursive(self.invisibleRootItem())
+        self._clear_recursive(self.invisibleRootItem())
+
         # Clear the actual model
         super().clear()
         self.setColumnCount(2)
 
     def _clear_recursive(self, item: QStandardItemModel):
         """Traverses through the subthree top-down post-order, emits grid_removed and
-        result_removed for each subsequent item. Because of post-order traversal, result_removed is
-        emitted before grid_removed.
+        result_removed for each subsequent item. Because of post-order traversal, results are
+        removed before grids.
 
         https://en.wikipedia.org/wiki/Tree_traversal#Arbitrary_trees
         """
         # Traverse into the children
-        if item.hasChildren():
-            for i in range(item.rowCount()):
-                self._clear_recursive(item.child(i))
+        while item.hasChildren():
+            self._clear_recursive(item.child(0))
 
         if isinstance(item, ThreeDiGridItem):
             self.grid_removed.emit(item)
+            self.removeRows(self.indexFromItem(item).row(), 1)  # Remove the actual grid
         elif isinstance(item, ThreeDiResultItem):
-            item.setCheckState(Qt.CheckState.Unchecked)
-            self.result_removed.emit(item)
+            self.remove_result(item)  # Emits
 
     def contains(self, path: Path, ignore_suffix: bool = False) -> bool:
         """Return if any item has a path attribute equal to path."""
