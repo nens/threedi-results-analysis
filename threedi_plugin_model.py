@@ -311,10 +311,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         # Traverse and emit if desired
         self._clear_recursive(self.invisibleRootItem())
 
-        # Clear the actual model
-        super().clear()
-        self.setColumnCount(2)
-
     def _clear_recursive(self, item: QStandardItemModel):
         """Traverses through the subthree top-down post-order, emits grid_removed and
         result_removed for each subsequent item. Because of post-order traversal, results are
@@ -326,9 +322,10 @@ class ThreeDiPluginModel(QStandardItemModel):
         while item.hasChildren():
             self._clear_recursive(item.child(0))
 
+        # Visit the node
         if isinstance(item, ThreeDiGridItem):
             self.grid_removed.emit(item)
-            self.removeRows(self.indexFromItem(item).row(), 1)  # Remove the actual grid
+            self.removeRow(self.indexFromItem(item).row())  # Remove the actual grid
         elif isinstance(item, ThreeDiResultItem):
             self.remove_result(item)  # Emits
 

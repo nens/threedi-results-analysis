@@ -10,6 +10,8 @@
 - Result Manager: grid and result id (uuid) are now saved in project file.
 - Result Manager: updated flow of deletion signals (layers are unloaded after grid/results are removed from tools)
 - Result Manager: fixed bug when pressing delete button with empty model.
+- Result Manager: clear now immediately deletes nodes during depth-first post-order traversal
+- Results Manager: clearing the QGIS project invalidates the tree view (#833)
 - Graph tool: maptools are disabled when tabs are switched (#824)
 - Graph tool: Fixed bug where deactivated plots were added again when parameter/units or absoluteness was changed (#825)
 - Graph tool: default variable for pump should be 'discharge pump' (#819)
