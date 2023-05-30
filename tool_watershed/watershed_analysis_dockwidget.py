@@ -365,7 +365,6 @@ class Graph3DiQgsConnector:
 
             qgs_lyr_name = "Result cells"
             self.result_cell_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
-            set_read_only(self.result_cell_layer, True)
             self.add_to_layer_tree_group(self.result_cell_layer)
 
             qml = os.path.join(STYLE_DIR, "result_cells.qml")
@@ -373,6 +372,8 @@ class Graph3DiQgsConnector:
 
             # cache
             self.preloaded_layers[self.result_id]["cell"] = self.result_cell_layer.id()
+
+        set_read_only(self.result_cell_layer, True)
 
     def update_analyzed_target_cells(self, target_node_ids, result_set):
         ids_str = ",".join(map(str, target_node_ids))
@@ -452,7 +453,6 @@ class Graph3DiQgsConnector:
 
             qgs_lyr_name = "Result flowlines (1D)"
             self.result_flowline_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
-            set_read_only(self.result_flowline_layer, True)
             self.add_to_layer_tree_group(self.result_flowline_layer)
 
             self.result_flowline_layer.setSubsetString("kcu != 100")
@@ -460,6 +460,8 @@ class Graph3DiQgsConnector:
             self.result_flowline_layer.loadNamedStyle(qml)
 
             self.preloaded_layers[self.result_id]["flowline"] = self.result_flowline_layer.id()
+
+        set_read_only(self.result_flowline_layer, True)
 
     def find_flowlines(self, node_ids: List, upstream: bool, result_set: int):
         """Find flowlines that connect the input nodes \
@@ -515,13 +517,14 @@ class Graph3DiQgsConnector:
 
             qgs_lyr_name = "Result catchments"
             self.result_catchment_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
-            set_read_only(self.result_catchment_layer, True)
             self.add_to_layer_tree_group(self.result_catchment_layer)
 
             qml = os.path.join(STYLE_DIR, "result_catchments.qml")
             self.result_catchment_layer.loadNamedStyle(qml)
 
             self.preloaded_layers[self.result_id]["catchment"] = self.result_catchment_layer.id()
+
+        set_read_only(self.result_catchment_layer, True)
 
     def clear_catchment_layer(self):
         """Remove all features from layer that contains the upstream and/or downstream cells"""
@@ -953,7 +956,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.disconnect_gq()
         # Emit so other tools might reset styling
         if result_id:
-            result = self.model.get_grid(result_id)
+            result = self.model.get_result(result_id)
             assert result
             self.closingWidget.emit(result.parent())
         else:

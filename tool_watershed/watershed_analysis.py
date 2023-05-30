@@ -6,6 +6,7 @@ from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtXml import QDomElement, QDomDocument
 from qgis.PyQt.QtCore import pyqtSlot, pyqtSignal
+from threedi_results_analysis.utils.qprojects import set_read_only
 from qgis.core import QgsProject
 import logging
 
@@ -88,6 +89,8 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         if self.dock_widget is not None:
             self.dock_widget.close()
 
+        self.release_layers()
+
     def on_close_child_widget(self, last_grid_item: ThreeDiGridItem):
         """Cleanup necessary items here when plugin dock widget is closed"""
         self.dock_widget.closingWidget.disconnect(self.on_close_child_widget)
@@ -95,6 +98,14 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
             self.closing.emit(last_grid_item)
         self.dock_widget = None
         self._active = False
+        self.release_layers()
+
+    def release_layers(self) -> None:
+        """Remove the read-only / non-removable flag from all generated layers"""
+        for _, loaded_layer_dict in self.preloaded_layers.items():
+            for layer_name in layer_names:
+                layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
+                set_read_only(layer, False)
 
     def run(self):
         """Run method that loads and starts the tool"""
