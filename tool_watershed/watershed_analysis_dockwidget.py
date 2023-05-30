@@ -113,7 +113,7 @@ class Graph3DiQgsConnector:
         self._sqlite = None
 
         self.model = model
-        self.result_id = None  # Id of grid_item containing gridadmin
+        self.result_id = None  # Id of result_item refering to netcdf/gridadmin
         if result_item:
             self.result_id = result_item.id
 
@@ -948,15 +948,16 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)
-        # TODO
-        # grid_id = self.gq.grid_id if self.gq else None
+
+        result_id = self.gq.result_id if self.gq else None
         self.disconnect_gq()
-        # if grid_id:
-        #     grid = self.model.get_grid(grid_id)
-        #     assert grid
-        #     self.closingWidget.emit(grid)
-        # else:
-        #     self.closingWidget.emit(None)
+        # Emit so other tools might reset styling
+        if result_id:
+            result = self.model.get_grid(result_id)
+            assert result
+            self.closingWidget.emit(result.parent())
+        else:
+            self.closingWidget.emit(None)
 
         event.accept()
 
