@@ -12,7 +12,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-layer_names = ["cell", "flowline", "catchment"]
+required_layer_names = ["cell", "flowline", "catchment"]
+optional_layer_names = ["surface"]
+all_possible_layer_names = required_layer_names + optional_layer_names
 
 
 class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
@@ -51,10 +53,12 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 layer_node = layer_nodes.item(i).toElement()
                 layer_id = layer_node.attribute("id")
                 layer_table_name = layer_node.attribute("table_name")
-                if layer_table_name not in layer_names:
+                if layer_table_name not in all_possible_layer_names:
                     continue
                 self.preloaded_layers[result_id][layer_table_name] = layer_id
 
+        logger.error("PRELOADED")
+        logger.error(self.preloaded_layers)
         return True
 
     def write(self, doc: QDomDocument, xml_elem: QDomElement) -> bool:
@@ -68,17 +72,13 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
 
             # We only write out relevant items of the dictionary
             for table_name, id in layer_dict.items():
-                if table_name not in layer_names:
+                if table_name not in all_possible_layer_names:
                     continue
                 layer_element = doc.createElement("layer")
                 layer_element.setAttribute("table_name", table_name)
                 layer_element.setAttribute("id", id)
                 layer_element = result_element.appendChild(layer_element)
 
-        #     # layer_element = doc.createElement("layer")
-        #     # layer_element.setAttribute("id", self.dock_widget.gq.impervious_surface_layer.id())
-        #     # layer_element.setAttribute("table_name", "surface")
-        #     # results_node.appendChild(layer_element)
         return True
 
     @property
@@ -103,14 +103,20 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
     def release_layers(self) -> None:
         """Remove the read-only / non-removable flag from all generated layers"""
         for _, loaded_layer_dict in self.preloaded_layers.items():
-            for layer_name in layer_names:
+            for layer_name in all_possible_layer_names:
+                if layer_name in optional_layer_names:
+                    if layer_name not in loaded_layer_dict:
+                        continue
                 layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
                 set_read_only(layer, False)
 
     def update_preloaded_layers(self) -> None:
         """Check the list of preloaded layers, in case one if removed, it will be removed from cache"""
         for _, loaded_layer_dict in self.preloaded_layers.items():
-            for layer_name in layer_names:
+            for layer_name in all_possible_layer_names:
+                if layer_name in optional_layer_names:
+                    if layer_name not in loaded_layer_dict:
+                        continue
                 layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
                 if not layer:
                     logger.info(f"Watershed: {layer_name} layer already removed, removed from cache.")
@@ -149,8 +155,11 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         # Removed cached layers and groups
         if result_item.id in self.preloaded_layers:
             layer_dict = self.preloaded_layers[result_item.id]
-            for table_name in layer_names:
+            for table_name in required_layer_names:
                 QgsProject.instance().removeMapLayer(layer_dict[table_name])
+            for table_name in optional_layer_names:
+                if table_name in layer_dict:
+                    QgsProject.instance().removeMapLayer(layer_dict[table_name])
 
             # Remove group
             result_group = layer_dict["group"]
