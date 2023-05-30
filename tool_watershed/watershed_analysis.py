@@ -107,8 +107,18 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
                 set_read_only(layer, False)
 
+    def update_preloaded_layers(self) -> None:
+        """Check the list of preloaded layers, in case one if removed, it will be removed from cache"""
+        for _, loaded_layer_dict in self.preloaded_layers.items():
+            for layer_name in layer_names:
+                layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
+                if not layer:
+                    logger.info(f"Watershed: {layer_name} layer already removed, removed from cache.")
+                    del loaded_layer_dict[layer_name]
+
     def run(self):
         """Run method that loads and starts the tool"""
+        self.update_preloaded_layers()
         if not self.active:
             if self.dock_widget is None:
                 self.dock_widget = WatershedAnalystDockWidget(self.iface, self.model, self.preloaded_layers)
