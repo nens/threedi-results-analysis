@@ -601,7 +601,9 @@ class Graph3DiQgsConnector:
         self.impervious_surface_layer.dataProvider().addAttributes(fields)
         self.impervious_surface_layer.updateFields()
         qml = os.path.join(STYLE_DIR, "result_impervious_surfaces.qml")
-        self.impervious_surface_layer.loadNamedStyle(qml)
+        msg, result = self.impervious_surface_layer.loadNamedStyle(qml)
+        if not result:
+            logger.error(f"Unable to load styling {qml} for impervious layer: {msg}")
         self.add_to_layer_tree_group(self.impervious_surface_layer)
 
     def append_impervious_surfaces(self, result_set: int, ids: List = None, expression: str = None):
@@ -1116,6 +1118,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self.mMapLayerComboBoxTargetPolygons.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.QgsFileWidgetSqlite.fileChanged.connect(self.sqlite_selected)
+        self.QgsFileWidgetSqlite.setEnabled(False)
         self.doubleSpinBoxThreshold.valueChanged.connect(self.threshold_changed)
         self.doubleSpinBoxThreshold.setSingleStep(1)
         self.doubleSpinBoxThreshold.setMinimum(0)
@@ -1162,6 +1165,9 @@ class UpdateGridAdminTask(QgsTask):
             self.parent.setEnabled(True)
             self.parent.widget().repaint()
             raise self.exception
+
+        self.parent.QgsFileWidgetSqlite.setEnabled(result)
+
         if result:
             self.parent.gq.gr_updated()
             output_timestep_best_guess = int(
