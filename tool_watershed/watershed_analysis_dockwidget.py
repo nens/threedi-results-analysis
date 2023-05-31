@@ -591,20 +591,35 @@ class Graph3DiQgsConnector:
             providerLib="ogr",
         )
 
+        if "surface" in self.preloaded_layers[self.result_id]:
+            logger.info("Retrieving impervious layer layer from cache")
+            layer_id = self.preloaded_layers[self.result_id]["surface"]
+            self.impervious_surface_layer = QgsProject.instance().mapLayer(layer_id)
+
+            # We'll just use the plain layer, and we'll re-add all attributes below
+            attribute_list = self.impervious_surface_layer.attributeList()
+            self.impervious_surface_layer.dataProvider().deleteAttributes(attribute_list)
+            self.impervious_surface_layer.updateFields()
+        else:
+            logger.info("Watershed: creating new impervious surface layer.")
+            self.impervious_surface_layer = QgsVectorLayer("Polygon", "Impervious surface", "memory")
+            qml = os.path.join(STYLE_DIR, "result_impervious_surfaces.qml")
+            msg, result = self.impervious_surface_layer.loadNamedStyle(qml)
+            if not result:
+                logger.error(f"Unable to load styling {qml} for impervious layer: {msg}")
+            self.add_to_layer_tree_group(self.impervious_surface_layer)
+            self.preloaded_layers[self.result_id]["surface"] = self.impervious_surface_layer.id()
+
         fields = self.impervious_surface_source_layer.fields().toList()
         catchment_id_field = QgsField("catchment_id", QVariant.Int)
         fields.append(catchment_id_field)
-        self.impervious_surface_layer = QgsVectorLayer("Polygon", "Impervious surface", "memory")
         crs = QgsCoordinateReferenceSystem()
         crs.createFromId(4326)
         self.impervious_surface_layer.setCrs(crs)
         self.impervious_surface_layer.dataProvider().addAttributes(fields)
         self.impervious_surface_layer.updateFields()
-        qml = os.path.join(STYLE_DIR, "result_impervious_surfaces.qml")
-        msg, result = self.impervious_surface_layer.loadNamedStyle(qml)
-        if not result:
-            logger.error(f"Unable to load styling {qml} for impervious layer: {msg}")
-        self.add_to_layer_tree_group(self.impervious_surface_layer)
+
+        set_read_only(self.impervious_surface_layer, True)
 
     def append_impervious_surfaces(self, result_set: int, ids: List = None, expression: str = None):
         """
