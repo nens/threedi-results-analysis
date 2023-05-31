@@ -944,6 +944,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if idx == self.comboBoxResult.currentIndex():
             self.disconnect_gq()
             self.comboBoxResult.setCurrentIndex(-1)
+            self.QgsFileWidgetSqlite.setEnabled(False)
         else:
             # The style can be reset by the anim tool, reload appropriate style (TODO: better solution?)
             if self.gq and self.gq.target_node_layer:
