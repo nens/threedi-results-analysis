@@ -59,6 +59,10 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
 
         logger.error("PRELOADED")
         logger.error(self.preloaded_layers)
+
+        # When the layers have been loaded, you want them to be removable untill we
+        # open the tool.
+        self.release_layers()
         return True
 
     def write(self, doc: QDomDocument, xml_elem: QDomElement) -> bool:
