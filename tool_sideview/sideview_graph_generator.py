@@ -9,19 +9,22 @@ logger = logging.getLogger(__name__)
 
 
 class SideViewGraphGenerator():
-    @staticmethod
-    def retrieve_profile_info_from_flowline(gridadmin_file: Path, flowline_id: int) -> tuple[float, float, float, float, float, int]:
-        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
-        line = ga.lines.filter(id=flowline_id)
+
+    def __init__(self, gridadmin_file: Path):
+        # Preload some big data structs
+        self.ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+        self.lines_1d2d_data = self.ga.lines.subset("1D2D").only("dpumax", "line").data
+        self.lines_1d2d_data = {k: v.tolist() for (k, v) in self.lines_1d2d_data.items()}
+
+    def retrieve_profile_info_from_flowline(self, flowline_id: int) -> tuple[float, float, float, float, float, int]:
+
+        line = self.ga.lines.filter(id=flowline_id)
 
         start_level = None
         end_level = None
         start_height = None
         end_height = None
         crest_level = None
-
-        lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
-        lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
 
         line_type = SideViewGraphGenerator.content_type_to_line_type(line.content_type[0].decode())
         node_id_1 = line.line[0][0]
@@ -31,10 +34,10 @@ class SideViewGraphGenerator():
             cross1_id = line.cross1[0]
             cross2_id = line.cross2[0]
             assert cross1_id == cross2_id  # pipes and culverts have only one cross section definition
-            cross_section = ga.cross_sections.filter(id=cross1_id)
+            cross_section = self.ga.cross_sections.filter(id=cross1_id)
 
             try:
-                height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables)
+                height = SideViewGraphGenerator.cross_section_max_height(cross_section, self.ga.cross_sections.tables)
             except AttributeError:
                 raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} {cross1_id} {cross1_id} with shape {cross_section.shape[0]} for line {flowline_id}")
 
@@ -49,8 +52,8 @@ class SideViewGraphGenerator():
                 end_level = line.invert_level_end_point[0].item()
             elif line_type == LineType.ORIFICE or line_type == LineType.WEIR:
                 # for bottom level, take dmax of adjacent nodes
-                node_1 = ga.nodes.filter(id=node_id_1)
-                node_2 = ga.nodes.filter(id=node_id_2)
+                node_1 = self.ga.nodes.filter(id=node_id_1)
+                node_2 = self.ga.nodes.filter(id=node_id_2)
                 start_level = np.min([node_1.dmax[0], node_2.dmax[0]]).item()
                 end_level = start_level
                 # crest_level is input, can be corrected due to incorrect node bottom levels -> use dpumax
@@ -59,13 +62,13 @@ class SideViewGraphGenerator():
 
         elif line_type == LineType.CHANNEL:
 
-            node_1 = ga.nodes.filter(id=node_id_1)
-            node_2 = ga.nodes.filter(id=node_id_2)
+            node_1 = self.ga.nodes.filter(id=node_id_1)
+            node_2 = self.ga.nodes.filter(id=node_id_2)
             start_level = node_1.dmax[0].item()
             end_level = node_2.dmax[0].item()
 
-            start_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_1, lines_1d2d_data)
-            end_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_2, lines_1d2d_data)
+            start_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_1, self.lines_1d2d_data)
+            end_upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id_2, self.lines_1d2d_data)
             start_height = 0
             end_height = 0
             if not math.isnan(start_upper_level):
@@ -76,22 +79,17 @@ class SideViewGraphGenerator():
 
         return (start_level, end_level, start_height, end_height, crest_level, line_type)
 
-    @staticmethod
-    def retrieve_profile_info_from_node(gridadmin_file: Path, node_id: int) -> tuple[float, float]:
-        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+    def retrieve_profile_info_from_node(self, node_id: int) -> tuple[float, float]:
 
-        lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
-        lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
-
-        node = ga.nodes.filter(id=node_id)
+        node = self.ga.nodes.filter(id=node_id)
         length = math.sqrt(node.storage_area[0])
         length = 0.0 if math.isnan(length) else length
 
         bottom_level = node.dmax[0]
-        if not ga.has_2d:
+        if not self.ga.has_2d:
             upper_level = node.drain_level[0].item()  # can be nan
         else:
-            upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id, lines_1d2d_data)
+            upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id, self.lines_1d2d_data)
 
             height = np.float64(0.0)
             if math.isnan(upper_level):

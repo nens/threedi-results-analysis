@@ -223,6 +223,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.current_grid_id = current_grid.id if current_grid else None
 
+        generator = SideViewGraphGenerator(current_grid.path) if current_grid else None
+
         for route_part in route_path:
             first_node = True
             messagebar_message("Sideview", "Profile being generated, this might take a while...", 0, 0)
@@ -238,7 +240,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                 if direction != 1:
                     begin_node_id, end_node_id = end_node_id, begin_node_id
 
-                begin_level, end_level, begin_height, end_height, crest_level, ltype = SideViewGraphGenerator.retrieve_profile_info_from_flowline(current_grid.path, feature["id"])
+                begin_level, end_level, begin_height, end_height, crest_level, ltype = generator.retrieve_profile_info_from_flowline(feature["id"])
                 if direction != 1:
                     begin_level, end_level = end_level, begin_level
                     begin_height, end_height = end_height, begin_height
@@ -271,8 +273,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                     logger.error(f"Unknown line type: {ltype}")
                     return
 
-                node_level_1, node_height_1 = SideViewGraphGenerator.retrieve_profile_info_from_node(current_grid.path, begin_node_id)
-                node_level_2, node_height_2 = SideViewGraphGenerator.retrieve_profile_info_from_node(current_grid.path, end_node_id)
+                node_level_1, node_height_1 = generator.retrieve_profile_info_from_node(begin_node_id)
+                node_level_2, node_height_2 = generator.retrieve_profile_info_from_node(end_node_id)
 
                 # Only draw exchange when nodes have heights
                 if (node_height_1 > 0.0 and node_height_2 > 0.0):
