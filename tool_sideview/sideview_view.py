@@ -65,7 +65,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.showGrid(False, True, 0.5)
         self.setLabel("bottom", "Distance", "m")
-        self.setLabel("left", "Height", "mNAP")
+        self.setLabel("left", "Height", "m MSL")
 
         pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
