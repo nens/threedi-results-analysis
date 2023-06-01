@@ -18,6 +18,8 @@ styles_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "layer_st
 import logging
 logger = logging.getLogger(__name__)
 
+GRID_GROUP_NAME = "Computational grid"
+
 
 def dirty(func):
     """
@@ -124,6 +126,11 @@ class ThreeDiPluginLayerManager(QObject):
         # In case the user dragged another layer in the group, remove the reference
         # from this grid to the group, but don't delete it from QGIS.
         assert item.layer_group
+        grid_group = item.layer_group.findGroup(GRID_GROUP_NAME)
+
+        # Remove "Computational Grid" group
+        if len(grid_group.children()) == 0:
+            item.layer_group.removeChildNode(grid_group)
 
         if len(item.layer_group.children()) == 0:
             item.layer_group.parent().removeChildNode(item.layer_group)
@@ -360,7 +367,8 @@ class ThreeDiPluginLayerManager(QObject):
                 item.layer_ids[table_name] = vector_layer.id()
 
                 QgsProject.instance().addMapLayer(vector_layer, addToLegend=False)
-                item.layer_group.addLayer(vector_layer)
+                # Add to computational grid subgroup (created above)
+                item.layer_group.findGroup(GRID_GROUP_NAME).addLayer(vector_layer)
 
             progress_bar.increase_progress()
 
@@ -386,6 +394,11 @@ class ThreeDiPluginLayerManager(QObject):
         layer_group = root_group.findGroup(group_name)
         if not layer_group:
             layer_group = root_group.insertGroup(0, group_name)
+
+        # We'll add a subgroup for the computation grid layers (to distinguish them from result layers)
+        grid_group = layer_group.findGroup(GRID_GROUP_NAME)
+        if not grid_group:
+            grid_group = layer_group.insertGroup(0, GRID_GROUP_NAME)
 
         return layer_group
 
