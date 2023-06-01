@@ -101,3 +101,8 @@ class ThreeDiSideView(ThreeDiPluginTool):
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)
 
         new_widget.show()
+
+        # When loading the first dockwidget, automatically activate first grid
+        if self.widget_nr == 1:  # just added the first
+            if self.model.get_grids():
+                new_widget.grid_selected(0)

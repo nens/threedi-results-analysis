@@ -626,6 +626,10 @@ class SideViewDockWidget(QDockWidget):
 
     @pyqtSlot(int)
     def grid_selected(self, grid_index: int):
+        # Because we connected the "activated" signal instead of the "currentIndexChanged" signal,
+        # programmatically changing the index does not emit a signal
+        self.select_grid_combobox.setCurrentIndex(grid_index)
+
         item_id = self.select_grid_combobox.itemData(grid_index)
         grid = self.model.get_grid(item_id)
         assert grid
