@@ -648,6 +648,10 @@ class SideViewDockWidget(QDockWidget):
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
             self.select_sideview_button.setChecked(False)
 
+        # Route tool is unset, clean up virtual tree and current route
+        self.route.reset()
+        self.map_visualisation.reset()
+
     def toggle_route_tool(self):
         if self.current_grid_id is None:
             return
