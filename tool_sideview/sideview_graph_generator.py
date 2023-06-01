@@ -82,8 +82,6 @@ class SideViewGraphGenerator():
     def retrieve_profile_info_from_node(self, node_id: int) -> tuple[float, float]:
 
         node = self.ga.nodes.filter(id=node_id)
-        length = math.sqrt(node.storage_area[0])
-        length = 0.0 if math.isnan(length) else length
 
         bottom_level = node.dmax[0]
         if not self.ga.has_2d:
