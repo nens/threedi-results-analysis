@@ -17,7 +17,7 @@
 - Graph tool: Fixed bug where deactivated plots were added again when parameter/units or absoluteness was changed (#825)
 - Graph tool: default variable for pump should be 'discharge pump' (#819)
 - Removed wiki related files (wiki has been disabled)
-- Graph tool: pump can now only be added as line feature (no longer also as node feature) (#829)
+- Graph tool: pump can now only be added as line feature or node feature, but not both (#829)
 - Graph tool: change "Nodes" to "Nodes & cells" (#818)
 - Result manager: fixed bug that result was not removed when other result was checked.
 - Initial work on Watershed tool (#668)
