@@ -310,6 +310,7 @@ class Route(object):
         self.path_points = []
         self.path = []
         self.path_vertexes = []
+        self.update_virtual_tree_layer()
 
 
 class RouteMapTool(QgsMapTool):
