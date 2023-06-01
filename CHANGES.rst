@@ -16,6 +16,7 @@
 - Graph tool: maptools are disabled when tabs are switched (#824)
 - Graph tool: Fixed bug where deactivated plots were added again when parameter/units or absoluteness was changed (#825)
 - Graph tool: default variable for pump should be 'discharge pump' (#819)
+- Graph tool: list of parameters in combobox is now union of parameterset of results (#819)
 - Removed wiki related files (wiki has been disabled)
 - Graph tool: pump can now only be added as line feature or node feature, but not both (#829)
 - Graph tool: Only one of 2D Nodes and cells with same feature ID can be plotted (#829)

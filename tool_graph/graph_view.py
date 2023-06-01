@@ -793,7 +793,7 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self, result_item_ignored: ThreeDiResultItem = None):
         """
-        Generates a parameter dict based on results.
+        Generates a parameter dict based on results, takes union of parameters from results.
         """
         q_vars = []
         h_vars = []
@@ -812,17 +812,21 @@ class GraphDockWidget(QDockWidget):
                 available_subgrid_vars, agg_vars=available_agg_vars
             )
 
-            def _intersection(a: List, b: List):
+            def _union(a: List, b: List):
                 if not a:
                     return b
 
-                return [x for x in a if x in b]
+                for param in b:
+                    # Check whether a contains param with same name, if so, don't add
+                    if not [x for x in a if x["name"] == param["name"]]:
+                        a.append(param)
 
-            q_vars = _intersection(q_vars, parameter_config["q"])
-            h_vars = _intersection(h_vars, parameter_config["h"])
+                return a
 
-        config = {"q": q_vars, "h": h_vars}
-        return config
+            q_vars = _union(q_vars, parameter_config["q"])
+            h_vars = _union(h_vars, parameter_config["h"])
+
+        return {"q": q_vars, "h": h_vars}
 
     def result_added(self, _: ThreeDiResultItem):
         parameter_config = self._get_active_parameter_config()

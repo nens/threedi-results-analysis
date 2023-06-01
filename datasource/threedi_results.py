@@ -162,7 +162,7 @@ class ThreediResult(BaseDataSource):
         elif variable in self.available_aggregation_vars:
             return self.aggregate_result_admin
         else:
-            raise AttributeError("Unknown subgrid or aggregate variable: %s")
+            raise AttributeError(f"Unknown subgrid or aggregate variable: {variable}")
 
     def get_timeseries(
         self, nc_variable, node_id=None, content_pk=None, fill_value=None

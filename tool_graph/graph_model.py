@@ -181,6 +181,11 @@ class LocationTimeseriesModel(BaseModel):
             """
             threedi_result = self.result.value.threedi_result
 
+            if (parameters not in threedi_result.available_subgrid_map_vars and
+                    parameters not in threedi_result.available_aggregation_vars):
+                logger.warning(f"Parameter {parameters} not available in result {self.result.value.text()}")
+                return EMPTY_TIMESERIES
+
             ga = threedi_result.get_gridadmin(parameters)
             if ga.has_pumpstations:
                 pump_fields = set(list(ga.pumps.Meta.composite_fields.keys()))
