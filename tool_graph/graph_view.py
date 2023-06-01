@@ -636,14 +636,26 @@ class GraphWidget(QWidget):
                 if layer.id() not in result_item.parent().layer_ids.values():
                     continue
 
-                # Check whether a pump isn't already plotted as pump_line string (QGIS doesn't know they are the same thing)
+                # Check whether a pump isn't already plotted as pump_linestring or vice versa (QGIS doesn't know they are the same thing)
                 if layer.objectName() == "pump_linestring":
                     if ("pump_" + str(new_idx) + "_" + result_item.id) in existing_items:
                         logger.error("Pump already plotted as node item")
                         continue
-                if layer.objectName() == "pump":
+                elif layer.objectName() == "pump":
                     if ("pump_linestring_" + str(new_idx) + "_" + result_item.id) in existing_items:
                         logger.error("Pump already plotted as line item")
+                        continue
+
+                # Check whether a node isn't already plotted as cell or vice versa (QGIS doesn't know they are the same thing)
+                if layer.objectName() == "cell":
+                    if ("node_" + str(new_idx) + "_" + result_item.id) in existing_items:
+                        logger.error("Cell already plotted as node item")
+                        continue
+                elif layer.objectName() == "node":
+                    if ("cell_" + str(new_idx) + "_" + result_item.id) in existing_items:
+                        # Assert whether this is a 2D node
+                        assert new_object_name.startswith("2D")
+                        logger.error("Node already plotted as cell item")
                         continue
 
                 if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:

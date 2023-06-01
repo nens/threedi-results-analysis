@@ -18,6 +18,7 @@
 - Graph tool: default variable for pump should be 'discharge pump' (#819)
 - Removed wiki related files (wiki has been disabled)
 - Graph tool: pump can now only be added as line feature or node feature, but not both (#829)
+- Graph tool: Only one of 2D Nodes and cells with same feature ID can be plotted (#829)
 - Graph tool: change "Nodes" to "Nodes & cells" (#818)
 - Result manager: fixed bug that result was not removed when other result was checked.
 - Initial work on Watershed tool (#668)
