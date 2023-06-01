@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from qgis.PyQt.QtCore import Qt
-from .watershed_analysis_dockwidget import WatershedAnalystDockWidget
+from .watershed_analysis_dockwidget import WatershedAnalystDockWidget, GROUP_NAME
 from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtXml import QDomElement, QDomDocument
@@ -116,7 +116,7 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
 
     def update_preloaded_layers(self) -> None:
         """Check the list of preloaded layers, in case one if removed, it will be removed from cache"""
-        for _, loaded_layer_dict in self.preloaded_layers.items():
+        for result_id, loaded_layer_dict in self.preloaded_layers.items():
             for layer_name in all_possible_layer_names:
                 if layer_name in optional_layer_names:
                     if layer_name not in loaded_layer_dict:
@@ -125,6 +125,14 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 if not layer:
                     logger.info(f"Watershed: {layer_name} layer already removed, removed from cache.")
                     del loaded_layer_dict[layer_name]
+
+            # Check whether the results group already exist for this result, if so, add to cache
+            result = self.model.get_result(result_id)
+            tool_group = result.parent().layer_group.findGroup(GROUP_NAME)
+            if tool_group:
+                result_group = tool_group.findGroup(result.text())
+                if result_group:
+                    loaded_layer_dict["group"] = result_group
 
     def run(self):
         """Run method that loads and starts the tool"""
@@ -166,23 +174,18 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                     QgsProject.instance().removeMapLayer(layer_dict[table_name])
 
             # Remove group
-            result_group = layer_dict["group"]
-            tool_group = result_group.parent()
-            tool_group.removeChildNode(result_group)
+            if "group" in layer_dict:
+                result_group = layer_dict["group"]
+                tool_group = result_group.parent()
+                tool_group.removeChildNode(result_group)
 
             # In case the tool ("watershed") group is now empty, we'll remove that too
+            tool_group = result_item.parent().layer_group.findGroup(GROUP_NAME)
             if len(tool_group.children()) == 0:
                 tool_group.parent().removeChildNode(tool_group)
 
             # Remove from dict
             del self.preloaded_layers[result_item.id]
-
-    @pyqtSlot(ThreeDiGridItem)
-    def grid_removed(self, grid_item: ThreeDiGridItem) -> None:
-        if not self.active:
-            return
-
-        self.dock_widget.remove_grid(grid_item)
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem) -> None:
