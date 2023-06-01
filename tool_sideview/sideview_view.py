@@ -651,6 +651,7 @@ class SideViewDockWidget(QDockWidget):
         # Route tool is unset, clean up virtual tree and current route
         self.route.reset()
         self.map_visualisation.reset()
+        self.select_sideview_button.setText("Choose sideview trajectory")
 
     def toggle_route_tool(self):
         if self.current_grid_id is None:
@@ -790,6 +791,7 @@ class SideViewDockWidget(QDockWidget):
 
         success, msg = self.route.add_point(next_point)
 
+        self.select_sideview_button.setText("Continue sideview trajectory")
         if not success:
             statusbar_message(msg)
             return
@@ -802,6 +804,7 @@ class SideViewDockWidget(QDockWidget):
         self.map_visualisation.reset()
         # Also removes all waterlevel plots
         self.side_view_plot_widget.set_sideprofile([], None)
+        self.select_sideview_button.setText("Choose sideview trajectory")
 
     def on_close(self):
         """
