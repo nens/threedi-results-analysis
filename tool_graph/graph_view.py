@@ -69,7 +69,7 @@ def is_threedi_layer(vector_layer: QgsVectorLayer) -> bool:
 
     if provider.name() in ["spatialite", "memory", "ogr"] and valid_object_type:
         return True
-    elif vector_layer.objectName() in ("flowline", "node", "pump_linestring", "cell"):
+    elif vector_layer.objectName() in ("flowline", "node", "pump_linestring", "cell", "pump"):
         return True
 
     return False
@@ -636,6 +636,16 @@ class GraphWidget(QWidget):
                 if layer.id() not in result_item.parent().layer_ids.values():
                     continue
 
+                # Check whether a pump isn't already plotted as pump_line string (QGIS doesn't know they are the same thing)
+                if layer.objectName() == "pump_linestring":
+                    if ("pump_" + str(new_idx) + "_" + result_item.id) in existing_items:
+                        logger.error("Pump already plotted as node item")
+                        continue
+                if layer.objectName() == "pump":
+                    if ("pump_linestring_" + str(new_idx) + "_" + result_item.id) in existing_items:
+                        logger.error("Pump already plotted as line item")
+                        continue
+
                 if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:
                     item = {
                         "object_type": layer.objectName(),
@@ -897,7 +907,7 @@ class GraphDockWidget(QDockWidget):
         Add results for features of specific types.
         """
         if feature_type == FLOWLINE_OR_PUMP:
-            layer_keys = ['flowline', 'pump_linestring']
+            layer_keys = ['flowline', 'pump_linestring', 'pump']
             graph_widget = self.q_graph_widget
         elif feature_type == NODE_OR_CELL:
             layer_keys = ['node', 'cell']
