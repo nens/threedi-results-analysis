@@ -679,10 +679,10 @@ class SideViewDockWidget(QDockWidget):
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
             self.select_sideview_button.setChecked(False)
 
-        # Route tool is unset, clean up virtual tree and current route
-        self.route.reset()
-        self.map_visualisation.reset()
-        self.select_sideview_button.setText("Choose sideview trajectory")
+            # Route tool is unset, clean up virtual tree and current route
+            self.route.reset()
+            self.map_visualisation.reset()
+            self.select_sideview_button.setText("Choose sideview trajectory")
 
     def toggle_route_tool(self):
         if self.current_grid_id is None:
@@ -842,11 +842,11 @@ class SideViewDockWidget(QDockWidget):
         unloading widget
         """
         if self.current_grid_id is not None:
-            QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
             self.route_tool.deactivated.disconnect(self.unset_route_tool)
             self.unset_route_tool()
             self.map_visualisation.close()
             self.side_view_plot_widget.profile_hovered.disconnect(self.map_visualisation.hover_graph)
+            QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
 
         self.select_sideview_button.clicked.disconnect(self.toggle_route_tool)
         self.reset_sideview_button.clicked.disconnect(self.reset_sideview)
