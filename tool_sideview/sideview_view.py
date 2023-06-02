@@ -489,10 +489,11 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.waterlevel_plots[result_id] = (water_level_plot, water_fill)
 
             result = self.model.get_result(result_id)
+            total_data = result.threedi_result.get_timeseries("s1", fill_value=np.NaN)
             for node in self.sideview_nodes:
                 if "timeseries" not in node:
                     node["timeseries"] = {}
-                node["timeseries"][result.id] = result.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
+                node["timeseries"][result.id] = total_data[:, (int(node["id"])+1)]
 
         tc = iface.mapCanvas().temporalController()
         self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()), True)
@@ -529,7 +530,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             water_level_line = []
             for node in self.sideview_nodes:
-                water_level = node["timeseries"][result.id][timestamp_nr][1]
+                water_level = node["timeseries"][result.id][timestamp_nr]
                 water_level_line.append((node["distance"], water_level))
                 # logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
 
