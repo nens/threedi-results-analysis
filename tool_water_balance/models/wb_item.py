@@ -80,10 +80,6 @@ class WaterbalanceItemModel(BaseModel):
             default_value=select_default_color,
         )
         name = ValueField(show=True, column_width=210, column_name="name")
-        hover = ValueField(show=False, default_value=False)
-        layer_in_table = ValueField(show=False, default_value=False)
-        order = ValueField(show=False)
         default_method = ValueField(show=False)
+        order = ValueField(show=False)
         series = ValueField(show=False)
-        ts_series = ValueField(show=False)
-        _plots = {}

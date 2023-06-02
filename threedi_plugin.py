@@ -195,6 +195,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_changed.connect(self.watershed_tool.result_changed)
         self.watershed_tool.closing.connect(self.loader.reset_styling)
 
+        # waterbalance signals
+        self.model.result_added.connect(self.water_balance_tool.result_added)
+        self.model.result_removed.connect(self.water_balance_tool.result_removed)
+        self.model.result_changed.connect(self.water_balance_tool.result_changed)
+
         # Further administrative signals that need to happens last:
         # https://doc.qt.io/qt-5/signalsandslots.html#signals
         # If several slots are connected to one signal, the slots will be executed one after the other,

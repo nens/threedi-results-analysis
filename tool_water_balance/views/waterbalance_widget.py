@@ -1,7 +1,5 @@
 from qgis.core import Qgis
-from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsFeatureRequest
-from qgis.core import QgsProject
 from qgis.core import QgsWkbTypes
 from qgis.core import QgsGeometry
 from qgis.gui import QgsHighlight
@@ -26,6 +24,7 @@ from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QTableView
+from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis import PLUGIN_DIR
@@ -33,11 +32,15 @@ from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import Ro
 from threedi_results_analysis.utils.user_messages import messagebar_message
 
 from ..utils import PolygonWithCRS
-from ..config import SERIE_SETTINGS
+from ..config import BC_IO_SERIES
+from ..config import GRAPH_SERIES
 from ..config import INPUT_SERIES
+from ..config import TIME_UNITS_TO_SECONDS
 from ..models.wb_item import WaterbalanceItemModel
 
-import copy
+from collections import defaultdict
+from copy import deepcopy
+from itertools import chain
 import functools
 import logging
 import numpy as np
@@ -48,9 +51,47 @@ logger = logging.getLogger(__name__)
 
 MSG_TITLE = "Water Balance Tool"
 QCOLOR_RED = QColor(255, 0, 0)
-POLYGON_TYPES = (
-    QgsWkbTypes.Polygon, QgsWkbTypes.PolygonZ, QgsWkbTypes.Polygon25D,
-)
+POLYGON_TYPES = {
+    QgsWkbTypes.Polygon,
+    QgsWkbTypes.PolygonZ,
+    QgsWkbTypes.Polygon25D,
+}
+VOLUME_CHANGE_SERIE_NAMES = {
+    "volume change 2D",
+    "volume change groundwater",
+    "volume change 1D",
+}
+
+SERIES_NAME_TO_LINE_TYPES = {
+    "2D flow": ["2d"],
+    "2D boundary flow": ["2d_bound"],
+    "1D flow": ["1d"],
+    "1D boundary flow": ["1d_bound"],
+    "2D flow to 1D (domain exchange)": ["1d_2d_exch"],
+    "2D flow to 1D": ["1d__1d_2d_flow", "2d__1d_2d_flow"],
+    "pumps": ["pumps_hoover"],
+    "groundwater flow": ["2d_groundwater"],
+    "in/exfiltration (domain exchange)": [
+        "2d_vertical_infiltration_pos",
+        "2d_vertical_infiltration_neg",
+    ],
+}
+
+SERIES_NAME_TO_NODE_TYPES = {
+    "volume change": ["1d", "2d", "2d_groundwater"],
+    "volume change 2D": ["2d"],
+    "volume change 1D": ["1d"],
+    "volume change groundwater": ["2d_groundwater"],
+    "rain on 2D": ["2d"],
+    "0D rainfall runoff on 1D": ["1d"],
+    "lateral flow to 1D": ["1d"],
+    "lateral flow to 2D": ["2d"],
+    "leakage": ["2d"],
+    "interception": ["2d"],
+    "constant infiltration": ["2d"],
+    "external (rain and laterals)": ["1d", "2d"],
+    "surface sources and sinks": ["2d"],
+}
 
 
 # some helper functions and classes
@@ -76,7 +117,7 @@ def _get_feature_iterator(layer, request_filter):
 class Bar(object):
     """Bar for waterbalance barchart with positive and negative components."""
 
-    SERIES_NAME_TO_INDEX = {name: idx for (name, idx, _, part) in INPUT_SERIES}
+    SERIES_INDEX = dict(INPUT_SERIES)
 
     def __init__(self, label_name, in_series, out_series, type):
         self.label_name = label_name
@@ -101,7 +142,7 @@ class Bar(object):
         return self._balance_in
 
     def set_end_balance_in(self, ts, ts_series, t1=0, t2=None):
-        idxs = [self.SERIES_NAME_TO_INDEX[name] for name in self.in_series]
+        idxs = [self.SERIES_INDEX[name] for name in self.in_series]
         ts_indices_sliced = self._get_time_indices(ts, t1, t2)
         ts_deltas = np.concatenate(([0], np.diff(ts)))
         # shape = (N_idxs, len(ts))
@@ -113,7 +154,7 @@ class Bar(object):
         return self._balance_out
 
     def set_end_balance_out(self, ts, ts_series, t1=0, t2=None):
-        idxs = [self.SERIES_NAME_TO_INDEX[name] for name in self.out_series]
+        idxs = [self.SERIES_INDEX[name] for name in self.out_series]
         ts_indices_sliced = self._get_time_indices(ts, t1, t2)
         ts_deltas = np.concatenate(([0], np.diff(ts)))
         balance_tmp = (ts_deltas * ts_series[:, idxs].T).clip(max=0)
@@ -200,8 +241,8 @@ class BarManager(object):
 
 
 class WaterbalanceItemTable(QTableView):
-    hoverExitRow = pyqtSignal(int)
     hoverExitAllRows = pyqtSignal()  # exit the whole widget
+    hoverExitRow = pyqtSignal(str)
     hoverEnterRow = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -230,76 +271,55 @@ class WaterbalanceItemTable(QTableView):
         event.accept()
 
     def eventFilter(self, widget, event):
-        if widget is self.viewport():
+        result = QTableView.eventFilter(self, widget, event)
+        if widget is not self.viewport():
+            return result
 
-            if event.type() == QEvent.MouseMove:
-                row = self.indexAt(event.pos()).row()
-                if row == 0 and self.model and row > self.model.rowCount():
-                    row = None
+        if event.type() == QEvent.Leave:
+            self.hoverExitAllRows.emit()
+            new_row = None
+        elif event.type() == QEvent.MouseMove:
+            new_row = self.indexAt(event.pos()).row()
+        else:
+            return result
 
-            elif event.type() == QEvent.Leave:
-                row = None
-                self.hoverExitAllRows.emit()
-            else:
-                row = self._last_hovered_row
+        old_row = self._last_hovered_row
 
-            if row != self._last_hovered_row:
-                if self._last_hovered_row is not None:
-                    try:
-                        self.hover_exit(self._last_hovered_row)
-                    except IndexError:
-                        logger.warning(
-                            "Hover row index %s out of range", self._last_hovered_row
-                        )
-                        # self.hoverExitRow.emit(self._last_hovered_row)
-                # self.hoverEnterRow.emit(row)
-                if row is not None:
-                    try:
-                        self.hover_enter(row)
-                    except IndexError:
-                        logger.warning("Hover row index %s out of range", row),
-                self._last_hovered_row = row
-                pass
-        return QTableView.eventFilter(self, widget, event)
+        if old_row is not None and (new_row is None or new_row != old_row):
+            old_name = self.model.rows[old_row].name.value
+            self.hover_exit(old_row)
+            self.hoverExitRow.emit(old_name)
 
-    def hover_exit(self, row_nr):
-        if row_nr >= 0:
-            item = self.model.rows[row_nr]
-            name = item.name.value
+        if new_row is not None and (old_row is None or new_row != old_row):
+            new_name = self.model.rows[new_row].name.value
+            self.hover_enter(new_row)
+            self.hoverEnterRow.emit(new_name)
 
-            if name in [
-                "volume change",
-                "volume change 2D",
-                "volume change groundwater",
-                "volume change 1D",
-            ]:
-                item.fill_color.value = item.fill_color.value[:3] + [0]
-                item.pen_color.value = item.pen_color.value[:3] + [180]
-            else:
-                item.fill_color.value = item.fill_color.value[:3] + [150]
-                item.pen_color.value = item.pen_color.value[:3] + [180]
-
-            item.hover.value = False
+        self._last_hovered_row = new_row
+        return result
 
     def hover_enter(self, row_nr):
-        if row_nr >= 0:
-            item = self.model.rows[row_nr]
-            name = item.name.value
-            self.hoverEnterRow.emit(name)
+        item = self.model.rows[row_nr]
+        name = item.name.value
 
-            if name in [
-                "volume change",
-                "volume change 2D",
-                "volume change groundwater",
-                "volume change 1D",
-            ]:
-                item.fill_color.value = item.fill_color.value[:3] + [0]
-                item.pen_color.value = item.pen_color.value[:3] + [255]
-            else:
-                item.fill_color.value = item.fill_color.value[:3] + [220]
-                item.pen_color.value = item.pen_color.value[:3] + [255]
+        if name in VOLUME_CHANGE_SERIE_NAMES:
+            item.fill_color.value = item.fill_color.value[:3] + [0]
+            item.pen_color.value = item.pen_color.value[:3] + [255]
+        else:
+            item.fill_color.value = item.fill_color.value[:3] + [220]
+            item.pen_color.value = item.pen_color.value[:3] + [255]
 
-            item.hover.value = True
+    def hover_exit(self, row_nr):
+
+        item = self.model.rows[row_nr]
+        name = item.name.value
+
+        if name in VOLUME_CHANGE_SERIE_NAMES:
+            item.fill_color.value = item.fill_color.value[:3] + [0]
+            item.pen_color.value = item.pen_color.value[:3] + [180]
+        else:
+            item.fill_color.value = item.fill_color.value[:3] + [150]
+            item.pen_color.value = item.pen_color.value[:3] + [180]
 
     def setModel(self, model):
         super().setModel(model)
@@ -311,37 +331,27 @@ class WaterbalanceItemTable(QTableView):
 
 
 class WaterBalancePlotWidget(pg.PlotWidget):
-    def __init__(self, parent=None, name=""):
-
-        super().__init__(parent)
-        self.name = name
+    def __init__(self, model, result):
+        super().__init__()
+        self.model = model
+        self.result = result
         self.showGrid(True, True, 0.5)
         self.setLabel("bottom", "time", "hrs")
         self.setLabel("left", "flow", "m3/s")
         # Auto SI prefix scaling doesn't work properly with m3, m2 etc.
         self.getAxis("left").enableAutoSIPrefix(False)
-        self.series = {}
 
-    def setModel(self, model):
-        self.model = model
-        self.model.dataChanged.connect(self.data_changed)
-        self.model.rowsInserted.connect(self.on_insert)
-        self.model.rowsRemoved.connect(self.on_remove)
+        self._plot_data_items = None
 
-    def on_remove(self):
-        self.draw_timeseries()
-
-    def on_insert(self):
-        self.draw_timeseries()
-
-    def draw_timeseries(self):
-
+    def redraw_water_balance(self, time, time_label, values, values_label):
+        """
+        Plotdata depends on the previous item, to be able to stack on top of
+        it. Therefore adding to the grap goes in reversed order.
+        """
         self.clear()
-
-        ts = self.model.ts
-        zeros = np.zeros(shape=(np.size(ts, 0),))
+        zeros = np.zeros(shape=(np.size(time, 0),))
         zero_serie = pg.PlotDataItem(
-            x=ts,
+            x=time,
             y=zeros,
             connect="finite",
             pen=pg.mkPen(color=QColor(0, 0, 0, 200), width=1),
@@ -350,322 +360,169 @@ class WaterBalancePlotWidget(pg.PlotWidget):
 
         # all item.name.value (e.g. '1d-2d flow', 'pumps', 'rain') have both a
         # 'in' and 'out' flow: so two lines that together form a graph.
-        # However the volume change lines in item.name.value ('volume change',
-        # 'volume change 2d', 'volume change groundwater', and
-        # 'volume change 1d' are summed into 1 line (so no out and in)
-        for dir in ["in", "out"]:
+        # However the volume change lines are summed into 1 line (so no out and
+        # in)
+        self._plot_data_items = defaultdict(dict)
+        for d7n in ["in", "out"]:
             prev_serie = zeros
             prev_pldi = zero_serie
             for item in self.model.rows:
-                if item.active.value and item.name.value in [
-                    "volume change",
-                    "volume change 2D",
-                    "volume change groundwater",
-                    "volume change 1D",
-                ]:
-                    pen_color = item.pen_color.value
-                    not_cum_serie = (
-                        item.ts_series.value["in"] + item.ts_series.value["out"]
-                    )
-                    plot_item = pg.PlotDataItem(
-                        x=ts,
-                        y=not_cum_serie,
-                        connect="finite",
-                        pen=pg.mkPen(
-                            color=QColor(*pen_color), width=4, style=Qt.DashDotLine
-                        ),
-                    )
-                    # only get 1 line (the sum of 'in' and 'out')
-                    item._plots["sum"] = plot_item
+                name = item.name.value
+                _plots = self._plot_data_items[name]
+                if item.active.value:
+                    if name in VOLUME_CHANGE_SERIE_NAMES:
+                        pen_color = item.pen_color.value
+                        not_cum_serie = (
+                            values[name]["values"]["in"] + values[name]["values"]["out"]
+                        )
+                        plot_item = pg.PlotDataItem(
+                            x=time,
+                            y=not_cum_serie,
+                            connect="finite",
+                            pen=pg.mkPen(
+                                color=QColor(*pen_color), width=4, style=Qt.DashDotLine
+                            ),
+                        )
+                        # only get 1 line (the sum of 'in' and 'out')
+                        _plots["sum"] = plot_item
 
-                if item.active.value and item.name.value not in [
-                    "volume change",
-                    "volume change 2D",
-                    "volume change groundwater",
-                    "volume change 1D",
-                ]:
-                    pen_color = item.pen_color.value
-                    fill_color = item.fill_color.value
-                    cum_serie = prev_serie + item.ts_series.value[dir]
-                    plot_item = pg.PlotDataItem(
-                        x=ts,
-                        y=cum_serie,
-                        connect="finite",
-                        pen=pg.mkPen(color=QColor(*pen_color), width=1),
-                    )
-                    fill = pg.FillBetweenItem(
-                        prev_pldi, plot_item, pg.mkBrush(*fill_color)
-                    )
-                    # keep reference
-                    item._plots[dir] = plot_item
-                    item._plots[dir + "fill"] = fill
-                    prev_serie = cum_serie
-                    prev_pldi = plot_item
+                    else:  # name not in VOLUME_CHANGE_SERIE_NAMES
+                        pen_color = item.pen_color.value
+                        fill_color = item.fill_color.value
+                        cum_serie = prev_serie + values[name]["values"][d7n]
+                        plot_item = pg.PlotDataItem(
+                            x=time,
+                            y=cum_serie,
+                            connect="finite",
+                            pen=pg.mkPen(color=QColor(*pen_color), width=1),
+                        )
+                        fill = pg.FillBetweenItem(
+                            prev_pldi, plot_item, pg.mkBrush(*fill_color)
+                        )
+                        # keep reference
+                        _plots[d7n] = plot_item
+                        _plots[d7n + "fill"] = fill
+                        prev_serie = cum_serie
+                        prev_pldi = plot_item
 
         # add PlotItems to graph
-        y_min = 0
-        y_max = 0
-        x_min = 0
-        x_max = 0
-        for dir in ["in", "out"]:
+        for d7n in ["in", "out"]:
             for item in reversed(self.model.rows):
+                name = item.name.value
+                _plots = self._plot_data_items[name]
                 if item.active.value:
-                    if item.name.value in [
-                        "volume change",
-                        "volume change 2D",
-                        "volume change groundwater",
-                        "volume change 1D",
-                    ]:
-                        self.addItem(item._plots["sum"], ignoreBounds=True)
+                    if name in VOLUME_CHANGE_SERIE_NAMES:
+                        self.addItem(_plots["sum"], ignoreBounds=True)
+                    else:  # name not in VOLUME_CHANGE_SERIE_NAMES
+                        self.addItem(_plots[d7n], ignoreBounds=True)
+                        self.addItem(_plots[d7n + "fill"], ignoreBounds=True)
 
-                        # determine PlotItem min and max for display range
-                        y_min = min(y_min, min(item._plots["sum"].yData))
-                        y_max = max(y_max, max(item._plots["sum"].yData))
-                        x_min = min(x_min, min(item._plots["sum"].xData))
-                        x_max = max(x_max, max(item._plots["sum"].xData))
-                    else:
-                        self.addItem(item._plots[dir], ignoreBounds=True)
-                        self.addItem(item._plots[dir + "fill"], ignoreBounds=True)
-
-                        y_min = min(y_min, min(item._plots[dir].yData))
-                        y_max = max(y_max, max(item._plots[dir].yData))
-                        x_min = min(x_min, min(item._plots[dir].xData))
-                        x_max = max(x_max, max(item._plots[dir].xData))
-        # http://www.pyqtgraph.org/documentation/graphicsItems/viewbox.html
-        # for some reason shows 'self.autoRange()' some weird behavior (each
-        # time draw_timeseries() is called, the x-axis is extended by a factor
-        # 4. With 'self.getPlotItem().viewRect()' one can follow this. So,
-        # instead of self.autoRange(), we set the min,max of the X- and YRange
-        # TODO: find out why autoRange() extends the x-axis by factor 4
-        # self.autoRange()
-        self.setYRange(y_min, y_max, padding=None, update=True)
+        # set range to contents
+        x_min = min(pdi.xData.min() for pdi in self.plotItem.listDataItems())
+        x_max = max(pdi.xData.max() for pdi in self.plotItem.listDataItems())
         self.setXRange(x_min, x_max, padding=None, update=True)
 
-    def data_changed(self, index):
-        """
-        change graphs based on changes in locations
-        :param index: index of changed field
-        """
-        if self.model.columns[index.column()].name == "active":
-            self.draw_timeseries()
+        y_min = min(pdi.yData.min() for pdi in self.plotItem.listDataItems())
+        y_max = max(pdi.yData.max() for pdi in self.plotItem.listDataItems())
+        self.setYRange(y_min, y_max, padding=None, update=True)
 
-        elif self.model.columns[index.column()].name == "hover":
-            item = self.model.rows[index.row()]
+        # one would say a simple autorange should work, but it does not
+        # self.autoRange(padding=0)
 
-            if item.hover.value:
-                if item.active.value:
-                    if "in" in item._plots:
-                        item._plots["in"].setPen(color=item.pen_color.value, width=1)
-                        item._plots["infill"].setBrush(
-                            pg.mkBrush(item.fill_color.value)
-                        )
-                    if "out" in item._plots:
-                        item._plots["out"].setPen(color=item.pen_color.value, width=1)
-                        item._plots["outfill"].setBrush(
-                            pg.mkBrush(item.fill_color.value)
-                        )
-                    if "sum" in item._plots:
-                        item._plots["sum"].setPen(
-                            color=item.pen_color.value, width=4, style=Qt.DashDotLine
-                        )
-            else:
-                if item.active.value:
-                    if "in" in item._plots:
-                        item._plots["in"].setPen(color=item.pen_color.value, width=1)
-                        item._plots["infill"].setBrush(
-                            pg.mkBrush(item.fill_color.value)
-                        )
-                    if "out" in item._plots:
-                        item._plots["out"].setPen(color=item.pen_color.value, width=1)
-                        item._plots["outfill"].setBrush(
-                            pg.mkBrush(item.fill_color.value)
-                        )
-                    if "sum" in item._plots:
-                        item._plots["sum"].setPen(
-                            color=item.pen_color.value, width=4, style=Qt.DashDotLine
-                        )
+        # set labels
+        self.setLabel("left", *values_label)
+        self.setLabel("bottom", *time_label)
+
+        # set labels for in and out fluxes TODO fix?
+        text_upper = pg.TextItem(text="out", anchor=(0, 1), angle=-90)
+        text_upper.setPos(0, 0)
+        text_lower = pg.TextItem(text="in", anchor=(1, 1), angle=-90)
+        text_lower.setPos(0, 0)
+        self.addItem(text_upper)
+        self.addItem(text_lower)
+
+    def hover_enter_plot_highlight(self, name):
+        if name not in self._plot_data_items:  # meaning it is not active
+            return
+        plots = self._plot_data_items[name]
+        item = [item for item in self.model.rows if item.name.value == name][0]
+        if "in" in plots:
+            plots["in"].setPen(color=item.pen_color.value, width=1)
+            plots["infill"].setBrush(pg.mkBrush(item.fill_color.value))
+        if "out" in plots:
+            plots["out"].setPen(color=item.pen_color.value, width=1)
+            plots["outfill"].setBrush(pg.mkBrush(item.fill_color.value))
+        if "sum" in plots:
+            plots["sum"].setPen(
+                color=item.pen_color.value, width=4, style=Qt.DashDotLine
+            )
+
+    def hover_exit_plot_highlight(self, name):
+        if name not in self._plot_data_items:  # meaning it is not active
+            return
+        plots = self._plot_data_items[name]
+        item = [item for item in self.model.rows if item.name.value == name][0]
+        if "in" in plots:
+            plots["in"].setPen(color=item.pen_color.value, width=1)
+            plots["infill"].setBrush(pg.mkBrush(item.fill_color.value))
+        if "out" in plots:
+            plots["out"].setPen(color=item.pen_color.value, width=1)
+            plots["outfill"].setBrush(pg.mkBrush(item.fill_color.value))
+        if "sum" in plots:
+            plots["sum"].setPen(
+                color=item.pen_color.value, width=4, style=Qt.DashDotLine
+            )
 
 
 class WaterBalanceWidget(QDockWidget):
     closingWidget = pyqtSignal()
-
-    INPUT_SERIES = INPUT_SERIES
-
-    IN_OUT_SERIES = [
-        {
-            # 'label_name': '1D: 1D-2D flow',
-            "label_name": "1D: 2D flow to 1D",
-            "in": ["1d__1d_2d_flow_in"],
-            "out": ["1d__1d_2d_flow_out"],
-            "type": "1d",
-        },
-        {
-            # 'label_name': '2D: 1D-2D flow',
-            "label_name": "2D: 2D flow to 1D",
-            "in": ["2d__1d_2d_flow_in"],
-            "out": ["2d__1d_2d_flow_out"],
-            "type": "2d",
-        },
-        {
-            # 'label_name': '1D-2D flow (all domains)',
-            "label_name": "2D flow to 1D (all domains)",
-            # does this make sense?
-            "in": ["1d__1d_2d_flow_in", "2d__1d_2d_flow_in"],
-            "out": ["1d__1d_2d_flow_out", "2d__1d_2d_flow_out"],
-            "type": "NETVOL",
-        },
-        {
-            # 'label_name': '1D: 1D-2D exchange',
-            "label_name": "1D: 2D flow to 1D (domain exchange)",
-            "in": ["1d__1d_2d_exch_in"],
-            "out": ["1d__1d_2d_exch_out"],
-            "type": "1d",
-        },
-        {
-            # 'label_name': '2D: 1D-2D exchange',
-            "label_name": "2D: 2D flow to 1D (domain exchange)",
-            "in": ["2d__1d_2d_exch_in"],
-            "out": ["2d__1d_2d_exch_out"],
-            "type": "2d",
-        },
-        {
-            "label_name": "net change in storage",
-            "in": ["d_2d_vol"],
-            "out": ["d_2d_vol"],
-            "type": "2d",
-        },
-        {
-            "label_name": "net change in storage",
-            "in": ["d_1d_vol"],
-            "out": ["d_1d_vol"],
-            "type": "1d",
-        },
-        {
-            "label_name": "net change in storage",
-            "in": ["d_2d_groundwater_vol"],
-            "out": ["d_2d_groundwater_vol"],
-            "type": "2d_groundwater",
-        },
-        {
-            "label_name": "leakage",
-            "in": ["leak"],
-            "out": ["leak"],
-            "type": "2d_groundwater",
-        },
-        {
-            "label_name": "constant infiltration",
-            "in": ["infiltration_rate_simple"],
-            "out": ["infiltration_rate_simple"],
-            "type": "2d",
-        },
-        {"label_name": "2D flow", "in": ["2d_in"], "out": ["2d_out"], "type": "2d"},
-        {"label_name": "1D flow", "in": ["1d_in"], "out": ["1d_out"], "type": "1d"},
-        {
-            "label_name": "groundwater flow",
-            "in": ["2d_groundwater_in"],
-            "out": ["2d_groundwater_out"],
-            "type": "2d_groundwater",
-        },
-        {
-            "label_name": "lateral flow to 2D",
-            "in": ["lat_2d"],
-            "out": ["lat_2d"],
-            "type": "2d",
-        },
-        {
-            "label_name": "lateral flow to 1D",
-            "in": ["lat_1d"],
-            "out": ["lat_1d"],
-            "type": "1d",
-        },
-        {
-            "label_name": "2D boundary flow",
-            "in": ["2d_bound_in"],
-            "out": ["2d_bound_out"],
-            "type": "2d",
-        },
-        {
-            "label_name": "1D boundary flow",
-            "in": ["1d_bound_in"],
-            "out": ["1d_bound_out"],
-            "type": "1d",
-        },
-        {
-            "label_name": "0D rainfall runoff on 1D",
-            "in": ["inflow"],
-            "out": ["inflow"],
-            "type": "1d",
-        },
-        {
-            "label_name": "in/exfiltration (domain exchange)",
-            # NOTE: for the argument why pos is out and neg is in, see the
-            # comment in ``WaterBalanceCalculation.get_aggregated_flows``
-            "in": ["2d_vertical_infiltration_neg"],
-            "out": ["2d_vertical_infiltration_pos"],
-            "type": "2d_vert",
-        },
-        {
-            "label_name": "change in storage",
-            "in": ["d_2d_vol", "d_2d_groundwater_vol", "d_1d_vol"],
-            "out": ["d_2d_vol", "d_2d_groundwater_vol", "d_1d_vol"],
-            "type": "NETVOL",
-        },
-        {"label_name": "pump", "in": ["pump_in"], "out": ["pump_out"], "type": "1d"},
-        {"label_name": "rain on 2D", "in": ["rain"], "out": ["rain"], "type": "2d"},
-        {
-            "label_name": "interception",
-            "in": ["intercepted_volume"],
-            "out": ["intercepted_volume"],
-            "type": "2d",
-        },
-        {
-            "label_name": "surface sources and sinks",
-            "in": ["q_sss"],
-            "out": ["q_sss"],
-            "type": "2d",
-        },
-    ]
 
     def __init__(self, title, iface, manager):
         super().__init__(title)
 
         self.iface = iface
         self.manager = manager
-        self.calc = None
+        self.wb_polygon_highlight = None
 
         # setup ui
         self.setup_ui(self)
 
         self.model = WaterbalanceItemModel()
+        self.model.insertRows(self.get_table_data())
+        self.model.dataChanged.connect(self.data_changed)
         self.wb_item_table.setModel(self.model)
-        self.plot_widget.setModel(self.model)
         self.selection_vis = SelectionVisualisation(iface.mapCanvas())
 
         # fill comboboxes with selections
-        self.modelpart_combo_box.insertItems(0, ["1d and 2d", "1d", "2d"])
-        self.sum_type_combo_box.insertItems(0, list(SERIE_SETTINGS.keys()))
         self.agg_combo_box.insertItems(0, ["m3/s", "m3 cumulative"])
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
 
         # add listeners
         self.select_polygon_button.clicked.connect(self._set_map_tool)
         self.chart_button.clicked.connect(self.show_barchart)
-        self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
-        self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
-        self.agg_combo_box.currentIndexChanged.connect(self.update_wb)
-        self.ts_units_combo_box.currentIndexChanged.connect(self.update_wb)
-        self.wb_item_table.hoverEnterRow.connect(self.hover_enter_map_visualization)
-        self.wb_item_table.hoverExitAllRows.connect(self.hover_exit_map_visualization)
+        self.agg_combo_box.currentIndexChanged.connect(self.update_water_balance)
+        self.ts_units_combo_box.currentIndexChanged.connect(self.update_water_balance)
+        self.wb_item_table.hoverEnterRow.connect(self.hover_enter_action)
+        self.tab_widget.currentChanged.connect(self.update_water_balance)
+        self.wb_item_table.hoverExitRow.connect(self.hover_exit_action)
         self.activate_all_button.clicked.connect(self.activate_layers)
         self.deactivate_all_button.clicked.connect(self.deactivate_layers)
 
         # initially turn on tool
-        self.wb_polygon_highlight = None
+        self._set_map_tool()
+
+    @property
+    def agg(self):
+        return self.agg_combo_box.currentText()
+
+    @property
+    def time_units(self):
+        return self.ts_units_combo_box.currentText()
 
     def _get_io_series_net(self):
         io_series_net = [
             x
-            for x in self.IN_OUT_SERIES
+            for x in BC_IO_SERIES
             if (
                 x["type"] in ["2d", "2d_vert", "2d_groundwater", "1d"]
                 and "storage" not in x["label_name"]
@@ -682,7 +539,7 @@ class WaterBalanceWidget(QDockWidget):
     def _get_io_series_2d(self):
         io_series_2d = [
             x
-            for x in self.IN_OUT_SERIES
+            for x in BC_IO_SERIES
             if x["type"] in ["2d", "2d_vert"]
             and x["label_name"] != "1D: 2D flow to 1D"
             and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
@@ -691,60 +548,55 @@ class WaterBalanceWidget(QDockWidget):
 
     def _get_io_series_2d_groundwater(self):
         io_series_2d_groundwater = [
-            x for x in self.IN_OUT_SERIES if x["type"] in ["2d_groundwater", "2d_vert"]
+            x for x in BC_IO_SERIES if x["type"] in ["2d_groundwater", "2d_vert"]
         ]
         return io_series_2d_groundwater
 
     def _get_io_series_1d(self):
         io_series_1d = [
             x
-            for x in self.IN_OUT_SERIES
+            for x in BC_IO_SERIES
             if x["type"] == "1d"
             and x["label_name"] != "2D: 2D flow to 1D"
             and x["label_name"] != "2D: 2D flow to 1D (domain exchange)"
         ]
         return io_series_1d
 
-    @property
-    def time_units_divisor(self):
-        time_units = self.ts_units_combo_box.currentText()
-        if time_units == "hrs":
-            time_divisor = 3600
-        elif time_units == "mins":
-            time_divisor = 60
-        else:
-            time_divisor = 1
-        return time_divisor
-
     def show_barchart(self):
-        if self.manager.polygon is None:
+        """
+        Show a pop-up with a barchart based on the current temporal view in the
+        plot widget
+        """
+        if not self.manager:
             return
 
-        ts, ts_series = self.calc.time, self.calc.flow
+        plot_widget = self.tab_widget.currentWidget()
+        calc = self.manager[plot_widget.result]
+        time, flow = calc.time, calc.flow
 
         io_series_net = self._get_io_series_net()
         io_series_2d = self._get_io_series_2d()
         io_series_2d_groundwater = self._get_io_series_2d_groundwater()
         io_series_1d = self._get_io_series_1d()
 
-        # get timeseries x range in plot widget
-        viewbox_state = self.plot_widget.getPlotItem().getViewBox().getState()
+        # determine the time in seconds from the current plot state
+        viewbox_state = plot_widget.getPlotItem().getViewBox().getState()
         view_range = viewbox_state["viewRange"]
         t1, t2 = view_range[0]
-        # We have to convert plot time steps range into the seconds to match the time series data
-        t1 = t1 * self.time_units_divisor
-        t2 = t2 * self.time_units_divisor
+        t1 = t1 * TIME_UNITS_TO_SECONDS[self.time_units]
+        t2 = t2 * TIME_UNITS_TO_SECONDS[self.time_units]
+
         bm_net = BarManager(io_series_net)
         bm_2d = BarManager(io_series_2d)
         bm_2d_groundwater = BarManager(io_series_2d_groundwater)
         bm_1d = BarManager(io_series_1d)
 
-        bm_net.calc_balance(ts, ts_series, t1, t2, net=True)
-        bm_2d.calc_balance(ts, ts_series, t1, t2)
+        bm_net.calc_balance(time, flow, t1, t2, net=True)
+        bm_2d.calc_balance(time, flow, t1, t2)
         bm_2d_groundwater.calc_balance(
-            ts, ts_series, t1, t2, invert=["in/exfiltration (domain exchange)"]
+            time, flow, t1, t2, invert=["in/exfiltration (domain exchange)"]
         )
-        bm_1d.calc_balance(ts, ts_series, t1, t2)
+        bm_1d.calc_balance(time, flow, t1, t2)
 
         t_start = max(0, t1)
 
@@ -754,7 +606,7 @@ class WaterBalanceWidget(QDockWidget):
         text = "Water balance from t=%.2f to t=%.2f \n Model name: %s" % (
             t_start,
             t2,
-            self.calc.wrapper.threedi_result.short_model_slug,
+            calc.wrapped_result.threedi_result.short_model_slug,
         )
         layout.addLabel(text, row=0, col=0, colspan=3)
 
@@ -1001,91 +853,40 @@ class WaterBalanceWidget(QDockWidget):
         )
         network1d_plot.setYRange(min=y_min, max=y_max)
 
-    def hover_enter_map_visualization(self, name):
-        """On hover rubberband visualisation using the table item name.
+    def data_changed(self, index):
+        if self.model.columns[index.column()].name == "active":
+            self.update_water_balance()
 
-        Uses the cached self.qgs_lines/self.qgs_points.
-        """
-        if self.manager.polygon is None:
+    def hover_enter_action(self, name):
+        if not self.manager:
             return
 
-        # TODO 1: generate this dict
+        # plot highlight
+        self.tab_widget.currentWidget().hover_enter_plot_highlight(name)
 
-        # TODO 2: using the name as key is INCREDIBLY error prone: one
-        # spelling mistake or a change in sum_configs and it doesn't work
-        # anymore, and because we also catch the KeyErrors you won't even
-        # notice. NEEDS TO BE FIXED
+        # map geometry highlight
+        result = self.tab_widget.currentWidget().result
+        calc = self.manager[result]
 
-        NAME_TO_LINE_TYPES_SHOW_ALL = {
-            "2D flow": ["2d"],
-            "2D boundary flow": ["2d_bound"],
-            "1D flow": ["1d"],
-            "1D boundary flow": ["1d_bound"],
-            "2D flow to 1D (domain exchange)": ["1d_2d_exch"],
-            "2D flow to 1D": ["1d__1d_2d_flow", "2d__1d_2d_flow"],
-            # TODO: 'pumps_hoover' is a magic string that we ad-hoc created
-            # in the 'prepare_and_visualize_selection' function.
-            # A better solution would be nice...
-            "pumps": ["pumps_hoover"],
-            "groundwater flow": ["2d_groundwater"],
-            "in/exfiltration (domain exchange)": [
-                "2d_vertical_infiltration_pos",
-                "2d_vertical_infiltration_neg",
-            ],
-        }
-        NAME_TO_LINE_TYPES_SHOW_MAIN_FLOW = {
-            "2D flow": ["2d", "2d_bound"],
-            "1D flow": ["1d", "pumps_hoover", "1d_bound"],
-            "2D flow to 1D": ["1d__1d_2d_flow", "2d__1d_2d_flow"],
-            "2D flow to 1D (domain exchange)": ["1d_2d_exch"],
-            "groundwater flow": ["2d_groundwater"],
-        }
-        NAME_TO_NODE_TYPES = {
-            "volume change": ["1d", "2d", "2d_groundwater"],
-            "volume change 2D": ["2d"],
-            "volume change 1D": ["1d"],
-            "volume change groundwater": ["2d_groundwater"],
-            "rain on 2D": ["2d"],
-            "0D rainfall runoff on 1D": ["1d"],
-            "lateral flow to 1D": ["1d"],
-            "lateral flow to 2D": ["2d"],
-            "leakage": ["2d"],
-            "interception": ["2d"],
-            "constant infiltration": ["2d"],
-            "external (rain and laterals)": ["1d", "2d"],
-            "surface sources and sinks": ["2d"],
-        }
-
-        # more hackery to fix keys defined in both 'show main flow' and
-        # 'show all'
-        sum_type = self.sum_type_combo_box.currentText()
-        assert sum_type in ["show main flow", "show all"]
-        if sum_type == "show main flow":
-            name_to_line_type = NAME_TO_LINE_TYPES_SHOW_MAIN_FLOW
-        elif sum_type == "show all":
-            name_to_line_type = NAME_TO_LINE_TYPES_SHOW_ALL
-        else:
-            raise ValueError("Unknown type %s" % sum_type)
-
-        line_geoms = []
-        if name in name_to_line_type:
-            types_line = name_to_line_type[name]
-            for t in types_line:
-                if t in self.qgs_lines:
-                    geoms = self.qgs_lines[t]
-                    line_geoms.extend(geoms)
-
-        point_geoms = []
-        if name in NAME_TO_NODE_TYPES:
-            types_node = NAME_TO_NODE_TYPES[name]
-            for t in types_node:
-                if t in self.qgs_points:
-                    geoms = self.qgs_points[t]
-                    point_geoms.extend(geoms)
+        # note that using getitem on qgs_lines and qgs_points works because
+        # they are defaultdict(list)
+        line_geoms = list(chain(*(
+            calc.qgs_lines[t] for t in SERIES_NAME_TO_LINE_TYPES.get(name, [])
+        )))
+        point_geoms = list(chain(*(
+            calc.qgs_points[t] for t in SERIES_NAME_TO_NODE_TYPES.get(name, [])
+        )))
 
         self.selection_vis.update(line_geoms, point_geoms)
 
-    def hover_exit_map_visualization(self, *args):
+    def hover_exit_action(self, name):
+        if not self.manager:
+            return
+
+        # plot highlight
+        self.tab_widget.currentWidget().hover_exit_plot_highlight(name)
+
+        # map geometry highlight
         self.selection_vis.reset()
 
     def _set_map_tool(self):
@@ -1095,250 +896,65 @@ class WaterBalanceWidget(QDockWidget):
         self.iface.mapCanvas().unsetMapTool(self.map_tool_select_polygon)
 
     def activate_layers(self):
+        self.model.dataChanged.disconnect(self.data_changed)
         for item in self.model.rows:
             item.active.value = True
+        self.model.dataChanged.connect(self.data_changed)
+        self.update_water_balance()
 
     def deactivate_layers(self):
+        self.model.dataChanged.disconnect(self.data_changed)
         for item in self.model.rows:
             item.active.value = False
+        self.model.dataChanged.connect(self.data_changed)
+        self.update_water_balance()
 
-    def get_modelpart_graph_layers(self, graph_layers):
-        modelpart_graph_series = [
-            x for x in graph_layers if x["layer_in_table"] is True
-        ]
-        return modelpart_graph_series
+    def get_table_data(self):
+        """
+        Only the config, no actual result data. The link between item and data
+        will be the names of the series. This will be fed to insertRows on the
+        model.
+        """
+        table_data = deepcopy(GRAPH_SERIES)
 
-    def update_wb(self):
-        """ Runs after comboboxes change. """
-        self.model.removeRows(0, len(self.model.rows))
+        for item in table_data:
+            item["active"] = True
+            item["fill_color"] = [
+                int(c) for c in item["def_fill_color"].split(",")
+            ]
+            item["pen_color"] = [
+                int(c) for c in item["def_pen_color"].split(",")
+            ]
 
-        for calc in self.manager:
-            # TODO update all calculations, not just the first
-            self.calc = calc
-            break
-        else:
-            self.calc = None
+        return table_data
+
+    def update_water_balance(self):
+        """
+        Redraw plots after comboboxes or active tab changes.
+        """
+        if not self.manager:
             return
 
-        ts, graph_series = self.calc_wb_graph(
-            self.modelpart_combo_box.currentText(),
-            self.agg_combo_box.currentText(),
+        plot_widget = self.tab_widget.currentWidget()
+        calc = self.manager[plot_widget.result]
+        graph_data = calc.get_graph_data(
+            agg=self.agg, time_units=self.time_units,
         )
-        time_units = self.ts_units_combo_box.currentText()
-        self.model.ts = ts / self.time_units_divisor
-
-        # self.layers_in_table = self.get_modelpart_graph_layers(
-        #     graph_series['items'])
-
-        self.model.insertRows(self.get_modelpart_graph_layers(graph_series["items"]))
-        if self.agg_combo_box.currentText() == "m3/s":
-            self.plot_widget.setLabel("left", "Flow", "m3/s")
-            self.plot_widget.setLabel("bottom", "time", time_units)
-        elif self.agg_combo_box.currentText() == "m3 cumulative":
-            self.plot_widget.setLabel("left", "Cumulative flow", "m3")
-            self.plot_widget.setLabel("bottom", "time", time_units)
-        else:
-            self.plot_widget.setLabel("left", "-", "-")
-            self.plot_widget.setLabel("bottom", "-", "-")
-
-        # set labels for in and out fluxes
-        text_upper = pg.TextItem(text="out", anchor=(0, 1), angle=-90)
-        text_upper.setPos(0, 0)
-        text_lower = pg.TextItem(text="in", anchor=(1, 1), angle=-90)
-        text_lower.setPos(0, 0)
-        self.plot_widget.addItem(text_upper)
-        self.plot_widget.addItem(text_lower)
-
-    def calc_wb_graph(self, model_part, aggregation_type):
-        lines = self.calc.wrapper.lines
-        points = self.calc.wrapper.points
-        pumps = self.calc.wrapper.pumps
-        time, flow = self.calc.time, self.calc.flow
-
-        settings = SERIE_SETTINGS[self.sum_type_combo_box.currentText()]
-        graph_series = self.make_graph_series(
-            time, flow, model_part, aggregation_type, settings
-        )
-
-        self.prepare_and_visualize_selection(
-            self.calc.flowline_ids,
-            self.calc.pump_ids,
-            self.calc.node_ids,
-            lines,
-            pumps,
-            points,
-        )
-        return time, graph_series
-
-    def prepare_and_visualize_selection(
-        self, link_ids, pump_ids, node_ids, lines, pumps, points
-    ):
-        """Prepare dictionaries with geometries categorized by type and
-        save it on self.qgs_lines and self.qgs_points.
-        """
-        req_filter_links = _get_request_filter(link_ids)
-        req_filter_pumps = _get_request_filter(pump_ids)
-        req_filter_nodes = _get_request_filter(node_ids)
-
-        line_id_to_type = {}
-        for _type, id_list in list(link_ids.items()):
-            for i in id_list:
-                t = _type.rsplit("_out")[0].rsplit("_in")[0]
-                if i not in line_id_to_type:
-                    # business as usual
-                    line_id_to_type[i] = t
-                else:
-                    # NOTE: awful hack for links that have multiple types
-                    val = line_id_to_type[i]
-                    if isinstance(val, list):
-                        val.append(t)
-                    else:
-                        line_id_to_type[i] = [val, t]
-
-        node_id_to_type = {}
-        for _type, id_list in list(node_ids.items()):
-            for i in id_list:
-                node_id_to_type[i] = _type
-
-        qgs_lines = {}
-        qgs_points = {}
-        tr_reverse = QgsCoordinateTransform(
-            lines.crs(),
-            self.iface.mapCanvas().mapSettings().destinationCrs(),
-            QgsProject.instance(),
-        )
-
-        # NOTE: getting all features again isn't efficient because they're
-        # already calculated in WaterBalanceCalculation, but w/e
-        for feat in _get_feature_iterator(lines, req_filter_links):
-            geom = feat.geometry()
-            geom.transform(tr_reverse)
-            _type = line_id_to_type[feat["id"]]
-
-            if isinstance(_type, list):
-                # NOTE: this means there are multiple types for one link
-                for t in _type:
-                    qgs_lines.setdefault(t, []).append(geom.asPolyline())
-            else:
-                # one type only, business as usual
-                qgs_lines.setdefault(_type, []).append(geom.asPolyline())
-        for feat in _get_feature_iterator(pumps, req_filter_pumps):
-            geom = feat.geometry()
-            geom.transform(tr_reverse)
-            qgs_lines.setdefault("pumps_hoover", []).append(geom.asPolyline())
-        for feat in _get_feature_iterator(points, req_filter_nodes):
-            geom = feat.geometry()
-            geom.transform(tr_reverse)
-            _type = node_id_to_type[feat["id"]]
-            qgs_points.setdefault(_type, []).append(geom.asPoint())
-
-        self.qgs_lines = qgs_lines
-        self.qgs_points = qgs_points
-
-    def make_graph_series(self, ts, total_time, model_part, aggregation_type, settings):
-        settings = copy.deepcopy(settings)
-
-        graph_model_parts = {
-            "1d and 2d": ["1d", "2d", "2d_vert", "1d2d"],
-            "2d": ["2d", "2d_vert", "1d2d"],
-            "1d": ["1d", "1d2d"],
-        }[model_part]
-
-        input_series = {
-            serie_name: index
-            for serie_name, index, _, graph_model_part in self.INPUT_SERIES
-            if graph_model_part in graph_model_parts
-        }
-
-        # set layers to True (layer is tickled in wb_item_table (right box
-        # where one can tickle layer(s), but more important: based on this we
-        # add layer to to wb_item_table in get_modelpart_graph_layers()
-        input_series_copy = copy.deepcopy(input_series)
-        for serie_setting in settings.get("items", []):
-            serie_setting["layer_in_table"] = False
-            for serie in serie_setting["series"]:
-                if serie in input_series_copy:
-                    # serie will be displayed in wb_item_table
-                    serie_setting["layer_in_table"] = True
-                    serie_setting["active"] = True
-                    break
-
-            serie_setting["method"] = serie_setting["default_method"]
-            serie_setting["fill_color"] = [
-                int(c) for c in serie_setting["def_fill_color"].split(",")
-            ]
-            serie_setting["pen_color"] = [
-                int(c) for c in serie_setting["def_pen_color"].split(",")
-            ]
-            serie_setting["ts_series"] = {}
-            nrs_input_series = []
-            for serie in serie_setting["series"]:
-                if serie in input_series:
-                    nrs_input_series.append(input_series[serie])
-                    del input_series[serie]
-                else:
-                    # throw good error message
-                    logger.warning(
-                        "serie config error: %s is an unknown "
-                        "serie or is doubled in the config.",
-                        serie,
-                    )
-            if serie_setting["default_method"] == "net":
-                sum = total_time[:, nrs_input_series].sum(axis=1)
-                serie_setting["ts_series"]["in"] = sum.clip(min=0)
-                serie_setting["ts_series"]["out"] = sum.clip(max=0)
-            elif serie_setting["default_method"] == "gross":
-                sum_pos = np.zeros(shape=(np.size(ts, 0),))
-                sum_neg = np.zeros(shape=(np.size(ts, 0),))
-                for nr in nrs_input_series:
-                    sum_pos += total_time[:, nr].clip(min=0)
-                    sum_neg += total_time[:, nr].clip(max=0)
-                serie_setting["ts_series"]["in"] = sum_pos
-                serie_setting["ts_series"]["out"] = sum_neg
-            else:
-                # throw config error
-                logger.warning(
-                    "aggregation %s method unknown.", serie_setting["default_method"]
-                )
-
-            if aggregation_type == "m3 cumulative":
-
-                logger.debug("aggregate")
-                diff = np.append([0], np.diff(ts))
-
-                serie_setting["ts_series"]["in"] = (
-                    serie_setting["ts_series"]["in"] * diff
-                )
-                serie_setting["ts_series"]["in"] = np.cumsum(
-                    serie_setting["ts_series"]["in"], axis=0
-                )
-
-                serie_setting["ts_series"]["out"] = (
-                    serie_setting["ts_series"]["out"] * diff
-                )
-                serie_setting["ts_series"]["out"] = np.cumsum(
-                    serie_setting["ts_series"]["out"], axis=0
-                )
-
-        if model_part == "1d":
-            total_time[:, (10, 11)] = total_time[:, (10, 11)] * -1
-
-        settings["items"] = sorted(settings["items"], key=lambda item: item["order"])
-
-        return settings
+        plot_widget.redraw_water_balance(**graph_data)
 
     def closeEvent(self, event):
         self.select_polygon_button.clicked.disconnect(self._set_map_tool)
         self.chart_button.clicked.disconnect(self.show_barchart)
 
-        self.modelpart_combo_box.currentIndexChanged.disconnect(self.update_wb)
-        self.sum_type_combo_box.currentIndexChanged.disconnect(self.update_wb)
-        self.wb_item_table.hoverEnterRow.disconnect(self.hover_enter_map_visualization)
-        self.wb_item_table.hoverExitAllRows.disconnect(
-            self.hover_exit_map_visualization
-        )
+        self.wb_item_table.hoverEnterRow.disconnect(self.hover_enter_action)
+        self.wb_item_table.hoverExitRow.disconnect(self.hover_exit_action)
         self.activate_all_button.clicked.disconnect(self.activate_layers)
         self.deactivate_all_button.clicked.disconnect(self.deactivate_layers)
+
+        self.agg_combo_box.currentIndexChanged.disconnect(self.update_water_balance)
+        self.ts_units_combo_box.currentIndexChanged.disconnect(self.update_water_balance)
+        self.wb_item_table.hoverEnterRow.disconnect(self.hover_enter_action)
+        self.tab_widget.currentChanged.disconnect(self.update_water_balance)
 
         self.unset_wb_polygon()
         self._unset_map_tool()
@@ -1363,14 +979,10 @@ class WaterBalanceWidget(QDockWidget):
         # add button to add objects to graphs
         self.button_bar_hlayout = QHBoxLayout(self)
         self.select_polygon_button = QPushButton("Select Polygon", self)
+        self.select_polygon_button.setCheckable(True)
         self.button_bar_hlayout.addWidget(self.select_polygon_button)
         self.chart_button = QPushButton(self)
         self.button_bar_hlayout.addWidget(self.chart_button)
-
-        self.modelpart_combo_box = QComboBox(self)
-        self.button_bar_hlayout.addWidget(self.modelpart_combo_box)
-        self.sum_type_combo_box = QComboBox(self)
-        self.button_bar_hlayout.addWidget(self.sum_type_combo_box)
 
         self.agg_combo_box = QComboBox(self)
         self.button_bar_hlayout.addWidget(self.agg_combo_box)
@@ -1397,16 +1009,18 @@ class WaterBalanceWidget(QDockWidget):
         # add tabWidget for graphWidgets
         self.contentLayout = QHBoxLayout(self)
 
-        # Graph
-        self.plot_widget = WaterBalancePlotWidget(self)
+        # tabs
+        self.tab_widget = QTabWidget(self)
+
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.plot_widget.sizePolicy().hasHeightForWidth())
-        self.plot_widget.setSizePolicy(sizePolicy)
-        self.plot_widget.setMinimumSize(QSize(240, 250))
+        sizePolicy.setHeightForWidth(self.tab_widget.sizePolicy().hasHeightForWidth())
 
-        self.contentLayout.addWidget(self.plot_widget)
+        self.tab_widget.setSizePolicy(sizePolicy)
+        self.tab_widget.setMinimumSize(QSize(240, 250))
+
+        self.contentLayout.addWidget(self.tab_widget)
 
         # table
         self.wb_item_table = WaterbalanceItemTable(self)
@@ -1436,6 +1050,37 @@ class WaterBalanceWidget(QDockWidget):
         self.map_tool_select_polygon.setButton(self.select_polygon_button)
         self.map_tool_select_polygon.setCursor(Qt.CrossCursor)
 
+    def add_result(self, result, update=True):
+        if not self.manager.add_result(result):
+            return
+        plot_widget = WaterBalancePlotWidget(model=self.model, result=result)
+        tab_label = self.manager[result].label
+        self.tab_widget.addTab(plot_widget, tab_label)
+        if update:
+            self.update_water_balance()
+
+    def _get_tab_index(self, result):
+        tab_widget = self.tab_widget
+        for tab_index in range(tab_widget.count()):
+            if tab_widget.widget(tab_index).result is result:
+                return tab_index
+
+    def remove_result(self, result):
+        if not self.manager.remove_result(result):
+            return
+        tab_index = self._get_tab_index(result)
+        update = tab_index == self.tab_widget.currentIndex()
+        self.tab_widget.removeTab(tab_index)
+        if update:
+            self.update_water_balance()
+
+    def change_result(self, result):
+        if result not in self.manager:
+            return
+        tab_index = self._get_tab_index(result)
+        tab_label = self.manager[result].label
+        self.tab_widget.setTabText(tab_index, tab_label)
+
     def set_wb_polygon(self, polygon, layer):
         """ Highlight and set the current waterbalance polygon."""
         # highlight must be done before transform
@@ -1445,7 +1090,9 @@ class WaterBalanceWidget(QDockWidget):
 
         self.wb_polygon_highlight = highlight
         self.manager.polygon = PolygonWithCRS(polygon=polygon, crs=layer.crs())
-        self.update_wb()
+        for result in self.manager:
+            self.add_result(result, update=False)
+        self.update_water_balance()
 
     def unset_wb_polygon(self):
         """ De-highlight and unset the current waterbalance polygon."""
@@ -1454,7 +1101,7 @@ class WaterBalanceWidget(QDockWidget):
         self.iface.mapCanvas().scene().removeItem(self.wb_polygon_highlight)
         self.wb_polygon_highlight = None
         self.manager.polygon = None
-        self.update_wb()
+        self.tab_widget.clear()
 
 
 class SelectionVisualisation(object):

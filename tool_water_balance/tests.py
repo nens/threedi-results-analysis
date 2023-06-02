@@ -9,7 +9,6 @@ from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initiali
 
 from .tools import WaterBalanceCalculation
 from .tools import WaterBalanceCalculationManager
-from .tools import ResultWrapper
 from .views import waterbalance_widget
 
 import mock
@@ -159,9 +158,16 @@ def wb_polygon():
 
 @pytest.fixture()
 def wb_calculation(three_di_result_item, wb_polygon):
-    wrapper = ResultWrapper(three_di_result_item)
+    three_di_result_item
     ensure_qgis_app_is_initialized()
-    wb_calculation = WaterBalanceCalculation(wrapper=wrapper, polygon=wb_polygon)
+    mapcrs = QgsCoordinateReferenceSystem(
+        4326, QgsCoordinateReferenceSystem.PostgisCrsId
+    )
+    wb_calculation = WaterBalanceCalculation(
+        result=three_di_result_item,
+        polygon=wb_polygon,
+        mapcrs=mapcrs,
+    )
     return wb_calculation
 
 
