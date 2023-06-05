@@ -7,6 +7,7 @@ from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
 from qgis.core import QgsProject
 from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
@@ -253,7 +254,7 @@ class LocationTimeseriesTable(QTableView):
     hoverExitRow = pyqtSignal(int)
     hoverExitAllRows = pyqtSignal()  # exit the whole widget
     hoverEnterRow = pyqtSignal(int, str, ThreeDiResultItem)
-    # deleteRequested = pyqtSignal(QModelIndex)
+    deleteRequested = pyqtSignal(QModelIndex)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -277,7 +278,7 @@ class LocationTimeseriesTable(QTableView):
         menu.popup(self.viewport().mapToGlobal(pos))
 
     def customMenuDeleteRequested(self, checked: bool, index):
-        logger.error(index.row())
+        self.deleteRequested.emit(index)
 
     def on_close(self):
         """
@@ -396,6 +397,7 @@ class GraphWidget(QWidget):
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
+        self.location_timeseries_table.deleteRequested.connect(lambda index: self.location_model.removeRows(index.row(), 1))
 
         # init parameter selection
         self.set_parameter_list(parameter_config)
