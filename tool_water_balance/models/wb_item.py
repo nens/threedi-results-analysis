@@ -57,7 +57,7 @@ def select_default_color(item_field):
 
 
 class WaterbalanceItemModel(BaseModel):
-    """Model implementation for waterbalance graph items"""
+    """Model implementation for water balance graph items"""
 
     ts = np.array([0])
 

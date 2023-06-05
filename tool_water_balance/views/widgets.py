@@ -115,7 +115,7 @@ def _get_feature_iterator(layer, request_filter):
 
 @functools.total_ordering
 class Bar(object):
-    """Bar for waterbalance barchart with positive and negative components."""
+    """Bar for water balance barchart with positive and negative components."""
 
     SERIES_INDEX = dict(INPUT_SERIES)
 
@@ -1082,7 +1082,7 @@ class WaterBalanceWidget(QDockWidget):
         self.tab_widget.setTabText(tab_index, tab_label)
 
     def set_wb_polygon(self, polygon, layer):
-        """ Highlight and set the current waterbalance polygon."""
+        """ Highlight and set the current water balance polygon."""
         # highlight must be done before transform
         highlight = QgsHighlight(self.iface.mapCanvas(), polygon, layer)
         highlight.setColor(QColor(0, 0, 255, 127))
@@ -1095,7 +1095,7 @@ class WaterBalanceWidget(QDockWidget):
         self.update_water_balance()
 
     def unset_wb_polygon(self):
-        """ De-highlight and unset the current waterbalance polygon."""
+        """ De-highlight and unset the current water balance polygon."""
         if self.manager.polygon is None:
             return
         self.iface.mapCanvas().scene().removeItem(self.wb_polygon_highlight)

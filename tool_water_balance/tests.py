@@ -9,7 +9,9 @@ from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initiali
 
 from .tools import WaterBalanceCalculation
 from .tools import WaterBalanceCalculationManager
-from .views import waterbalance_widget
+from .views.widgets import INPUT_SERIES
+from .views.widgets import WaterBalanceWidget
+from .views.widgets import BarManager
 
 import mock
 import numpy as np
@@ -111,7 +113,7 @@ def _helper_round_numpy(one_array):
 
 def _helper_get_input_series_id(input_serie_name):
     id_found = [
-        id[1] for id in waterbalance_widget.INPUT_SERIES if id[0] == input_serie_name
+        id[1] for id in INPUT_SERIES if id[0] == input_serie_name
     ]
     assert len(id_found) == 1
     return id_found[0]
@@ -197,7 +199,7 @@ def test_time_steps_get_aggregated_flows(wb_calculation):
         "Number of time_steps is not equal to number of values in time_series"
     )
 
-    assert len(waterbalance_widget.INPUT_SERIES) == flow.shape[1], (
+    assert len(INPUT_SERIES) == flow.shape[1], (
         "For all INPUT_SERIES elements " "a time series should be calculated"
     )
 
@@ -228,13 +230,13 @@ def test_get_aggregated_flows_2d_and_1d(wb_calculation):
 
 @pytest.fixture()
 @mock.patch(
-    "threedi_results_analysis.tool_water_balance.views.waterbalance_widget.SelectPolygonTool"
+    "threedi_results_analysis.tool_water_balance.views.widgets.SelectPolygonTool"
 )
 def wb_widget(pt, wb_calculation):
     ensure_qgis_app_is_initialized()
     manager = WaterBalanceCalculationManager
     iface = mock.Mock()
-    wb_widget = waterbalance_widget.WaterBalanceWidget(
+    wb_widget = WaterBalanceWidget(
         "3Di water balance", iface=iface, manager=manager,
     )
     wb_widget.calc = wb_calculation
@@ -326,7 +328,7 @@ def test_wb_widget_get_io_series_net(wb_widget):
 
 def test_barmanger_2d_groundwater(wb_widget):
     io_series_2d_groundwater = wb_widget._get_io_series_2d_groundwater()
-    bm_2d_groundwater = waterbalance_widget.BarManager(io_series_2d_groundwater)
+    bm_2d_groundwater = BarManager(io_series_2d_groundwater)
     expected_labels = [
         "groundwater flow",
         "in/exfiltration (domain exchange)",
@@ -352,7 +354,7 @@ def helper_get_flows_and_dvol(domain=None):
     return sum_inflow, sum_outflow, d_vol
 
 
-def test_waterbalance_closure(wb_calculation, wb_widget, wb_polygon):
+def test_water_balance_closure(wb_calculation, wb_widget, wb_polygon):
     # The netto inflows and outflows of the three sub-domains (1d, 2d,
     # 2d_groundwater) must equal the netto inflow and outflow"""
     time = wb_calculation.time
@@ -365,10 +367,10 @@ def test_waterbalance_closure(wb_calculation, wb_widget, wb_polygon):
     io_series_2d_groundwater = wb_widget._get_io_series_2d_groundwater()
     io_series_1d = wb_widget._get_io_series_1d()
 
-    bm_net = waterbalance_widget.BarManager(io_series_net)
-    bm_2d = waterbalance_widget.BarManager(io_series_2d)
-    bm_2d_groundwater = waterbalance_widget.BarManager(io_series_2d_groundwater)
-    bm_1d = waterbalance_widget.BarManager(io_series_1d)
+    bm_net = BarManager(io_series_net)
+    bm_2d = BarManager(io_series_2d)
+    bm_2d_groundwater = BarManager(io_series_2d_groundwater)
+    bm_1d = BarManager(io_series_1d)
 
     # netto domain
     bm_net.calc_balance(time, flow, t1, t2, net=True)

@@ -6,7 +6,7 @@ from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 
 from .calculation import WaterBalanceCalculation
 from .utils import WrappedResult
-from .views.waterbalance_widget import WaterBalanceWidget
+from .views.widgets import WaterBalanceWidget
 
 logger = logging.getLogger(__name__)
 
