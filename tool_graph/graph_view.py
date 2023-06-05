@@ -282,6 +282,9 @@ class LocationTimeseriesTable(QTableView):
     def eventFilter(self, widget, event):
         if widget is self.viewport():
             if event.type() == QEvent.MouseButtonDblClick:
+
+                if event.button() == Qt.RightButton:
+                    return True
                 # map mouse position to index
                 column = self.indexAt(event.pos()).column()
                 if self.model.columns[column].name == "color":
