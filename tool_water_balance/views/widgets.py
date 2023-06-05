@@ -947,14 +947,13 @@ class WaterBalanceWidget(QDockWidget):
         self.chart_button.clicked.disconnect(self.show_barchart)
 
         self.wb_item_table.hoverEnterRow.disconnect(self.hover_enter_action)
+        self.tab_widget.currentChanged.disconnect(self.update_water_balance)
         self.wb_item_table.hoverExitRow.disconnect(self.hover_exit_action)
         self.activate_all_button.clicked.disconnect(self.activate_layers)
         self.deactivate_all_button.clicked.disconnect(self.deactivate_layers)
 
         self.agg_combo_box.currentIndexChanged.disconnect(self.update_water_balance)
         self.ts_units_combo_box.currentIndexChanged.disconnect(self.update_water_balance)
-        self.wb_item_table.hoverEnterRow.disconnect(self.hover_enter_action)
-        self.tab_widget.currentChanged.disconnect(self.update_water_balance)
 
         self.unset_wb_polygon()
         self._unset_map_tool()
