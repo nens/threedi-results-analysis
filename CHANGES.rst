@@ -13,6 +13,7 @@
 - Result Manager: clear now immediately deletes nodes during depth-first post-order traversal
 - Result Manager: clearing the QGIS project invalidates the tree view (#833)
 - Result Manager: computational grid layers are now stored in separate subgroup (#835)
+- Result Manager: checkboxes are now shown as opened or closed eye icons (#836)
 - Graph tool: maptools are disabled when tabs are switched (#824)
 - Graph tool: Fixed bug where deactivated plots were added again when parameter/units or absoluteness was changed (#825)
 - Graph tool: default variable for pump should be 'discharge pump' (#819)
@@ -22,7 +23,7 @@
 - Graph tool: Only one of 2D Nodes and cells with same feature ID can be plotted (#829)
 - Graph tool: change "Nodes" to "Nodes & cells" (#818)
 - Result manager: fixed bug that result was not removed when other result was checked.
-- Initial work on Watershed tool (#668)
+- Watershed tool is now feature complete (#668)
 - Bump threedi-modelchecker to 2.2.0
 - Bump threedi-schema to 0.217.*
 - Bump hydxlib to 1.5.1

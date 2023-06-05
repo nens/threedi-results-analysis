@@ -40,6 +40,12 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         logo_3di = logo_3di.scaledToHeight(30)
         self.logo.setPixmap(logo_3di)
 
+        # Replace any backslashes with slash to make QGIS happy when accessing a Windows network location.
+        open_eye_logo = str(PLUGIN_DIR / "icons" / "open.png").replace("\\", "/")
+        closed_eye_logo = str(PLUGIN_DIR / "icons" / "closed.png").replace("\\", "/")
+        self.treeView.setStyleSheet(f"""QTreeView::indicator:unchecked {{image: url({closed_eye_logo});}}
+                                    QTreeView::indicator:checked {{image: url({open_eye_logo});}}""")
+
     def set_model(self, model):
 
         tree_view = self.treeView
