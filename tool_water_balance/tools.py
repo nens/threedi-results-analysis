@@ -35,7 +35,7 @@ class WaterBalanceTool(ThreeDiPluginTool):
             return
 
         widget = WaterBalanceWidget(
-            "3Di water balance", manager=self.manager, iface=self.iface,
+            "3Di Water Balance", manager=self.manager, iface=self.iface,
         )
         widget.closingWidget.connect(self.on_close_child_widget)
         self.iface.addDockWidget(Qt.BottomDockWidgetArea, widget)

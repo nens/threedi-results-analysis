@@ -16,6 +16,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtGui import QPalette
 from qgis.PyQt.QtGui import QPixmap
 from qgis.PyQt.QtGui import QTransform
+from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
@@ -23,8 +24,8 @@ from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
-from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QTabWidget
+from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis import PLUGIN_DIR
@@ -249,6 +250,8 @@ class WaterbalanceItemTable(QTableView):
         super().__init__(parent)
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
+        self.verticalHeader().hide()
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.model = None
 
         self._last_hovered_row = None
