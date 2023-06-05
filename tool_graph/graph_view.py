@@ -23,6 +23,8 @@ from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTabWidget
+from qgis.PyQt.QtWidgets import QMenu
+from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QColorDialog
@@ -251,6 +253,7 @@ class LocationTimeseriesTable(QTableView):
     hoverExitRow = pyqtSignal(int)
     hoverExitAllRows = pyqtSignal()  # exit the whole widget
     hoverEnterRow = pyqtSignal(int, str, ThreeDiResultItem)
+    # deleteRequested = pyqtSignal(QModelIndex)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -261,7 +264,20 @@ class LocationTimeseriesTable(QTableView):
         self.model = None
 
         self._last_hovered_row = None
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.customMenuRequested)
         self.viewport().installEventFilter(self)
+
+    def customMenuRequested(self, pos):
+        index = self.indexAt(pos)
+        menu = QMenu(self)
+        action_delete = QAction("Delete", self)
+        action_delete.triggered.connect(lambda checked, sel_index=index: self.customMenuDeleteRequested(checked, sel_index))
+        menu.addAction(action_delete)
+        menu.popup(self.viewport().mapToGlobal(pos))
+
+    def customMenuDeleteRequested(self, checked: bool, index):
+        logger.error(index.row())
 
     def on_close(self):
         """
