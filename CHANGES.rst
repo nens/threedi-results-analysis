@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.4 (unreleased)
+3.1.4 (2023-06-06)
 ------------------
 
 - Sideview feature-complete for multiple results and grids (#806, #811, #812, #670, #808, #789, #826)
