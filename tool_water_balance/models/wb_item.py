@@ -81,7 +81,7 @@ class WaterbalanceItemModel(BaseModel):
         )
         name = ValueField(
             show=True,
-            column_width=210,
+            column_width=120,
             column_name="Category"
         )
         default_method = ValueField(show=False)

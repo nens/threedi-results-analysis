@@ -24,6 +24,7 @@ from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
+from qgis.PyQt.QtWidgets import QSplitter
 from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QVBoxLayout
@@ -251,6 +252,7 @@ class WaterbalanceItemTable(QTableView):
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
         self.verticalHeader().hide()
+        self.horizontalHeader().setStretchLastSection(True)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.model = None
 
@@ -326,10 +328,7 @@ class WaterbalanceItemTable(QTableView):
 
     def setModel(self, model):
         super().setModel(model)
-
         self.model = model
-
-        self.resizeColumnsToContents()
         self.model.set_column_sizes_on_view(self)
 
 
@@ -1009,34 +1008,26 @@ class WaterBalanceWidget(QDockWidget):
         self.main_vlayout.addLayout(self.button_bar_hlayout)
 
         # add tabWidget for graphWidgets
-        self.contentLayout = QHBoxLayout(self)
+        self.splitter = QSplitter(self)
 
-        # tabs
-        self.tab_widget = QTabWidget(self)
-
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.tab_widget.sizePolicy().hasHeightForWidth())
-
-        self.tab_widget.setSizePolicy(sizePolicy)
+        # tab widget for the plots
+        self.tab_widget = QTabWidget(self.splitter)
         self.tab_widget.setMinimumSize(QSize(240, 250))
 
-        self.contentLayout.addWidget(self.tab_widget)
+        self.splitter.addWidget(self.tab_widget)
 
         # table
-        self.wb_item_table = WaterbalanceItemTable(self)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.wb_item_table.sizePolicy().hasHeightForWidth()
-        )
-        self.wb_item_table.setSizePolicy(sizePolicy)
-        self.wb_item_table.setMinimumSize(QSize(300, 0))
-        self.wb_item_table.resizeColumnsToContents()
-        self.contentLayout.addWidget(self.wb_item_table)
-        self.main_vlayout.addLayout(self.contentLayout)
+        self.wb_item_table = WaterbalanceItemTable(self.splitter)
+        self.wb_item_table.setMinimumSize(QSize(120, 0))
+        self.splitter.addWidget(self.wb_item_table)
+
+        self.splitter.setSizes([360, 120])
+        self.splitter.setCollapsible(0, False)
+        self.splitter.setStretchFactor(0, 8)
+        self.splitter.setCollapsible(1, False)
+        self.splitter.setStretchFactor(1, 1)
+
+        self.main_vlayout.addWidget(self.splitter)
 
         # add dockwidget
         dock_widget.setWidget(self.dock_widget_content)
