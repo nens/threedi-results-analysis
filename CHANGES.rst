@@ -5,7 +5,7 @@
 3.1.5 (unreleased)
 ------------------
 
-- Watershed: smoothing of result watershed polygon is fixed (#668).
+- Watershed: smoothing of result watershed polygon is fixed and configurable via checkbox (#668).
 
 
 3.1.4 (2023-06-06)
