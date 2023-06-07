@@ -5,7 +5,7 @@
 3.1.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Watershed: smoothing of result watershed polygon is fixed (#668).
 
 
 3.1.4 (2023-06-06)

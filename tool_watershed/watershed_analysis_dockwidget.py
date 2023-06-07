@@ -125,8 +125,6 @@ class Graph3DiQgsConnector:
         self.result_cell_layer = None
         self.result_flowline_layer = None
         self.result_catchment_layer = None
-
-        # TODO: preload impervious surface layer as well?
         self.impervious_surface_layer = None
 
         self.result_sets = []
@@ -565,6 +563,7 @@ class Graph3DiQgsConnector:
     def smooth_catchment_layer(self):
         saved_subsetstring = self.result_catchment_layer.subsetString()
         self.result_catchment_layer.setSubsetString("")
+        self.result_catchment_layer.setReadOnly(False)
         self.result_catchment_layer.startEditing()
         for feature in self.result_catchment_layer.getFeatures():
             if feature.id() not in self.smooth_result_catchments:
@@ -579,7 +578,9 @@ class Graph3DiQgsConnector:
                 qgs_geom_smooth.fromWkb(ogr_geom_smooth.ExportToWkb())
                 self.result_catchment_layer.changeGeometry(feature.id(), qgs_geom_smooth)
             self.smooth_result_catchments.append(feature.id())
-        self.result_catchment_layer.commitChanges()
+        if not self.result_catchment_layer.commitChanges():
+            logger.error("Unable to commit changes after smoothing")
+        self.result_catchment_layer.setReadOnly(True)
         self.result_catchment_layer.setSubsetString(saved_subsetstring)
 
     def create_impervious_surface_layer(self):
