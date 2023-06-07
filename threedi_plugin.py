@@ -157,10 +157,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
-        self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
-        self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
-        self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
-
         self.dockwidget.show()
         self.dockwidget.set_model(self.model)
 
@@ -213,8 +209,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Disable warning that scratch layer data will be lost
         QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
 
-        self.check_status_model_and_results()
-
     def write(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
@@ -256,31 +250,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         return True
 
-    def check_status_model_and_results(self, *args):
-        """Check if a (new and valid) model or result is selected and react on
-        this by pre-processing of things and activation/ deactivation of
-        tools. function is triggered by changes in the ts_datasources
-        args:
-            *args: (list) the arguments provided by the different signals
-        """
-
-        # Enable/disable tools that depend on netCDF results.
-        # For side views also the spatialite needs to be imported or else it
-        # crashes with a segmentation fault
-        if self.ts_datasources.rowCount() > 0:
-            self.cache_clearer.action_icon.setEnabled(True)
-
-        else:
-            self.cache_clearer.action_icon.setEnabled(False)
-
-        if (
-            self.ts_datasources.rowCount() > 0
-            and self.ts_datasources.model_spatialite_filepath is not None
-        ):
-            self.stats_tool.action_icon.setEnabled(True)
-        else:
-            self.stats_tool.action_icon.setEnabled(False)
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI.
 
@@ -293,10 +262,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Clears model and emits subsequent signals
         self.model.clear()
-
-        self.ts_datasources.rowsRemoved.disconnect(self.check_status_model_and_results)
-        self.ts_datasources.rowsInserted.disconnect(self.check_status_model_and_results)
-        self.ts_datasources.dataChanged.disconnect(self.check_status_model_and_results)
 
         self.unload_state_sync()
         QgsApplication.processingRegistry().removeProvider(self.provider)
