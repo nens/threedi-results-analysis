@@ -6,6 +6,7 @@
 ------------------
 
 - Watershed: smoothing of result watershed polygon is fixed and configurable via checkbox (#668).
+- Graph: user-defined label in legend is now set per plot instead of per feature (#840)
 
 
 3.1.4 (2023-06-06)
