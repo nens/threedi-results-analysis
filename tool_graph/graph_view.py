@@ -15,6 +15,7 @@ from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QSplitter
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -485,19 +486,13 @@ class GraphWidget(QWidget):
         self.marker.reset()
 
     def setup_ui(self):
-        """
-        Create Qt widgets and elements
-        """
 
-        self.setObjectName(self.name)
-        self.hLayout = QHBoxLayout(self)
-        self.hLayout.setObjectName("hLayout")
+        mainLayout = QHBoxLayout(self)
+        self.setLayout(mainLayout)
 
-        # add combobox for time units selection
-        self.ts_units_combo_box = QComboBox(self)
-        self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
+        splitterWidget = QSplitter(self)
 
-        # add graphplot
+        # add plot
         self.graph_plot = GraphPlot(self)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
@@ -505,51 +500,51 @@ class GraphWidget(QWidget):
         sizePolicy.setHeightForWidth(self.graph_plot.sizePolicy().hasHeightForWidth())
         self.graph_plot.setSizePolicy(sizePolicy)
         self.graph_plot.setMinimumSize(QSize(250, 250))
-        self.hLayout.addWidget(self.graph_plot)
+        splitterWidget.addWidget(self.graph_plot)
 
-        # add layout for timeseries table and other controls
-        self.vLayoutTable = QVBoxLayout(self)
-        self.hLayout.addLayout(self.vLayoutTable)
+        # add widget for timeseries table and other controls
+        legendWidget = QWidget(self)
+        vLayoutTable = QVBoxLayout(self)
+        legendWidget.setLayout(vLayoutTable)
 
-        # add combobox for parameter selection
+        # add comboboxes
+        self.ts_units_combo_box = QComboBox(self)
+        self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
         self.parameter_combo_box = QComboBox(self)
-        self.vLayoutTable.addWidget(self.parameter_combo_box)
-        self.vLayoutTable.addWidget(self.ts_units_combo_box)
+        vLayoutTable.addWidget(self.parameter_combo_box)
+        vLayoutTable.addWidget(self.ts_units_combo_box)
 
         # add timeseries table
         self.location_timeseries_table = LocationTimeseriesTable(self)
         self.location_timeseries_table.hoverEnterRow.connect(self.highlight_feature)
-        self.location_timeseries_table.hoverExitAllRows.connect(
-            self.unhighlight_all_features
-        )
+        self.location_timeseries_table.hoverExitAllRows.connect(self.unhighlight_all_features)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.location_timeseries_table.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.location_timeseries_table.sizePolicy().hasHeightForWidth())
         self.location_timeseries_table.setSizePolicy(sizePolicy)
         self.location_timeseries_table.setMinimumSize(QSize(250, 0))
-        self.vLayoutTable.addWidget(self.location_timeseries_table)
+        vLayoutTable.addWidget(self.location_timeseries_table)
 
-        # add buttons below table
-        self.hLayoutButtons = QHBoxLayout(self)
-        self.vLayoutTable.addLayout(self.hLayoutButtons)
+        # add button below table
+        hLayoutButtons = QHBoxLayout(self)
 
         self.remove_timeseries_button = QPushButton(self)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.remove_timeseries_button.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.remove_timeseries_button.sizePolicy().hasHeightForWidth())
+
         self.remove_timeseries_button.setSizePolicy(sizePolicy)
         self.remove_timeseries_button.setObjectName("remove_timeseries_button")
-        self.hLayoutButtons.addWidget(self.remove_timeseries_button)
-        self.hLayoutButtons.addItem(
-            QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        )
+        hLayoutButtons.addWidget(self.remove_timeseries_button)
+        hLayoutButtons.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.remove_timeseries_button.setText("Delete")
+        vLayoutTable.addLayout(hLayoutButtons)
+
+        splitterWidget.addWidget(legendWidget)
+
+        mainLayout.addWidget(splitterWidget)
 
     def parameter_change(self, nr):
         """
