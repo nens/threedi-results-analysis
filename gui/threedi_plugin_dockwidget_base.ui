@@ -224,6 +224,9 @@
                 <property name="text">
                  <string>Align simulation start times</string>
                 </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
              </layout>
