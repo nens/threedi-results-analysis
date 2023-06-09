@@ -104,7 +104,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         self.assertListEqual(
             headers,
             # display column names
-            ["active", "color", "grid", "result", "id", "label", "type", "object_type", "hover"],
+            ["active", "pattern", "label", "grid", "result", "id", "type", "object_type", "hover"],
         )
 
     def test_init_with_initial_data(self):
@@ -120,9 +120,10 @@ class TestLocationTimeseriesModel(unittest.TestCase):
             None,
         )
 
+        #  Color is displayed as emptry string
         self.assertEqual(
             collection.data(collection.createIndex(0, 1, None), role=Qt.DisplayRole),
-            None,
+            "",
         )
 
         # self.assertEqual(
@@ -192,11 +193,11 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         )
 
         # test valueField
-        collection.setData(collection.createIndex(0, 4), 8, Qt.DisplayRole)
+        collection.setData(collection.createIndex(0, 5), 8, Qt.DisplayRole)
 
         self.assertEqual(collection.rows[0].object_id.value, 8)
         self.assertEqual(
-            collection.data(collection.createIndex(0, 4, None), role=Qt.DisplayRole), 8
+            collection.data(collection.createIndex(0, 5, None), role=Qt.DisplayRole), 8
         )
 
     def tearDown(self):

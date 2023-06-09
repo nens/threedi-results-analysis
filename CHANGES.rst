@@ -2,7 +2,18 @@
 ========================
 
 
-3.1.4 (unreleased)
+3.1.5 (unreleased)
+------------------
+
+- Watershed: smoothing of result watershed polygon is fixed and configurable via checkbox (#668).
+- Graph: user-defined label in legend is now set per plot instead of per feature (#840)
+- Graph: Use "{grid name} | {result name} | ID {id}" as default label (#840)
+- Graph: Added splitter so plots and legends can be resized (#840)
+- Graph: Line pattern and color is now shown in legend (#840)
+- Graph: Legend now only shows checkbox, line pattern/color and label. Other columns are hidden and can be shown via checkbox (#840)
+
+
+3.1.4 (2023-06-06)
 ------------------
 
 - Sideview feature-complete for multiple results and grids (#806, #811, #812, #670, #808, #789, #826)
@@ -13,16 +24,18 @@
 - Result Manager: clear now immediately deletes nodes during depth-first post-order traversal
 - Result Manager: clearing the QGIS project invalidates the tree view (#833)
 - Result Manager: computational grid layers are now stored in separate subgroup (#835)
+- Result Manager: checkboxes are now shown as opened or closed eye icons (#836)
 - Graph tool: maptools are disabled when tabs are switched (#824)
 - Graph tool: Fixed bug where deactivated plots were added again when parameter/units or absoluteness was changed (#825)
 - Graph tool: default variable for pump should be 'discharge pump' (#819)
+- Graph tool: plots can be deleted via context menu (#840)
 - Graph tool: list of parameters in combobox is now union of parameterset of results (#819)
 - Removed wiki related files (wiki has been disabled)
 - Graph tool: pump can now only be added as line feature or node feature, but not both (#829)
 - Graph tool: Only one of 2D Nodes and cells with same feature ID can be plotted (#829)
 - Graph tool: change "Nodes" to "Nodes & cells" (#818)
 - Result manager: fixed bug that result was not removed when other result was checked.
-- Initial work on Watershed tool (#668)
+- Watershed tool is now feature complete (#668)
 - Bump threedi-modelchecker to 2.2.0
 - Bump threedi-schema to 0.217.*
 - Bump hydxlib to 1.5.1

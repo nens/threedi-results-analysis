@@ -7,6 +7,7 @@ from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
 from qgis.core import QgsProject
 from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
@@ -14,6 +15,7 @@ from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QSplitter
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -23,13 +25,17 @@ from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTabWidget
+from qgis.PyQt.QtWidgets import QMenu
+from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QColorDialog
+from qgis.PyQt.QtGui import QColor
 from threedi_results_analysis.tool_graph.graph_model import LocationTimeseriesModel
 from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.utils.utils import generate_parameter_config
+from threedi_results_analysis.utils.widgets import PenStyleWidget
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 from qgis.core import QgsVectorLayer
 from threedi_results_analysis.datasource.threedi_results import normalized_object_type
@@ -251,6 +257,7 @@ class LocationTimeseriesTable(QTableView):
     hoverExitRow = pyqtSignal(int)
     hoverExitAllRows = pyqtSignal()  # exit the whole widget
     hoverEnterRow = pyqtSignal(int, str, ThreeDiResultItem)
+    deleteRequested = pyqtSignal(QModelIndex)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -261,7 +268,20 @@ class LocationTimeseriesTable(QTableView):
         self.model = None
 
         self._last_hovered_row = None
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.customMenuRequested)
         self.viewport().installEventFilter(self)
+
+    def customMenuRequested(self, pos):
+        index = self.indexAt(pos)
+        menu = QMenu(self)
+        action_delete = QAction("Delete", self)
+        action_delete.triggered.connect(lambda checked, sel_index=index: self.customMenuDeleteRequested(checked, sel_index))
+        menu.addAction(action_delete)
+        menu.popup(self.viewport().mapToGlobal(pos))
+
+    def customMenuDeleteRequested(self, checked: bool, index):
+        self.deleteRequested.emit(index)
 
     def on_close(self):
         """
@@ -282,6 +302,9 @@ class LocationTimeseriesTable(QTableView):
     def eventFilter(self, widget, event):
         if widget is self.viewport():
             if event.type() == QEvent.MouseButtonDblClick:
+
+                if event.button() == Qt.RightButton:
+                    return True
                 # map mouse position to index
                 column = self.indexAt(event.pos()).column()
                 if self.model.columns[column].name == "color":
@@ -339,15 +362,28 @@ class LocationTimeseriesTable(QTableView):
     def setModel(self, model):
         super().setModel(model)
         self.model = model
-        # https://stackoverflow.com/questions/3433664/how-to-make-sure-
-        # columns-in-qtableview-are-resized-to-the-maximum
+        self.model.dataChanged.connect(self._update_table_widgets)
+        self.model.rowsInserted.connect(self._update_table_widgets)
+        self.model.rowsAboutToBeRemoved.connect(self._update_table_widgets)
         self.setVisible(False)
         self.resizeColumnsToContents()
+        self.horizontalHeader().setStretchLastSection(True)
         self.setVisible(True)
         self.model.set_column_sizes_on_view(self)
-        # first two columns (checkbox, color) can be set small always
+        # Columns checkbox can be set small always
         self.setColumnWidth(0, 20)  # checkbox
-        self.setColumnWidth(1, 20)  # color field
+
+    def _update_table_widgets(self):
+        """The PenStyle widget is not part of the model, but explicitely added/overlayed to the table"""
+        for i in range(self.model.rowCount()):
+            item = self.model.rows[i]
+            index = self.model.index(i, 1)
+            pen_color = QColor(item.color.value[0], item.color.value[1], item.color.value[2])
+            # If index widget A is replaced with index widget B, index widget A will be deleted.
+            patternWidget = PenStyleWidget(item.result.value._pattern, pen_color, self)
+            # patternWidget.setAutoFillBackground(True)
+            patternWidget.setPalette(self.palette())
+            self.setIndexWidget(index, patternWidget)
 
 
 class GraphWidget(QWidget):
@@ -372,11 +408,14 @@ class GraphWidget(QWidget):
         self.graph_plot.set_location_model(self.location_model)
         self.graph_plot.set_result_model(self.model)
         self.location_timeseries_table.setModel(self.location_model)
+        self._updateHiddenColumns(self.showFullLegendCheckbox.checkState())
 
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
+        self.showFullLegendCheckbox.stateChanged.connect(self._updateHiddenColumns)
+        self.location_timeseries_table.deleteRequested.connect(lambda index: self.location_model.removeRows(index.row(), 1))
 
         # init parameter selection
         self.set_parameter_list(parameter_config)
@@ -385,10 +424,20 @@ class GraphWidget(QWidget):
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
 
+    def _updateHiddenColumns(self, state):
+        if state == Qt.Unchecked:
+            for i in range(3, 7):
+                self.location_timeseries_table.setColumnHidden(i, True)
+        else:
+            for i in range(7):
+                self.location_timeseries_table.setColumnHidden(i, False)
+
     def refresh_table(self):
         # trigger all listeners by emiting dataChanged signal
+        logger.info("Refreshing table")
         self.location_model.beginResetModel()
         self.location_model.endResetModel()
+        self.location_timeseries_table._update_table_widgets()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, result_item: ThreeDiResultItem):
@@ -464,19 +513,13 @@ class GraphWidget(QWidget):
         self.marker.reset()
 
     def setup_ui(self):
-        """
-        Create Qt widgets and elements
-        """
 
-        self.setObjectName(self.name)
-        self.hLayout = QHBoxLayout(self)
-        self.hLayout.setObjectName("hLayout")
+        mainLayout = QHBoxLayout(self)
+        self.setLayout(mainLayout)
 
-        # add combobox for time units selection
-        self.ts_units_combo_box = QComboBox(self)
-        self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
+        splitterWidget = QSplitter(self)
 
-        # add graphplot
+        # add plot
         self.graph_plot = GraphPlot(self)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
@@ -484,51 +527,56 @@ class GraphWidget(QWidget):
         sizePolicy.setHeightForWidth(self.graph_plot.sizePolicy().hasHeightForWidth())
         self.graph_plot.setSizePolicy(sizePolicy)
         self.graph_plot.setMinimumSize(QSize(250, 250))
-        self.hLayout.addWidget(self.graph_plot)
+        splitterWidget.addWidget(self.graph_plot)
 
-        # add layout for timeseries table and other controls
-        self.vLayoutTable = QVBoxLayout(self)
-        self.hLayout.addLayout(self.vLayoutTable)
+        # add widget for timeseries table and other controls
+        legendWidget = QWidget(self)
+        vLayoutTable = QVBoxLayout(self)
+        legendWidget.setLayout(vLayoutTable)
 
-        # add combobox for parameter selection
+        # add comboboxes
+        self.ts_units_combo_box = QComboBox(self)
+        self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
         self.parameter_combo_box = QComboBox(self)
-        self.vLayoutTable.addWidget(self.parameter_combo_box)
-        self.vLayoutTable.addWidget(self.ts_units_combo_box)
+        vLayoutTable.addWidget(self.parameter_combo_box)
+        vLayoutTable.addWidget(self.ts_units_combo_box)
 
         # add timeseries table
         self.location_timeseries_table = LocationTimeseriesTable(self)
         self.location_timeseries_table.hoverEnterRow.connect(self.highlight_feature)
-        self.location_timeseries_table.hoverExitAllRows.connect(
-            self.unhighlight_all_features
-        )
+        self.location_timeseries_table.hoverExitAllRows.connect(self.unhighlight_all_features)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.location_timeseries_table.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.location_timeseries_table.sizePolicy().hasHeightForWidth())
         self.location_timeseries_table.setSizePolicy(sizePolicy)
         self.location_timeseries_table.setMinimumSize(QSize(250, 0))
-        self.vLayoutTable.addWidget(self.location_timeseries_table)
+        vLayoutTable.addWidget(self.location_timeseries_table)
 
-        # add buttons below table
-        self.hLayoutButtons = QHBoxLayout(self)
-        self.vLayoutTable.addLayout(self.hLayoutButtons)
+        # add button below table
+        hLayoutButtons = QHBoxLayout(self)
 
         self.remove_timeseries_button = QPushButton(self)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.remove_timeseries_button.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.remove_timeseries_button.sizePolicy().hasHeightForWidth())
+
         self.remove_timeseries_button.setSizePolicy(sizePolicy)
         self.remove_timeseries_button.setObjectName("remove_timeseries_button")
-        self.hLayoutButtons.addWidget(self.remove_timeseries_button)
-        self.hLayoutButtons.addItem(
-            QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        )
+        hLayoutButtons.addWidget(self.remove_timeseries_button)
+        hLayoutButtons.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.remove_timeseries_button.setText("Delete")
+
+        self.showFullLegendCheckbox = QCheckBox("Show full legend", self)
+        self.showFullLegendCheckbox.setCheckState(Qt.Unchecked)
+        hLayoutButtons.addWidget(self.showFullLegendCheckbox)
+
+        vLayoutTable.addLayout(hLayoutButtons)
+
+        splitterWidget.addWidget(legendWidget)
+
+        mainLayout.addWidget(splitterWidget)
 
     def parameter_change(self, nr):
         """
@@ -663,6 +711,7 @@ class GraphWidget(QWidget):
                         "object_type": layer.objectName(),
                         "object_id": new_idx,
                         "object_name": new_object_name,
+                        "object_label": f"{result_item.parent().text()} | {result_item.text()} | ID: {new_idx}",
                         "result": result_item,
                         "color": self.location_model.get_color(new_idx),
                     }

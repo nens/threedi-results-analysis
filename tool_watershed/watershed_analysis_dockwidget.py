@@ -125,8 +125,6 @@ class Graph3DiQgsConnector:
         self.result_cell_layer = None
         self.result_flowline_layer = None
         self.result_catchment_layer = None
-
-        # TODO: preload impervious surface layer as well?
         self.impervious_surface_layer = None
 
         self.result_sets = []
@@ -565,6 +563,7 @@ class Graph3DiQgsConnector:
     def smooth_catchment_layer(self):
         saved_subsetstring = self.result_catchment_layer.subsetString()
         self.result_catchment_layer.setSubsetString("")
+        self.result_catchment_layer.setReadOnly(False)
         self.result_catchment_layer.startEditing()
         for feature in self.result_catchment_layer.getFeatures():
             if feature.id() not in self.smooth_result_catchments:
@@ -579,7 +578,9 @@ class Graph3DiQgsConnector:
                 qgs_geom_smooth.fromWkb(ogr_geom_smooth.ExportToWkb())
                 self.result_catchment_layer.changeGeometry(feature.id(), qgs_geom_smooth)
             self.smooth_result_catchments.append(feature.id())
-        self.result_catchment_layer.commitChanges()
+        if not self.result_catchment_layer.commitChanges():
+            logger.error("Unable to commit changes after smoothing")
+        self.result_catchment_layer.setReadOnly(True)
         self.result_catchment_layer.setSubsetString(saved_subsetstring)
 
     def create_impervious_surface_layer(self):
@@ -671,7 +672,7 @@ class Graph3DiQgsConnector:
             if not success:
                 raise FindImperviousSurfaceError()
 
-    def upstream_downstream_analysis(self, target_node_ids: Iterable, upstream: bool, downstream: bool):
+    def upstream_downstream_analysis(self, target_node_ids: Iterable, upstream: bool, downstream: bool, smoothing: bool):
         progress_message_bar = self.iface.messageBar().createMessage("3Di Network Analysis is being performed...")
         progress = QtWidgets.QProgressBar()
         current_progress = 0
@@ -680,6 +681,11 @@ class Graph3DiQgsConnector:
             max_progress += 4
         if downstream:
             max_progress += 3
+
+        # smoothing is optional as well
+        if not smoothing:
+            max_progress -= 1
+
         progress.setMaximum(max_progress)
         progress.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         progress_message_bar.layout().addWidget(progress)
@@ -739,10 +745,11 @@ class Graph3DiQgsConnector:
         progress.setValue(current_progress)
         print(f"{current_progress}/{max_progress}: cells dissolved")
 
-        self.smooth_catchment_layer()
-        current_progress += 1
-        progress.setValue(current_progress)
-        print(f"{current_progress}/{max_progress}: catchments smoothed")
+        if smoothing:
+            self.smooth_catchment_layer()
+            current_progress += 1
+            progress.setValue(current_progress)
+            print(f"{current_progress}/{max_progress}: catchments smoothed")
 
         self.result_cell_layer.triggerRepaint()
         self.result_flowline_layer.triggerRepaint()
@@ -827,11 +834,12 @@ class Graph3DiQgsConnector:
 
 
 class CatchmentMapTool(QgsMapToolIdentify):
-    def __init__(self, iface, parent_button, gq: Graph3DiQgsConnector, upstream=False, downstream=False):
+    def __init__(self, iface, parent_button, gq: Graph3DiQgsConnector, upstream, downstream, smoothing):
         super().__init__(gq.iface.mapCanvas())
         self.gq = gq
         self.upstream = upstream
         self.downstream = downstream
+        self.smoothing = smoothing
         self.iface = iface
         self.parent_button = parent_button
         self.set_cursor()
@@ -864,7 +872,7 @@ class CatchmentMapTool(QgsMapToolIdentify):
         else:
             target_node_id = identify_results[0].mFeature.id()
             self.gq.upstream_downstream_analysis(
-                target_node_ids=[target_node_id], upstream=self.upstream, downstream=self.downstream
+                target_node_ids=[target_node_id], upstream=self.upstream, downstream=self.downstream, smoothing=self.smoothing
             )
 
     def activate(self):
@@ -1035,6 +1043,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 gq=self.gq,
                 upstream=self.checkBoxUpstream.isChecked(),
                 downstream=self.checkBoxDownstream.isChecked(),
+                smoothing=self.checkBoxSmoothing.isChecked(),
             )
             self.iface.mapCanvas().setMapTool(self.catchment_map_tool)
         else:
@@ -1055,6 +1064,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     target_node_ids=selected_node_ids,
                     upstream=self.checkBoxUpstream.isChecked(),
                     downstream=self.checkBoxDownstream.isChecked(),
+                    smoothing=self.checkBoxSmoothing.isChecked(),
                 )
             else:
                 self.iface.messageBar().pushMessage(
@@ -1084,6 +1094,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     target_node_ids=target_node_ids,
                     upstream=self.checkBoxUpstream.isChecked(),
                     downstream=self.checkBoxDownstream.isChecked(),
+                    smoothing=self.checkBoxSmoothing.isChecked(),
                 )
 
     def pushbutton_clear_results_clicked(self):
@@ -1101,6 +1112,23 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def checkbox_downstream_state_changed(self):
         if self.catchment_map_tool is not None:
             self.catchment_map_tool.downstream = self.checkBoxDownstream.isChecked()
+
+    def checkbox_smoothing_state_changed(self, state):
+        self.pushbutton_clear_results_clicked()
+        # Reset catchment tool is required, because this uses this checkbox info
+        if self.catchment_map_tool is not None and self.iface.mapCanvas().mapTool() is self.catchment_map_tool:
+            logger.info("Resetting catchment map tool")
+            self.iface.mapCanvas().unsetMapTool(self.catchment_map_tool)
+            self.catchment_map_tool = CatchmentMapTool(
+                    self.iface,
+                    parent_button=self.pushButtonClickOnCanvas,
+                    gq=self.gq,
+                    upstream=self.checkBoxUpstream.isChecked(),
+                    downstream=self.checkBoxDownstream.isChecked(),
+                    smoothing=self.checkBoxSmoothing.isChecked(),
+                )
+            self.iface.mapCanvas().setMapTool(self.catchment_map_tool)
+            self.pushButtonClickOnCanvas.setChecked(True)
 
     def checkbox_browse_result_sets_state_changed(self):
         self.spinBoxBrowseResultSets.setEnabled(self.checkBoxBrowseResultSets.isChecked())
@@ -1144,6 +1172,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.pushButtonCatchmentForSelectedNodes.clicked.connect(self.pushbutton_catchment_for_selected_nodes_clicked)
         self.pushButtonCatchmentForPolygons.clicked.connect(self.pushbutton_catchment_for_polygons_clicked)
         self.checkBoxBrowseResultSets.stateChanged.connect(self.checkbox_browse_result_sets_state_changed)
+        self.checkBoxSmoothing.stateChanged.connect(self.checkbox_smoothing_state_changed)
         self.spinBoxBrowseResultSets.valueChanged.connect(self.spinbox_browse_result_sets_value_changed)
         self.pushButtonClearResults.clicked.connect(self.pushbutton_clear_results_clicked)
 

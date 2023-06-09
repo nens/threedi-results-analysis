@@ -2,7 +2,6 @@ from collections import OrderedDict
 from random import randint
 from threedi_results_analysis.models.base import BaseModel
 from threedi_results_analysis.models.base_fields import CheckboxField, CHECKBOX_FIELD
-from threedi_results_analysis.models.base_fields import ColorField
 from threedi_results_analysis.models.base_fields import ValueField
 from typing import Dict
 
@@ -71,24 +70,6 @@ class LocationTimeseriesModel(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.dataChanged.connect(self.update_labels)
-
-    def update_labels(self, index):
-        if self.columns[index.column()].name == "object_label":
-            # Update user-editable label of other plots for same feature
-            updated_item = self.rows[index.row()]
-            updated_feature_id = updated_item.object_id.value
-            updated_grid = updated_item.result.value.parent()
-            updated_object_type = updated_item.object_type.value
-            assert updated_grid
-            new_label = updated_item.object_label.value
-            for item in self.rows:
-                if (item.object_id.value == updated_feature_id and
-                        item.result.value.parent() is updated_grid and
-                        item.object_type.value == updated_object_type):  # e.g. flowline
-                    self.blockSignals(True)
-                    item.object_label.value = new_label
-                    self.blockSignals(False)
 
     def get_color(self, idx: int) -> QColor:
         if not self.feature_color_map:
@@ -104,7 +85,7 @@ class LocationTimeseriesModel(BaseModel):
         flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
         if self.columns[index.column()].field_type == CHECKBOX_FIELD:
             flags |= Qt.ItemIsUserCheckable | Qt.ItemIsEditable
-        elif index.column() == 5:  # user-defined label
+        elif index.column() == 2:  # user-defined label
             flags |= Qt.ItemIsEditable
 
         return flags
@@ -116,9 +97,11 @@ class LocationTimeseriesModel(BaseModel):
             return None
 
         if role == Qt.DisplayRole:
-            if index.column() == 2:  # grid: take name from result parent
+            if index.column() == 1:  # color
+                return ""
+            elif index.column() == 3:  # grid: take name from result parent
                 return self.rows[index.row()][index.column()+1].value.parent().text()
-            elif index.column() == 3:  # result
+            elif index.column() == 4:  # result
                 return self.rows[index.row()][index.column()].value.text()
 
         return super().data(index, role)
@@ -129,16 +112,18 @@ class LocationTimeseriesModel(BaseModel):
         active = CheckboxField(
             show=True, default_value=True, column_width=20, column_name="active"
         )
-        color = ColorField(
+
+        color = ValueField(
             show=True,
-            column_width=30,
-            column_name="color"
+            column_width=70,
+            column_name="pattern"
         )
+
+        object_label = ValueField(show=True, column_width=100, column_name="label")  # user-defined label per feature
 
         grid_name = ValueField(show=True, column_width=100, column_name="grid", default_value="grid")
         result = ValueField(show=True, column_width=100, column_name="result")
         object_id = ValueField(show=True, column_width=50, column_name="id")
-        object_label = ValueField(show=True, column_width=100, column_name="label")  # user-defined label per feature
         object_name = ValueField(show=True, column_width=50, column_name="type")  # e.g. 2D-1D
         object_type = ValueField(show=False)  # e.g. flowline
         hover = ValueField(show=False, default_value=False)

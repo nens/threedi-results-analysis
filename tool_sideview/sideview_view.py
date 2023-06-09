@@ -21,8 +21,9 @@ from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import LineType
-from threedi_results_analysis.tool_sideview.utils import PenStyleWidget, available_styles
+from threedi_results_analysis.tool_sideview.utils import available_styles
 from threedi_results_analysis.utils.user_messages import statusbar_message, messagebar_message, messagebar_pop_message
+from threedi_results_analysis.utils.widgets import PenStyleWidget
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from qgis.utils import iface
@@ -225,9 +226,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         generator = SideViewGraphGenerator(current_grid.path) if current_grid else None
 
-        # Previous result for optimization
-        prev_node_2_info = {}
-
         for route_part in route_path:
             first_node = True
             messagebar_message("Sideview", "Profile being generated, this might take a while...", 0, 0)
@@ -276,16 +274,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                     logger.error(f"Unknown line type: {ltype}")
                     return
 
-                # Did we compute this node for the previous flowline?
-                if not prev_node_2_info:
-                    node_level_1, node_height_1 = generator.retrieve_profile_info_from_node(begin_node_id)
-                else:
-                    node_level_1 = prev_node_2_info["level"]
-                    node_height_1 = prev_node_2_info["height"]
-                    assert begin_node_id == prev_node_2_info["id"]
-
+                node_level_1, node_height_1 = generator.retrieve_profile_info_from_node(begin_node_id)
                 node_level_2, node_height_2 = generator.retrieve_profile_info_from_node(end_node_id)
-                prev_node_2_info = {"level": node_level_2, "height": node_height_2, "id": end_node_id}
 
                 # Only draw exchange when nodes have heights
                 if (node_height_1 > 0.0 and node_height_2 > 0.0):

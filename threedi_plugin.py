@@ -19,7 +19,7 @@ from threedi_results_analysis.tool_graph.graph import ThreeDiGraph
 from threedi_results_analysis.tool_result_selection.models import TimeseriesDatasourceModel
 from threedi_results_analysis.tool_result_selection.result_selection import ThreeDiResultSelection
 from threedi_results_analysis.tool_sideview.sideview import ThreeDiSideView
-from threedi_results_analysis.tool_statistics import StatisticsTool
+from threedi_results_analysis.tool_statistics.statistics import StatisticsTool
 from threedi_results_analysis.tool_water_balance import WaterBalanceTool
 from threedi_results_analysis.tool_watershed.watershed_analysis import ThreeDiWatershedAnalyst
 from threedi_results_analysis.utils import color
@@ -157,10 +157,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
-        self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
-        self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
-        self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
-
         self.dockwidget.show()
         self.dockwidget.set_model(self.model)
 
@@ -213,8 +209,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Disable warning that scratch layer data will be lost
         QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
 
-        self.check_status_model_and_results()
-
     def write(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
@@ -256,31 +250,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         return True
 
-    def check_status_model_and_results(self, *args):
-        """Check if a (new and valid) model or result is selected and react on
-        this by pre-processing of things and activation/ deactivation of
-        tools. function is triggered by changes in the ts_datasources
-        args:
-            *args: (list) the arguments provided by the different signals
-        """
-
-        # Enable/disable tools that depend on netCDF results.
-        # For side views also the spatialite needs to be imported or else it
-        # crashes with a segmentation fault
-        if self.ts_datasources.rowCount() > 0:
-            self.cache_clearer.action_icon.setEnabled(True)
-
-        else:
-            self.cache_clearer.action_icon.setEnabled(False)
-
-        if (
-            self.ts_datasources.rowCount() > 0
-            and self.ts_datasources.model_spatialite_filepath is not None
-        ):
-            self.stats_tool.action_icon.setEnabled(True)
-        else:
-            self.stats_tool.action_icon.setEnabled(False)
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI.
 
@@ -293,10 +262,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Clears model and emits subsequent signals
         self.model.clear()
-
-        self.ts_datasources.rowsRemoved.disconnect(self.check_status_model_and_results)
-        self.ts_datasources.rowsInserted.disconnect(self.check_status_model_and_results)
-        self.ts_datasources.dataChanged.disconnect(self.check_status_model_and_results)
 
         self.unload_state_sync()
         QgsApplication.processingRegistry().removeProvider(self.provider)
@@ -327,44 +292,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         whats_this=None,
         parent=None,
     ):
-        """Add a toolbar icon to the toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
+        """Add a toolbar icon to the toolbar."""
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
