@@ -85,7 +85,7 @@ class LocationTimeseriesModel(BaseModel):
         flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
         if self.columns[index.column()].field_type == CHECKBOX_FIELD:
             flags |= Qt.ItemIsUserCheckable | Qt.ItemIsEditable
-        elif index.column() == 5:  # user-defined label
+        elif index.column() == 2:  # user-defined label
             flags |= Qt.ItemIsEditable
 
         return flags
@@ -99,9 +99,9 @@ class LocationTimeseriesModel(BaseModel):
         if role == Qt.DisplayRole:
             if index.column() == 1:  # color
                 return ""
-            elif index.column() == 2:  # grid: take name from result parent
+            elif index.column() == 3:  # grid: take name from result parent
                 return self.rows[index.row()][index.column()+1].value.parent().text()
-            elif index.column() == 3:  # result
+            elif index.column() == 4:  # result
                 return self.rows[index.row()][index.column()].value.text()
 
         return super().data(index, role)
@@ -119,10 +119,11 @@ class LocationTimeseriesModel(BaseModel):
             column_name="pattern"
         )
 
+        object_label = ValueField(show=True, column_width=100, column_name="label")  # user-defined label per feature
+
         grid_name = ValueField(show=True, column_width=100, column_name="grid", default_value="grid")
         result = ValueField(show=True, column_width=100, column_name="result")
         object_id = ValueField(show=True, column_width=50, column_name="id")
-        object_label = ValueField(show=True, column_width=100, column_name="label")  # user-defined label per feature
         object_name = ValueField(show=True, column_width=50, column_name="type")  # e.g. 2D-1D
         object_type = ValueField(show=False)  # e.g. flowline
         hover = ValueField(show=False, default_value=False)

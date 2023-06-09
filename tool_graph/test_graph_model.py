@@ -104,7 +104,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         self.assertListEqual(
             headers,
             # display column names
-            ["active", "color", "grid", "result", "id", "label", "type", "object_type", "hover"],
+            ["active", "pattern", "grid", "result", "id", "label", "type", "object_type", "hover"],
         )
 
     def test_init_with_initial_data(self):

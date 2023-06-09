@@ -10,6 +10,7 @@
 - Graph: Use "{grid name} | {result name} | ID {id}" as default label (#840)
 - Graph: Added splitter so plots and legends can be resized (#840)
 - Graph: Line pattern and color is now shown in legend (#840)
+- Graph: Legend now only shows checkbox, line pattern/color and label. Other columns are hidden and can be shown via checkbox (#840)
 
 
 3.1.4 (2023-06-06)

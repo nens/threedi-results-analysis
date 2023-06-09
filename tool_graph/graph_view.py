@@ -365,9 +365,6 @@ class LocationTimeseriesTable(QTableView):
         self.model.dataChanged.connect(self._update_table_widgets)
         self.model.rowsInserted.connect(self._update_table_widgets)
         self.model.rowsAboutToBeRemoved.connect(self._update_table_widgets)
-
-        # https://stackoverflow.com/questions/3433664/how-to-make-sure-
-        # columns-in-qtableview-are-resized-to-the-maximum
         self.setVisible(False)
         self.resizeColumnsToContents()
         self.horizontalHeader().setStretchLastSection(True)
@@ -411,11 +408,13 @@ class GraphWidget(QWidget):
         self.graph_plot.set_location_model(self.location_model)
         self.graph_plot.set_result_model(self.model)
         self.location_timeseries_table.setModel(self.location_model)
+        self._updateHiddenColumns(self.showFullLegendCheckbox.checkState())
 
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
+        self.showFullLegendCheckbox.stateChanged.connect(self._updateHiddenColumns)
         self.location_timeseries_table.deleteRequested.connect(lambda index: self.location_model.removeRows(index.row(), 1))
 
         # init parameter selection
@@ -424,6 +423,14 @@ class GraphWidget(QWidget):
         self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
+
+    def _updateHiddenColumns(self, state):
+        if state == Qt.Unchecked:
+            for i in range(3, 7):
+                self.location_timeseries_table.setColumnHidden(i, True)
+        else:
+            for i in range(7):
+                self.location_timeseries_table.setColumnHidden(i, False)
 
     def refresh_table(self):
         # trigger all listeners by emiting dataChanged signal
@@ -558,6 +565,11 @@ class GraphWidget(QWidget):
         hLayoutButtons.addWidget(self.remove_timeseries_button)
         hLayoutButtons.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.remove_timeseries_button.setText("Delete")
+
+        self.showFullLegendCheckbox = QCheckBox("Show full legend", self)
+        self.showFullLegendCheckbox.setCheckState(Qt.Unchecked)
+        hLayoutButtons.addWidget(self.showFullLegendCheckbox)
+
         vLayoutTable.addLayout(hLayoutButtons)
 
         splitterWidget.addWidget(legendWidget)
