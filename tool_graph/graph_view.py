@@ -30,10 +30,12 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QColorDialog
+from qgis.PyQt.QtGui import QColor
 from threedi_results_analysis.tool_graph.graph_model import LocationTimeseriesModel
 from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.utils.utils import generate_parameter_config
+from threedi_results_analysis.utils.widgets import PenStyleWidget
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 from qgis.core import QgsVectorLayer
 from threedi_results_analysis.datasource.threedi_results import normalized_object_type
@@ -360,15 +362,32 @@ class LocationTimeseriesTable(QTableView):
     def setModel(self, model):
         super().setModel(model)
         self.model = model
+        self.model.dataChanged.connect(self._update_table_widgets)
+        self.model.rowsInserted.connect(self._update_table_widgets)
+        self.model.rowsAboutToBeRemoved.connect(self._update_table_widgets)
+
         # https://stackoverflow.com/questions/3433664/how-to-make-sure-
         # columns-in-qtableview-are-resized-to-the-maximum
         self.setVisible(False)
         self.resizeColumnsToContents()
+        self.horizontalHeader().setStretchLastSection(True)
         self.setVisible(True)
         self.model.set_column_sizes_on_view(self)
-        # first two columns (checkbox, color) can be set small always
+        # first two columns (checkbox) can be set small always
         self.setColumnWidth(0, 20)  # checkbox
-        self.setColumnWidth(1, 20)  # color field
+        self.setColumnWidth(1, 50)  # color patern field
+
+    def _update_table_widgets(self):
+        """The PenStyle widget is not part of the model, but explicitely added/overlayed to the table"""
+        for i in range(self.model.rowCount()):
+            item = self.model.rows[i]
+            index = self.model.index(i, 1)
+            pen_color = QColor(item.color.value[0], item.color.value[1], item.color.value[2])
+            # If index widget A is replaced with index widget B, index widget A will be deleted.
+            patternWidget = PenStyleWidget(item.result.value._pattern, pen_color, self)
+            # patternWidget.setAutoFillBackground(True)
+            patternWidget.setPalette(self.palette())
+            self.setIndexWidget(index, patternWidget)
 
 
 class GraphWidget(QWidget):

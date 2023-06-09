@@ -21,8 +21,9 @@ from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import LineType
-from threedi_results_analysis.tool_sideview.utils import PenStyleWidget, available_styles
+from threedi_results_analysis.tool_sideview.utils import available_styles
 from threedi_results_analysis.utils.user_messages import statusbar_message, messagebar_message, messagebar_pop_message
+from threedi_results_analysis.utils.widgets import PenStyleWidget
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from qgis.utils import iface
