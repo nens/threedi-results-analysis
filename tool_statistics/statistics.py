@@ -10,7 +10,7 @@ class StatisticsTool(ThreeDiPluginTool):
 
         self.iface = iface
         self.model = model
-        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_statistical_analysis.png")
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_custom_statistics.png")
         self.menu_text = u"Statistics"
 
     def run(self):
