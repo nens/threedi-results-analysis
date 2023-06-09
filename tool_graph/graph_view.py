@@ -434,8 +434,10 @@ class GraphWidget(QWidget):
 
     def refresh_table(self):
         # trigger all listeners by emiting dataChanged signal
+        logger.info("Refreshing table")
         self.location_model.beginResetModel()
         self.location_model.endResetModel()
+        self.location_timeseries_table._update_table_widgets()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, result_item: ThreeDiResultItem):
