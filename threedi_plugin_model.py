@@ -387,3 +387,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         result_index = self.indexFromItem(result_item)
         time_item = self.itemFromIndex(result_index.siblingAtColumn(1))
         time_item.setText(text)
+
+    def set_align_starts(self, is_checked):
+        print(f'Align starts: {is_checked}')

@@ -21,6 +21,7 @@ FORM_CLASS, _ = uic.loadUiType(
 class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal([str, str])
+    align_starts_checked = pyqtSignal(bool)
 
     grid_removal_selected = pyqtSignal(ThreeDiGridItem)
     result_removal_selected = pyqtSignal(ThreeDiResultItem)
@@ -33,6 +34,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self.pushButton_Add.clicked.connect(self._add_clicked)
         self.pushButton_RemoveItem.clicked.connect(self._remove_current_index_clicked)
+        self.alignStartsCheckBox.stateChanged.connect(self._align_starts_clicked)
 
         # Set logo
         path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
@@ -82,6 +84,9 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.result_removal_selected.emit(item)
             else:
                 raise RuntimeError("Unknown model item type")
+
+    def _align_starts_clicked(self):
+        self.align_starts_checked.emit(self.alignStartsCheckBox.isChecked())
 
     def _selection_changed(self, selected, deselected):
         deselected_indexes = deselected.indexes()

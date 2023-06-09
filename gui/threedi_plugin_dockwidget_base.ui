@@ -193,6 +193,43 @@
             </widget>
            </item>
            <item>
+            <widget class="QGroupBox" name="groupBox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>Settings</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QCheckBox" name="alignStartsCheckBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Let all simulation use the start time of the simulation that starts first&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Align simulation start times</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
             <widget class="Line" name="line">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>

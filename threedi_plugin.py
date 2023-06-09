@@ -156,6 +156,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_unchecked.connect(self.loader.result_unchecked)
 
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
+        self.dockwidget.align_starts_checked.connect(self.model.set_align_starts)
 
         self.dockwidget.show()
         self.dockwidget.set_model(self.model)
