@@ -2,7 +2,6 @@ from collections import OrderedDict
 from random import randint
 from threedi_results_analysis.models.base import BaseModel
 from threedi_results_analysis.models.base_fields import CheckboxField, CHECKBOX_FIELD
-from threedi_results_analysis.models.base_fields import ColorField
 from threedi_results_analysis.models.base_fields import ValueField
 from typing import Dict
 
@@ -10,7 +9,7 @@ import logging
 import numpy as np
 import pyqtgraph as pg
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QColor, QBrush
+from qgis.PyQt.QtGui import QColor
 
 
 logger = logging.getLogger(__name__)
@@ -97,13 +96,10 @@ class LocationTimeseriesModel(BaseModel):
         if not index.isValid():
             return None
 
-        if role == Qt.BackgroundRole:
-            if index.column() == 1:  # always show fully transparant, we'll augment it with another widget
-                logger.error("Color")
-                return QBrush(QColor(0, 0, 0, 0))
-
         if role == Qt.DisplayRole:
-            if index.column() == 2:  # grid: take name from result parent
+            if index.column() == 1:  # color
+                return ""
+            elif index.column() == 2:  # grid: take name from result parent
                 return self.rows[index.row()][index.column()+1].value.parent().text()
             elif index.column() == 3:  # result
                 return self.rows[index.row()][index.column()].value.text()
@@ -117,11 +113,9 @@ class LocationTimeseriesModel(BaseModel):
             show=True, default_value=True, column_width=20, column_name="active"
         )
 
-        # Note that it always shows fully transparant (see data()), we augment it with a custom
-        # widget to show the corresponding pattern as well.
-        color = ColorField(
+        color = ValueField(
             show=True,
-            column_width=50,
+            column_width=70,
             column_name="pattern"
         )
 

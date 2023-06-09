@@ -373,9 +373,8 @@ class LocationTimeseriesTable(QTableView):
         self.horizontalHeader().setStretchLastSection(True)
         self.setVisible(True)
         self.model.set_column_sizes_on_view(self)
-        # first two columns (checkbox) can be set small always
+        # Columns checkbox can be set small always
         self.setColumnWidth(0, 20)  # checkbox
-        self.setColumnWidth(1, 50)  # color patern field
 
     def _update_table_widgets(self):
         """The PenStyle widget is not part of the model, but explicitely added/overlayed to the table"""
