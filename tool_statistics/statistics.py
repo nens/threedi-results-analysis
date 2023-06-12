@@ -39,6 +39,9 @@ from qgis.PyQt.QtCore import pyqtSlot
 
 import os
 import os.path
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # TODO: cfl strictness factors instelbaar maken
@@ -248,7 +251,6 @@ class StatisticsTool(ThreeDiPluginTool):
         self.dlg = None
 
         # Check if plugin was started the first time in current QGIS session
-        # TODO: check plugin reload
         self.first_start = True
 
         self.tm = QgsApplication.taskManager()
@@ -388,3 +390,9 @@ class StatisticsTool(ThreeDiPluginTool):
             return
 
         self.dlg.change_result(result_item)
+
+    def on_unload(self):
+        if self.dlg:
+            self.dlg.close()
+            self.dlg = None
+            self.first_start = True
