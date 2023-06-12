@@ -63,7 +63,7 @@ from threedigrid.admin.constants import TYPE_V2_PIPE
 from threedigrid.admin.constants import TYPE_V2_ORIFICE
 from threedigrid.admin.constants import TYPE_V2_WEIR
 
-from threedi_results_analysis.processing.deps.cross_sectional_discharge.cross_sectional_discharge import left_to_right_discharge_ogr
+from threedi_results_analysis.processing.deps.discharge.cross_sectional_discharge import left_to_right_discharge_ogr
 
 MEMORY_DRIVER = ogr.GetDriverByName("MEMORY")
 STYLE_DIR = Path(__file__).parent / "styles"

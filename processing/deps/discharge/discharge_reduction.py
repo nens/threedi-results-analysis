@@ -9,16 +9,16 @@ try:
 except ImportError:
     from leak_detector import LeakDetector, Edge, highest
 try:
-    from ..threedi_result_aggregation.base import (
+    from .threedi_result_aggregation.base import (
         water_levels_at_cross_section,
         prepare_timeseries,
         aggregate_prepared_timeseries
     )
-    from ..threedi_result_aggregation.aggregation_classes import (
+    from .threedi_result_aggregation.aggregation_classes import (
         Aggregation,
         AggregationSign,
     )
-    from ..threedi_result_aggregation.constants import (
+    from .threedi_result_aggregation.constants import (
         AGGREGATION_VARIABLES,
         AGGREGATION_METHODS,
     )

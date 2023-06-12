@@ -36,10 +36,10 @@ from qgis.core import (
     QgsWkbTypes,
 )
 
-from .leak_detector import LeakDetector
-from .discharge_reduction import LeakDetectorWithDischargeThreshold
-from ..threedi_result_aggregation.aggregation_classes import Aggregation, AggregationSign
-from ..threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
+from threedi_results_analysis.processing.deps.discharge.leak_detector import LeakDetector
+from threedi_results_analysis.processing.deps.discharge.discharge_reduction import LeakDetectorWithDischargeThreshold
+from threedi_results_analysis.processing.deps.discharge.threedi_result_aggregation.aggregation_classes import Aggregation, AggregationSign
+from threedi_results_analysis.processing.deps.discharge.threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
 
 Q_NET_SUM = Aggregation(
     variable=AGGREGATION_VARIABLES.get_by_short_name("q"),
@@ -47,7 +47,7 @@ Q_NET_SUM = Aggregation(
     sign=AggregationSign("net", "Net"),
 )
 
-STYLE_DIR = Path(__file__).parent.parent / "style"
+STYLE_DIR = Path(__file__).parent / "styles"
 
 QVARIANT_PYTHON_TYPES = {
     QVariant.Int: int,
@@ -250,16 +250,10 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
         }
 
     def group(self):
-        """
-        Returns the name of the group this algorithm belongs to.
-        """
-        return self.groupId()
+        return "Computational Grid"
 
     def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to
-        """
-        return "Computational grid"
+        return "computational_grid"
 
 
 class DetectLeakingObstaclesAlgorithm(DetectLeakingObstaclesBase):
