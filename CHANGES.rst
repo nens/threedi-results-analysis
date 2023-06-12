@@ -11,6 +11,7 @@
 - Graph: Added splitter so plots and legends can be resized (#840)
 - Graph: Line pattern and color is now shown in legend (#840)
 - Graph: Legend now only shows checkbox, line pattern/color and label. Other columns are hidden and can be shown via checkbox (#840)
+- Statistics: Preliminary replacement of Statistics tool with new Custom Statistics tool (https://github.com/threedi/beta-plugins/tree/master/threedi_custom_stats) (#669)
 
 
 3.1.4 (2023-06-06)

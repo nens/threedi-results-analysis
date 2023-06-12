@@ -52,6 +52,8 @@ from qgis.core import QgsSymbolLayer
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsVectorLayerSimpleLabeling
 from qgis.core import QgsWkbTypes
+from qgis.core import QgsGeometry
+from qgis.core import QgsFeature
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from shapely import wkt
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
@@ -61,12 +63,40 @@ from threedigrid.admin.constants import TYPE_V2_PIPE
 from threedigrid.admin.constants import TYPE_V2_ORIFICE
 from threedigrid.admin.constants import TYPE_V2_WEIR
 
-from ..cross_sectional_discharge import left_to_right_discharge_ogr
-from ..ogr2qgis import ogr_feature_as_qgis_feature
-
+from threedi_results_analysis.processing.deps.cross_sectional_discharge.cross_sectional_discharge import left_to_right_discharge_ogr
 
 MEMORY_DRIVER = ogr.GetDriverByName("MEMORY")
-STYLE_DIR = Path(__file__).parent.parent / "style"
+STYLE_DIR = Path(__file__).parent / "styles"
+
+
+def ogr_feature_as_qgis_feature(
+    ogr_feature, qgs_vector_lyr, tgt_wkb_type=None, tgt_fields=None
+):
+
+    # geometry
+    ogr_geom_ref = ogr_feature.GetGeometryRef()
+    if tgt_wkb_type is None:
+        tgt_wkb_type = qgs_vector_lyr.wkbType()
+    if not QgsWkbTypes.hasZ(tgt_wkb_type):
+        ogr_geom_ref.FlattenTo2D()
+    ogr_geom_wkb = ogr_geom_ref.ExportToWkb()
+    qgs_geom = QgsGeometry()
+    qgs_geom.fromWkb(ogr_geom_wkb)
+
+    # attributes
+    attributes = []
+    if tgt_fields is None:
+        tgt_fields = qgs_vector_lyr.fields()
+    for field in tgt_fields:
+        ogr_field_idx = ogr_feature.GetFieldIndex(field.name())
+        if ogr_field_idx != -1:
+            ogr_field_value = ogr_feature.GetField(ogr_field_idx)
+            attributes.append(ogr_field_value)
+
+    qgs_feature = QgsFeature()
+    qgs_feature.setGeometry(qgs_geom)
+    qgs_feature.setAttributes(attributes)
+    return qgs_feature
 
 
 class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
@@ -410,10 +440,10 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
         return self.tr("Cross-sectional discharge")
 
     def group(self):
-        return self.tr("Discharge")
+        return self.tr("Post-process results")
 
     def groupId(self):
-        return "Discharge"
+        return "postprocessing"
 
     def shortHelpString(self):
         return self.tr(
