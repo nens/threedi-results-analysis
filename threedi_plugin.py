@@ -192,6 +192,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_changed.connect(self.watershed_tool.result_changed)
         self.watershed_tool.closing.connect(self.loader.reset_styling)
 
+        # statistics signals
+        self.model.result_added.connect(self.stats_tool.result_added)
+        self.model.result_removed.connect(self.stats_tool.result_removed)
+        self.model.result_changed.connect(self.stats_tool.result_changed)
+
         # water balance signals
         self.model.result_added.connect(self.water_balance_tool.result_added)
         self.model.result_removed.connect(self.water_balance_tool.result_removed)

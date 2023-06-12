@@ -34,6 +34,8 @@ from .ogr2qgis import as_qgis_memory_layer
 # Import the code for the dialog
 from .threedi_custom_stats_dialog import ThreeDiCustomStatsDialog
 from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from qgis.PyQt.QtCore import pyqtSlot
 
 import os
 import os.path
@@ -243,6 +245,7 @@ class StatisticsTool(ThreeDiPluginTool):
         self.model = model
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_custom_statistics.png")
         self.menu_text = u"Post-processing tool to make custom time aggregations of 3Di results and visualize the on the map canvas"
+        self.dlg = None
 
         # Check if plugin was started the first time in current QGIS session
         # TODO: check plugin reload
@@ -338,3 +341,50 @@ class StatisticsTool(ThreeDiPluginTool):
                 output_rasters=output_rasters,
             )
             self.tm.addTask(aggregate_threedi_results_task)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_added(self, result_item: ThreeDiResultItem) -> None:
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+        if not self.dlg:
+            return
+
+        self.dlg.add_result(result_item)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_removed(self, result_item: ThreeDiResultItem) -> None:
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+        if not self.dlg:
+            return
+
+        # Remove from combobox etc
+        self.dlg.remove_result(result_item)
+
+        # Removed cached layers and groups
+        # if result_item.id in self.preloaded_layers:
+        #     layer_dict = self.preloaded_layers[result_item.id]
+        #     for table_name in required_layer_names:
+        #         QgsProject.instance().removeMapLayer(layer_dict[table_name])
+        #     for table_name in optional_layer_names:
+        #         if table_name in layer_dict:
+        #             QgsProject.instance().removeMapLayer(layer_dict[table_name])
+
+        #     # Remove group
+        #     if "group" in layer_dict:
+        #         result_group = layer_dict["group"]
+        #         tool_group = result_group.parent()
+        #         tool_group.removeChildNode(result_group)
+
+        #     # In case the tool ("watershed") group is now empty, we'll remove that too
+        #     tool_group = result_item.parent().layer_group.findGroup(GROUP_NAME)
+        #     if len(tool_group.children()) == 0:
+        #         tool_group.parent().removeChildNode(tool_group)
+
+        #     # Remove from dict
+        #     del self.preloaded_layers[result_item.id]
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_changed(self, result_item: ThreeDiResultItem) -> None:
+        if not self.dlg:
+            return
+
+        self.dlg.change_result(result_item)

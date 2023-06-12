@@ -33,6 +33,11 @@ from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsCoordinateReferenceSystem
 from qgis.gui import QgsFileWidget
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .presets import PRESETS, Preset
 from .threedi_result_aggregation.aggregation_classes import (
@@ -617,6 +622,31 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.update_gr(str(results_3di), str(gridadmin))
         if self.validate():
             self.result_id = result_id
+
+    def add_result(self, result_item: ThreeDiResultItem) -> None:
+        currentIndex = self.resultComboBox.currentIndex()
+        self.resultComboBox.addItem(result_item.text(), result_item.id)
+        self.resultComboBox.setCurrentIndex(currentIndex)
+
+    def remove_result(self, result_item: ThreeDiResultItem):
+        idx = self.resultComboBox.findData(result_item.id)
+        logger.info(f"Removing result {result_item.id} at index {idx}")
+        assert idx != -1
+        if idx == self.resultComboBox.currentIndex():
+            # TODO: clean up?
+            self.resultComboBox.setCurrentIndex(-1)
+
+        self.resultComboBox.removeItem(idx)
+
+    def change_result(self, result_item: ThreeDiResultItem):
+        idx = self.resultComboBox.findData(result_item.id)
+        assert idx != -1
+        self.resultComboBox.setItemText(idx, result_item.text())
+
+        # # also rename result layer groups
+        # if result_item.id in self.preloaded_layers:
+        #     layer_result_group = self.preloaded_layers[result_item.id]["group"]
+        #     layer_result_group.setName(result_item.text())
 
     def set_extent_from_map_canvas(self):
         canvas_extent = self.iface.mapCanvas().extent()
