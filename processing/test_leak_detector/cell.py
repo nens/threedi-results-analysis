@@ -3,8 +3,7 @@ from pathlib import Path
 import numpy as np
 from osgeo import gdal
 from threedigrid.admin.gridadmin import GridH5Admin
-
-from v2_leak_detector import LeakDetector, TOP, BOTTOM, LEFT, RIGHT
+from threedi_results_analysis.processing.deps.discharge.leak_detector import LeakDetector, TOP, BOTTOM, LEFT, RIGHT
 
 DATA_DIR = Path(__file__).parent / 'data'
 DEM_FILENAME = DATA_DIR / 'dem_0_01.tif'
@@ -16,7 +15,7 @@ SEARCH_PRECISION = 0.001
 MIN_OBSTACLE_HEIGHT = 0.05
 
 
-def neigh_cells():
+def test_neigh_cells():
     cell_ids = [204]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -31,7 +30,7 @@ def neigh_cells():
     assert cell.neigh_cells[TOP][0].id == 205
 
 
-def edge_pixels():
+def test_edge_pixels():
     cell_ids = [156, 157, 158, 159]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -81,12 +80,12 @@ def edge_pixels():
     )
 
 
-def side_indices():
+def test_side_indices():
     # TODO add tests here
     pass
 
 
-def maxima():
+def test_maxima():
     cell_ids = [156, 157, 158, 159]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -106,8 +105,3 @@ def maxima():
 
     cell = leak_detector.cell(159)
     assert np.all(cell.maxima(LEFT) == np.array([[2, 0]]))
-
-
-neigh_cells()
-edge_pixels()
-maxima()

@@ -1,5 +1,9 @@
 import numpy as np
-from leak_detector import wet_cross_sectional_area, wetted_perimeter, discharge_reduction_factor
+from threedi_results_analysis.processing.deps.discharge.leak_detector import (
+    wet_cross_sectional_area,
+    wetted_perimeter,
+    discharge_reduction_factor,
+)
 
 
 def test_wet_cross_sectional_area():
@@ -80,9 +84,3 @@ def test_discharge_reduction_factor():
         old_obstacle_crest_level,
         new_obstacle_crest_level
     ) == 0
-
-
-if __name__ == "__main__":
-    test_wet_cross_sectional_area()
-    test_wetted_perimeter()
-    test_discharge_reduction_factor()

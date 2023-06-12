@@ -6,7 +6,7 @@ import numpy as np
 from osgeo import gdal
 from threedigrid.admin.gridadmin import GridH5Admin
 
-from leak_detector import (
+from threedi_results_analysis.processing.deps.discharge.leak_detector import (
     CellPair,
     LeakDetector,
     REFERENCE,
@@ -37,7 +37,7 @@ SIDE_TOP = 2
 SIDE_RIGHT = 2
 
 
-def width_and_height():
+def test_width_and_height():
     cell_ids = [158, 159, 204, 205, 206]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -55,7 +55,7 @@ def width_and_height():
     assert cell_pair.height == 40
 
 
-def locate_cell():
+def test_locate_cell():
     cell_ids = [158, 204]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -71,7 +71,7 @@ def locate_cell():
     assert cell_pair.locate_cell(NEIGH) == (RIGHT, TOP)
 
 
-def locate_pos():
+def test_locate_pos():
     cell_ids = [158, 204]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -90,7 +90,7 @@ def locate_pos():
     assert cell_pair.locate_pos((0, 45)) == NEIGH
 
 
-def maxima():
+def test_maxima():
     cell_ids = [156, 157, 158, 159, 190, 199, 200, 203, 204, 205, 206, 219, 220]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -181,7 +181,7 @@ def find_obstacles_helper(
             assert len(edge.obstacles) > 0
 
 
-def find_obstacles():
+def test_find_obstacles():
     find_obstacles_helper(
         cell_ids=[55, 56],
         result_obstacle_side=SIDE_TOP,
@@ -256,7 +256,7 @@ def find_obstacles():
     )
 
 
-def find_connecting_obstacles():
+def test_find_connecting_obstacles():
     cell_ids = [29, 30, 49, 50]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -284,7 +284,7 @@ def find_connecting_obstacles():
     assert len(leak_detector.edge(29, 30).obstacles) == 1
 
 
-def transform():
+def test_transform():
     cell_ids = [158, 204]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -327,7 +327,7 @@ def transform():
             raise e
 
 
-def squash_indices():
+def test_squash_indices():
     cell_ids = [158, 204, 171, 172, 193]
     leak_detector = LeakDetector(
         gridadmin=GR,
@@ -412,21 +412,11 @@ def squash_indices():
             raise e
 
 
-def side_indices():
+def test_side_indices():
     # TODO: add tests here
     pass
 
 
-def is_obstacle_relevant():
+def test_is_obstacle_relevant():
     # TODO: add tests here
     pass
-
-
-width_and_height()
-locate_cell()
-locate_pos()
-maxima()
-find_obstacles()
-find_connecting_obstacles()
-transform()
-squash_indices()
