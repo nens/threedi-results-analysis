@@ -245,7 +245,7 @@ class StatisticsTool(ThreeDiPluginTool):
         self.menu_text = u"Post-processing tool to make custom time aggregations of 3Di results and visualize the on the map canvas"
 
         # Check if plugin was started the first time in current QGIS session
-        # TODO:check plugin reload
+        # TODO: check plugin reload
         self.first_start = True
 
         self.tm = QgsApplication.taskManager()
@@ -256,7 +256,7 @@ class StatisticsTool(ThreeDiPluginTool):
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
         if self.first_start:
             self.first_start = False
-            self.dlg = ThreeDiCustomStatsDialog(self.iface)
+            self.dlg = ThreeDiCustomStatsDialog(self.iface, self.model)
 
         # show the dialog
         self.dlg.show()
@@ -265,8 +265,9 @@ class StatisticsTool(ThreeDiPluginTool):
         # See if OK was pressed
         if result:
             # 3Di results
-            results_3di = self.dlg.QgsFileWidget3DiResults.filePath()
-            grid_admin = self.dlg.QgsFileWidgetGridAdmin.filePath()
+            result = self.model.get_result(self.dlg.result_id)
+            results_3di = str(result.path)
+            grid_admin = str(result.parent().path.with_suffix('.h5'))
 
             # Filtering parameters
             start_time = self.dlg.doubleSpinBoxStartTime.value()

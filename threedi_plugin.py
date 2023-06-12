@@ -81,7 +81,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
         self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self.model)
-        self.stats_tool = StatisticsTool(iface, self.ts_datasources)
+        self.stats_tool = StatisticsTool(iface, self.model)
         self.water_balance_tool = WaterBalanceTool(iface, self.model)
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.model)
         self.logfile_tool = ShowLogfile(iface)

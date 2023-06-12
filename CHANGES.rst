@@ -12,7 +12,7 @@
 - Graph: Line pattern and color is now shown in legend (#840)
 - Graph: Legend now only shows checkbox, line pattern/color and label. Other columns are hidden and can be shown via checkbox (#840)
 - Statistics: Preliminary replacement of Statistics tool with new Custom Statistics tool (https://github.com/threedi/beta-plugins/tree/master/threedi_custom_stats) (#669)
-- Statistics: Removed Custom Statistic test scripts as they are no longer compatible with current version of code (unable to easily transfer in unit tests)
+- Statistics: Removed Custom Statistic test scripts as they are no longer functional/compatible with current version of code (unable to easily transfer in unit tests)
 
 
 3.1.4 (2023-06-06)
