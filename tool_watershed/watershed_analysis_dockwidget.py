@@ -9,8 +9,6 @@
 
 # TODO: auto-Enable/disable buttons in Target Nodes and Outputs sections
 
-# TODO: handle removal of layer tree group (make impossible)
-
 # TODO: add sub-categories to result flowline styling
 # TODO: add discharge (q net sum) attribute to result flowlines
 # TODO: add flow direction styling to result flowlines
