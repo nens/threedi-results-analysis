@@ -57,6 +57,18 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                     continue
                 self.preloaded_layers[result_id][layer_table_name] = layer_id
 
+            # See if we can find a possible group
+            result = self.model.get_result(result_id)
+            grid_item = result.parent()
+            assert grid_item
+            tool_group = grid_item.layer_group.findGroup(GROUP_NAME)
+            if tool_group:
+                result_group = tool_group.findGroup(result.text())
+                if result_group:
+                    self.preloaded_layers[result_id]["group"] = result_group
+                    logger.error("CONNECT")
+                    result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+
         # When the layers have been loaded, you want them to be removable until we
         # open the tool.
         self.release_layers()
@@ -130,6 +142,7 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 result_group = tool_group.findGroup(result.text())
                 if result_group:
                     loaded_layer_dict["group"] = result_group
+                    result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
 
     def run(self):
         """Run method that loads and starts the tool"""
@@ -186,6 +199,11 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem) -> None:
+        # also rename result layer groups
+        if result_item.id in self.preloaded_layers:
+            layer_result_group = self.preloaded_layers[result_item.id]["group"]
+            layer_result_group.setName(result_item.text())
+
         if not self.active:
             return
 
