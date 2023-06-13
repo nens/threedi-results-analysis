@@ -29,7 +29,7 @@ from typing import List
 from osgeo.gdal import GetDriverByName
 from qgis.core import Qgis, QgsApplication, QgsProject, QgsTask
 from .threedi_result_aggregation.base import aggregate_threedi_results
-from .ogr2qgis import as_qgis_memory_layer
+from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer
 
 # Import the code for the dialog
 from .threedi_custom_stats_dialog import ThreeDiCustomStatsDialog
