@@ -132,21 +132,27 @@ class Aggregate3DiResults(QgsTask):
         assert grid_item
         tool_group = grid_item.layer_group.findGroup(group_name)
         if not tool_group:
-            logger.info("Creating new group for watershed tool results.")
             tool_group = grid_item.layer_group.insertGroup(0, group_name)
+            tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
 
         # Add result group
         result_group = tool_group.findGroup(result.text())
         if not result_group:
             result_group = tool_group.addGroup(result.text())
-
-        # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
-        # infinite signal loop because the model only emits the result_changed when the text has actually
-        # changed.
-        result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
-        self.layer_groups[result.id] = result_group
+            self.layer_groups[result.id] = result_group
+            # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
+            # infinite signal loop because the model only emits the result_changed when the text has actually
+            # changed.
+            result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
 
         return result_group
+
+    def _group_removed(self, n, idxFrom, idxTo):
+        for result_id in list(self.layer_groups):
+            group = self.layer_groups[result_id]
+            for i in range(idxFrom, idxTo+1):
+                if n.children()[i] is group:
+                    del self.layer_groups[result_id]
 
     def finished(self, result):
         if self.exception is not None:
@@ -295,12 +301,19 @@ class StatisticsTool(ThreeDiPluginTool):
             assert grid_item
             tool_group = grid_item.layer_group.findGroup(GROUP_NAME)
             if tool_group:
+                tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
                 result_group = tool_group.findGroup(result.text())
                 if result_group:
                     self.layer_groups[result.id] = result_group
                     result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
-
         return True
+
+    def _group_removed(self, n, idxFrom, idxTo):
+        for result_id in list(self.layer_groups):
+            group = self.layer_groups[result_id]
+            for i in range(idxFrom, idxTo+1):
+                if n.children()[i] is group:
+                    del self.layer_groups[result_id]
 
     def run(self):
 
@@ -418,8 +431,8 @@ class StatisticsTool(ThreeDiPluginTool):
             if len(tool_group.children()) == 0:
                 tool_group.parent().removeChildNode(tool_group)
 
-            # Remove from dict
-            del self.layer_groups[result_item.id]
+            # Via a callback (willRemoveChildren), the deleted group should already have removed itself from the list
+            assert result_item.id not in self.layer_groups
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem) -> None:
