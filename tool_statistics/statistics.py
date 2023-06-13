@@ -55,6 +55,7 @@ class Aggregate3DiResults(QgsTask):
         self,
         description: str,
         parent: ThreeDiCustomStatsDialog,
+        layer_groups,
         result: ThreeDiResultItem,
         demanded_aggregations: List,
         bbox,
@@ -74,6 +75,7 @@ class Aggregate3DiResults(QgsTask):
         self.parent = parent
         self.parent.setEnabled(False)
         self.result = result
+        self.layer_groups = layer_groups
         self.demanded_aggregations = demanded_aggregations
         self.bbox = bbox
         self.start_time = start_time
@@ -123,6 +125,28 @@ class Aggregate3DiResults(QgsTask):
             self.exception = e
 
         return False
+
+    def _get_or_create_result_group(self, result: ThreeDiResultItem, group_name: str):
+        # We'll place the result layers in a dedicated result group
+        grid_item = result.parent()
+        assert grid_item
+        tool_group = grid_item.layer_group.findGroup(group_name)
+        if not tool_group:
+            logger.info("Creating new group for watershed tool results.")
+            tool_group = grid_item.layer_group.insertGroup(0, group_name)
+
+        # Add result group
+        result_group = tool_group.findGroup(result.text())
+        if not result_group:
+            result_group = tool_group.addGroup(result.text())
+
+        # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
+        # infinite signal loop because the model only emits the result_changed when the text has actually
+        # changed.
+        result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+        self.layer_groups[result.id] = result_group
+
+        return result_group
 
     def finished(self, result):
         if self.exception is not None:
@@ -228,27 +252,6 @@ class Aggregate3DiResults(QgsTask):
                 duration=3,
             )
 
-    def _get_or_create_result_group(self, result: ThreeDiResultItem, group_name: str):
-        # We'll place the result layers in a dedicated result group
-        grid_item = result.parent()
-        assert grid_item
-        tool_group = grid_item.layer_group.findGroup(group_name)
-        if not tool_group:
-            logger.info("Creating new group for watershed tool results.")
-            tool_group = grid_item.layer_group.insertGroup(0, group_name)
-
-        # Add result group
-        result_group = tool_group.findGroup(result.text())
-        if not result_group:
-            result_group = tool_group.addGroup(result.text())
-
-        # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
-        # infinite signal loop because the model only emits the result_changed when the text has actually
-        # changed.
-        result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
-
-        return result_group
-
     def cancel(self):
         self.parent.iface.messageBar().pushMessage(
             "3Di Statistics",
@@ -269,6 +272,9 @@ class StatisticsTool(ThreeDiPluginTool):
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_custom_statistics.png")
         self.menu_text = u"Post-processing tool to make custom time aggregations of 3Di results and visualize the on the map canvas"
         self.dlg = None
+
+        # Keeps track of the layer groups already generated
+        self.layer_groups = {}
 
         # Check if plugin was started the first time in current QGIS session
         self.first_start = True
@@ -345,6 +351,7 @@ class StatisticsTool(ThreeDiPluginTool):
             aggregate_threedi_results_task = Aggregate3DiResults(
                 description="Aggregate 3Di Results",
                 parent=self.dlg,
+                layer_groups=self.layer_groups,
                 result=result,
                 demanded_aggregations=self.dlg.demanded_aggregations,
                 bbox=bbox,
@@ -378,10 +385,27 @@ class StatisticsTool(ThreeDiPluginTool):
         # Remove from combobox etc
         self.dlg.remove_result(result_item)
 
+        # Remove group in layer manager
+        if result_item.id in self.layer_groups:
+            result_group = self.layer_groups[result_item.id]
+            tool_group = result_group.parent()
+            tool_group.removeChildNode(result_group)
+
+            # In case the tool ("statistics") group is now empty, we'll remove that too
+            tool_group = result_item.parent().layer_group.findGroup(GROUP_NAME)
+            if len(tool_group.children()) == 0:
+                tool_group.parent().removeChildNode(tool_group)
+
+            # Remove from dict
+            del self.layer_groups[result_item.id]
+
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem) -> None:
         if not self.dlg:
             return
+
+        if result_item.id in self.layer_groups:
+            self.layer_groups[result_item.id].setName(result_item.text())
 
         self.dlg.change_result(result_item)
 
@@ -390,3 +414,4 @@ class StatisticsTool(ThreeDiPluginTool):
             self.dlg.close()
             self.dlg = None
             self.first_start = True
+        self.layer_groups = {}
