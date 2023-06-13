@@ -242,6 +242,11 @@ class Aggregate3DiResults(QgsTask):
         if not result_group:
             result_group = tool_group.addGroup(result.text())
 
+        # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
+        # infinite signal loop because the model only emits the result_changed when the text has actually
+        # changed.
+        result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+
         return result_group
 
     def cancel(self):
