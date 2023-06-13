@@ -57,7 +57,7 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                     continue
                 self.preloaded_layers[result_id][layer_table_name] = layer_id
 
-        # When the layers have been loaded, you want them to be removable untill we
+        # When the layers have been loaded, you want them to be removable until we
         # open the tool.
         self.release_layers()
         return True

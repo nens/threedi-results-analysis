@@ -281,11 +281,33 @@ class StatisticsTool(ThreeDiPluginTool):
 
         self.tm = QgsApplication.taskManager()
 
+    def read(self, _) -> bool:
+        """A new project is loaded, see if we can fetch some precreated groups"""
+        return self._collect_result_groups()
+
+    def _collect_result_groups(self):
+        # Go through the results and check whether corresponding output layer groups already exist
+        self.layer_groups = {}
+
+        results = self.model.get_results(False)
+        for result in results:
+            grid_item = result.parent()
+            assert grid_item
+            tool_group = grid_item.layer_group.findGroup(GROUP_NAME)
+            if tool_group:
+                result_group = tool_group.findGroup(result.text())
+                if result_group:
+                    self.layer_groups[result.id] = result_group
+                    result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+
+        return True
+
     def run(self):
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
         if self.first_start:
+            self._collect_result_groups()
             self.first_start = False
             self.dlg = ThreeDiCustomStatsDialog(self.iface, self.model)
 
@@ -401,12 +423,11 @@ class StatisticsTool(ThreeDiPluginTool):
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem) -> None:
-        if not self.dlg:
-            return
-
         if result_item.id in self.layer_groups:
             self.layer_groups[result_item.id].setName(result_item.text())
 
+        if not self.dlg:
+            return
         self.dlg.change_result(result_item)
 
     def on_unload(self):
