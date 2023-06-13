@@ -83,10 +83,6 @@ def layer_as_uri(layer, index=True):
 def ogr_feature_as_qgis_feature(
     ogr_feature, qgs_vector_lyr, tgt_wkb_type=None, tgt_fields=None
 ):
-    # start_time = time.perf_counter()
-    # f = open("C:\\Users\\leendert.vanwolfswin\\Downloads\\ogr_feature_as_qgis_feature.log", "a+")
-    # f.write('action; time\n')
-
     # geometry
     ogr_geom_ref = ogr_feature.GetGeometryRef()
     if tgt_wkb_type is None:
@@ -96,9 +92,6 @@ def ogr_feature_as_qgis_feature(
     ogr_geom_wkb = ogr_geom_ref.ExportToWkb()
     qgs_geom = QgsGeometry()
     qgs_geom.fromWkb(ogr_geom_wkb)
-
-    # delta_time=time.perf_counter() - start_time
-    # f.write('Create QgsGeometry;{}\n'.format(str(delta_time)))
 
     # attributes
     # attributes = {}
@@ -115,9 +108,6 @@ def ogr_feature_as_qgis_feature(
             ogr_field_value = ogr_feature.GetField(ogr_field_idx)
             attributes.append(ogr_field_value)
 
-    # delta_time=time.perf_counter() - start_time
-    # f.write('Make attribute dict;{}\n'.format(str(delta_time)))
-
     qgs_feature = QgsFeature()
     qgs_feature.setGeometry(qgs_geom)
     qgs_feature.setAttributes(attributes)
@@ -125,11 +115,6 @@ def ogr_feature_as_qgis_feature(
     #                                                 geometry=qgs_geom,
     #                                                 attributes=attributes
     #                                                 )
-
-    # delta_time=time.perf_counter() - start_time
-    # f.write('Create QgsFeature;{}\n'.format(str(delta_time)))
-    #
-    # f.close()
 
     return qgs_feature
 
@@ -154,8 +139,6 @@ def as_qgis_memory_layer(ogr_layer, base_name):
     :param ogr_layer: osgeo.ogr.Layer
     :return: qgis.core.QgsVectorLayer
     """
-    # start_time = time.perf_counter()
-    # f = open("C:\\Users\\leendert.vanwolfswin\\Downloads\\as_qgis_memory_layer.log", "w+")
 
     uri = layer_as_uri(ogr_layer)
     qgs_vector_layer = QgsVectorLayer(
@@ -170,12 +153,3 @@ def as_qgis_memory_layer(ogr_layer, base_name):
     )
 
     return qgs_vector_layer
-
-
-# ## testing
-# test_data = "C:/Users/leendert.vanwolfswin/Documents/threedi_custom_stats_test_data/minipyltjes.gpkg"
-# ogr_file = ogr.Open(test_data)
-# lyr = ogr_file.GetLayerByName('minipyltjes')
-# qgs_lyr = as_qgis_memory_layer(lyr, 'mymemlyr4')
-#
-# project.addMapLayer(qgs_lyr)

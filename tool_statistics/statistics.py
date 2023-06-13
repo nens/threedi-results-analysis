@@ -47,6 +47,7 @@ logger = logging.getLogger(__name__)
 # TODO: cfl strictness factors instelbaar maken
 # TODO: berekening van max timestep ook op basis van volume vs. debiet
 # TODO: opties af laten hangen van wat er in het model aanwezig is; is wel tricky ivm presets
+GROUP_NAME = "Statistical tool outputs"
 
 
 class Aggregate3DiResults(QgsTask):
@@ -54,8 +55,7 @@ class Aggregate3DiResults(QgsTask):
         self,
         description: str,
         parent: ThreeDiCustomStatsDialog,
-        gridadmin: str,
-        results_3di: str,
+        result: ThreeDiResultItem,
         demanded_aggregations: List,
         bbox,
         start_time: int,
@@ -73,8 +73,7 @@ class Aggregate3DiResults(QgsTask):
         self.exception = None
         self.parent = parent
         self.parent.setEnabled(False)
-        self.grid_admin = gridadmin
-        self.results_3di = results_3di
+        self.result = result
         self.demanded_aggregations = demanded_aggregations
         self.bbox = bbox
         self.start_time = start_time
@@ -89,7 +88,7 @@ class Aggregate3DiResults(QgsTask):
         self.output_rasters = output_rasters
 
         self.parent.iface.messageBar().pushMessage(
-            "3Di Custom Statistics",
+            "3Di Statistics",
             "Started aggregating 3Di results",
             level=Qgis.Info,
             duration=3,
@@ -97,10 +96,13 @@ class Aggregate3DiResults(QgsTask):
         self.parent.iface.mainWindow().repaint()  # to show the message before the task starts
 
     def run(self):
+        grid_admin = str(self.result.parent().path.with_suffix('.h5'))
+        results_3di = str(self.result.path)
+
         try:
             self.ogr_ds, self.mem_rasts = aggregate_threedi_results(
-                gridadmin=self.grid_admin,
-                results_3di=self.results_3di,
+                gridadmin=grid_admin,
+                results_3di=results_3di,
                 demanded_aggregations=self.demanded_aggregations,
                 bbox=self.bbox,
                 start_time=self.start_time,
@@ -154,11 +156,11 @@ class Aggregate3DiResults(QgsTask):
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
                     # polygon layer
-                    qgs_lyr = as_qgis_memory_layer(
-                        ogr_lyr, "Aggregation results: cells"
-                    )
-                    project = QgsProject.instance()
-                    project.addMapLayer(qgs_lyr)
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: cells")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                    result_group.insertLayer(0, qgs_lyr)
+
                     style = self.parent.comboBoxCellsStyleType.currentData()
                     style_kwargs = self.parent.get_styling_parameters(
                         output_type=style.output_type
@@ -169,11 +171,10 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("flowline")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(
-                        ogr_lyr, "Aggregation results: flowlines"
-                    )
-                    project = QgsProject.instance()
-                    project.addMapLayer(qgs_lyr)
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: flowlines")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                    result_group.insertLayer(0, qgs_lyr)
                     style = (
                         self.parent.comboBoxFlowlinesStyleType.currentData()
                     )
@@ -186,11 +187,10 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("node")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(
-                        ogr_lyr, "Aggregation results: nodes"
-                    )
-                    project = QgsProject.instance()
-                    project.addMapLayer(qgs_lyr)
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: nodes")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                    result_group.insertLayer(0, qgs_lyr)
                     style = self.parent.comboBoxNodesStyleType.currentData()
                     style_kwargs = self.parent.get_styling_parameters(
                         output_type=style.output_type
@@ -201,11 +201,10 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("node_resampled")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(
-                        ogr_lyr, "Aggregation results: resampled nodes"
-                    )
-                    project = QgsProject.instance()
-                    project.addMapLayer(qgs_lyr)
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: resampled nodes")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                    result_group.insertLayer(0, qgs_lyr)
                     style = self.parent.comboBoxNodesStyleType.currentData()
                     style_kwargs = self.parent.get_styling_parameters(
                         output_type=style.output_type
@@ -214,7 +213,7 @@ class Aggregate3DiResults(QgsTask):
 
             self.parent.setEnabled(True)
             self.parent.iface.messageBar().pushMessage(
-                "3Di Custom Statistics",
+                "3Di Statistics",
                 "Finished custom aggregation",
                 level=Qgis.Success,
                 duration=3,
@@ -223,15 +222,31 @@ class Aggregate3DiResults(QgsTask):
         else:
             self.parent.setEnabled(True)
             self.parent.iface.messageBar().pushMessage(
-                "3Di Custom Statistics",
+                "3Di Statistics",
                 "Aggregating 3Di results returned no results",
                 level=Qgis.Warning,
                 duration=3,
             )
 
+    def _get_or_create_result_group(self, result: ThreeDiResultItem, group_name: str):
+        # We'll place the result layers in a dedicated result group
+        grid_item = result.parent()
+        assert grid_item
+        tool_group = grid_item.layer_group.findGroup(group_name)
+        if not tool_group:
+            logger.info("Creating new group for watershed tool results.")
+            tool_group = grid_item.layer_group.insertGroup(0, group_name)
+
+        # Add result group
+        result_group = tool_group.findGroup(result.text())
+        if not result_group:
+            result_group = tool_group.addGroup(result.text())
+
+        return result_group
+
     def cancel(self):
         self.parent.iface.messageBar().pushMessage(
-            "3Di Custom Statistics",
+            "3Di Statistics",
             "Pre-processing simulation results cancelled by user",
             level=Qgis.Info,
             duration=3,
@@ -271,8 +286,6 @@ class StatisticsTool(ThreeDiPluginTool):
         if result:
             # 3Di results
             result = self.model.get_result(self.dlg.result_id)
-            results_3di = str(result.path)
-            grid_admin = str(result.parent().path.with_suffix('.h5'))
 
             # Filtering parameters
             start_time = self.dlg.doubleSpinBoxStartTime.value()
@@ -327,8 +340,7 @@ class StatisticsTool(ThreeDiPluginTool):
             aggregate_threedi_results_task = Aggregate3DiResults(
                 description="Aggregate 3Di Results",
                 parent=self.dlg,
-                gridadmin=grid_admin,
-                results_3di=results_3di,
+                result=result,
                 demanded_aggregations=self.dlg.demanded_aggregations,
                 bbox=bbox,
                 start_time=start_time,
@@ -360,29 +372,6 @@ class StatisticsTool(ThreeDiPluginTool):
 
         # Remove from combobox etc
         self.dlg.remove_result(result_item)
-
-        # Removed cached layers and groups
-        # if result_item.id in self.preloaded_layers:
-        #     layer_dict = self.preloaded_layers[result_item.id]
-        #     for table_name in required_layer_names:
-        #         QgsProject.instance().removeMapLayer(layer_dict[table_name])
-        #     for table_name in optional_layer_names:
-        #         if table_name in layer_dict:
-        #             QgsProject.instance().removeMapLayer(layer_dict[table_name])
-
-        #     # Remove group
-        #     if "group" in layer_dict:
-        #         result_group = layer_dict["group"]
-        #         tool_group = result_group.parent()
-        #         tool_group.removeChildNode(result_group)
-
-        #     # In case the tool ("watershed") group is now empty, we'll remove that too
-        #     tool_group = result_item.parent().layer_group.findGroup(GROUP_NAME)
-        #     if len(tool_group.children()) == 0:
-        #         tool_group.parent().removeChildNode(tool_group)
-
-        #     # Remove from dict
-        #     del self.preloaded_layers[result_item.id]
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem) -> None:
