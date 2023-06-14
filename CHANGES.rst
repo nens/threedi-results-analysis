@@ -9,7 +9,7 @@ ThreeDiToolBox changelog
 - Bump threedi-schema to 0.217.*
 - Bump hydxlib to 1.5.1
 - Bump threedigrid-builder to at least 1.11.4
-
+- Add set_views() to spatialite schema migration routines
 
 2.5.2 (2023-04-26)
 ------------------
