@@ -75,13 +75,13 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         schema = threedi_db.schema
         try:
             schema.validate_schema()
-            schema.set_spatial_indexes()
             schema.set_views()
+            schema.set_spatial_indexes()
         except errors.MigrationMissingError:
             backup_filepath = backup_sqlite(filename)
             schema.upgrade(backup=False, upgrade_spatialite_version=True)
-            schema.set_spatial_indexes()
             schema.set_views()
+            schema.set_spatial_indexes()
             shutil.rmtree(os.path.dirname(backup_filepath))
         except errors.UpgradeFailedError:
             feedback.pushWarning(
