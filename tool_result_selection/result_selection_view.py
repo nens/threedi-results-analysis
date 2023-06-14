@@ -380,6 +380,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             backup_filepath = backup_sqlite(filepath)
             schema.upgrade(backup=False, upgrade_spatialite_version=True)
             schema.set_spatial_indexes()
+            schema.set_views()
             shutil.rmtree(os.path.dirname(backup_filepath))
         except errors.UpgradeFailedError:
             msg = (

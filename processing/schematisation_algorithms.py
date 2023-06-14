@@ -76,10 +76,12 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         try:
             schema.validate_schema()
             schema.set_spatial_indexes()
+            schema.set_views()
         except errors.MigrationMissingError:
             backup_filepath = backup_sqlite(filename)
             schema.upgrade(backup=False, upgrade_spatialite_version=True)
             schema.set_spatial_indexes()
+            schema.set_views()
             shutil.rmtree(os.path.dirname(backup_filepath))
         except errors.UpgradeFailedError:
             feedback.pushWarning(
