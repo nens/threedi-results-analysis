@@ -63,41 +63,6 @@
     <attribute name="title">
      <string>Inputs</string>
     </attribute>
-    <widget class="QLabel" name="label_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>105</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>3Di gridadmin file:</string>
-     </property>
-    </widget>
-    <widget class="QgsFileWidget" name="QgsFileWidget3DiResults">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>911</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="acceptDrops">
-      <bool>true</bool>
-     </property>
-     <property name="filter">
-      <string>results_3di.nc</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
@@ -108,26 +73,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>3Di results NetCDF:</string>
-     </property>
-    </widget>
-    <widget class="QgsFileWidget" name="QgsFileWidgetGridAdmin">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>911</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="filter">
-      <string>gridadmin.h5</string>
+      <string>3Di result:</string>
      </property>
     </widget>
     <widget class="QComboBox" name="comboBoxPreset">
@@ -137,7 +83,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>150</y>
+       <y>90</y>
        <width>911</width>
        <height>22</height>
       </rect>
@@ -147,7 +93,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>130</y>
+       <y>70</y>
        <width>105</width>
        <height>16</height>
       </rect>
@@ -160,7 +106,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>190</y>
+       <y>140</y>
        <width>901</width>
        <height>251</height>
       </rect>
@@ -210,6 +156,16 @@
      </property>
      <property name="frameShadow">
       <enum>QFrame::Plain</enum>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="resultComboBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>911</width>
+       <height>22</height>
+      </rect>
      </property>
     </widget>
    </widget>

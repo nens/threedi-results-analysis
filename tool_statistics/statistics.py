@@ -29,19 +29,25 @@ from typing import List
 from osgeo.gdal import GetDriverByName
 from qgis.core import Qgis, QgsApplication, QgsProject, QgsTask
 from .threedi_result_aggregation.base import aggregate_threedi_results
-from .ogr2qgis import as_qgis_memory_layer
+from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer
 
 # Import the code for the dialog
 from .threedi_custom_stats_dialog import ThreeDiCustomStatsDialog
 from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from qgis.PyQt.QtCore import pyqtSlot
 
 import os
 import os.path
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # TODO: cfl strictness factors instelbaar maken
 # TODO: berekening van max timestep ook op basis van volume vs. debiet
 # TODO: opties af laten hangen van wat er in het model aanwezig is; is wel tricky ivm presets
+GROUP_NAME = "Statistical tool outputs"
 
 
 class Aggregate3DiResults(QgsTask):
@@ -49,8 +55,8 @@ class Aggregate3DiResults(QgsTask):
         self,
         description: str,
         parent: ThreeDiCustomStatsDialog,
-        gridadmin: str,
-        results_3di: str,
+        layer_groups,
+        result: ThreeDiResultItem,
         demanded_aggregations: List,
         bbox,
         start_time: int,
@@ -68,8 +74,8 @@ class Aggregate3DiResults(QgsTask):
         self.exception = None
         self.parent = parent
         self.parent.setEnabled(False)
-        self.grid_admin = gridadmin
-        self.results_3di = results_3di
+        self.result = result
+        self.layer_groups = layer_groups
         self.demanded_aggregations = demanded_aggregations
         self.bbox = bbox
         self.start_time = start_time
@@ -84,7 +90,7 @@ class Aggregate3DiResults(QgsTask):
         self.output_rasters = output_rasters
 
         self.parent.iface.messageBar().pushMessage(
-            "3Di Custom Statistics",
+            "3Di Statistics",
             "Started aggregating 3Di results",
             level=Qgis.Info,
             duration=3,
@@ -92,10 +98,13 @@ class Aggregate3DiResults(QgsTask):
         self.parent.iface.mainWindow().repaint()  # to show the message before the task starts
 
     def run(self):
+        grid_admin = str(self.result.parent().path.with_suffix('.h5'))
+        results_3di = str(self.result.path)
+
         try:
             self.ogr_ds, self.mem_rasts = aggregate_threedi_results(
-                gridadmin=self.grid_admin,
-                results_3di=self.results_3di,
+                gridadmin=grid_admin,
+                results_3di=results_3di,
                 demanded_aggregations=self.demanded_aggregations,
                 bbox=self.bbox,
                 start_time=self.start_time,
@@ -116,6 +125,34 @@ class Aggregate3DiResults(QgsTask):
             self.exception = e
 
         return False
+
+    def _get_or_create_result_group(self, result: ThreeDiResultItem, group_name: str):
+        # We'll place the result layers in a dedicated result group
+        grid_item = result.parent()
+        assert grid_item
+        tool_group = grid_item.layer_group.findGroup(group_name)
+        if not tool_group:
+            tool_group = grid_item.layer_group.insertGroup(0, group_name)
+            tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
+
+        # Add result group
+        result_group = tool_group.findGroup(result.text())
+        if not result_group:
+            result_group = tool_group.addGroup(result.text())
+            self.layer_groups[result.id] = result_group
+            # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
+            # infinite signal loop because the model only emits the result_changed when the text has actually
+            # changed.
+            result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+
+        return result_group
+
+    def _group_removed(self, n, idxFrom, idxTo):
+        for result_id in list(self.layer_groups):
+            group = self.layer_groups[result_id]
+            for i in range(idxFrom, idxTo+1):
+                if n.children()[i] is group:
+                    del self.layer_groups[result_id]
 
     def finished(self, result):
         if self.exception is not None:
@@ -149,11 +186,11 @@ class Aggregate3DiResults(QgsTask):
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
                     # polygon layer
-                    qgs_lyr = as_qgis_memory_layer(
-                        ogr_lyr, "Aggregation results: cells"
-                    )
-                    project = QgsProject.instance()
-                    project.addMapLayer(qgs_lyr)
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: cells")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                    result_group.insertLayer(0, qgs_lyr)
+
                     style = self.parent.comboBoxCellsStyleType.currentData()
                     style_kwargs = self.parent.get_styling_parameters(
                         output_type=style.output_type
@@ -164,11 +201,10 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("flowline")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(
-                        ogr_lyr, "Aggregation results: flowlines"
-                    )
-                    project = QgsProject.instance()
-                    project.addMapLayer(qgs_lyr)
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: flowlines")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                    result_group.insertLayer(0, qgs_lyr)
                     style = (
                         self.parent.comboBoxFlowlinesStyleType.currentData()
                     )
@@ -181,11 +217,10 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("node")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(
-                        ogr_lyr, "Aggregation results: nodes"
-                    )
-                    project = QgsProject.instance()
-                    project.addMapLayer(qgs_lyr)
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: nodes")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                    result_group.insertLayer(0, qgs_lyr)
                     style = self.parent.comboBoxNodesStyleType.currentData()
                     style_kwargs = self.parent.get_styling_parameters(
                         output_type=style.output_type
@@ -196,11 +231,10 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("node_resampled")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(
-                        ogr_lyr, "Aggregation results: resampled nodes"
-                    )
-                    project = QgsProject.instance()
-                    project.addMapLayer(qgs_lyr)
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: resampled nodes")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                    result_group.insertLayer(0, qgs_lyr)
                     style = self.parent.comboBoxNodesStyleType.currentData()
                     style_kwargs = self.parent.get_styling_parameters(
                         output_type=style.output_type
@@ -209,7 +243,7 @@ class Aggregate3DiResults(QgsTask):
 
             self.parent.setEnabled(True)
             self.parent.iface.messageBar().pushMessage(
-                "3Di Custom Statistics",
+                "3Di Statistics",
                 "Finished custom aggregation",
                 level=Qgis.Success,
                 duration=3,
@@ -218,7 +252,7 @@ class Aggregate3DiResults(QgsTask):
         else:
             self.parent.setEnabled(True)
             self.parent.iface.messageBar().pushMessage(
-                "3Di Custom Statistics",
+                "3Di Statistics",
                 "Aggregating 3Di results returned no results",
                 level=Qgis.Warning,
                 duration=3,
@@ -226,7 +260,7 @@ class Aggregate3DiResults(QgsTask):
 
     def cancel(self):
         self.parent.iface.messageBar().pushMessage(
-            "3Di Custom Statistics",
+            "3Di Statistics",
             "Pre-processing simulation results cancelled by user",
             level=Qgis.Info,
             duration=3,
@@ -243,20 +277,52 @@ class StatisticsTool(ThreeDiPluginTool):
         self.model = model
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_custom_statistics.png")
         self.menu_text = u"Post-processing tool to make custom time aggregations of 3Di results and visualize the on the map canvas"
+        self.dlg = None
+
+        # Keeps track of the layer groups already generated
+        self.layer_groups = {}
 
         # Check if plugin was started the first time in current QGIS session
-        # TODO:check plugin reload
         self.first_start = True
 
         self.tm = QgsApplication.taskManager()
+
+    def read(self, _) -> bool:
+        """A new project is loaded, see if we can fetch some precreated groups"""
+        return self._collect_result_groups()
+
+    def _collect_result_groups(self):
+        # Go through the results and check whether corresponding output layer groups already exist
+        self.layer_groups = {}
+
+        results = self.model.get_results(False)
+        for result in results:
+            grid_item = result.parent()
+            assert grid_item
+            tool_group = grid_item.layer_group.findGroup(GROUP_NAME)
+            if tool_group:
+                tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
+                result_group = tool_group.findGroup(result.text())
+                if result_group:
+                    self.layer_groups[result.id] = result_group
+                    result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+        return True
+
+    def _group_removed(self, n, idxFrom, idxTo):
+        for result_id in list(self.layer_groups):
+            group = self.layer_groups[result_id]
+            for i in range(idxFrom, idxTo+1):
+                if n.children()[i] is group:
+                    del self.layer_groups[result_id]
 
     def run(self):
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
         if self.first_start:
+            self._collect_result_groups()
             self.first_start = False
-            self.dlg = ThreeDiCustomStatsDialog(self.iface)
+            self.dlg = ThreeDiCustomStatsDialog(self.iface, self.model)
 
         # show the dialog
         self.dlg.show()
@@ -265,8 +331,7 @@ class StatisticsTool(ThreeDiPluginTool):
         # See if OK was pressed
         if result:
             # 3Di results
-            results_3di = self.dlg.QgsFileWidget3DiResults.filePath()
-            grid_admin = self.dlg.QgsFileWidgetGridAdmin.filePath()
+            result = self.model.get_result(self.dlg.result_id)
 
             # Filtering parameters
             start_time = self.dlg.doubleSpinBoxStartTime.value()
@@ -321,8 +386,8 @@ class StatisticsTool(ThreeDiPluginTool):
             aggregate_threedi_results_task = Aggregate3DiResults(
                 description="Aggregate 3Di Results",
                 parent=self.dlg,
-                gridadmin=grid_admin,
-                results_3di=results_3di,
+                layer_groups=self.layer_groups,
+                result=result,
                 demanded_aggregations=self.dlg.demanded_aggregations,
                 bbox=bbox,
                 start_time=start_time,
@@ -337,3 +402,50 @@ class StatisticsTool(ThreeDiPluginTool):
                 output_rasters=output_rasters,
             )
             self.tm.addTask(aggregate_threedi_results_task)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_added(self, result_item: ThreeDiResultItem) -> None:
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+        if not self.dlg:
+            return
+
+        self.dlg.add_result(result_item)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_removed(self, result_item: ThreeDiResultItem) -> None:
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+        if not self.dlg:
+            return
+
+        # Remove from combobox etc
+        self.dlg.remove_result(result_item)
+
+        # Remove group in layer manager
+        if result_item.id in self.layer_groups:
+            result_group = self.layer_groups[result_item.id]
+            tool_group = result_group.parent()
+            tool_group.removeChildNode(result_group)
+
+            # In case the tool ("statistics") group is now empty, we'll remove that too
+            tool_group = result_item.parent().layer_group.findGroup(GROUP_NAME)
+            if len(tool_group.children()) == 0:
+                tool_group.parent().removeChildNode(tool_group)
+
+            # Via a callback (willRemoveChildren), the deleted group should already have removed itself from the list
+            assert result_item.id not in self.layer_groups
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_changed(self, result_item: ThreeDiResultItem) -> None:
+        if result_item.id in self.layer_groups:
+            self.layer_groups[result_item.id].setName(result_item.text())
+
+        if not self.dlg:
+            return
+        self.dlg.change_result(result_item)
+
+    def on_unload(self):
+        if self.dlg:
+            self.dlg.close()
+            self.dlg = None
+            self.first_start = True
+        self.layer_groups = {}

@@ -9,8 +9,6 @@
 
 # TODO: auto-Enable/disable buttons in Target Nodes and Outputs sections
 
-# TODO: handle removal of layer tree group (make impossible)
-
 # TODO: add sub-categories to result flowline styling
 # TODO: add discharge (q net sum) attribute to result flowlines
 # TODO: add flow direction styling to result flowlines
@@ -44,7 +42,7 @@ from osgeo import ogr, osr
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from .watershed_analysis_networkx import Graph3Di
 from .result_aggregation.threedigrid_ogr import threedigrid_to_ogr
-from .ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
+from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
 from .smoothing import polygon_gaussian_smooth
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.utils.qprojects import set_read_only
@@ -966,11 +964,6 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         idx = self.comboBoxResult.findData(result_item.id)
         assert idx != -1
         self.comboBoxResult.setItemText(idx, result_item.text())
-
-        # also rename result layer groups
-        if result_item.id in self.preloaded_layers:
-            layer_result_group = self.preloaded_layers[result_item.id]["group"]
-            layer_result_group.setName(result_item.text())
 
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)

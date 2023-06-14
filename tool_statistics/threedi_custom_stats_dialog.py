@@ -33,6 +33,11 @@ from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsProject, QgsCoordinateReferenceSystem
 from qgis.gui import QgsFileWidget
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .presets import PRESETS, Preset
 from .threedi_result_aggregation.aggregation_classes import (
@@ -86,13 +91,15 @@ def update_column_widget(
 
 
 class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, iface, parent=None):
+    def __init__(self, iface, model, parent=None):
         """Constructor."""
         super(ThreeDiCustomStatsDialog, self).__init__(parent)
         self.setupUi(self)
         self.iface = iface
+        self.model = model
 
         self.gr = ""
+        self.result_id = None
         self.demanded_aggregations = []
 
         for preset in PRESETS:
@@ -122,15 +129,13 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             3, QtWidgets.QHeaderView.Stretch
         )
 
-        self.QgsFileWidget3DiResults.fileChanged.connect(
-            self.results_3di_selected
-        )
-        self.QgsFileWidgetGridAdmin.fileChanged.connect(
-            self.gridadmin_selected
-        )
-        self.pushButtonMapCanvas.clicked.connect(
-            self.set_extent_from_map_canvas
-        )
+        # Populate the combobox with the results
+
+        self.resultComboBox.activated.connect(self.results_3di_selected)
+        self._populate_results()
+        self.resultComboBox.setCurrentIndex(-1)
+
+        self.pushButtonMapCanvas.clicked.connect(self.set_extent_from_map_canvas)
         self.set_extent_from_map_canvas()
         self.mExtentGroupBox.setChecked(False)
 
@@ -140,6 +145,11 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.dialogButtonBoxOKCancel.button(
             QtWidgets.QDialogButtonBox.Ok
         ).setEnabled(False)
+
+    def _populate_results(self) -> None:
+        self.resultComboBox.clear()
+        for result in self.model.get_results(checked_only=False):
+            self.resultComboBox.addItem(result.text(), result.id)
 
     def add_aggregation(
         self, *args, aggregation: Aggregation = DEFAULT_AGGREGATION
@@ -571,9 +581,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.doubleSpinBoxNodesLayerResolution.value()
         )
 
-    def update_gr(self):
-        results_3di = self.QgsFileWidget3DiResults.filePath()
-        gridadmin = self.QgsFileWidgetGridAdmin.filePath()
+    def update_gr(self, results_3di, gridadmin):
         if os.path.isfile(results_3di) and os.path.isfile(gridadmin):
             self.gr = GridH5ResultAdmin(gridadmin, results_3di)
             crs = QgsCoordinateReferenceSystem(
@@ -605,19 +613,40 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             self.gr = None
 
-    def results_3di_selected(self):
-        results_3di = self.QgsFileWidget3DiResults.filePath()
-        if os.path.isfile(results_3di):
-            results_3di_dir = os.path.dirname(results_3di)
-            gridadmin = os.path.join(results_3di_dir, "gridadmin.h5")
-            if os.path.isfile(gridadmin):
-                self.QgsFileWidgetGridAdmin.setFilePath(gridadmin)
-                self.update_gr()
-        self.validate()
+    def results_3di_selected(self, index):
+        result_id = self.resultComboBox.itemData(index)
+        result = self.model.get_result(result_id)
+        results_3di = result.path
+        gridadmin = result.parent().path.with_suffix('.h5')
+        assert os.path.isfile(results_3di) and os.path.isfile(gridadmin)
+        self.update_gr(str(results_3di), str(gridadmin))
+        if self.validate():
+            self.result_id = result_id
 
-    def gridadmin_selected(self):
-        self.update_gr()
-        self.validate()
+    def add_result(self, result_item: ThreeDiResultItem) -> None:
+        currentIndex = self.resultComboBox.currentIndex()
+        self.resultComboBox.addItem(result_item.text(), result_item.id)
+        self.resultComboBox.setCurrentIndex(currentIndex)
+
+    def remove_result(self, result_item: ThreeDiResultItem):
+        idx = self.resultComboBox.findData(result_item.id)
+        logger.info(f"Removing result {result_item.id} at index {idx}")
+        assert idx != -1
+        if idx == self.resultComboBox.currentIndex():
+            # TODO: clean up?
+            self.resultComboBox.setCurrentIndex(-1)
+
+        self.resultComboBox.removeItem(idx)
+
+    def change_result(self, result_item: ThreeDiResultItem):
+        idx = self.resultComboBox.findData(result_item.id)
+        assert idx != -1
+        self.resultComboBox.setItemText(idx, result_item.text())
+
+        # # also rename result layer groups
+        # if result_item.id in self.preloaded_layers:
+        #     layer_result_group = self.preloaded_layers[result_item.id]["group"]
+        #     layer_result_group.setName(result_item.text())
 
     def set_extent_from_map_canvas(self):
         canvas_extent = self.iface.mapCanvas().extent()
@@ -722,7 +751,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             return False
         return True
 
-    def validate(self):
+    def validate(self) -> bool:
         valid = True
         if not isinstance(self.gr, GridH5ResultAdmin):
             valid = False
@@ -738,3 +767,5 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.dialogButtonBoxOKCancel.button(
             QtWidgets.QDialogButtonBox.Ok
         ).setEnabled(valid)
+
+        return valid

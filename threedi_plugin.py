@@ -82,7 +82,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
         self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self.model)
-        self.stats_tool = StatisticsTool(iface, self.ts_datasources)
+        self.stats_tool = StatisticsTool(iface, self.model)
         self.water_balance_tool = WaterBalanceTool(iface, self.model)
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.model)
         self.logfile_tool = ShowLogfile(iface)
@@ -95,7 +95,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.result_selection_tool, True),
             (self.graph_tool, False),
             (self.sideview_tool, False),
-            (self.stats_tool, True),
+            (self.stats_tool, False),
             (self.water_balance_tool, True),
             (self.watershed_tool, False),
             (self.logfile_tool, True),
@@ -196,6 +196,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_removed.connect(self.watershed_tool.result_removed)
         self.model.result_changed.connect(self.watershed_tool.result_changed)
         self.watershed_tool.closing.connect(self.loader.reset_styling)
+
+        # statistics signals
+        self.model.result_added.connect(self.stats_tool.result_added)
+        self.model.result_removed.connect(self.stats_tool.result_removed)
+        self.model.result_changed.connect(self.stats_tool.result_changed)
 
         # water balance signals
         self.model.result_added.connect(self.water_balance_tool.result_added)

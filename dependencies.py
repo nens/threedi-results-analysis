@@ -126,10 +126,6 @@ def ensure_everything_installed():
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
     print("Contents of our deps dir:\n    %s" % "\n    ".join(profile_python_names))
 
-    print("sys.path:")
-    for directory in sys.path:
-        print("  - %s" % directory)
-
     _ensure_prerequisite_is_installed()
 
     missing = _check_presence(DEPENDENCIES)

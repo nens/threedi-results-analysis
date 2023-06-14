@@ -4,6 +4,11 @@ from qgis.PyQt.QtGui import QIcon
 from threedi_results_analysis.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
 from threedi_results_analysis.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
 from threedi_results_analysis.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
+from threedi_results_analysis.processing.cross_sectional_discharge_algorithm import CrossSectionalDischargeAlgorithm
+from threedi_results_analysis.processing.leak_detector_algorithms import (
+    DetectLeakingObstaclesAlgorithm,
+    DetectLeakingObstaclesWithDischargeThresholdAlgorithm,
+)
 from threedi_results_analysis.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
     MigrateAlgorithm,
@@ -28,6 +33,9 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
         self.addAlgorithm(ImportSufHydAlgorithm())
         self.addAlgorithm(GuessIndicatorAlgorithm())
+        self.addAlgorithm(CrossSectionalDischargeAlgorithm())
+        self.addAlgorithm(DetectLeakingObstaclesAlgorithm())
+        self.addAlgorithm(DetectLeakingObstaclesWithDischargeThresholdAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.
