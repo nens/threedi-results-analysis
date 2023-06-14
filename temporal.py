@@ -22,12 +22,12 @@ class TemporalManager(QObject):
     """
     Manager for the temporal controller. Responsibilities:
 
-    When the result set changes or the align starts option is modified:
-        - Configuring appropriate extents
+    When the result set changes or the `align starts` option is modified:
+        - Configure appropriate temporal controller extent
 
     When the temporal range is changed:
-        - Update the texts and relative times on any results
-        - Emit a signal to connected tools
+        - Update the texts and relative times on all ThreediResultItems
+        - Emit a signal for connected tools
     """
     updated = pyqtSignal()
 
@@ -125,6 +125,8 @@ class TemporalManager(QObject):
         logger.info(f"start_time {start_time}")
         logger.info(f"end_time {end_time}")
 
+        # we cannot block the signals from the controller because its widget
+        # relies on those signals to update its UI elements
         self._configuring = True
         self.temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.Animated)
         self.temporal_controller.setFrameDuration(QgsInterval(frame_duration))

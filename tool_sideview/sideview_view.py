@@ -25,7 +25,6 @@ from threedi_results_analysis.utils.user_messages import statusbar_message, mess
 from threedi_results_analysis.utils.widgets import PenStyleWidget
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
-from qgis.utils import iface
 from bisect import bisect_left
 import logging
 import numpy as np
@@ -483,7 +482,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                     node["timeseries"] = {}
                 node["timeseries"][result.id] = total_data[:, (int(node["id"])+1)]
 
-        tc = iface.mapCanvas().temporalController()
         self.update_waterlevel(True)
         messagebar_pop_message()
 
