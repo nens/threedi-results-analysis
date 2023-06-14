@@ -13,6 +13,7 @@ from threedi_results_analysis.gui.threedi_plugin_dockwidget import ThreeDiPlugin
 from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_model_validation import ThreeDiPluginModelValidator
+from threedi_results_analysis.temporal import TemporalManager
 from threedi_results_analysis.threedi_plugin_model_serialization import ThreeDiPluginModelSerializer
 from threedi_results_analysis.tool_animation.map_animator import MapAnimator
 from threedi_results_analysis.tool_graph.graph import ThreeDiGraph
@@ -85,6 +86,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.water_balance_tool = WaterBalanceTool(iface, self.model)
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.model)
         self.logfile_tool = ShowLogfile(iface)
+        self.temporal_manager = TemporalManager(self.model)
 
         self.tools = [  # second item indicates enabled on startup
             (self.about_tool, True),
@@ -156,20 +158,23 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_unchecked.connect(self.loader.result_unchecked)
 
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
-        self.dockwidget.align_starts_checked.connect(self.model.set_align_starts)
 
         self.dockwidget.show()
         self.dockwidget.set_model(self.model)
 
         self.initProcessing()
 
+        # temporal manager signals
+        self.model.result_added.connect(self.temporal_manager.configure)
+        self.model.result_removed.connect(self.temporal_manager.configure)
+        self.dockwidget.align_starts_checked.connect(self.temporal_manager.set_align_starts)
+
         # animation signals
         self.map_animator = MapAnimator(self.dockwidget.get_tools_widget(), self.model)
         self.model.result_checked.connect(self.map_animator.results_changed)
         self.model.result_unchecked.connect(self.map_animator.results_changed)
         self.model.result_added.connect(self.map_animator.results_changed)
-        tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.connect(self.map_animator.update_results)
+        self.temporal_manager.updated.connect(self.map_animator.update_results)
 
         # graph signals
         self.model.result_added.connect(self.graph_tool.result_added)
@@ -184,7 +189,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_added.connect(self.sideview_tool.result_added)
         self.model.result_removed.connect(self.sideview_tool.result_removed)
         self.model.result_changed.connect(self.sideview_tool.result_changed)
-        tc.updateTemporalRange.connect(self.sideview_tool.update_waterlevels)
+        self.temporal_manager.updated.connect(self.sideview_tool.update_waterlevels)
 
         # watershed signals
         self.model.result_added.connect(self.watershed_tool.result_added)
@@ -258,8 +263,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         """
 
         # Stop animating
-        tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.disconnect(self.map_animator.update_results)
+        self.temporal_manager.updated.disconnect(self.map_animator.update_results)
 
         # Clears model and emits subsequent signals
         self.model.clear()

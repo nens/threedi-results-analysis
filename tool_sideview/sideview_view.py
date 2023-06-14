@@ -1,7 +1,6 @@
 from functools import reduce
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
-from qgis.core import QgsDateTimeRange
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
@@ -31,7 +30,6 @@ from bisect import bisect_left
 import logging
 import numpy as np
 import os
-from datetime import datetime as Datetime
 import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
@@ -486,11 +484,10 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node["timeseries"][result.id] = total_data[:, (int(node["id"])+1)]
 
         tc = iface.mapCanvas().temporalController()
-        self.update_waterlevel(tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()), True)
+        self.update_waterlevel(True)
         messagebar_pop_message()
 
-    @pyqtSlot(QgsDateTimeRange)
-    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange, update_range=False):
+    def update_waterlevel(self, update_range=False):
 
         if not self.waterlevel_plots:
             return
@@ -505,12 +502,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             result = self.model.get_result(result_id)
             threedi_result = result.threedi_result
 
-            # TODO: refactor the following to an util function and check
-            current_datetime = qgs_dt_range.begin().toPyDateTime()
-            begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
-            end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
-            current_datetime = max(begin_datetime, min(current_datetime, end_datetime))
-            current_delta = (current_datetime - begin_datetime)
+            current_delta = result._timedelta
             current_seconds = current_delta.total_seconds()
             parameter_timestamps = threedi_result.get_timestamps("s1")
             timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
@@ -565,9 +557,8 @@ class SideViewDockWidget(QDockWidget):
 
         self.setup_ui()
 
-    @pyqtSlot(QgsDateTimeRange)
-    def update_waterlevel(self, qgs_dt_range: QgsDateTimeRange):
-        self.side_view_plot_widget.update_waterlevel(qgs_dt_range)
+    def update_waterlevel(self):
+        self.side_view_plot_widget.update_waterlevel()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_added(self, item: ThreeDiResultItem):

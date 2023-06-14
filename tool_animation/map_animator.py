@@ -1,13 +1,8 @@
 from qgis.core import NULL
-from qgis.core import QgsDateTimeRange
-from qgis.core import QgsInterval
 from qgis.core import QgsProject
-from qgis.core import QgsTemporalNavigationObject
-from qgis.utils import iface
 from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
-from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QGroupBox
@@ -32,8 +27,6 @@ import math
 import numpy as np
 from bisect import bisect_left
 from functools import lru_cache
-from datetime import datetime as Datetime
-from datetime import timedelta as Timedelta
 
 
 logger = logging.getLogger(__name__)
@@ -160,48 +153,6 @@ class MapAnimator(QGroupBox):
 
         self.current_datetime = None
         self.setup_ui(parent)
-        self._updating_temporal_controller = False
-
-    def _update_temporal_controller(self, results):
-        logger.info("Updating temporal controller")
-
-        # make temporal controller widget visible
-        for dock_widget in iface.mainWindow().findChildren(QDockWidget):
-            if dock_widget.objectName() == 'Temporal Controller':
-                dock_widget.setVisible(True)
-
-        # gather info
-        threedi_results = [r.threedi_result for r in results]
-        datetimes = [
-            np.array(tr.dt_timestamps, dtype='datetime64[s]')
-            for tr in threedi_results
-        ]
-
-        # frame duration
-        intervals = [
-            round((d[1:] - d[:-1]).min().item().total_seconds())
-            for d in datetimes
-            if d.size >= 2
-        ]
-        frame_duration = max(1, min(intervals)) if intervals else 1
-        logger.info(f"frame_duration {frame_duration}")
-
-        # extent
-        start_time = min(d[0].item() for d in datetimes)
-        end_time = max(d[-1].item() for d in datetimes)
-        end_time += Timedelta(seconds=frame_duration)  # to access last step
-        temporal_extents = QgsDateTimeRange(start_time, end_time, True, True)
-        logger.info(f"start_time {start_time}")
-        logger.info(f"end_time {end_time}")
-
-        temporal_controller = iface.mapCanvas().temporalController()
-        self._updating_temporal_controller = True
-        temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.Animated)
-        temporal_controller.setFrameDuration(QgsInterval(frame_duration))
-        temporal_controller.setTemporalExtents(temporal_extents)
-        temporal_controller.rewindToStart()
-        self._updating_temporal_controller = False
-        temporal_controller.skipToEnd()
 
     @pyqtSlot(ThreeDiResultItem)
     def results_changed(self, item: ThreeDiResultItem):
@@ -220,7 +171,6 @@ class MapAnimator(QGroupBox):
             return
 
         self._restyle(lines=True, nodes=True)
-        self._update_temporal_controller(results)
         # iface.mapCanvas().refresh()
 
     def _update_parameter_attributes(self):
@@ -445,24 +395,10 @@ class MapAnimator(QGroupBox):
         config = {"q": q_vars, "h": h_vars}
         return config
 
-    def update_results(self, qgs_dt_range):
-        """ Slot for the updateTemporalRange signal. """
+    @pyqtSlot()
+    def update_results(self):
         if not self.isEnabled():
             return
-
-        if self._updating_temporal_controller:
-            return  # it emits a number of signals during the process
-
-        try:
-            self.current_datetime = qgs_dt_range.begin().toPyDateTime()
-        except ValueError:
-            logger.info('Could not convert animation datetime to python.')
-            return
-
-        self._update_results()
-
-    def _update_results(self):
-        logger.info('updating results to %s', self.current_datetime)
         for result_item in self.model.get_results(checked_only=True):
             self._update_result_item_results(result_item)
 
@@ -473,6 +409,7 @@ class MapAnimator(QGroupBox):
     def _update_result_item_results(self, result_item):
         """Fill initial value and result fields of the animation layers, based
         on currently set animation datetime and parameters."""
+        logger.info(f"Render {result_item.text()} at {result_item._timedelta}")
         grid_item = result_item.parent()
 
         layers_to_update = [
@@ -497,20 +434,6 @@ class MapAnimator(QGroupBox):
         # add item with relative time to model
         threedi_result = result_item.threedi_result
 
-        begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
-        end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
-        current_datetime = max(
-            begin_datetime, min(self.current_datetime, end_datetime),
-        )
-
-        current_delta = (current_datetime - begin_datetime)
-        current_delta_str = '{}d {:02}:{:02}'.format(
-            current_delta.days,
-            current_delta.seconds // 3600,
-            current_delta.seconds % 3600 // 60,
-        )
-        self.model.set_time_item(result_item, current_delta_str)
-
         for layer, parameter_config in layers_to_update:
 
             layer_id = layer.id()
@@ -520,7 +443,7 @@ class MapAnimator(QGroupBox):
             parameter_units = parameter_config["unit"]
 
             # determine timestep number for current parameter
-            current_seconds = current_delta.total_seconds()
+            current_seconds = result_item._timedelta.total_seconds()
             parameter_timestamps = threedi_result.get_timestamps(parameter)
             timestep_nr = bisect_left(parameter_timestamps, current_seconds)
             timestep_nr = min(timestep_nr, parameter_timestamps.size - 1)

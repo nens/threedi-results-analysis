@@ -90,7 +90,9 @@ class ThreeDiResultItem(ThreeDiModelItem):
         self._old_text = ""
 
         # Used by Graph tool
-        self._pattern = None # NOQA
+        self._pattern = None
+
+        self._timedelta = None
 
         # TODO: temporary until anim tool has been refactored
         # The following four are caches for self.get_result_layers()
@@ -383,10 +385,18 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.set_time_item(item)
         self.result_unchecked.emit(item)
 
-    def set_time_item(self, result_item, text=''):
+    def set_time_item(self, result_item):
         result_index = self.indexFromItem(result_item)
         time_item = self.itemFromIndex(result_index.siblingAtColumn(1))
-        time_item.setText(text)
 
-    def set_align_starts(self, is_checked):
-        print(f'Align starts: {is_checked}')
+        timedelta = result_item._timedelta
+
+        if timedelta is None:
+            time_item.setText("")
+            return
+
+        time_item.setText('{}d {:02}:{:02}'.format(
+            timedelta.days,
+            timedelta.seconds // 3600,
+            timedelta.seconds % 3600 // 60,
+        ))
