@@ -672,6 +672,22 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         If no styling is given for an output_type, that output type's styling panel checkbox is set to False
         """
 
+        # Set the default output layer names, if the current layer name value is empty
+        if preset.flowlines_style_param_values:
+            assert "layer_name" in preset.flowlines_style_param_values
+            if not self.lineEditOutputFlowLayer.text():
+                self.lineEditOutputFlowLayer.setText(preset.flowlines_style_param_values["layer_name"])
+
+        if preset.cells_style_param_values:
+            assert "layer_name" in preset.cells_style_param_values
+            if not self.lineEditOutputCellLayer.text():
+                self.lineEditOutputCellLayer.setText(preset.cells_style_param_values["layer_name"])
+
+        if preset.nodes_style_param_values:
+            assert "layer_name" in preset.nodes_style_param_values
+            if not self.lineEditOutputNodeLayer.text():
+                self.lineEditOutputNodeLayer.setText(preset.nodes_style_param_values["layer_name"])
+
         # remove existing aggregations
         self.tableWidgetAggregations.setRowCount(0)
 
