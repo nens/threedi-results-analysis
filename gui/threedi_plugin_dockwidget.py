@@ -7,6 +7,9 @@ from threedi_results_analysis.gui.threedi_plugin_grid_result_dialog import Three
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtWidgets import QMenu
+from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QPixmap
 from threedi_results_analysis import PLUGIN_DIR
@@ -48,6 +51,18 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.treeView.setStyleSheet(f"""QTreeView::indicator:unchecked {{image: url({closed_eye_logo});}}
                                     QTreeView::indicator:checked {{image: url({open_eye_logo});}}""")
 
+        self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeView.customContextMenuRequested.connect(self.customMenuRequested)
+
+    def customMenuRequested(self, pos):
+        index = self.treeView.indexAt(pos)
+        menu = QMenu(self)
+        action_delete = QAction("Delete", self)
+
+        action_delete.triggered.connect(lambda _, sel_index=index: self._remove_current_index_clicked(sel_index))
+        menu.addAction(action_delete)
+        menu.popup(self.treeView.viewport().mapToGlobal(pos))
+
     def set_model(self, model):
 
         tree_view = self.treeView
@@ -73,9 +88,10 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         dialog.result_file_selected.connect(self.result_file_selected)
         dialog.exec()
 
-    def _remove_current_index_clicked(self):
+    def _remove_current_index_clicked(self, index=None):
         # note that index is the "current", not the "selected"
-        index = self.treeView.selectionModel().currentIndex()
+        if not index:
+            index = self.treeView.selectionModel().currentIndex()
         if index is not None and index.isValid():
             item = self.treeView.model().itemFromIndex(index)
             if isinstance(item, ThreeDiGridItem):

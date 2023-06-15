@@ -14,6 +14,7 @@
 - Statistics: Preliminary replacement of Statistics tool with new Custom Statistics tool (https://github.com/threedi/beta-plugins/tree/master/threedi_custom_stats) (#669)
 - Statistics: Removed Custom Statistic test scripts as they are no longer functional/compatible with current version of code (unable to easily transfer in unit tests)
 - Watershed: some proper handling when result group is deleted
+- Result Manager: Added option for users to right-click on any item in the list and delete it via the context menu (#844)
 
 
 3.1.4 (2023-06-06)
