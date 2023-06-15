@@ -280,6 +280,7 @@ class Graph3DiQgsConnector:
             if not tool_group:
                 logger.info("Creating new group for watershed tool results.")
                 tool_group = grid_item.layer_group.insertGroup(0, GROUP_NAME)
+                tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
 
             # Add result group
             self.result_group = tool_group.findGroup(result.text())
@@ -293,6 +294,13 @@ class Graph3DiQgsConnector:
 
             # Cache
             self.preloaded_layers[self.result_id]["group"] = self.result_group
+
+    def _group_removed(self, n, idxFrom, idxTo):
+        for result_id in list(self.preloaded_layers):
+            group = self.preloaded_layers[result_id]["group"]
+            for i in range(idxFrom, idxTo+1):
+                if n.children()[i] is group:
+                    del self.preloaded_layers[result_id]["group"]
 
     def prepare_target_node_layer(self):
         # We'll use the node layer of the computational grid

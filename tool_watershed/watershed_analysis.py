@@ -66,7 +66,6 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 result_group = tool_group.findGroup(result.text())
                 if result_group:
                     self.preloaded_layers[result_id]["group"] = result_group
-                    logger.error("CONNECT")
                     result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
 
         # When the layers have been loaded, you want them to be removable until we
@@ -201,8 +200,10 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
     def result_changed(self, result_item: ThreeDiResultItem) -> None:
         # also rename result layer groups
         if result_item.id in self.preloaded_layers:
-            layer_result_group = self.preloaded_layers[result_item.id]["group"]
-            layer_result_group.setName(result_item.text())
+            # Could be that the group is deleted
+            if "group" in self.preloaded_layers[result_item.id]:
+                layer_result_group = self.preloaded_layers[result_item.id]["group"]
+                layer_result_group.setName(result_item.text())
 
         if not self.active:
             return
