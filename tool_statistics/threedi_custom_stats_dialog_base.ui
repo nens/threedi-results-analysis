@@ -405,10 +405,10 @@
           <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_17">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_18">
             <property name="text">
-             <string>Styling type:</string>
+             <string>Fields to use in styling:</string>
             </property>
            </widget>
           </item>
@@ -425,10 +425,10 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_18">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_7">
             <property name="text">
-             <string>Fields to use in styling:</string>
+             <string>Output layer name:</string>
             </property>
            </widget>
           </item>
@@ -489,6 +489,16 @@
             </column>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Styling type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="lineEditOutputFlowLayer"/>
+          </item>
          </layout>
         </widget>
        </item>
@@ -504,10 +514,10 @@
           <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_15">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_16">
             <property name="text">
-             <string>Styling type:</string>
+             <string>Fields to use in styling:</string>
             </property>
            </widget>
           </item>
@@ -515,13 +525,6 @@
            <widget class="QComboBox" name="comboBoxCellsStyleType">
             <property name="enabled">
              <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_16">
-            <property name="text">
-             <string>Fields to use in styling:</string>
             </property>
            </widget>
           </item>
@@ -582,6 +585,23 @@
             </column>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Styling type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Output layer name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="lineEditOutputCellLayer"/>
+          </item>
          </layout>
         </widget>
        </item>
@@ -597,10 +617,10 @@
           <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_13">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_14">
             <property name="text">
-             <string>Styling type:</string>
+             <string>Fields to use in styling:</string>
             </property>
            </widget>
           </item>
@@ -611,12 +631,28 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_14">
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="checkBoxResample">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>131</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
-             <string>Fields to use in styling:</string>
+             <string>Resample node layer 
+to resolution (m):</string>
             </property>
            </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBoxNodesLayerResolution"/>
           </item>
           <item row="1" column="1">
            <widget class="QTableWidget" name="tableWidgetNodesStyleParams">
@@ -675,28 +711,22 @@
             </column>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBoxResample">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>131</width>
-              <height>16777215</height>
-             </size>
-            </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_13">
             <property name="text">
-             <string>Resample node layer 
-to resolution (m):</string>
+             <string>Styling type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Output layer name:</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBoxNodesLayerResolution"/>
+           <widget class="QLineEdit" name="lineEditOutputNodeLayer"/>
           </item>
          </layout>
         </widget>
@@ -715,22 +745,21 @@ to resolution (m):</string>
          <layout class="QGridLayout" name="gridLayout_6">
           <item row="0" column="0">
            <widget class="QLabel" name="label_12">
+            <property name="minimumSize">
+             <size>
+              <width>131</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
              <string>Output folder:</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_11">
-            <property name="text">
-             <string>Resolution (m):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBoxResolution">
-            <property name="maximum">
-             <double>9999999.000000000000000</double>
+          <item row="0" column="1" colspan="2">
+           <widget class="QgsFileWidget" name="mQgsFileWidgetRasterFolder">
+            <property name="enabled">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -744,12 +773,29 @@ to resolution (m):</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1" colspan="2">
-           <widget class="QgsFileWidget" name="mQgsFileWidgetRasterFolder">
-            <property name="enabled">
-             <bool>false</bool>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBoxResolution">
+            <property name="maximum">
+             <double>9999999.000000000000000</double>
             </property>
            </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Resolution (m):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Output layer name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QLineEdit" name="lineEditOutputRasterLayer"/>
           </item>
          </layout>
         </widget>
