@@ -230,7 +230,8 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("node_resampled")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: resampled nodes")
+                    layer_name = self.parent.lineEditOutputNodeLayer.text()
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, (layer_name + "_resampled_nodes") if layer_name else "Aggregation results: resampled nodes")
                     result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
                     QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
                     result_group.insertLayer(0, qgs_lyr)
