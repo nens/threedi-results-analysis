@@ -182,8 +182,8 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("cell")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    # polygon layer
-                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: cells")
+                    layer_name = self.parent.lineEditOutputCellLayer.text()
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, layer_name if layer_name else "Aggregation results: cells")
                     result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
                     QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
                     result_group.insertLayer(0, qgs_lyr)
@@ -198,7 +198,8 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("flowline")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: flowlines")
+                    layer_name = self.parent.lineEditOutputFlowLayer.text()
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, layer_name if layer_name else "Aggregation results: flowlines")
                     result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
                     QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
                     result_group.insertLayer(0, qgs_lyr)
@@ -214,7 +215,8 @@ class Aggregate3DiResults(QgsTask):
             ogr_lyr = self.ogr_ds.GetLayerByName("node")
             if ogr_lyr is not None:
                 if ogr_lyr.GetFeatureCount() > 0:
-                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, "Aggregation results: nodes")
+                    layer_name = self.parent.lineEditOutputNodeLayer.text()
+                    qgs_lyr = as_qgis_memory_layer(ogr_lyr, layer_name if layer_name else "Aggregation results: nodes")
                     result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
                     QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
                     result_group.insertLayer(0, qgs_lyr)
