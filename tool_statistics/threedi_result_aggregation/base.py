@@ -995,7 +995,6 @@ def aggregate_threedi_results(
     bbox=None,
     start_time: int = None,
     end_time: int = None,
-    subsets=None,
     interpolation_method: str = None,
     resample_point_layer: bool = False,
     resolution: float = None,

@@ -24,6 +24,9 @@ class Preset:
         flowlines_style_param_values: dict = None,
         cells_style_param_values: dict = None,
         nodes_style_param_values: dict = None,
+        flowlines_layer_name: str = None,
+        cells_layer_name: str = None,
+        nodes_layer_name: str = None,
     ):
         if aggregations is None:
             aggregations = list()
@@ -34,9 +37,12 @@ class Preset:
         self.flowlines_style = flowlines_style
         self.cells_style = cells_style
         self.nodes_style = nodes_style
-        self.flowlines_style_param_values = flowlines_style_param_values  # style_param_values can also contain layer names
+        self.flowlines_style_param_values = flowlines_style_param_values
         self.cells_style_param_values = cells_style_param_values
         self.nodes_style_param_values = nodes_style_param_values
+        self.flowlines_layer_name = flowlines_layer_name
+        self.cells_layer_name = cells_layer_name
+        self.nodes_layer_name = nodes_layer_name
 
     def add_aggregation(self, aggregation: Aggregation):
         self.__aggregations.append(aggregation)
@@ -63,8 +69,10 @@ MAX_WL_PRESETS = Preset(
     aggregations=max_wl_aggregations,
     nodes_style=STYLE_SINGLE_COLUMN_GRADUATED_NODE,
     cells_style=STYLE_SINGLE_COLUMN_GRADUATED_CELL,
-    nodes_style_param_values={"column": "s1_max", "layer_name": "maximum_water_level_node"},
-    cells_style_param_values={"column": "s1_max", "layer_name": "maximum_water_level_cell"},
+    nodes_style_param_values={"column": "s1_max"},
+    cells_style_param_values={"column": "s1_max"},
+    nodes_layer_name="maximum_water_level_node",
+    cells_layer_name="maximum_water_level_cell",
 )
 
 # Change in water level
@@ -94,7 +102,8 @@ CHANGE_WL_PRESETS = Preset(
     "pixel elevation (z_coordinate).",
     aggregations=change_wl_aggregations,
     cells_style=STYLE_CHANGE_WL,
-    cells_style_param_values={"first": "s1_first", "last": "s1_last", "layer_name": "change_in_water_level_cell"},
+    cells_style_param_values={"first": "s1_first", "last": "s1_last"},
+    cells_layer_name="change_in_water_level_cell",
 )
 
 # Flow pattern
@@ -122,7 +131,8 @@ FLOW_PATTERN_PRESETS = Preset(
     aggregations=flow_pattern_aggregations,
     resample_point_layer=True,
     nodes_style=STYLE_VECTOR,
-    nodes_style_param_values={"x": "q_out_x_sum", "y": "q_out_y_sum", "layer_name": "flow_pattern_node"},
+    nodes_style_param_values={"x": "q_out_x_sum", "y": "q_out_y_sum"},
+    nodes_layer_name="flow_pattern_node"
 )
 
 # Timestep reduction analysis
@@ -186,8 +196,8 @@ TS_REDUCTION_ANALYSIS_PRESETS = Preset(
         "col1": "ts_max_below_thres_1_0",
         "col2": "ts_max_below_thres_3_0",
         "col3": "ts_max_below_thres_5_0",
-        "layer_name": "timestep_reduction_analysis_flow",
     },
+    flowlines_layer_name="timestep_reduction_analysis_flow",
 )
 
 # Source or sink (mm)
@@ -222,8 +232,8 @@ SOURCE_SINK_MM_PRESETS = Preset(
         "negative_col1": "infiltration_rate_simple_mm_sum",
         "negative_col2": "intercepted_volume_mm_last",
         "negative_col3": "",
-        "layer_name": "source_or_sink_cell",
     },
+    cells_layer_name="source_or_sink_cell",
 )
 
 PRESETS = [

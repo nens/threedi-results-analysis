@@ -61,7 +61,6 @@ class Aggregate3DiResults(QgsTask):
         bbox,
         start_time: int,
         end_time: int,
-        subsets,
         interpolation_method,
         resample_point_layer: bool,
         resolution,
@@ -80,7 +79,6 @@ class Aggregate3DiResults(QgsTask):
         self.bbox = bbox
         self.start_time = start_time
         self.end_time = end_time
-        self.subsets = subsets
         self.interpolation_method = interpolation_method
         self.resample_point_layer = resample_point_layer
         self.resolution = resolution
@@ -109,7 +107,6 @@ class Aggregate3DiResults(QgsTask):
                 bbox=self.bbox,
                 start_time=self.start_time,
                 end_time=self.end_time,
-                subsets=self.subsets,
                 interpolation_method=self.interpolation_method,
                 resample_point_layer=self.resample_point_layer,
                 resolution=self.resolution,
@@ -349,23 +346,6 @@ class StatisticsTool(ThreeDiPluginTool):
                         bbox_qgs_rectangle.xMaximum(),
                         bbox_qgs_rectangle.yMaximum(),
                     ]
-            subsets = []
-            if self.dlg.checkBox1D2DConnections.isChecked():
-                subsets.append("1D2D")
-            if self.dlg.checkBoxAll1D.isChecked():
-                subsets.append("All1D")
-            if self.dlg.checkBoxAll2D.isChecked():
-                subsets.append("All2D")
-            if self.dlg.checkBoxAllSewerage.isChecked():
-                subsets.append("AllSewerage")
-            if self.dlg.checkBoxCulverts.isChecked():
-                subsets.append("Culverts")
-            if self.dlg.checkBoxOrifices.isChecked():
-                subsets.append("Orifices")
-            if self.dlg.checkBoxPipes.isChecked():
-                subsets.append("Pipes")
-            if self.dlg.checkBoxWeirs.isChecked():
-                subsets.append("Weirs")
 
             # Resolution
             resolution = self.dlg.doubleSpinBoxResolution.value()
@@ -392,7 +372,6 @@ class StatisticsTool(ThreeDiPluginTool):
                 bbox=bbox,
                 start_time=start_time,
                 end_time=end_time,
-                subsets=subsets,
                 interpolation_method=interpolation_method,
                 resample_point_layer=resample_point_layer,
                 resolution=resolution,
