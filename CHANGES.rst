@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.5.3 (unreleased)
+2.5.3 (2023-06-16)
 ------------------
 
 - Bump threedi-modelchecker to 2.2.*
