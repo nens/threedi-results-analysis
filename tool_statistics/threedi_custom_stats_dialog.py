@@ -673,20 +673,17 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         """
 
         # Set the default output layer names, if the current layer name value is empty
-        if preset.flowlines_style_param_values:
-            assert "layer_name" in preset.flowlines_style_param_values
+        if preset.flowlines_layer_name:
             if not self.lineEditOutputFlowLayer.text():
-                self.lineEditOutputFlowLayer.setText(preset.flowlines_style_param_values["layer_name"])
+                self.lineEditOutputFlowLayer.setText(preset.flowlines_layer_name)
 
-        if preset.cells_style_param_values:
-            assert "layer_name" in preset.cells_style_param_values
+        if preset.cells_layer_name:
             if not self.lineEditOutputCellLayer.text():
-                self.lineEditOutputCellLayer.setText(preset.cells_style_param_values["layer_name"])
+                self.lineEditOutputCellLayer.setText(preset.cells_layer_name)
 
-        if preset.nodes_style_param_values:
-            assert "layer_name" in preset.nodes_style_param_values
+        if preset.nodes_layer_name:
             if not self.lineEditOutputNodeLayer.text():
-                self.lineEditOutputNodeLayer.setText(preset.nodes_style_param_values["layer_name"])
+                self.lineEditOutputNodeLayer.setText(preset.nodes_layer_name)
 
         # remove existing aggregations
         self.tableWidgetAggregations.setRowCount(0)
