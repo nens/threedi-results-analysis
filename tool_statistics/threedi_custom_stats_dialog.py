@@ -662,6 +662,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.validate()
 
     def preset_combobox_changed(self, index):
+        logger.error("preset changed")
         preset = self.comboBoxPreset.itemData(index)
         self.presetHelpTextBrowser.setText(preset.description)
         self.apply_preset(preset)
@@ -672,7 +673,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         If no styling is given for an output_type, that output type's styling panel checkbox is set to False
         """
 
-        # Set the default output layer names, if the current layer name value is empty
+        # Set the default output layer names based on preset, if the current layer name value is empty
         if preset.flowlines_layer_name:
             if not self.lineEditOutputFlowLayer.text():
                 self.lineEditOutputFlowLayer.setText(preset.flowlines_layer_name)
@@ -684,6 +685,10 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if preset.nodes_layer_name:
             if not self.lineEditOutputNodeLayer.text():
                 self.lineEditOutputNodeLayer.setText(preset.nodes_layer_name)
+
+        # if the new preset is the NO_PRESET, set the textfields based on the aggregation.
+        if not preset.aggregations:
+            self._update_output_layer_fields_based_on_aggregations()
 
         # remove existing aggregations
         self.tableWidgetAggregations.setRowCount(0)
@@ -708,6 +713,10 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             uncheck_cells_groupbox=preset.cells_style is None
 
         )
+
+    def _update_output_layer_fields_based_on_aggregations(self):
+        logger.error("Basing on aggregations")
+        pass
 
     def update_demanded_aggregations(self):
         self.demanded_aggregations = []
