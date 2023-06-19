@@ -267,6 +267,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_method_widget(row, variable)
         self.set_direction_widget(row, variable)
         self.update_demanded_aggregations()
+        self._update_output_layer_fields_based_on_aggregations()
 
     def method_combobox_text_changed(self):
         row = self.tableWidgetAggregations.currentRow()
@@ -277,15 +278,18 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_threshold_widget(row=row, method=method)
         self.set_units_widget(row=row, variable=variable, method=method)
         self.update_demanded_aggregations()
+        self._update_output_layer_fields_based_on_aggregations()
 
     def direction_combobox_text_changed(self):
         self.update_demanded_aggregations()
+        self._update_output_layer_fields_based_on_aggregations()
 
     def threshold_value_changed(self):
         self.update_demanded_aggregations()
 
     def units_combobox_text_changed(self):
         self.update_demanded_aggregations()
+        self._update_output_layer_fields_based_on_aggregations()
 
     def set_direction_widget(self, row, variable):
         na_index = self.tableWidgetAggregations.cellWidget(row, 1).findText(
