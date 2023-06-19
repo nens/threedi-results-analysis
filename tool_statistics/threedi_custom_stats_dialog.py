@@ -496,6 +496,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.groupBoxCells.setChecked(False)
 
             # Do not automatically set groupBoxRasters to Checked because this requires follow-up input from the user
+            self.groupBoxRasters.setEnabled(True)
+
             self.node_styling_type_changed(
                 param_values=nodes_style_param_values
             )
