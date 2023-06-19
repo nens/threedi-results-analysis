@@ -39,7 +39,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from .presets import PRESETS, Preset
+from .presets import PRESETS, Preset, NO_PRESET
 from .threedi_result_aggregation.aggregation_classes import (
     Aggregation,
     AggregationSign,
@@ -152,7 +152,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.resultComboBox.addItem(result.text(), result.id)
 
     def add_aggregation(
-        self, *args, aggregation: Aggregation = DEFAULT_AGGREGATION
+        self, *args, aggregation: Aggregation = DEFAULT_AGGREGATION, update_output_layer_names: bool = True
     ):
         """Add a new row to tableWidgetAggregations, always last row"""
         self.tableWidgetAggregations.insertRow(
@@ -241,6 +241,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         )
         self.update_demanded_aggregations()
         self.set_styling_tab()
+        if update_output_layer_names:
+            self._update_output_layer_fields_based_on_aggregations()
         self.validate()
 
     def remove_aggregation(self):
@@ -253,6 +255,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         for index in index_list:
             self.tableWidgetAggregations.removeRow(index.row())
+
+        self.update_demanded_aggregations()
+        self._update_output_layer_fields_based_on_aggregations()
         self.validate()
 
     def variable_combobox_text_changed(self):
@@ -662,7 +667,6 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.validate()
 
     def preset_combobox_changed(self, index):
-        logger.error("preset changed")
         preset = self.comboBoxPreset.itemData(index)
         self.presetHelpTextBrowser.setText(preset.description)
         self.apply_preset(preset)
@@ -673,29 +677,22 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         If no styling is given for an output_type, that output type's styling panel checkbox is set to False
         """
 
-        # Set the default output layer names based on preset, if the current layer name value is empty
-        if preset.flowlines_layer_name:
-            if not self.lineEditOutputFlowLayer.text():
-                self.lineEditOutputFlowLayer.setText(preset.flowlines_layer_name)
+        # Set the default output layer names based on preset, if the current layer name value is not modified yet
+        if not self.lineEditOutputFlowLayer.isModified():
+            self.lineEditOutputFlowLayer.setText(preset.flowlines_layer_name if preset.flowlines_layer_name else "")
 
-        if preset.cells_layer_name:
-            if not self.lineEditOutputCellLayer.text():
-                self.lineEditOutputCellLayer.setText(preset.cells_layer_name)
+        if not self.lineEditOutputCellLayer.isModified():
+            self.lineEditOutputCellLayer.setText(preset.cells_layer_name if preset.cells_layer_name else "")
 
-        if preset.nodes_layer_name:
-            if not self.lineEditOutputNodeLayer.text():
-                self.lineEditOutputNodeLayer.setText(preset.nodes_layer_name)
-
-        # if the new preset is the NO_PRESET, set the textfields based on the aggregation.
-        if not preset.aggregations:
-            self._update_output_layer_fields_based_on_aggregations()
+        if not self.lineEditOutputNodeLayer.isModified():
+            self.lineEditOutputNodeLayer.setText(preset.nodes_layer_name if preset.nodes_layer_name else "")
 
         # remove existing aggregations
         self.tableWidgetAggregations.setRowCount(0)
 
         # add aggregations from preset
         for da in preset.aggregations():
-            self.add_aggregation(aggregation=da)
+            self.add_aggregation(aggregation=da, update_output_layer_names=(preset == NO_PRESET))
 
         # set "resample point layer" from preset
         self.checkBoxResample.setChecked(preset.resample_point_layer)
@@ -715,8 +712,31 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         )
 
     def _update_output_layer_fields_based_on_aggregations(self):
-        logger.error("Basing on aggregations")
-        pass
+        logger.info("Output layer suggestion based on selected aggregations")
+
+        # Set the default output layer names based on preset, if the current layer name value is empty
+        suggested_flow_output_layer_name = "flowlines: "
+        suggested_cell_output_layer_name = "cells: "
+        suggested_node_output_layer_name = "nodes: "
+
+        postfix = ""
+        if len(self.demanded_aggregations) == 0:
+            postfix = "aggregation output_layer"
+        elif len(self.demanded_aggregations) == 1:
+            postfix = self.demanded_aggregations[0].variable.long_name
+            postfix += " " + self.demanded_aggregations[0].method.short_name + " "
+            # postfix += f"[{self.demanded_aggregations[0].multiplier}]"
+        else:
+            postfix = "multiple aggregations"
+
+        if not self.lineEditOutputFlowLayer.isModified():
+            self.lineEditOutputFlowLayer.setText(suggested_flow_output_layer_name + postfix)
+
+        if not self.lineEditOutputCellLayer.isModified():
+            self.lineEditOutputCellLayer.setText(suggested_cell_output_layer_name + postfix)
+
+        if not self.lineEditOutputNodeLayer.isModified():
+            self.lineEditOutputNodeLayer.setText(suggested_node_output_layer_name + postfix)
 
     def update_demanded_aggregations(self):
         self.demanded_aggregations = []
@@ -776,15 +796,19 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
     def validate(self) -> bool:
         valid = True
         if not isinstance(self.gr, GridH5ResultAdmin):
+            logger.info("Invalid result file")
             valid = False
         if not self.tableWidgetAggregations.rowCount() > 0:
+            logger.info("Zero aggregations selected")
             valid = False
         if (
             self.groupBoxRasters.isChecked()
             and self.mQgsFileWidgetRasterFolder.filePath() == ""
         ):
+            logger.info("No raster folder selected")
             valid = False
         if not self.demanded_aggregations_are_valid():
+            logger.info("Demanded aggregations are not valid")
             valid = False
         self.dialogButtonBoxOKCancel.button(
             QtWidgets.QDialogButtonBox.Ok
