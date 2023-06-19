@@ -723,9 +723,12 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if len(self.demanded_aggregations) == 0:
             postfix = "aggregation output_layer"
         elif len(self.demanded_aggregations) == 1:
-            postfix = self.demanded_aggregations[0].variable.long_name
-            postfix += " " + self.demanded_aggregations[0].method.short_name + " "
-            # postfix += f"[{self.demanded_aggregations[0].multiplier}]"
+            agg_var = self.demanded_aggregations[0]
+            postfix = agg_var.variable.long_name
+            if agg_var.sign:
+                postfix += " " + agg_var.sign.short_name
+            postfix += " " + agg_var.method.short_name
+            postfix += f" [{agg_var.unit_str}]"  # attribute attached in update_demanded_aggegrations()
         else:
             postfix = "multiple aggregations"
 
@@ -768,6 +771,10 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 threshold=threshold,
                 multiplier=multiplier,
             )
+
+            # For visualisation-purposes we also (redundantly) attach the unit text
+            da.unit_str = units_widget.currentText()
+
             if da.is_valid():
                 self.demanded_aggregations.append(da)
 
