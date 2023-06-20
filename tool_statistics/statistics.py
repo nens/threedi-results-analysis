@@ -27,7 +27,7 @@ https://github.com/threedi/beta-plugins/tree/master/threedi_custom_stats
 from typing import List
 
 from osgeo.gdal import GetDriverByName
-from qgis.core import Qgis, QgsApplication, QgsProject, QgsTask
+from qgis.core import Qgis, QgsApplication, QgsProject, QgsTask, QgsRasterLayer
 from .threedi_result_aggregation.base import aggregate_threedi_results
 from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer
 
@@ -173,10 +173,11 @@ class Aggregate3DiResults(QgsTask):
                     drv.CreateCopy(
                         utf8_path=raster_output_fn, src=rast
                     )
-                    self.parent.iface.addRasterLayer(
-                        raster_output_fn,
-                        "Aggregation results: raster {}".format(rastname),
-                    )
+                    layer_name = self.parent.lineEditOutputRasterLayer.text()
+                    raster_layer = QgsRasterLayer(raster_output_fn, layer_name if layer_name else f"Aggregation results: raster {rastname}")
+                    result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
+                    QgsProject.instance().addMapLayer(raster_layer, addToLegend=False)
+                    result_group.insertLayer(0, raster_layer)
 
             # cell layer
             ogr_lyr = self.ogr_ds.GetLayerByName("cell")
