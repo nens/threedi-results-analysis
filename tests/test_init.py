@@ -57,7 +57,7 @@ def test_classFactory(qtbot):
         # Don't let it set up all the tools, we're testing that elsewhere.
         return
 
-    # Somehow lizard-connector seemed to be missing after a recent change, that's why we install
+    # Somehow some deps seemed to be missing after a recent change, that's why we install
     # everything again.
     importlib.reload(pkg_resources)
     dependencies.ensure_everything_installed()

@@ -22,7 +22,6 @@ condenser \
 h5netcdf \
 hydxlib \
 importlib-resources \
-lizard-connector \
 mako \
 networkx \
 packaging \
