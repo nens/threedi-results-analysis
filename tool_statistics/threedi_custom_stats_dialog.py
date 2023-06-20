@@ -727,7 +727,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         postfix = ""
         if len(self.demanded_aggregations) == 0:
-            postfix = "aggregation output_layer"
+            postfix = "aggregation output layer"
         elif len(self.demanded_aggregations) == 1:
             agg_var = self.demanded_aggregations[0]
             postfix = agg_var.variable.long_name

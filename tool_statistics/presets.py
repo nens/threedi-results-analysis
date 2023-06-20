@@ -71,8 +71,8 @@ MAX_WL_PRESETS = Preset(
     cells_style=STYLE_SINGLE_COLUMN_GRADUATED_CELL,
     nodes_style_param_values={"column": "s1_max"},
     cells_style_param_values={"column": "s1_max"},
-    nodes_layer_name="maximum_water_level_node",
-    cells_layer_name="maximum_water_level_cell",
+    nodes_layer_name="Maximum water level (nodes)",
+    cells_layer_name="Maximum water level (cells)",
 )
 
 # Change in water level
@@ -103,7 +103,7 @@ CHANGE_WL_PRESETS = Preset(
     aggregations=change_wl_aggregations,
     cells_style=STYLE_CHANGE_WL,
     cells_style_param_values={"first": "s1_first", "last": "s1_last"},
-    cells_layer_name="change_in_water_level_cell",
+    cells_layer_name="Change in water level (cells)",
 )
 
 # Flow pattern
@@ -132,7 +132,7 @@ FLOW_PATTERN_PRESETS = Preset(
     resample_point_layer=True,
     nodes_style=STYLE_VECTOR,
     nodes_style_param_values={"x": "q_out_x_sum", "y": "q_out_y_sum"},
-    nodes_layer_name="flow_pattern_node"
+    nodes_layer_name="Flow pattern (nodes)"
 )
 
 # Timestep reduction analysis
@@ -197,7 +197,7 @@ TS_REDUCTION_ANALYSIS_PRESETS = Preset(
         "col2": "ts_max_below_thres_3_0",
         "col3": "ts_max_below_thres_5_0",
     },
-    flowlines_layer_name="timestep_reduction_analysis_flow",
+    flowlines_layer_name="Timestep reduction analysis (flowlines)",
 )
 
 # Source or sink (mm)
@@ -233,7 +233,7 @@ SOURCE_SINK_MM_PRESETS = Preset(
         "negative_col2": "intercepted_volume_mm_last",
         "negative_col3": "",
     },
-    cells_layer_name="source_or_sink_cell",
+    cells_layer_name="Source or sink (cells)",
 )
 
 PRESETS = [
