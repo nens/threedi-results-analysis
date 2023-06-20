@@ -173,7 +173,7 @@ class Aggregate3DiResults(QgsTask):
                     drv.CreateCopy(
                         utf8_path=raster_output_fn, src=rast
                     )
-                    layer_name = self.parent.lineEditOutputRasterLayer.text()
+                    layer_name = self.parent.lineEditOutputRasterLayer.text() + f": {rastname}"
                     raster_layer = QgsRasterLayer(raster_output_fn, layer_name if layer_name else f"Aggregation results: raster {rastname}")
                     result_group = self._get_or_create_result_group(self.result, GROUP_NAME)
                     QgsProject.instance().addMapLayer(raster_layer, addToLegend=False)
