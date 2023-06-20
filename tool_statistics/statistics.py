@@ -276,7 +276,7 @@ class StatisticsTool(ThreeDiPluginTool):
         self.iface = iface
         self.model = model
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_custom_statistics.png")
-        self.menu_text = u"Post-processing tool to make custom time aggregations of 3Di results and visualize the on the map canvas"
+        self.menu_text = u"Post-processing tool to generate custom time aggregations of 3Di results and visualize these on the map canvas"
         self.dlg = None
 
         # Keeps track of the layer groups already generated
