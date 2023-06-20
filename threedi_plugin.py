@@ -16,14 +16,11 @@ from threedi_results_analysis.temporal import TemporalManager
 from threedi_results_analysis.threedi_plugin_model_serialization import ThreeDiPluginModelSerializer
 from threedi_results_analysis.tool_animation.map_animator import MapAnimator
 from threedi_results_analysis.tool_graph.graph import ThreeDiGraph
-from threedi_results_analysis.tool_result_selection.models import TimeseriesDatasourceModel
-from threedi_results_analysis.tool_result_selection.result_selection import ThreeDiResultSelection
 from threedi_results_analysis.tool_sideview.sideview import ThreeDiSideView
 from threedi_results_analysis.tool_statistics.statistics import StatisticsTool
 from threedi_results_analysis.tool_water_balance import WaterBalanceTool
 from threedi_results_analysis.tool_watershed.watershed_analysis import ThreeDiWatershedAnalyst
 from threedi_results_analysis.utils import color
-from threedi_results_analysis.utils.layer_tree_manager import LayerTreeManager
 from threedi_results_analysis.utils.qprojects import ProjectStateMixin
 
 import logging
@@ -68,8 +65,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.actions = []
         self.menu = "&3Di toolbox"
 
-        self.ts_datasources = TimeseriesDatasourceModel()
-
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar("ThreeDiResultAnalysis")
         self.toolbar.setObjectName("ThreeDiResultAnalysisToolBar")
@@ -77,7 +72,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Init the rest of the tools
         self.about_tool = About(iface)
         self.toggle_results_manager = ToggleResultsManager(iface, self)
-        self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
         self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self.model)
         self.stats_tool = StatisticsTool(iface, self.model)
@@ -89,7 +83,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.tools = [  # second item indicates enabled on startup
             (self.about_tool, True),
             (self.toggle_results_manager, True),
-            (self.result_selection_tool, True),
             (self.graph_tool, False),
             (self.sideview_tool, False),
             (self.stats_tool, False),
@@ -97,8 +90,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.watershed_tool, False),
             (self.logfile_tool, True),
         ]
-
-        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
         # Styling (TODO: can this be moved to where it is used?)
         for color_ramp in color.COLOR_RAMPS:

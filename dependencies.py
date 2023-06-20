@@ -45,7 +45,6 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6"),
     Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*"),
-    Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2"),
     Dependency("threedigrid", "threedigrid", ">=2.0.3"),
     Dependency("threedi-schema", "threedi_schema", "==0.217.*"),

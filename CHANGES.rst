@@ -15,7 +15,7 @@
 - Statistics: Removed Custom Statistic test scripts as they are no longer functional/compatible with current version of code (unable to easily transfer in unit tests)
 - Watershed: some proper handling when result group is deleted
 - Result Manager: Added option for users to right-click on any item in the list and delete it via the context menu (#844)
-- Removed Cache clearer tool (#843)
+- Removed Cache Clearer tool and Result Selection tool (#843)
 
 
 3.1.4 (2023-06-06)
