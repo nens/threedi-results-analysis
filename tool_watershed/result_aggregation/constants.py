@@ -1,19 +1,24 @@
+# core
 import numpy as np
+
+# custom
 from osgeo import ogr
 from threedigrid.admin.utils import KCUDescriptor
+
+# local
 from .aggregation_classes import (
     AggregationVariableList,
+    AggregationSign,
     AggregationMethod,
+    AggregationVariable,
+    VT_NODE,
     VT_FLOW,
     PRM_NONE,
-    VT_NODE,
+    VT_FLOW_HYBRID,
     PRM_SPLIT,
     VT_NODE_HYBRID,
-    PRM_1D,
-    AggregationVariable,
-    AggregationSign,
+    PRM_1D
 )
-
 
 KCU_DICT = KCUDescriptor()
 NODE_TYPE_DICT = {
@@ -71,6 +76,7 @@ ALL_AGG_METHODS_NO_SUM.remove("sum")
 
 # Aggregation variables
 agg_var_list = [
+    # Flowline variables
     {
         "short_name": "q",
         "long_name": "Discharge",
@@ -101,21 +107,71 @@ agg_var_list = [
         "can_resample": False,
         "pre_resample_method": PRM_NONE,
     },
-    # NOT YET IMPLEMENTED (MY CODE) {'short_name': 'qp', 'long_name': 'Discharge in interflow target_node_layer', 'signed': True, 'applicable_methods': ALL_AGG_METHODS,'var_type': VT_FLOW, 'units':{('m3','s'):(1,1)}, 'can_resample': False, 'pre_resample_method': PRM_NONE},
-    # NOT YET IMPLEMENTED (MY CODE) {'short_name': 'up1', 'long_name': 'Velocity in interflow target_node_layer', 'signed': True,'applicable_methods': ALL_AGG_METHODS_NO_SUM,'var_type': VT_FLOW, 'units':{('m','s'):(1,1)}, 'can_resample': False, 'pre_resample_method': PRM_NONE},
+    {
+        "short_name": "qp",
+        "long_name": "Discharge in interflow layer",
+        "signed": True,
+        "applicable_methods": ALL_AGG_METHODS,
+        "var_type": VT_FLOW,
+        "units": {("m3", "s"): (1, 1)},
+        "can_resample": False,
+        "pre_resample_method": PRM_NONE,
+    },
+    {
+        "short_name": "up1",
+        "long_name": "Velocity in interflow layer",
+        "signed": True,
+        "applicable_methods": ALL_AGG_METHODS_NO_SUM,
+        "var_type": VT_FLOW,
+        "units": {("m", "s"): (1, 1)},
+        "can_resample": False,
+        "pre_resample_method": PRM_NONE,
+    },
     {
         "short_name": "ts_max",
         "long_name": "Max. possible timestep",
         "signed": False,
         "applicable_methods": ALL_AGG_METHODS_NO_SUM,
         "var_type": VT_FLOW,
-        "units": {("s"): (1,)},
+        "units": {"s": (1,)},
         "can_resample": False,
         "pre_resample_method": PRM_NONE,
     },
+    {
+        "short_name": "grad",
+        "long_name": "Water level gradient",
+        "signed": True,
+        "applicable_methods": ALL_AGG_METHODS_NO_SUM,
+        "var_type": VT_FLOW_HYBRID,
+        "units": {("m",): (1,)},
+        "can_resample": False,
+        "pre_resample_method": PRM_NONE,
+    },
+    {
+        "short_name": "bed_grad",
+        "long_name": "Bed level gradient",
+        "signed": False,
+        "applicable_methods": [],
+        "var_type": VT_FLOW_HYBRID,
+        "units": {("m",): (1,)},
+        "can_resample": False,
+        "pre_resample_method": PRM_NONE,
+    },
+    {
+        "short_name": "wl_at_xsec",
+        "long_name": "Water level at cross section",
+        "signed": False,
+        "applicable_methods": ALL_AGG_METHODS_NO_SUM,
+        "var_type": VT_FLOW_HYBRID,
+        "units": {("m",): (1,)},
+        "can_resample": False,
+        "pre_resample_method": PRM_NONE,
+    },
+    # Pump variables
     # NOT YET IMPLEMENTED (MY CODE) {'short_name': 'q_pump', 'long_name': 'Pump discharge', 'signed': False,
     # 'applicable_methods': ALL_AGG_METHODS, 'var_type': VT_PUMP, 'units':{('m3','s'):(1, 1), ('m3', 'h'):(1, 3600), ('L','s'):(1000,1)},
     # 'can_resample': False, 'pre_resample_method': PRM_NONE},
+    # Node variables
     {
         "short_name": "s1",
         "long_name": "Water level",
@@ -364,12 +420,6 @@ AGGREGATION_VARIABLES = AggregationVariableList()
 for var in agg_var_list:
     AGGREGATION_VARIABLES.append(AggregationVariable(**var))
 
-# HYBRID_NODE_VARIABLES = {'Inflow': 'q_in',
-#                          'Outflow': 'q_out',
-#                          'Net flow': 'q_net'
-#                          }
-#
-# HYBRID_FLOWLINE_VARIABLES = {'Gradient': 'dhdx'}
 NA_TEXT = "[Not applicable]"
 AGGREGATION_SIGN_NA = AggregationSign(short_name="", long_name=NA_TEXT)
 AGGREGATION_SIGNS = [
@@ -380,4 +430,20 @@ AGGREGATION_SIGNS = [
     AGGREGATION_SIGN_NA,
 ]
 
-NON_TS_REDUCING_KCU = [3, 4, 51, 52, 53, 54, 55, 56, 57, 58, 150, 200, 300, 400, 500]
+NON_TS_REDUCING_KCU = [
+    3,
+    4,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    150,
+    200,
+    300,
+    400,
+    500,
+]

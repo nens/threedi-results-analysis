@@ -12,7 +12,13 @@ VT_PUMP = 3
 VT_FLOW_HYBRID = 10
 VT_NODE_HYBRID = 20
 
-VT_NAMES = {VT_FLOW: "Flowline", VT_NODE: "Node", VT_PUMP: "Pump", VT_FLOW_HYBRID: "Flowline", VT_NODE_HYBRID: "Node"}
+VT_NAMES = {
+    VT_FLOW: "Flowline",
+    VT_NODE: "Node",
+    VT_PUMP: "Pump",
+    VT_FLOW_HYBRID: "Flowline",
+    VT_NODE_HYBRID: "Node",
+}
 
 
 class AggregationVariableList(list):
@@ -32,7 +38,7 @@ class AggregationVariableList(list):
     def short_names(self, var_types=None):
         result = list()
         for var in self:
-            if var.var_type is None:
+            if var.var_type is None or var_types is None:
                 result.append(var.short_name)
             elif var.var_type in var_types:
                 result.append(var.short_name)
@@ -41,7 +47,7 @@ class AggregationVariableList(list):
     def long_names(self, var_types=None):
         result = list()
         for var in self:
-            if var.var_type is None:
+            if var.var_type is None or var_types is None:
                 result.append(var.long_name)
             elif var.var_type in var_types:
                 result.append(var.long_name)
@@ -61,10 +67,10 @@ class AggregationVariableList(list):
 class AggregationVariable:
     def __init__(
         self,
-        short_name,
-        long_name,
+        short_name: str,
+        long_name: str,
         signed: bool,
-        applicable_methods: list,
+        applicable_methods: List,
         var_type: int,
         units: dict,
         can_resample: bool,
@@ -111,7 +117,7 @@ class Aggregation:
     def __init__(
         self,
         variable: AggregationVariable,
-        method: AggregationMethod,
+        method: Optional[AggregationMethod] = None,
         sign: Optional[AggregationSign] = AGGREGATION_SIGN_NA,
         threshold: Optional[float] = None,
         multiplier: float = 1,
@@ -124,18 +130,24 @@ class Aggregation:
         self.multiplier = multiplier
 
     def as_column_name(self):
-        column_name_list = []
+        column_name_list = [self.variable.short_name]
+        if self.variable.signed:
+            column_name_list.append(self.sign.short_name)
         try:
-            column_name_list.append(self.variable.short_name)
-            if self.variable.signed:
-                column_name_list.append(self.sign.short_name)
             column_name_list.append(self.method.short_name)
             if self.method.short_name in ["above_thres", "below_thres"]:
                 thres_parsed = str(self.threshold).replace(".", "_")
                 column_name_list.append(thres_parsed)
-            return "_".join(column_name_list).lower()
+        except AttributeError:  # allow aggregation to have no method
+            pass
+        return "_".join(column_name_list).lower()
+
+    def is_valid(self) -> bool:
+        try:
+            self.as_column_name()
+            return True
         except AttributeError:
-            return None
+            return False
 
 
 def filter_demanded_aggregations(das: List[Aggregation], variable_types):
