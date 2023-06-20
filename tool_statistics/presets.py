@@ -27,6 +27,7 @@ class Preset:
         flowlines_layer_name: str = None,
         cells_layer_name: str = None,
         nodes_layer_name: str = None,
+        raster_layer_name: str = None,
     ):
         if aggregations is None:
             aggregations = list()
@@ -43,6 +44,7 @@ class Preset:
         self.flowlines_layer_name = flowlines_layer_name
         self.cells_layer_name = cells_layer_name
         self.nodes_layer_name = nodes_layer_name
+        self.raster_layer_name = raster_layer_name
 
     def add_aggregation(self, aggregation: Aggregation):
         self.__aggregations.append(aggregation)
@@ -73,6 +75,7 @@ MAX_WL_PRESETS = Preset(
     cells_style_param_values={"column": "s1_max"},
     nodes_layer_name="Maximum water level (nodes)",
     cells_layer_name="Maximum water level (cells)",
+    raster_layer_name="Maximum water level (raster)",
 )
 
 # Change in water level
@@ -104,6 +107,7 @@ CHANGE_WL_PRESETS = Preset(
     cells_style=STYLE_CHANGE_WL,
     cells_style_param_values={"first": "s1_first", "last": "s1_last"},
     cells_layer_name="Change in water level (cells)",
+    raster_layer_name="Change in water level (raster)",
 )
 
 # Flow pattern
@@ -132,7 +136,8 @@ FLOW_PATTERN_PRESETS = Preset(
     resample_point_layer=True,
     nodes_style=STYLE_VECTOR,
     nodes_style_param_values={"x": "q_out_x_sum", "y": "q_out_y_sum"},
-    nodes_layer_name="Flow pattern (nodes)"
+    nodes_layer_name="Flow pattern (nodes)",
+    raster_layer_name="Flow pattern (raster)",
 )
 
 # Timestep reduction analysis
@@ -198,6 +203,7 @@ TS_REDUCTION_ANALYSIS_PRESETS = Preset(
         "col3": "ts_max_below_thres_5_0",
     },
     flowlines_layer_name="Timestep reduction analysis (flowlines)",
+    raster_layer_name="Timestep reduction analysis (raster)",
 )
 
 # Source or sink (mm)
@@ -234,6 +240,7 @@ SOURCE_SINK_MM_PRESETS = Preset(
         "negative_col3": "",
     },
     cells_layer_name="Source or sink (cells)",
+    raster_layer_name="Source or sink (raster)",
 )
 
 PRESETS = [

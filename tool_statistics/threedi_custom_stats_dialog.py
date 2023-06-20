@@ -693,6 +693,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if not self.lineEditOutputNodeLayer.isModified():
             self.lineEditOutputNodeLayer.setText(preset.nodes_layer_name if preset.nodes_layer_name else "")
 
+        if not self.lineEditOutputRasterLayer.isModified():
+            self.lineEditOutputRasterLayer.setText(preset.raster_layer_name if preset.raster_layer_name else "")
+
         # remove existing aggregations
         self.tableWidgetAggregations.setRowCount(0)
 
@@ -724,6 +727,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         suggested_flow_output_layer_name = "flowlines: "
         suggested_cell_output_layer_name = "cells: "
         suggested_node_output_layer_name = "nodes: "
+        suggested_raster_output_layer_name = "raster: "
 
         postfix = ""
         if len(self.demanded_aggregations) == 0:
@@ -746,6 +750,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         if not self.lineEditOutputNodeLayer.isModified():
             self.lineEditOutputNodeLayer.setText(suggested_node_output_layer_name + postfix)
+
+        if not self.lineEditOutputRasterLayer.isModified():
+            self.lineEditOutputRasterLayer.setText(suggested_raster_output_layer_name + postfix)
 
     def update_demanded_aggregations(self):
         self.demanded_aggregations = []
