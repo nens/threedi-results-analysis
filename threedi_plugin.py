@@ -5,7 +5,6 @@ from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from qgis.utils import iface
 from qgis.core import QgsApplication, QgsProject, QgsPathResolver, QgsSettings, QgsMapLayer
 from threedi_results_analysis.misc_tools import About
-from threedi_results_analysis.misc_tools import CacheClearer
 from threedi_results_analysis.misc_tools import ShowLogfile
 from threedi_results_analysis.misc_tools import ToggleResultsManager
 from threedi_results_analysis.processing.providers import ThreediProvider
@@ -78,7 +77,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Init the rest of the tools
         self.about_tool = About(iface)
         self.toggle_results_manager = ToggleResultsManager(iface, self)
-        self.cache_clearer = CacheClearer(iface, self.ts_datasources)
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
         self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self.model)
@@ -91,7 +89,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.tools = [  # second item indicates enabled on startup
             (self.about_tool, True),
             (self.toggle_results_manager, True),
-            (self.cache_clearer, True),
             (self.result_selection_tool, True),
             (self.graph_tool, False),
             (self.sideview_tool, False),

@@ -3,14 +3,12 @@
 Miscellaneous tools.
 """
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.core import QgsProject
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.utils.qlogging import FileHandler
 from threedi_results_analysis.utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
 from threedi_results_analysis.utils.layer_from_netCDF import NODES_LAYER_NAME
 from threedi_results_analysis.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
 from threedi_results_analysis.utils.user_messages import pop_up_info
-from threedi_results_analysis.utils.user_messages import pop_up_question
 from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 
 import logging
@@ -69,82 +67,6 @@ class ShowLogfile(ThreeDiPluginTool):
         location = FileHandler.get_filename()
         message = "Logfile location: <a href='file:///%s'>%s</a>" % (location, location)
         pop_up_info(message, title, self.iface.mainWindow())
-
-
-class CacheClearer(ThreeDiPluginTool):
-    """Tool to delete cache files."""
-
-    def __init__(self, iface, ts_datasources):
-        """Constructor.
-
-        Args:
-            iface: QGIS interface
-            ts_datasources: TimeseriesDatasourceModel instance
-        """
-        super().__init__()
-        self.iface = iface
-        self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon_broom.png")
-        self.menu_text = "Clear cache"
-        self.ts_datasources = ts_datasources
-
-    def run(self):
-        """Find cached spatialite and csv layer files for *ALL* items in the
-        TimeseriesDatasourceModel (i.e., *ALL* rows) object and delete them.
-        """
-        # TODO: can ts_datasources tell us its cached files? Or can we order it
-        # to clean up its cache? (Instead of us poking around in its internals).
-        spatialite_filepaths = [
-            item.sqlite_gridadmin_filepath()
-            for item in self.ts_datasources.rows
-            if os.path.exists(item.sqlite_gridadmin_filepath())
-        ]
-        # Note: convert to set because duplicates are possible if the same
-        # datasource is loaded multiple times
-        cached = set(spatialite_filepaths)
-        if not cached:
-            pop_up_info("No cached files found.")
-            return
-
-        # Files linked to the layers in the map registry are held open by
-        # Windows. You need to delete them manually from the registry to be
-        # able to remove the underlying data. Note that deleting the layer
-        # from the legend doesn't necessarily delete the layer from the map
-        # registry, even though it may appear that no more layers are loaded
-        # visually.
-        # The specific error message (for googling):
-        # "error 32 the process cannot access the file because it is being used
-        # by another process"
-        all_layers = list(QgsProject.instance().mapLayers().values())
-        loaded_layers = [
-            layer
-            for layer in all_layers
-            if any(identifier in layer.name() for identifier in IDENTIFIER_LIKE)
-        ]
-        loaded_layer_ids = [layer.id() for layer in loaded_layers]
-
-        yes = pop_up_question(
-            "The following files will be deleted:\n"
-            + ",\n".join(cached)
-            + "\n\nContinue?"
-        )
-
-        if yes:
-            try:
-                QgsProject.instance().removeMapLayers(loaded_layer_ids)
-            except RuntimeError:
-                logger.exception("Failed to delete map layers")
-
-            for cached_spatialite_file in cached:
-                try:
-                    os.remove(cached_spatialite_file)
-                except OSError:
-                    msg = "Failed to delete %s." % cached_spatialite_file
-                    logger.exception(msg)
-                    pop_up_info(msg)
-
-            pop_up_info(
-                "Cache cleared. You may need to restart QGIS and reload your data."
-            )
 
 
 class ToggleResultsManager(ThreeDiPluginTool):

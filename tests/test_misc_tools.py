@@ -25,14 +25,3 @@ def test_about():
         assert "version" in message
 
     show_about_action.on_unload()  # Doesn't do anything, used for coverage.
-
-
-def test_cache_clearer(ts_datasources):
-    iface = mock.Mock()
-    show_cache_clearer_action = misc_tools.CacheClearer(iface, ts_datasources)
-    with mock.patch.object(misc_tools, "pop_up_question") as mock_pop_up:
-        with mock.patch.object(misc_tools, "pop_up_info"):
-            mock_pop_up.return_value = True
-            show_cache_clearer_action.run()
-
-    show_cache_clearer_action.on_unload()  # Doesn't do anything, used for coverage.
