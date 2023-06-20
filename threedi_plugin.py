@@ -271,8 +271,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         for tool, _ in self.tools:
             tool.on_unload()
 
-        self.layer_manager.on_unload()
-
         self.iface.removeDockWidget(self.dockwidget)
         del self.dockwidget
         del self.toolbar

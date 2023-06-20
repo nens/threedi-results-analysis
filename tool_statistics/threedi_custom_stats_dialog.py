@@ -40,7 +40,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from .presets import PRESETS, Preset, NO_PRESET
-from .threedi_result_aggregation.aggregation_classes import (
+from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_classes import (
     Aggregation,
     AggregationSign,
     filter_demanded_aggregations,
@@ -50,7 +50,7 @@ from .threedi_result_aggregation.aggregation_classes import (
     VT_NODE,
     VT_NODE_HYBRID,
 )
-from .threedi_result_aggregation.constants import (
+from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
     AGGREGATION_VARIABLES,
     AGGREGATION_METHODS,
     AGGREGATION_SIGNS,

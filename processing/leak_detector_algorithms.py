@@ -38,8 +38,8 @@ from qgis.core import (
 
 from threedi_results_analysis.processing.deps.discharge.leak_detector import LeakDetector
 from threedi_results_analysis.processing.deps.discharge.discharge_reduction import LeakDetectorWithDischargeThreshold
-from threedi_results_analysis.processing.deps.discharge.threedi_result_aggregation.aggregation_classes import Aggregation, AggregationSign
-from threedi_results_analysis.processing.deps.discharge.threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
+from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_classes import Aggregation, AggregationSign
+from threedi_results_analysis.utils.threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
 
 Q_NET_SUM = Aggregation(
     variable=AGGREGATION_VARIABLES.get_by_short_name("q"),

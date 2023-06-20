@@ -8,34 +8,20 @@ try:
     from .leak_detector import LeakDetector, Edge, highest
 except ImportError:
     from leak_detector import LeakDetector, Edge, highest
-try:
-    from .threedi_result_aggregation.base import (
-        water_levels_at_cross_section,
-        prepare_timeseries,
-        aggregate_prepared_timeseries
-    )
-    from .threedi_result_aggregation.aggregation_classes import (
-        Aggregation,
-        AggregationSign,
-    )
-    from .threedi_result_aggregation.constants import (
-        AGGREGATION_VARIABLES,
-        AGGREGATION_METHODS,
-    )
-except ImportError:
-    from threedi_result_aggregation.base import (
-        water_levels_at_cross_section,
-        prepare_timeseries,
-        aggregate_prepared_timeseries
-    )
-    from threedi_result_aggregation.aggregation_classes import (
-        Aggregation,
-        AggregationSign,
-    )
-    from threedi_result_aggregation.constants import (
-        AGGREGATION_VARIABLES,
-        AGGREGATION_METHODS,
-    )
+
+from threedi_results_analysis.utils.threedi_result_aggregation.base import (
+    water_levels_at_cross_section,
+    prepare_timeseries,
+    aggregate_prepared_timeseries
+)
+from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_classes import (
+    Aggregation,
+    AggregationSign,
+)
+from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
+    AGGREGATION_VARIABLES,
+    AGGREGATION_METHODS,
+)
 
 import numpy as np
 from osgeo import gdal

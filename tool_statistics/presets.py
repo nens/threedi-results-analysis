@@ -1,5 +1,5 @@
-from .threedi_result_aggregation.base import Aggregation
-from .threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
+from threedi_results_analysis.utils.threedi_result_aggregation.base import Aggregation
+from threedi_results_analysis.utils.threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
 from .style import (
     Style,
     STYLE_SINGLE_COLUMN_GRADUATED_NODE,

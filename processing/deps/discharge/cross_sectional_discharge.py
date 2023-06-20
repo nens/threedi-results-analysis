@@ -7,19 +7,19 @@ from shapely.geometry import Point, LineString, MultiLineString, MultiPoint
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from threedigrid.admin.lines.models import Lines
 
-from .threedi_result_aggregation.aggregation_classes import (
+from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_classes import (
     Aggregation,
     AggregationSign,
 )
-from .threedi_result_aggregation.constants import (
+from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
     AGGREGATION_VARIABLES,
     AGGREGATION_METHODS,
 )
-from .threedi_result_aggregation.base import (
+from threedi_results_analysis.utils.threedi_result_aggregation.base import (
     prepare_timeseries,
     aggregate_prepared_timeseries,
 )
-from .threedi_result_aggregation.threedigrid_ogr import threedigrid_to_ogr
+from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import threedigrid_to_ogr
 
 
 Q_NET_SUM = Aggregation(
