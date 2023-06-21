@@ -34,6 +34,7 @@ from qgis.core import QgsProject, QgsCoordinateReferenceSystem
 from qgis.gui import QgsFileWidget
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from threedi_results_analysis.utils.user_messages import pop_up_critical
 
 import logging
 
@@ -789,6 +790,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 if self.gr:
                     missing_info = [item for item in variable.requirements if item not in containing_information]
                     if missing_info:
+                        if item_idx == variable_widget.currentIndex():
+                            pop_up_critical(f"The currently selected model does not contain all required info for aggregation {variable.long_name}: {[VR_NAMES[item] for item in missing_info]}")
                         variable_widget.model().item(item_idx).setEnabled(False)
                     else:
                         variable_widget.model().item(item_idx).setEnabled(True)
