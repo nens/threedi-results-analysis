@@ -18,6 +18,15 @@
 - Removed Cache Clearer tool and Result Selection tool (#843)
 
 
+2.5.3 (2023-06-16)
+------------------
+
+- Bump threedi-modelchecker to 2.2.*
+- Bump threedi-schema to 0.217.*
+- Bump hydxlib to 1.5.1
+- Bump threedigrid-builder to at least 1.11.4
+
+
 3.1.4 (2023-06-06)
 ------------------
 
@@ -42,15 +51,6 @@
 - Result manager: fixed bug that result was not removed when other result was checked.
 - Watershed tool is now feature complete (#668)
 - Bump threedi-modelchecker to 2.2.0
-
-
-2.5.3 (2023-06-16)
-------------------
-
-- Bump threedi-modelchecker to 2.2.*
-- Bump threedi-schema to 0.217.*
-- Bump hydxlib to 1.5.1
-- Bump threedigrid-builder to at least 1.11.4
 
 
 3.1.3 (2023-03-21)
