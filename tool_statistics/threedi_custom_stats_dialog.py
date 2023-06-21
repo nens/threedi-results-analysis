@@ -787,7 +787,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 variable = variable_widget.itemData(item_idx)
 
                 if self.gr:
-                    missing_info = [item not in containing_information for item in variable.requirements]
+                    missing_info = [item for item in variable.requirements if item not in containing_information]
                     if missing_info:
                         variable_widget.model().item(item_idx).setEnabled(False)
                     else:
