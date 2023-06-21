@@ -49,6 +49,10 @@ from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_class
     VT_FLOW_HYBRID,
     VT_NODE,
     VT_NODE_HYBRID,
+    VR_INTERFLOW,
+    VR_SIMPLE_INFILTRATION,
+    VR_INTERCEPTION,
+    VR_NAMES,
 )
 from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
     AGGREGATION_VARIABLES,
@@ -98,7 +102,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.iface = iface
         self.model = model
 
-        self.gr = ""
+        self.gr = None
         self.result_id = None
         self.demanded_aggregations = []
 
@@ -268,6 +272,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_direction_widget(row, variable)
         self.update_demanded_aggregations()
         self._update_output_layer_fields_based_on_aggregations()
+        self.validate()
 
     def method_combobox_text_changed(self):
         row = self.tableWidgetAggregations.currentRow()
@@ -737,7 +742,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             postfix = agg_var.variable.long_name
             if agg_var.sign:
                 postfix += " " + agg_var.sign.short_name
-            postfix += " " + agg_var.method.short_name
+            if agg_var.method:
+                postfix += " " + agg_var.method.short_name
             postfix += f" [{agg_var.unit_str}]"  # attribute attached in update_demanded_aggegrations()
         else:
             postfix = "multiple aggregations"
@@ -814,24 +820,41 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         return True
 
     def validate(self) -> bool:
+        logger.error("VALIDATING")
         valid = True
+        logger.error([agg.variable.long_name for agg in self.demanded_aggregations])
         if not isinstance(self.gr, GridH5ResultAdmin):
-            logger.info("Invalid result file")
+            logger.warning("Invalid result file")
             valid = False
         if not self.tableWidgetAggregations.rowCount() > 0:
-            logger.info("Zero aggregations selected")
+            logger.warning("Zero aggregations selected")
             valid = False
         if (
             self.groupBoxRasters.isChecked()
             and self.mQgsFileWidgetRasterFolder.filePath() == ""
         ):
-            logger.info("No raster folder selected")
+            logger.warning("No raster folder selected")
             valid = False
         if not self.demanded_aggregations_are_valid():
-            logger.info("Demanded aggregations are not valid")
+            logger.warning("Demanded aggregations are not valid")
             valid = False
-        self.dialogButtonBoxOKCancel.button(
-            QtWidgets.QDialogButtonBox.Ok
-        ).setEnabled(valid)
+
+        # Check whether the demanded aggregations are compatible with the model (or: model contains all required info)
+        if self.gr:
+            containing_information = []
+            if self.gr.has_simple_infiltration:
+                containing_information.append(VR_SIMPLE_INFILTRATION)
+            if self.gr.has_interflow:
+                containing_information.append(VR_INTERFLOW)
+            if self.gr.has_interception:
+                containing_information.append(VR_INTERCEPTION)
+            for agg in self.demanded_aggregations:
+                missing_info = [item not in containing_information for item in agg.variable.requirements]
+                if missing_info:
+                    logger.warning(f"Model does not contain all info for demanded aggregations: {[VR_NAMES[item] for item in missing_info]}")
+                    valid = False
+                    break
+
+        self.dialogButtonBoxOKCancel.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(valid)
 
         return valid

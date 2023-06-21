@@ -20,6 +20,16 @@ VT_NAMES = {
     VT_NODE_HYBRID: "Node",
 }
 
+# Indicates what a variable requires from an input file
+VR_INTERFLOW = 0
+VR_SIMPLE_INFILTRATION = 1
+VR_INTERCEPTION = 2
+VR_NAMES = {
+    VR_INTERFLOW: "interflow",
+    VR_SIMPLE_INFILTRATION: "simple_infiltration",
+    VR_INTERCEPTION: "interception",
+}
+
 
 class AggregationVariableList(list):
     def __init__(self):
@@ -74,6 +84,7 @@ class AggregationVariable:
         var_type: int,
         units: dict,
         can_resample: bool,
+        requirements: List,
         pre_resample_method: int = PRM_NONE,
     ):
         self.short_name = short_name
@@ -84,6 +95,7 @@ class AggregationVariable:
         self.applicable_methods = applicable_methods
         self.can_resample = can_resample
         self.pre_resample_method = pre_resample_method
+        self.requirements = requirements
 
 
 class AggregationSign:
