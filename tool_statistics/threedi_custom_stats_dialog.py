@@ -175,7 +175,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             aggregation.variable.long_name, Qt.MatchEndsWith
         )
         variable_combobox.setCurrentIndex(idx)
-        variable_combobox.currentTextChanged.connect(
+        variable_combobox.activated.connect(
             self.variable_combobox_text_changed
         )
         self.tableWidgetAggregations.setCellWidget(
@@ -629,6 +629,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             self.gr = None
 
+        self._update_variable_list()
+
     def results_3di_selected(self, index):
         result_id = self.resultComboBox.itemData(index)
         result = self.model.get_result(result_id)
@@ -760,6 +762,39 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if not self.lineEditOutputRasterLayer.isModified():
             self.lineEditOutputRasterLayer.setText(suggested_raster_output_layer_name + postfix)
 
+    def _retrieve_model_info(self):
+        containing_information = []
+        if self.gr:
+            if self.gr.has_simple_infiltration:
+                containing_information.append(VR_SIMPLE_INFILTRATION)
+            if self.gr.has_interflow:
+                containing_information.append(VR_INTERFLOW)
+            if self.gr.has_interception:
+                containing_information.append(VR_INTERCEPTION)
+
+        return containing_information
+
+    def _update_variable_list(self):
+        # Tterate over the rows and check the items in the variable combobox: disable variable when currently loaded
+        # model is not supporting this variable
+        containing_information = self._retrieve_model_info()
+
+        row_count = self.tableWidgetAggregations.rowCount()
+        for row in range(row_count):
+            variable_widget = self.tableWidgetAggregations.cellWidget(row, 0)
+            #  Iterate over the variables in the combobox
+            for item_idx in range(variable_widget.count()):
+                variable = variable_widget.itemData(item_idx)
+
+                if self.gr:
+                    missing_info = [item not in containing_information for item in variable.requirements]
+                    if missing_info:
+                        variable_widget.model().item(item_idx).setEnabled(False)
+                    else:
+                        variable_widget.model().item(item_idx).setEnabled(True)
+                else:
+                    variable_widget.model().item(item_idx).setEnabled(True)
+
     def update_demanded_aggregations(self):
         self.demanded_aggregations = []
         row_count = self.tableWidgetAggregations.rowCount()
@@ -824,7 +859,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         valid = True
         logger.error([agg.variable.long_name for agg in self.demanded_aggregations])
         if not isinstance(self.gr, GridH5ResultAdmin):
-            logger.warning("Invalid result file")
+            logger.warning("Invalid or no result file selected")
             valid = False
         if not self.tableWidgetAggregations.rowCount() > 0:
             logger.warning("Zero aggregations selected")
@@ -841,13 +876,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # Check whether the demanded aggregations are compatible with the model (or: model contains all required info)
         if self.gr:
-            containing_information = []
-            if self.gr.has_simple_infiltration:
-                containing_information.append(VR_SIMPLE_INFILTRATION)
-            if self.gr.has_interflow:
-                containing_information.append(VR_INTERFLOW)
-            if self.gr.has_interception:
-                containing_information.append(VR_INTERCEPTION)
+            containing_information = self._retrieve_model_info()
+
             for agg in self.demanded_aggregations:
                 missing_info = [item not in containing_information for item in agg.variable.requirements]
                 if missing_info:
