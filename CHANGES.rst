@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.5 (unreleased)
+3.1.5 (2023-06-21)
 ------------------
 
 - Watershed: smoothing of result watershed polygon is fixed and configurable via checkbox (#668).
