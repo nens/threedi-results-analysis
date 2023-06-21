@@ -681,7 +681,20 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.validate()
 
     def preset_combobox_changed(self, index):
+        logger.error("preset_combobox_changed")
         preset = self.comboBoxPreset.itemData(index)
+
+        # Check whether the currently selected model support the preset's aggregations
+        if self.gr:
+            containing_information = self._retrieve_model_info()
+            for agg_var in preset.aggregations():
+                missing_info = [item for item in agg_var.variable.requirements if item not in containing_information]
+                if missing_info:
+                    pop_up_critical(f"The currently selected model does not contain all required info for aggregation '{agg_var.variable.long_name}': {[VR_NAMES[item] for item in missing_info]}")
+                    no_preset_idx = self.comboBoxPreset.findText(NO_PRESET.name)
+                    self.comboBoxPreset.setCurrentIndex(no_preset_idx)  # reset to no preset
+                    return
+
         self.presetHelpTextBrowser.setText(preset.description)
         self.apply_preset(preset)
 
@@ -791,7 +804,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                     missing_info = [item for item in variable.requirements if item not in containing_information]
                     if missing_info:
                         if item_idx == variable_widget.currentIndex():
-                            pop_up_critical(f"The currently selected model does not contain all required info for aggregation {variable.long_name}: {[VR_NAMES[item] for item in missing_info]}")
+                            pop_up_critical(f"The currently selected model does not contain all required info for aggregation '{variable.long_name}': {[VR_NAMES[item] for item in missing_info]}")
                         variable_widget.model().item(item_idx).setEnabled(False)
                     else:
                         variable_widget.model().item(item_idx).setEnabled(True)
