@@ -75,6 +75,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.node_indicator_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         # Used for intersection dots with horizontal lines
         self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=10)
+        # Used for intersection dots with waterlevel lines
+        self.node_indicator_water_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=10)
 
         pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -155,6 +157,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.node_plot)
         self.addItem(self.node_indicator_plot)
         self.addItem(self.node_indicator_intersection_plot)
+        self.addItem(self.node_indicator_water_intersection_plot)
         self.addItem(self.orifice_full_fill)
         self.addItem(self.orifice_opening_fill)
         self.addItem(self.weir_full_fill)
@@ -183,6 +186,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.node_plot.setZValue(60)
         self.node_indicator_plot.setZValue(55)
         self.node_indicator_intersection_plot.setZValue(55)
+        self.node_indicator_water_intersection_plot.setZValue(55)
         self.orifice_full_fill.setZValue(20)
         self.orifice_opening_fill.setZValue(21)
         self.weir_full_fill.setZValue(20)
@@ -463,6 +467,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.node_plot.setData(ts_table)
             self.node_indicator_plot.setData(ts_table)
             self.node_indicator_intersection_plot.setData(ts_table)
+            self.node_indicator_water_intersection_plot.setData(ts_table)
 
             for plot, fill in self.waterlevel_plots.values():
                 self.removeItem(plot)
@@ -517,6 +522,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         if not self.waterlevel_plots:
             return
 
+        intersections = []
+
         for row_number in range(self.sideview_result_model.rowCount()):
             # Get checkbox item (this contains result object)
             check_item = self.sideview_result_model.item(row_number, 0)
@@ -538,10 +545,16 @@ class SideViewPlotWidget(pg.PlotWidget):
             water_level_line = []
             for node in self.sideview_nodes:
                 water_level = node["timeseries"][result.id][timestamp_nr]
-                water_level_line.append((node["distance"], water_level))
+                point = (node["distance"], water_level)
+                water_level_line.append(point)
+                intersections += [(point), (0.0, np.nan)]
                 # logger.error(f"Node shape {node['timeseries'].shape}, distance {node['distance']} and level {water_level}")
 
             self.waterlevel_plots[result.id][0].setData(np.array(water_level_line, dtype=float))
+
+        # Draw dots at intersections between this water line and vertical node lines:
+        # This is actually at the beginning of each segment of the water level line
+        self.node_indicator_water_intersection_plot.setData(np.array(intersections, dtype=float), symbol='h', size=2, connect='finite')
 
         if update_range:
             self.auto_scale(include_waterlevels=True)
