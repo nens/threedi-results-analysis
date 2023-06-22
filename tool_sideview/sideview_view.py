@@ -17,6 +17,7 @@ from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QWidget
+from shapely.geometry import LineString, Point
 from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import LineType
@@ -70,8 +71,10 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         pen = pg.mkPen(color=QColor(0, 0, 0), width=2, style=Qt.DashLine)
         self.node_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        pen = pg.mkPen(color=QColor(190, 190, 190))
+        pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.node_indicator_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        # Used for intersection dots with horizontal lines
+        self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=6)
 
         pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -151,6 +154,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_top_plot)
         self.addItem(self.node_plot)
         self.addItem(self.node_indicator_plot)
+        self.addItem(self.node_indicator_intersection_plot)
         self.addItem(self.orifice_full_fill)
         self.addItem(self.orifice_opening_fill)
         self.addItem(self.weir_full_fill)
@@ -178,6 +182,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.exchange_plot.setZValue(100)
         self.node_plot.setZValue(60)
         self.node_indicator_plot.setZValue(55)
+        self.node_indicator_intersection_plot.setZValue(55)
         self.orifice_full_fill.setZValue(20)
         self.orifice_opening_fill.setZValue(21)
         self.weir_full_fill.setZValue(20)
@@ -245,7 +250,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
 
-                    logger.info(f"Adding line {feature['id']}, start_height: {begin_height}, end_height: {end_height}, start_level: {begin_level}, end_level: {end_level}, crest_level {crest_level}")
+                    # logger.info(f"Adding line {feature['id']}, start_height: {begin_height}, end_height: {end_height}, start_level: {begin_level}, end_level: {end_level}, crest_level {crest_level}")
 
                     bottom_line.append((begin_dist, begin_level, ltype))
                     bottom_line.append((end_dist, end_level, ltype))
@@ -408,6 +413,27 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node_indicator_table.append((node["distance"], UPPER_LIMIT))
             self.node_indicator_plot.setData(np.array(node_indicator_table, dtype=float), connect="pairs")
 
+            # Determine intersections between vertical node lines and horizontal lines
+            bottom_line_string = LineString(ts_table)
+            exchange_line_string = LineString(ts_exchange_table)
+
+            intersections = []
+            for i in range(0, len(node_indicator_table), 2):
+                vert_line = LineString([(node_indicator_table[i][0], node_indicator_table[i])[1], (node_indicator_table[i+1][0], node_indicator_table[i+1][1])])
+
+                intersection = vert_line.intersection(bottom_line_string)
+                if isinstance(intersection, Point):
+                    intersections.append(intersection.coords[0])
+
+                intersection = vert_line.intersection(exchange_line_string)
+                if isinstance(intersection, Point):
+                    intersections.append(intersection.coords[0])
+                    intersections.append((0.0, np.nan))  # add a line break
+
+            logger.info(f"{len(intersections)} intersections")
+
+            self.node_indicator_intersection_plot.setData(np.array(intersections, dtype=float), symbol='h', size=2, connect='finite')
+
             # reset water level lines
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             for plot, fill in self.waterlevel_plots.values():
@@ -436,6 +462,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.exchange_plot.setData(ts_table)
             self.node_plot.setData(ts_table)
             self.node_indicator_plot.setData(ts_table)
+            self.node_indicator_intersection_plot.setData(ts_table)
 
             for plot, fill in self.waterlevel_plots.values():
                 self.removeItem(plot)
