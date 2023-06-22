@@ -442,6 +442,8 @@ class SideViewPlotWidget(pg.PlotWidget):
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             for plot, fill in self.waterlevel_plots.values():
                 plot.setData(ts_table)
+            # and reset intersection dots
+            self.node_indicator_water_intersection_plot.setData(ts_table)
 
             self.auto_scale(include_waterlevels=False)
 
