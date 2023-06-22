@@ -74,7 +74,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.node_indicator_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         # Used for intersection dots with horizontal lines
-        self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=6)
+        self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=10)
 
         pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -414,21 +414,21 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.node_indicator_plot.setData(np.array(node_indicator_table, dtype=float), connect="pairs")
 
             # Determine intersections between vertical node lines and horizontal lines
-            bottom_line_string = LineString(ts_table)
-            exchange_line_string = LineString(ts_exchange_table)
+            horizontal_lines = [exchange_line, upper_line, ts_table]
 
             intersections = []
             for i in range(0, len(node_indicator_table), 2):
                 vert_line = LineString([(node_indicator_table[i][0], node_indicator_table[i])[1], (node_indicator_table[i+1][0], node_indicator_table[i+1][1])])
 
-                intersection = vert_line.intersection(bottom_line_string)
-                if isinstance(intersection, Point):
-                    intersections.append(intersection.coords[0])
-
-                intersection = vert_line.intersection(exchange_line_string)
-                if isinstance(intersection, Point):
-                    intersections.append(intersection.coords[0])
-                    intersections.append((0.0, np.nan))  # add a line break
+                for line in horizontal_lines:
+                    # Some lines may contain gaps and therefore we do not represent them as a single LineString
+                    # but treat each segment as a LineString
+                    for idx in range(0, len(line), 2):
+                        segment = LineString([(line[idx][0], line[idx][1]), (line[idx+1][0], line[idx+1][1])])
+                        intersection = vert_line.intersection(segment)
+                        if isinstance(intersection, Point):
+                            intersections.append(intersection.coords[0])
+                            intersections.append((0.0, np.nan))  # add a line break
 
             logger.info(f"{len(intersections)} intersections")
 
