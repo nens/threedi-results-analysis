@@ -92,7 +92,7 @@ class Route(object):
         # retrieve vertex index from qgs point
         id_point = self.graph.findVertex(qgs_point)
         if id_point == -1:
-            return False, "point is not on a vertex of the route graph"
+            return False, "Please click on a 1D node"
         else:
             distance = 0.0
             if len(self.path_points) > 0:

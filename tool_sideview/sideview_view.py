@@ -23,7 +23,7 @@ from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.utils import available_styles
-from threedi_results_analysis.utils.user_messages import statusbar_message, messagebar_message, messagebar_pop_message
+from threedi_results_analysis.utils.user_messages import messagebar_message, messagebar_pop_message
 from threedi_results_analysis.utils.widgets import PenStyleWidget
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
@@ -513,7 +513,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             pen = pg.mkPen(color=QColor(153, 214, 255), width=2, style=plot_pattern)
             water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
             water_level_plot.setZValue(100)  # always visible
-            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(102, 117, 157, 127))
+            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(0, 255, 255, 127))
             water_fill.setZValue(0)
             self.addItem(water_level_plot)
             self.addItem(water_fill)
@@ -858,7 +858,7 @@ class SideViewDockWidget(QDockWidget):
 
         self.select_sideview_button.setText("Continue sideview trajectory")
         if not success:
-            statusbar_message(msg)
+            messagebar_message("Sideview", msg, 0, 3)
             return
 
         self.side_view_plot_widget.set_sideprofile(self.route.path, self.model.get_grid(self.current_grid_id))
