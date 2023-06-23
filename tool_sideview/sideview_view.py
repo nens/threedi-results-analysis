@@ -9,6 +9,7 @@ from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QDockWidget, QSplitter
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
@@ -62,6 +63,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.waterlevel_plots = {}  # map from result id to (plot, fill)
         self.current_grid_id = None
 
+        self.show_dots = True
+
         self.showGrid(False, True, 0.5)
         self.setLabel("bottom", "Distance", "m")
         self.setLabel("left", "Height", "m MSL")
@@ -74,9 +77,9 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.node_indicator_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         # Used for intersection dots with horizontal lines
-        self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=10)
+        self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=7)
         # Used for intersection dots with waterlevel lines
-        self.node_indicator_water_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=10)
+        self.node_indicator_water_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=7)
 
         pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -415,28 +418,35 @@ class SideViewPlotWidget(pg.PlotWidget):
             for node in self.sideview_nodes:
                 node_indicator_table.append((node["distance"], LOWER_LIMIT))
                 node_indicator_table.append((node["distance"], UPPER_LIMIT))
-            self.node_indicator_plot.setData(np.array(node_indicator_table, dtype=float), connect="pairs")
+
+            if self.show_dots:
+                self.node_indicator_plot.setData(np.array(node_indicator_table, dtype=float), connect="pairs")
+            else:
+                self.node_indicator_plot.setData(np.array([(0.0, np.nan)], dtype=float), connect="pairs")
 
             # Determine intersections between vertical node lines and horizontal lines
-            horizontal_lines = [exchange_line, upper_line, ts_table]
+            if self.show_dots:
+                horizontal_lines = [exchange_line, upper_line, ts_table]
 
-            intersections = []
-            for i in range(0, len(node_indicator_table), 2):
-                vert_line = LineString([(node_indicator_table[i][0], node_indicator_table[i])[1], (node_indicator_table[i+1][0], node_indicator_table[i+1][1])])
+                intersections = []
+                for i in range(0, len(node_indicator_table), 2):
+                    vert_line = LineString([(node_indicator_table[i][0], node_indicator_table[i])[1], (node_indicator_table[i+1][0], node_indicator_table[i+1][1])])
 
-                for line in horizontal_lines:
-                    # Some lines may contain gaps and therefore we do not represent them as a single LineString
-                    # but treat each segment as a LineString
-                    for idx in range(0, len(line), 2):
-                        segment = LineString([(line[idx][0], line[idx][1]), (line[idx+1][0], line[idx+1][1])])
-                        intersection = vert_line.intersection(segment)
-                        if isinstance(intersection, Point):
-                            intersections.append(intersection.coords[0])
-                            intersections.append((0.0, np.nan))  # add a line break
+                    for line in horizontal_lines:
+                        # Some lines may contain gaps and therefore we do not represent them as a single LineString
+                        # but treat each segment as a LineString
+                        for idx in range(0, len(line), 2):
+                            segment = LineString([(line[idx][0], line[idx][1]), (line[idx+1][0], line[idx+1][1])])
+                            intersection = vert_line.intersection(segment)
+                            if isinstance(intersection, Point):
+                                intersections.append(intersection.coords[0])
+                                intersections.append((0.0, np.nan))  # add a line break
 
-            logger.info(f"{len(intersections)} intersections")
+                logger.info(f"{len(intersections)} intersections")
 
-            self.node_indicator_intersection_plot.setData(np.array(intersections, dtype=float), symbol='h', size=2, connect='finite')
+                self.node_indicator_intersection_plot.setData(np.array(intersections, dtype=float), symbol='h', size=2, connect='finite')
+            else:
+                self.node_indicator_intersection_plot.setData(np.array([(0.0, np.nan)], dtype=float), symbol='h', size=2, connect='finite')
 
             # reset water level lines
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
@@ -556,7 +566,10 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         # Draw dots at intersections between this water line and vertical node lines:
         # This is actually at the beginning of each segment of the water level line
-        self.node_indicator_water_intersection_plot.setData(np.array(intersections, dtype=float), symbol='h', size=2, connect='finite')
+        if self.show_dots:
+            self.node_indicator_water_intersection_plot.setData(np.array(intersections, dtype=float), symbol='h', size=2, connect='finite')
+        else:
+            self.node_indicator_water_intersection_plot.setData(np.array([(0.0, np.nan)], dtype=float), symbol='h', size=2, connect='finite')
 
         if update_range:
             self.auto_scale(include_waterlevels=True)
@@ -858,6 +871,11 @@ class SideViewDockWidget(QDockWidget):
         self.side_view_plot_widget.set_sideprofile([], None)
         self.select_sideview_button.setText("Choose sideview trajectory")
 
+    def update_dots(self, state):
+        # Just redraw the whole thing for now
+        self.side_view_plot_widget.show_dots = (state == Qt.Checked)
+        self.side_view_plot_widget.set_sideprofile(self.route.path, self.model.get_grid(self.current_grid_id))
+
     def on_close(self):
         """
         unloading widget
@@ -895,6 +913,10 @@ class SideViewDockWidget(QDockWidget):
         self.select_sideview_button.setEnabled(False)
         self.reset_sideview_button.setEnabled(False)
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
+        self.show_nodes_checkbox = QCheckBox("Show nodes", self.dock_widget_content)
+        self.show_nodes_checkbox.setChecked(True)
+        self.show_nodes_checkbox.stateChanged.connect(self.update_dots)
+        self.button_bar_hlayout.addWidget(self.show_nodes_checkbox)
         spacer_item = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
         self.button_bar_hlayout.addWidget(QLabel("Grid: ", self.dock_widget_content))
