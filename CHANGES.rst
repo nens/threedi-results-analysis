@@ -7,6 +7,7 @@
 
 - Sideview: added dots at vertical line intersections with bottom level, cross-section top, exchange level and water level) (#838)
 - Sideview: dots and vertical lines indicating nodes can now be toggled (#838)
+- Graph: removed delete button (#839)
 
 
 3.1.5 (2023-06-21)

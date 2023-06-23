@@ -413,7 +413,6 @@ class GraphWidget(QWidget):
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
-        self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
         self.showFullLegendCheckbox.stateChanged.connect(self._updateHiddenColumns)
         self.location_timeseries_table.deleteRequested.connect(lambda index: self.location_model.removeRows(index.row(), 1))
 
@@ -485,7 +484,6 @@ class GraphWidget(QWidget):
         :return:
         """
         self.parameter_combo_box.currentIndexChanged.disconnect(self.parameter_change)
-        self.remove_timeseries_button.clicked.disconnect(self.remove_objects_table)
 
     def closeEvent(self, event):
         """
@@ -555,18 +553,7 @@ class GraphWidget(QWidget):
 
         # add button below table
         hLayoutButtons = QHBoxLayout(self)
-
-        self.remove_timeseries_button = QPushButton(self)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.remove_timeseries_button.sizePolicy().hasHeightForWidth())
-
-        self.remove_timeseries_button.setSizePolicy(sizePolicy)
-        self.remove_timeseries_button.setObjectName("remove_timeseries_button")
-        hLayoutButtons.addWidget(self.remove_timeseries_button)
         hLayoutButtons.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        self.remove_timeseries_button.setText("Delete")
 
         self.showFullLegendCheckbox = QCheckBox("Show full legend", self)
         self.showFullLegendCheckbox.setCheckState(Qt.Unchecked)
