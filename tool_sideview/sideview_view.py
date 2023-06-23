@@ -907,6 +907,8 @@ class SideViewDockWidget(QDockWidget):
         self.dock_widget_content.setLayout(self.main_vlayout)
 
         self.button_bar_hlayout = QHBoxLayout(self)
+        self.button_bar_hlayout.setSpacing(10)
+
         self.select_sideview_button = QPushButton("Choose sideview trajectory", self.dock_widget_content)
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
         self.reset_sideview_button = QPushButton("Reset sideview trajectory", self.dock_widget_content)

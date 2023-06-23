@@ -916,6 +916,8 @@ class GraphDockWidget(QDockWidget):
 
         self.buttonBarHLayout = QHBoxLayout(self)
 
+        self.buttonBarHLayout.setSpacing(10)
+
         self.addFlowlinePumpButton = QPushButton(text="Add flowlines/pumps", parent=self.dockWidgetContent)
         self.addFlowlinePumpButton.setCheckable(True)
         self.buttonBarHLayout.addWidget(self.addFlowlinePumpButton)
