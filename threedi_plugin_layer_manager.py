@@ -83,6 +83,10 @@ class ThreeDiPluginLayerManager(QObject):
     grid_unloaded = pyqtSignal(ThreeDiGridItem)
     result_unloaded = pyqtSignal(ThreeDiResultItem)
 
+    # error signals so the UI can deal with this accordingly
+    grid_not_loaded = pyqtSignal(ThreeDiGridItem)
+    result_not_loaded = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -104,6 +108,7 @@ class ThreeDiPluginLayerManager(QObject):
 
         if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, grid_item):
             pop_up_critical("Failed adding the layers to the project.")
+            self.grid_not_loaded.emit(grid_item)
             return False
 
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Added layers to the project", duration=2)
@@ -181,6 +186,7 @@ class ThreeDiPluginLayerManager(QObject):
             if (layer.fields().indexFromName(result_field_name) != -1 or
                     layer.fields().indexFromName(initial_value_field_name) != -1):
                 logger.error("Field already exist, aborting addition.")
+                self.result_not_loaded.emit(threedi_result_item, grid_item)
                 return False
 
             provider.addAttributes([result_field, initial_value_field])
