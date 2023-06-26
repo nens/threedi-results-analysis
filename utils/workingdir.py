@@ -1,4 +1,4 @@
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from itertools import chain
 import json
 import re
@@ -143,38 +143,43 @@ class LocalSchematisation:
         In case use_config_for_revisions is True, the revisions are derived from the json file,
         otherwise the schematisation dir is scanned for "revision" folders.
         """
-        local_schematisation = None
-        if os.path.isdir(schematisation_dir):
-            expected_config_path = os.path.join(schematisation_dir, "admin", "schematisation.json")
-            if os.path.exists(expected_config_path):
-                schema_metadata = cls.read_schematisation_metadata(expected_config_path)
-                working_dir = os.path.dirname(schematisation_dir)
-                schematisation_pk = schema_metadata["id"]
-                schematisation_name = schema_metadata["name"]
-                local_schematisation = cls(working_dir, schematisation_pk, schematisation_name)
-                revision_numbers = []
-                if use_config_for_revisions:
-                    revision_numbers = schema_metadata["revisions"] or []
-                else:
-                    folders = [os.path.basename(d) for d in listdirs(schematisation_dir) if os.path.basename(d).startswith("revision")]
-                    revision_numbers = [int(re.findall(r'^revision (\d+)', folder)[0]) for folder in folders]
+        working_dir = os.path.dirname(schematisation_dir)
+        if not os.path.isdir(schematisation_dir):
+            return None
+        config_path = os.path.join(schematisation_dir, "admin", "schematisation.json")
+        schema_metadata = cls.read_schematisation_metadata(config_path)
+        fallback_id = fallback_name = os.path.basename(schematisation_dir)
+        schematisation_pk = schema_metadata.get("id", fallback_id)
+        schematisation_name = schema_metadata.get("name", fallback_name)
+        local_schematisation = cls(working_dir, schematisation_pk, schematisation_name)
 
-                for revision_number in revision_numbers:
-                    local_revision = LocalRevision(local_schematisation, revision_number)
-                    local_schematisation.revisions[revision_number] = local_revision
-                wip_parent_revision_number = schema_metadata["wip_parent_revision"]
-                if wip_parent_revision_number is not None:
-                    local_schematisation.wip_revision = WIPRevision(local_schematisation, wip_parent_revision_number)
+        if use_config_for_revisions:
+            revision_numbers = schema_metadata.get("revisions", [])
+        else:
+            folders = [
+                os.path.basename(d)
+                for d in listdirs(schematisation_dir)
+                if os.path.basename(d).startswith("revision")
+            ]
+            revision_numbers = [int(re.findall(r'^revision (\d+)', folder)[0]) for folder in folders]
+
+        for revision_number in revision_numbers:
+            local_revision = LocalRevision(local_schematisation, revision_number)
+            local_schematisation.revisions[revision_number] = local_revision
+
+        wip_parent_revision_number = schema_metadata.get("wip_parent_revision")
+        if wip_parent_revision_number is not None:
+            local_schematisation.wip_revision = WIPRevision(local_schematisation, wip_parent_revision_number)
+
         return local_schematisation
 
     @staticmethod
     def read_schematisation_metadata(schematisation_config_path):
         """Read schematisation metadata from the JSON file."""
-        schematisation_metadata = defaultdict(lambda: None)
-        if os.path.exists(schematisation_config_path):
-            with open(schematisation_config_path, "r+") as config_file:
-                schematisation_metadata.update(json.load(config_file))
-        return schematisation_metadata
+        if not os.path.exists(schematisation_config_path):
+            return {}
+        with open(schematisation_config_path, "r+") as config_file:
+            return json.load(config_file)
 
     def structure_is_valid(self):
         """Check if all schematisation subpaths are present."""
