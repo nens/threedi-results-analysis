@@ -54,6 +54,11 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeView.customContextMenuRequested.connect(self.customMenuRequested)
 
+        # We'll make the dialog persistent so we can set some signals
+        self.dialog = ThreeDiPluginGridResultDialog(self)
+        self.dialog.grid_file_selected.connect(self.grid_file_selected)
+        self.dialog.result_file_selected.connect(self.result_file_selected)
+
     def customMenuRequested(self, pos):
         index = self.treeView.indexAt(pos)
         menu = QMenu(self)
@@ -80,13 +85,8 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         return self.toolWidget
 
     def _add_clicked(self):
-        dialog = ThreeDiPluginGridResultDialog(self)
-        # Connect signal to signal
-        dialog.grid_file_selected.connect(self.grid_file_selected)
-
-        # User selected a result from 3Di working dir dialog
-        dialog.result_file_selected.connect(self.result_file_selected)
-        dialog.exec()
+        self.dialog.refresh()
+        self.dialog.exec()
 
     def _remove_current_index_clicked(self, index=None):
         # note that index is the "current", not the "selected"

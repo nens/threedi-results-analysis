@@ -15,6 +15,16 @@ FORM_CLASS, _ = uic.loadUiType(
 )
 
 
+def disable_dialog(func):
+    """
+    This decorator disables the widget after the function call
+    """
+    def wrapper(*args, **kwargs):
+        args[0].setEnabled(False)
+        func(*args, **kwargs)
+    return wrapper
+
+
 class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal([str, str])
@@ -46,7 +56,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.loadResultPushButton.clicked.connect(self._add_result_from_table)
         self.loadGridPushButton.clicked.connect(self._add_grid_from_table)
 
-        self._populate_table()
+        self.refresh()
 
     @pyqtSlot(str)
     def _select_grid(self, input_gridadmin_h5_or_gpkg: str) -> None:
@@ -76,6 +86,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.addResultPushButton.setEnabled(True)
 
     @pyqtSlot()
+    @disable_dialog
     def _add_grid(self) -> None:
         self.addGridPushButton.setEnabled(False)
         self.grid_file_selected.emit(self.gridQgsFileWidget.filePath())
@@ -90,6 +101,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             return
 
         self.result_file_selected.emit(self.resultQgsFileWidget.filePath(), grid_file)
+        self.setEnabled(False)
 
     @staticmethod
     def _get_dir() -> str:
@@ -112,7 +124,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot(int)
     def _tabChanged(self, idx: int) -> None:
         if self.tabWidget.currentWidget() is self.threedi:
-            self._populate_table()
+            self.refresh()
 
     def _retrieve_selected_result_folder(self, index: QModelIndex) -> str:
         result_item = self.model.item(index.row(), 2)
@@ -134,11 +146,13 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         return grid_dir
 
     @pyqtSlot()
+    @disable_dialog
     def _add_grid_from_table(self) -> None:
         grid_file = os.path.join(self._retrieve_selected_grid_folder(self.tableView.currentIndex()), "gridadmin.h5")
         self.grid_file_selected.emit(grid_file)
 
     @pyqtSlot()
+    @disable_dialog
     def _add_result_from_table(self) -> None:
         result_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "results_3di.nc")
         grid_file = os.path.join(self._retrieve_selected_grid_folder(self.tableView.currentIndex()), "gridadmin.h5")
@@ -154,6 +168,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             self.loadResultPushButton.setEnabled(False)
 
+    @disable_dialog
     def _item_double_clicked(self, index: QModelIndex):
         # The selection contains a result
         if self.model.item(index.row(), 2):
@@ -166,7 +181,11 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
             self.grid_file_selected.emit(grid_file)
 
-    def _populate_table(self):
+    @pyqtSlot()
+    def enable(self):
+        self.setEnabled(True)
+
+    def refresh(self):
         # Repopulate the table
         self.model.clear()
         self.model.setHorizontalHeaderLabels(self.header_labels)
