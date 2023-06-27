@@ -9,6 +9,7 @@
 - Sideview: dots and vertical lines indicating nodes can now be toggled (#838)
 - Graph: removed delete button (#839)
 - Result Manager: UI is temporarily disabled when grid/result is being loaded (#860)
+- Result Manager: hide dockwidget on startup (#816)
 
 
 3.1.5 (2023-06-21)

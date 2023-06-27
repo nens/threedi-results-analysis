@@ -1,6 +1,6 @@
-from qgis.PyQt.QtCore import QObject, Qt
+from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QDockWidget
+from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from qgis.utils import iface
 from qgis.core import QgsApplication, QgsProject, QgsPathResolver, QgsSettings, QgsMapLayer
@@ -106,21 +106,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             )
 
         assert not hasattr(self, "dockwidget")  # Should be destroyed on unload
-        self.dockwidget = ThreeDiPluginDockWidget(None)
-
-        # Add the dockwidget, tabified with any other right area dock widgets
-        main_window = iface.mainWindow()
-        right_area_dock_widgets = [
-            d for d in main_window.findChildren(QDockWidget)
-            if main_window.dockWidgetArea(d) == Qt.RightDockWidgetArea
-            if d.isVisible()
-        ] + [self.dockwidget]
-        tabify_with = [right_area_dock_widgets[0].objectName()]
-        for dock_widget in right_area_dock_widgets:
-            self.iface.removeDockWidget(dock_widget)
-            self.iface.addTabifiedDockWidget(
-                Qt.RightDockWidgetArea, dock_widget, tabify_with, True
-            )
+        self.dockwidget = ThreeDiPluginDockWidget(None, iface)
 
         # Connect the signals
 
@@ -147,7 +133,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
-        self.dockwidget.show()
         self.dockwidget.set_model(self.model)
 
         self.initProcessing()

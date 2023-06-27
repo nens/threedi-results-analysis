@@ -4,12 +4,14 @@ from pathlib import Path
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from threedi_results_analysis.gui.threedi_plugin_grid_result_dialog import ThreeDiPluginGridResultDialog
-from qgis.PyQt import QtWidgets, uic
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtWidgets import QMenu
 from qgis.PyQt.QtWidgets import QAction
-from qgis.PyQt.QtCore import Qt
+from qgis.gui import QgsDockWidget
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QPixmap
 from threedi_results_analysis import PLUGIN_DIR
@@ -21,7 +23,7 @@ FORM_CLASS, _ = uic.loadUiType(
 )
 
 
-class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
+class ThreeDiPluginDockWidget(QgsDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal([str, str])
     align_starts_checked = pyqtSignal(bool)
@@ -32,8 +34,12 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     item_selected = pyqtSignal(QModelIndex)
     item_deselected = pyqtSignal(QModelIndex)
 
-    def __init__(self, parent):
+    def __init__(self, parent, iface):
         super(ThreeDiPluginDockWidget, self).__init__(parent)
+        self.iface = iface
+
+        self.first_show = True
+
         self.setupUi(self)
         self.pushButton_Add.clicked.connect(self._add_clicked)
         self.pushButton_RemoveItem.clicked.connect(self._remove_current_index_clicked)
@@ -130,7 +136,23 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     @pyqtSlot()
     def toggle_visible(self, *args, **kwargs):
-        self.setVisible(not self.isVisible())
+        # Add the dockwidget, tabified with any other right area dock widgets
+        if self.first_show:
+            main_window = self.iface.mainWindow()
+            right_area_dock_widgets = [
+                d for d in main_window.findChildren(QDockWidget)
+                if main_window.dockWidgetArea(d) == Qt.RightDockWidgetArea
+                if d.isVisible()
+            ] + [self]
+            tabify_with = [right_area_dock_widgets[0].objectName()]
+            for dock_widget in right_area_dock_widgets:
+                self.iface.removeDockWidget(dock_widget)
+                self.iface.addTabifiedDockWidget(
+                    Qt.RightDockWidgetArea, dock_widget, tabify_with, True
+                )
+            self.first_show = False
+        else:
+            self.setVisible(not self.isVisible())
 
     @pyqtSlot(ThreeDiGridItem)
     def expand_grid(self, item: ThreeDiGridItem):
