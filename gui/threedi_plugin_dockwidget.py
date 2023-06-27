@@ -1,4 +1,3 @@
-from logging import getLogger
 from pathlib import Path
 
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
@@ -10,7 +9,7 @@ from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtWidgets import QMenu
-from qgis.PyQt.QtWidgets import QAction, QDockWidget
+from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QPixmap
 from threedi_results_analysis import PLUGIN_DIR
