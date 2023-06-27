@@ -9,6 +9,8 @@ from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from threedi_results_analysis.utils.workingdir import list_local_schematisations
 from threedi_results_analysis.utils.user_messages import pop_up_critical
+import logging
+logger = logging.getLogger(__name__)
 
 FORM_CLASS, _ = uic.loadUiType(
     Path(__file__).parent / 'threedi_plugin_grid_result_dialog.ui',
@@ -93,15 +95,14 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def _add_result(self) -> None:
+        self.setEnabled(False)
         self.addResultPushButton.setEnabled(False)
-
         grid_file = os.path.join(os.path.dirname(self.resultQgsFileWidget.filePath()), "gridadmin.h5")
         if not os.path.isfile(grid_file):
             pop_up_critical("No computational grid file (gridadmin.h5) could be found for the selected simulation result. Simulation result not added to the project.")
             return
 
         self.result_file_selected.emit(self.resultQgsFileWidget.filePath(), grid_file)
-        self.setEnabled(False)
 
     @staticmethod
     def _get_dir() -> str:
@@ -183,6 +184,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def enable(self):
+        logger.error("ENABLE")
         self.setEnabled(True)
 
     def refresh(self):

@@ -191,6 +191,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # When a grid or result is loaded (or was invalid), the grid/result dialog can be enabled again
         self.model.grid_added.connect(self.dockwidget.dialog.enable)
         self.model.result_added.connect(self.dockwidget.dialog.enable)
+        self.loader.result_not_loaded.connect(self.dockwidget.dialog.enable)
+        self.loader.grid_not_loaded.connect(self.dockwidget.dialog.enable)
         self.validator.grid_invalid.connect(self.dockwidget.dialog.enable)
         self.validator.result_invalid.connect(self.dockwidget.dialog.enable)
 

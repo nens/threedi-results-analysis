@@ -10,20 +10,20 @@ from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtWidgets import QMenu
-from qgis.PyQt.QtWidgets import QAction
-from qgis.gui import QgsDockWidget
+from qgis.PyQt.QtWidgets import QAction, QDockWidget
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QPixmap
 from threedi_results_analysis import PLUGIN_DIR
+import logging
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 FORM_CLASS, _ = uic.loadUiType(
     Path(__file__).parent / 'threedi_plugin_dockwidget_base.ui',
 )
 
 
-class ThreeDiPluginDockWidget(QgsDockWidget, FORM_CLASS):
+class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal([str, str])
     align_starts_checked = pyqtSignal(bool)
