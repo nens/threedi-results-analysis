@@ -7,9 +7,9 @@ import os
 import pytest
 
 
-available_dependency = dependencies.Dependency("numpy", "numpy", "")
-dependency_with_wrong_version = dependencies.Dependency("numpy", "numpy", "==1972")
-missing_dependency = dependencies.Dependency("reinout", "reinout", "")
+available_dependency = dependencies.Dependency("numpy", "numpy", "", False)
+dependency_with_wrong_version = dependencies.Dependency("numpy", "numpy", "==1972", False)
+missing_dependency = dependencies.Dependency("reinout", "reinout", "", False)
 
 
 def test_check_importability():
@@ -61,7 +61,7 @@ def test_uninstall_dependency(tmpdir, monkeypatch):
     monkeypatch.setenv("PYTHONPATH", new_python_path)
 
     small_dependencies = [
-        Dependency("threedi-modelchecker", "threedi_modelchecker", ">=1.0.0")
+        Dependency("threedi-modelchecker", "threedi_modelchecker", ">=1.0.0", False)
     ]
     dependencies._install_dependencies(
         small_dependencies, target_dir=tmpdir
