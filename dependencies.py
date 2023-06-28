@@ -38,49 +38,50 @@ import shutil
 import subprocess
 import sys
 
-
-Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
+# in case the dependency is a tar, the constraint should be the 
+# explicit version (e.g. "==3.8.0")
+Dependency = namedtuple("Dependency", ["name", "package", "constraint", "tar"])
 
 #: List of expected dependencies.
 DEPENDENCIES = [
-    Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6"),
-    Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*"),
-    Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
-    Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2"),
-    Dependency("threedigrid", "threedigrid", ">=2.0.3"),
-    Dependency("threedi-schema", "threedi_schema", "==0.217.*"),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.2.*"),
-    Dependency("threedidepth", "threedidepth", "==0.5"),
-    Dependency("click", "click", ">=8.0"),
-    Dependency("alembic", "alembic", "==1.8.*"),
+    Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6", False),
+    Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*", False),
+    Dependency("lizard-connector", "lizard_connector", "==0.7.3", False),
+    Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2", False),
+    Dependency("threedigrid", "threedigrid", ">=2.0.3", False),
+    Dependency("threedi-schema", "threedi_schema", "==0.217.*", False),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.2.*", False),
+    Dependency("threedidepth", "threedidepth", "==0.5", False),
+    Dependency("click", "click", ">=8.0", False),
+    Dependency("alembic", "alembic", "==1.8.*", False),
     Dependency(
-        "importlib-resources", "importlib_resources", ""
+        "importlib-resources", "importlib_resources", "", False
     ),  # backward compat. alembic
     Dependency(
-        "zipp", "zipp", ""
+        "zipp", "zipp", "", False
     ),  # backward compat. alembic
-    Dependency("Mako", "mako", ""),
-    Dependency("cftime", "cftime", ">=1.5.0"),  # threedigrid[results]
-    Dependency("packaging", "packaging", ""),
+    Dependency("Mako", "mako", "", False),
+    Dependency("cftime", "cftime", ">=1.5.0", False),  # threedigrid[results]
+    Dependency("packaging", "packaging", "", False),
     Dependency(
-        "colorama", "colorama", ""
+        "colorama", "colorama", "", False
     ),  # dep of click and threedi-modelchecker (windows)
-    Dependency("networkx", "networkx", ""),
-    Dependency("condenser", "condenser", ">=0.2.1"),
-    Dependency("Shapely", "shapely", ">=2.0.0"),
-    Dependency("threedigrid_builder", "threedigrid_builder", ">=1.11.4"),
-    Dependency("hydxlib", "hydxlib", "==1.5.1"),
-    Dependency("h5netcdf", "h5netcdf", ""),
-    Dependency("greenlet", "greenlet", "!=0.4.17"),
-    Dependency("typing-extensions", "typing_extensions", ">=4.2.0"),
+    Dependency("networkx", "networkx", "", False),
+    Dependency("condenser", "condenser", ">=0.2.1", False),
+    Dependency("Shapely", "shapely", ">=2.0.0", False),
+    Dependency("threedigrid_builder", "threedigrid_builder", ">=1.11.4", False),
+    Dependency("hydxlib", "hydxlib", "==1.5.1", False),
+    Dependency("h5netcdf", "h5netcdf", "", False),
+    Dependency("greenlet", "greenlet", "!=0.4.17", False),
+    Dependency("typing-extensions", "typing_extensions", ">=4.2.0", False),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
 WINDOWS_PLATFORM_DEPENDENCIES = [
-    Dependency("scipy", "scipy", "==1.6.2"),
+    Dependency("scipy", "scipy", "==1.6.2", False),
 ]
-H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0")
-SUPPORTED_HDF5_VERSIONS = ["1.10.7"]
+H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.8.0", True)
+SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
 
 # If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "osgeo", "pip", "setuptools"]
@@ -202,11 +203,10 @@ def _ensure_h5py_installed():
     We use the H5pyMarker to mark the installed h5py version. This is because we cannot check the version
     by importing h5py, as Qgis will crash if the HDF5 and h5py binaries do not match.
     """
-    h5py_dependency = Dependency("h5py", "h5py", "==2.10.0")
     hdf5_version = (
-        "1.10.7"  # there is only one version of HDF5 available in the QGIS installer
+        "1.14.0"  # there is only one version of HDF5 available in the QGIS installer
     )
-    h5py_missing = _check_presence([h5py_dependency])
+    h5py_missing = _check_presence([H5PY_DEPENDENCY])
     marker_version = H5pyMarker.version()
     if h5py_missing:
         return _install_h5py(hdf5_version)
@@ -376,6 +376,25 @@ def check_importability():
 
 def _uninstall_dependency(dependency):
     print("Trying to uninstalling dependency %s" % dependency.name)
+    if dependency.tar:
+        # just remove the folders
+        path = _dependencies_target_dir
+        items_to_remove = [node for node in os.listdir(str(path)) if (dependency.package in node or dependency.name in node)]
+        for f in items_to_remove:
+            dep_path = str(path / f)
+
+            try:
+                if os.path.exists(dep_path):
+                    if os.path.isfile(dep_path):
+                        print(f"Deleting file {f} from {path}")
+                        os.remove(dep_path)
+                    else:
+                        print(f"Deleting folder {f} from {path}")
+                        shutil.rmtree(dep_path)
+            except PermissionError as e:
+                print(f"Unable to remove {dep_path} ({str(e)})")
+        return
+
     python_interpreter = _get_python_interpreter()
     startupinfo = None
     if _is_windows():
@@ -443,7 +462,11 @@ def _install_dependencies(dependencies, target_dir):
     for count, dependency in enumerate(dependencies):
         _uninstall_dependency(dependency)
         print("Installing '%s' into %s" % (dependency.name, target_dir))
-        command = base_command + [dependency.name + dependency.constraint]
+        if dependency.tar:
+            # Just extract the tar into the target folder, we already now it exists
+            command = f"tar -xvf {str(OUR_DIR / 'external-dependencies')}/{dependency.name}-{dependency.constraint[2:]}.tar -C {str(target_dir)}"
+        else:
+            command = base_command + [dependency.name + dependency.constraint]
 
         if dialog:
             dialog.setLabelText(f"Installing {dependency.name}")
