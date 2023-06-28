@@ -68,6 +68,13 @@ agg_method_list = [
         "has_threshold": True,
         "is_percentage": True,
     },
+    {
+        "short_name": "time_above_threshold",
+        "long_name": "Time above threshold",
+        "has_threshold": True,
+        "is_duration": True,
+        "threshold_sources": ["drain_level"],
+    },
 ]
 
 for var in agg_method_list:

@@ -216,16 +216,10 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         )
 
         # threshold column
-        threshold_widget = QtWidgets.QDoubleSpinBox()
-        threshold_widget.setRange(sys.float_info.min, sys.float_info.max)
-        self.tableWidgetAggregations.setCellWidget(
-            current_row, 3, threshold_widget
-        )
-        method = method_combobox.itemData(method_combobox.currentIndex())
         self.set_threshold_widget(row=current_row, method=method)
+        threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, 3)
         if aggregation.threshold is not None:
             threshold_widget.setValue(aggregation.threshold)
-        threshold_widget.valueChanged.connect(self.threshold_value_changed)
 
         # units column
         units_combobox = QtWidgets.QComboBox()
@@ -343,35 +337,53 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_threshold_widget(row=row, method=method)
 
     def set_threshold_widget(self, row, method):
-        enabled = False if method is None else method.has_threshold
-        self.tableWidgetAggregations.cellWidget(row, 3).setEnabled(enabled)
+        threshold_widget = QtWidgets.QDoubleSpinBox()
+        threshold_widget.setRange(sys.float_info.min, sys.float_info.max)
+        self.tableWidgetAggregations.setCellWidget(row, 3, threshold_widget)
+        threshold_widget.valueChanged.connect(self.threshold_value_changed)
+        threshold_widget.setEnabled(method is not None and method.has_threshold)
+
+        # TODO different widget when has sources
+
+        units_combobox = QtWidgets.QComboBox()
+        self.tableWidgetAggregations.setCellWidget(
+            current_row, 4, units_combobox
+        )
+        self.set_units_widget(
+            row=current_row,
+            variable=variable_combobox.itemData(
+                variable_combobox.currentIndex()
+            ),
+            method=method,
+        )
 
     def set_units_widget(self, row, variable, method):
         """Called when variable or method changes"""
         units_widget = self.tableWidgetAggregations.cellWidget(row, 4)
         units_widget.clear()
+
+        if method.is_percentage:
+            return units_widget.addItem("%", 1)
+        if method is_duration:
+            return units_widget.addItem("s", 1)
+        if not method:
+            crash
+
         units_dict = variable.units
         for i, (units, multiplier_tuple) in enumerate(units_dict.items()):
             multiplier = multiplier_tuple[0]
-            if method:
-                if method.integrates_over_time:
-                    units_str = units[0]
-                else:
-                    units_str = "/".join(units)
-                    if len(multiplier_tuple) == 2:
-                        multiplier *= multiplier_tuple[1]
-                if method.is_percentage:
-                    units_str = "%"
-                    multiplier = 1
-            else:
+            if method.integrates_over_time:
                 units_str = units[0]
+            else:
+                units_str = "/".join(units)
+                if len(multiplier_tuple) == 2:
+                    multiplier *= multiplier_tuple[1]
             # add item to the widget if no similar item exists:
             if not any(
                 units_str in units_widget.itemText(x)
                 for x in range(units_widget.count())
             ):
-                units_widget.addItem(units_str)
-                units_widget.setItemData(i, multiplier)
+                units_widget.addItem(units_str, multiplier)
 
     def get_styling_parameters(self, output_type):
         if output_type == "node":
