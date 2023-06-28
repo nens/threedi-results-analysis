@@ -38,7 +38,7 @@ import shutil
 import subprocess
 import sys
 
-# in case the dependency is a tar, the constraint should be the 
+# in case the dependency is a tar, the constraint should be the
 # explicit version (e.g. "==3.8.0")
 Dependency = namedtuple("Dependency", ["name", "package", "constraint", "tar"])
 
@@ -378,7 +378,7 @@ def _uninstall_dependency(dependency):
     print("Trying to uninstalling dependency %s" % dependency.name)
     if dependency.tar:
         # just remove the folders
-        path = _dependencies_target_dir
+        path = _dependencies_target_dir()
         items_to_remove = [node for node in os.listdir(str(path)) if (dependency.package in node or dependency.name in node)]
         for f in items_to_remove:
             dep_path = str(path / f)
