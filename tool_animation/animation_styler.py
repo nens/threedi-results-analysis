@@ -1,6 +1,8 @@
 from pathlib import Path
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsMarkerSymbol
+from qgis.core import QgsSymbolLayer
+from qgis.core import QgsProperty
 from qgis.utils import iface
 from threedi_results_analysis.datasource.result_constants import WET_CROSS_SECTION_AREA
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_CURL
@@ -42,6 +44,10 @@ def style_animation_flowline_current(
     else:
         symbol.symbolLayers()[1].setSymbolAngle(90)
         max_symbol_size = 2.5
+        # make arrow invisible if attribute value for field self.field_name is NULL
+        enable_exp = QgsProperty.fromExpression(f'($length /  @map_scale) > 0.0025 AND abs("result{field_postfix}") > 0')
+        symbol.symbolLayers()[1].setDataDefinedProperty(QgsSymbolLayer.PropertyLayerEnabled, enable_exp)
+
     renderer.updateSymbols(symbol)
 
     if field_postfix and variable != WET_CROSS_SECTION_AREA.name:
