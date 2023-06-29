@@ -10,6 +10,7 @@
 - Graph: removed delete button (#839)
 - Result Manager: UI is temporarily disabled when grid/result is being loaded (#860)
 - Result Manager: hide dockwidget on startup (#816)
+- Animation: fixed bug in changing parameters
 
 
 3.1.5 (2023-06-21)

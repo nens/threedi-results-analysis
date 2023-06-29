@@ -278,12 +278,12 @@ class MapAnimator(QGroupBox):
     def _restyle_and_update_lines(self):
         """To be used when line parameter changes."""
         self._restyle(lines=True, nodes=False)
-        self._update_results()
+        self.update_results()
 
     def _restyle_and_update_nodes(self):
         """To be used when node parameter or relative checkbox changes."""
         self._restyle(lines=False, nodes=True)
-        self._update_results()
+        self.update_results()
 
     def _get_class_bounds_node(self, threedi_result, node_variable):
         base_nc_name = strip_agg_options(node_variable)
