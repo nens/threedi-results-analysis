@@ -37,6 +37,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import tarfile
 
 # in case the dependency is a tar, the constraint should be the
 # explicit version (e.g. "==3.8.0")
@@ -462,40 +463,44 @@ def _install_dependencies(dependencies, target_dir):
     for count, dependency in enumerate(dependencies):
         _uninstall_dependency(dependency)
         print("Installing '%s' into %s" % (dependency.name, target_dir))
-        if dependency.tar:
-            # Just extract the tar into the target folder, we already now it exists
-            command = f"tar -xvf {str(OUR_DIR / 'external-dependencies')}/{dependency.name}-{dependency.constraint[2:]}.tar -C {str(target_dir)}"
-        else:
-            command = base_command + [dependency.name + dependency.constraint]
-
         if dialog:
             dialog.setLabelText(f"Installing {dependency.name}")
 
-        process = subprocess.Popen(
-            command,
-            universal_newlines=True,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            startupinfo=startupinfo,
-        )
-        # The input/output/error stream handling is a bit involved, but it is
-        # necessary because of a python bug on windows 7, see
-        # https://bugs.python.org/issue3905 .
-        i, o, e = (process.stdin, process.stdout, process.stderr)
-        i.close()
-        result = o.read() + e.read()
-        o.close()
-        e.close()
-        print(result)
-        exit_code = process.wait()
-        if exit_code:
-            if dialog:
-                dialog.close()
-                QApplication.processEvents()
-            raise RuntimeError(
-                f"Installing {dependency.name} failed ({exit_code}) ({result})"
+        if dependency.tar:
+            # Just extract the tar into the target folder, we already now it exists
+            tar_path = f"{(OUR_DIR / 'external-dependencies')}/{dependency.name}-{dependency.constraint[2:]}.tar"
+            tar = tarfile.open(tar_path)
+            tar.extractall(str(target_dir))
+            tar.close()
+        else:
+            command = base_command + [dependency.name + dependency.constraint]
+
+            process = subprocess.Popen(
+                command,
+                universal_newlines=True,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                startupinfo=startupinfo,
             )
+            # The input/output/error stream handling is a bit involved, but it is
+            # necessary because of a python bug on windows 7, see
+            # https://bugs.python.org/issue3905 .
+            i, o, e = (process.stdin, process.stdout, process.stderr)
+            i.close()
+            result = o.read() + e.read()
+            o.close()
+            e.close()
+            print(result)
+            exit_code = process.wait()
+            if exit_code:
+                if dialog:
+                    dialog.close()
+                    QApplication.processEvents()
+                raise RuntimeError(
+                    f"Installing {dependency.name} failed ({exit_code}) ({result})"
+                )
+
         print("Installed %s into %s" % (dependency.name, target_dir))
         if dependency.package in sys.modules:
             print("Unloading old %s module" % dependency.package)
