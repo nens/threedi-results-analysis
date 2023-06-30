@@ -20,7 +20,6 @@ spatialite_datasource_path = os.path.join(
 )
 
 
-
 class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_constructor(self):
         """Test empty constructor."""
