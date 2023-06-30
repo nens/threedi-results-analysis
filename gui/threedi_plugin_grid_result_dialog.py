@@ -1,4 +1,6 @@
+from functools import wraps
 from pathlib import Path
+import logging
 import os
 
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
@@ -9,7 +11,7 @@ from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from threedi_results_analysis.utils.workingdir import list_local_schematisations
 from threedi_results_analysis.utils.user_messages import pop_up_critical
-import logging
+
 logger = logging.getLogger(__name__)
 
 FORM_CLASS, _ = uic.loadUiType(
@@ -19,11 +21,15 @@ FORM_CLASS, _ = uic.loadUiType(
 
 def disable_dialog(func):
     """
-    This decorator disables the widget after the function call
+    Calls func while disabling widget.
     """
-    def wrapper(*args, **kwargs):
-        args[0].setEnabled(False)
-        func(*args, **kwargs)
+    @wraps(func)
+    def wrapper(obj, *args, **kwargs):
+        obj.setEnabled(False)
+        try:
+            func(obj, *args, **kwargs)
+        finally:
+            obj.setEnabled(True)
     return wrapper
 
 
@@ -181,11 +187,6 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
             self.grid_file_selected.emit(grid_file)
-
-    @pyqtSlot()
-    def enable(self):
-        logger.error("ENABLE")
-        self.setEnabled(True)
 
     def refresh(self):
         # Repopulate the table
