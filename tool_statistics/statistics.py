@@ -61,6 +61,7 @@ class Aggregate3DiResults(QgsTask):
         bbox,
         start_time: int,
         end_time: int,
+        only_manholes: bool,
         interpolation_method,
         resample_point_layer: bool,
         resolution,
@@ -79,6 +80,7 @@ class Aggregate3DiResults(QgsTask):
         self.bbox = bbox
         self.start_time = start_time
         self.end_time = end_time
+        self.only_manholes = only_manholes
         self.interpolation_method = interpolation_method
         self.resample_point_layer = resample_point_layer
         self.resolution = resolution
@@ -107,6 +109,7 @@ class Aggregate3DiResults(QgsTask):
                 bbox=self.bbox,
                 start_time=self.start_time,
                 end_time=self.end_time,
+                only_manholes=self.only_manholes,
                 interpolation_method=self.interpolation_method,
                 resample_point_layer=self.resample_point_layer,
                 resolution=self.resolution,
@@ -350,6 +353,7 @@ class StatisticsTool(ThreeDiPluginTool):
                         bbox_qgs_rectangle.xMaximum(),
                         bbox_qgs_rectangle.yMaximum(),
                     ]
+            only_manholes = self.dlg.onlyManholeCheckBox.isChecked()
 
             # Resolution
             resolution = self.dlg.doubleSpinBoxResolution.value()
@@ -376,6 +380,7 @@ class StatisticsTool(ThreeDiPluginTool):
                 bbox=bbox,
                 start_time=start_time,
                 end_time=end_time,
+                only_manholes=only_manholes,
                 interpolation_method=interpolation_method,
                 resample_point_layer=resample_point_layer,
                 resolution=resolution,

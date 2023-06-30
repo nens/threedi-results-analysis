@@ -28,6 +28,7 @@ class Preset:
         cells_layer_name: str = None,
         nodes_layer_name: str = None,
         raster_layer_name: str = None,
+        only_manholes: bool = False,
     ):
         if aggregations is None:
             aggregations = list()
@@ -45,6 +46,7 @@ class Preset:
         self.cells_layer_name = cells_layer_name
         self.nodes_layer_name = nodes_layer_name
         self.raster_layer_name = raster_layer_name
+        self.only_manholes = only_manholes
 
     def add_aggregation(self, aggregation: Aggregation):
         self.__aggregations.append(aggregation)
@@ -243,6 +245,28 @@ SOURCE_SINK_MM_PRESETS = Preset(
     raster_layer_name="Source or sink (raster)",
 )
 
+# Change in water level
+water_on_street_aggregations = [
+    Aggregation(
+        variable=AGGREGATION_VARIABLES.get_by_short_name("s1"),
+        method=AGGREGATION_METHODS.get_by_short_name("time_above_threshold"),
+    ),
+]
+
+WATER_ON_STREET_DURATION_PRESET = Preset(
+    name="Water on street duration",
+    description="Duration of waterlevel above manhole drain level.",
+    aggregations=water_on_street_aggregations,
+    nodes_style=STYLE_SINGLE_COLUMN_GRADUATED_NODE,
+    cells_style=STYLE_SINGLE_COLUMN_GRADUATED_CELL,
+    nodes_style_param_values={"column": "s1_time_above_threshold"},
+    cells_style_param_values={"column": "s1_time_above_threhsold"},
+    nodes_layer_name="Water on street duration (nodes)",
+    cells_layer_name="Water on street duration (cells)",
+    raster_layer_name="Water on street duration (raster)",
+    only_manholes=True,
+)
+
 PRESETS = [
     NO_PRESET,
     MAX_WL_PRESETS,
@@ -250,4 +274,5 @@ PRESETS = [
     SOURCE_SINK_MM_PRESETS,
     FLOW_PATTERN_PRESETS,
     TS_REDUCTION_ANALYSIS_PRESETS,
+    WATER_ON_STREET_DURATION_PRESET,
 ]

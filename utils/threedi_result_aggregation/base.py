@@ -212,7 +212,6 @@ def prepare_timeseries(
         ts_q_sss = ts.q_sss
         ts_q_sss[ts_q_sss == -9999] = np.nan
         raw_values = np.divide(ts_q_sss, nodes_or_lines.sumax)
-
     else:
         raise ValueError(
             f"Unknown aggregation variable '{aggregation.variable.long_name}'"
@@ -249,6 +248,14 @@ def prepare_timeseries(
             )
     else:
         raw_values_signed = raw_values
+
+    if aggregation.method.short_name == "time_above_threshold":
+        # do the thresholding while we have the nodes around
+        threshold = getattr(nodes_or_lines, aggregation.threshold)[np.newaxis]
+        nanmask = np.isnan(raw_values_signed)
+        low = np.finfo(raw_values_signed.dtype).min
+        raw_values_signed[nanmask] = low
+        raw_values_signed = np.greater(raw_values_signed, threshold)
 
     return raw_values_signed, tintervals
 
@@ -289,18 +296,24 @@ def aggregate_prepared_timeseries(
         raw_values_above_threshold = np.greater(
             timeseries, aggregation.threshold
         )
-        time_above_treshold = np.sum(
+        time_above_threshold = np.sum(
             np.multiply(raw_values_above_threshold.T, tintervals).T, axis=0
         )
         total_time = np.sum(tintervals)
-        result = np.multiply(np.divide(time_above_treshold, total_time), 100.0)
+        result = np.multiply(np.divide(time_above_threshold, total_time), 100.0)
     elif aggregation.method.short_name == "below_thres":
         raw_values_below_threshold = np.less(timeseries, aggregation.threshold)
-        time_below_treshold = np.sum(
+        time_below_threshold = np.sum(
             np.multiply(raw_values_below_threshold.T, tintervals).T, axis=0
         )
         total_time = np.sum(tintervals)
-        result = np.multiply(np.divide(time_below_treshold, total_time), 100.0)
+        result = np.multiply(np.divide(time_below_threshold, total_time), 100.0)
+    elif aggregation.method.short_name == "time_above_threshold":
+        # already thresholded in the prepare step
+        time_above_threshold = np.sum(
+            np.multiply(timeseries.T, tintervals).T, axis=0
+        )
+        result = time_above_threshold
     else:
         raise ValueError(
             'Unknown aggregation method "{}".'.format(
@@ -995,6 +1008,7 @@ def aggregate_threedi_results(
     bbox=None,
     start_time: int = None,
     end_time: int = None,
+    only_manholes=False,
     interpolation_method: str = None,
     resample_point_layer: bool = False,
     resolution: float = None,
@@ -1060,6 +1074,12 @@ def aggregate_threedi_results(
             )  # filter on cell center coordinates to have the same results for cells as for nodes
             if nodes.count == 0:
                 raise Exception("No nodes found within bounding box.")
+
+        if only_manholes:
+            nodes = nodes.manholes
+            cells = cells.manholes
+            if nodes.count == 0:
+                raise Exception("No manholes found within bounding box.")
 
         new_column_name = da.as_column_name()
 
