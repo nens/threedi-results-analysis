@@ -144,6 +144,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         parent_item.appendRow([result_item, QStandardItem()])  # for result time
         self.result_added.emit(result_item)
 
+        print('************* Result added ******************')
+
         return True
 
     def remove_grid(self, item: ThreeDiGridItem) -> bool:
