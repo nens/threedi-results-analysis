@@ -572,288 +572,293 @@ class WaterBalanceWidget(QDockWidget):
         if not self.manager:
             return
 
-        plot_widget = self.tab_widget.currentWidget()
-        calc = self.manager[plot_widget.result]
-        time, flow = calc.time, calc.flow
-
-        io_series_net = self._get_io_series_net()
-        io_series_2d = self._get_io_series_2d()
-        io_series_2d_groundwater = self._get_io_series_2d_groundwater()
-        io_series_1d = self._get_io_series_1d()
-
         # determine the time in seconds from the current plot state
+        plot_widget = self.tab_widget.currentWidget()
         viewbox_state = plot_widget.getPlotItem().getViewBox().getState()
         view_range = viewbox_state["viewRange"]
         t1, t2 = view_range[0]
         t1 = t1 * TIME_UNITS_TO_SECONDS[self.time_units]
         t2 = t2 * TIME_UNITS_TO_SECONDS[self.time_units]
 
-        bm_net = BarManager(io_series_net)
-        bm_2d = BarManager(io_series_2d)
-        bm_2d_groundwater = BarManager(io_series_2d_groundwater)
-        bm_1d = BarManager(io_series_1d)
+        self.wb_tabbed_view = QTabWidget()
+        for result in self.manager:
+            calc = self.manager[result]
+            tab_label = self.manager[result].label
 
-        bm_net.calc_balance(time, flow, t1, t2, net=True)
-        bm_2d.calc_balance(time, flow, t1, t2)
-        bm_2d_groundwater.calc_balance(
-            time, flow, t1, t2, invert=["in/exfiltration (domain exchange)"]
-        )
-        bm_1d.calc_balance(time, flow, t1, t2)
+            time, flow = calc.time, calc.flow
 
-        t_start = max(0, t1)
+            io_series_net = self._get_io_series_net()
+            io_series_2d = self._get_io_series_2d()
+            io_series_2d_groundwater = self._get_io_series_2d_groundwater()
+            io_series_1d = self._get_io_series_1d()
 
-        self.wb_barchart_widget = pg.GraphicsView()
-        layout = pg.GraphicsLayout()
-        self.wb_barchart_widget.setCentralItem(layout)
-        text = "Water balance from t=%.2f to t=%.2f \n Model name: %s" % (
-            t_start,
-            t2,
-            calc.wrapped_result.threedi_result.short_model_slug,
-        )
-        layout.addLabel(text, row=0, col=0, colspan=3)
+            bm_net = BarManager(io_series_net)
+            bm_2d = BarManager(io_series_2d)
+            bm_2d_groundwater = BarManager(io_series_2d_groundwater)
+            bm_1d = BarManager(io_series_1d)
 
-        self.wb_barchart_widget.setWindowTitle("Waterbalance")
-        self.wb_barchart_widget.resize(1000, 600)
-        self.wb_barchart_widget.show()
+            bm_net.calc_balance(time, flow, t1, t2, net=True)
+            bm_2d.calc_balance(time, flow, t1, t2)
+            bm_2d_groundwater.calc_balance(
+                time, flow, t1, t2, invert=["in/exfiltration (domain exchange)"]
+            )
+            bm_1d.calc_balance(time, flow, t1, t2)
 
-        def get_keyword_indexes(input_list, keyword):
-            """Return a list of indexes from `input_list` which contain the
-            `keyword`"""
-            bar_indexes_to_mark = []
-            for index, label in enumerate(input_list):
-                if keyword in label:
-                    bar_indexes_to_mark.append(index)
-            return bar_indexes_to_mark
+            t_start = max(0, t1)
+            wb_barchart_widget = pg.GraphicsView(self.wb_tabbed_view)
 
-        # We want to mark some bars with a different color. Labels with the key
-        # 'domain exchange' and the last label ('change in storage').
-        domain_exchange_key = "(domain exchange)"
-        standard_in_brush = QBrush(QColor(0, 122, 204))
-        standard_out_brush = QBrush(QColor(255, 128, 0))
+            layout = pg.GraphicsLayout()
+            wb_barchart_widget.setCentralItem(layout)
+            text = "Water balance from t=%.2f to t=%.2f \n Model name: %s" % (
+                t_start,
+                t2,
+                calc.wrapped_result.threedi_result.short_model_slug,
+            )
+            layout.addLabel(text, row=0, col=0, colspan=3)
 
-        domain_exchange_in_brush = QBrush(
-            QColor(0, 122, 204), style=Qt.BDiagPattern
-        )  # Qt.BDiagPattern
-        domain_exchange_in_brush.setTransform(QTransform().scale(0.01, 0.01))
-        domain_exchange_out_brush = QBrush(QColor(255, 128, 0), style=Qt.BDiagPattern)
-        domain_exchange_out_brush.setTransform(QTransform().scale(0.01, 0.01))
-        change_storate_brush = QBrush(QColor("grey"))
+            def get_keyword_indexes(input_list, keyword):
+                """Return a list of indexes from `input_list` which contain the
+                `keyword`"""
+                bar_indexes_to_mark = []
+                for index, label in enumerate(input_list):
+                    if keyword in label:
+                        bar_indexes_to_mark.append(index)
+                return bar_indexes_to_mark
 
-        # #####
-        # Net #
-        # #####
+            # We want to mark some bars with a different color. Labels with the key
+            # 'domain exchange' and the last label ('change in storage').
+            domain_exchange_key = "(domain exchange)"
+            standard_in_brush = QBrush(QColor(0, 122, 204))
+            standard_out_brush = QBrush(QColor(255, 128, 0))
 
-        domain_exchange_indexes = get_keyword_indexes(
-            bm_net.xlabels, domain_exchange_key
-        )
-        in_brushes = [standard_in_brush] * (len(bm_net.xlabels) - 1)
-        for i in domain_exchange_indexes:
-            in_brushes[i] = domain_exchange_in_brush
-        in_brushes.append(change_storate_brush)
-        out_brushes = [standard_out_brush] * (len(bm_net.xlabels) - 1)
-        for i in domain_exchange_indexes:
-            out_brushes[i] = domain_exchange_out_brush
-        out_brushes.append(change_storate_brush)
+            domain_exchange_in_brush = QBrush(
+                QColor(0, 122, 204), style=Qt.BDiagPattern
+            )  # Qt.BDiagPattern
+            domain_exchange_in_brush.setTransform(QTransform().scale(0.01, 0.01))
+            domain_exchange_out_brush = QBrush(QColor(255, 128, 0), style=Qt.BDiagPattern)
+            domain_exchange_out_brush.setTransform(QTransform().scale(0.01, 0.01))
+            change_storate_brush = QBrush(QColor("grey"))
 
-        bg_net_in = pg.BarGraphItem(
-            x=bm_net.x, height=bm_net.end_balance_in, width=0.6, brushes=in_brushes
-        )
-        bg_net_out = pg.BarGraphItem(
-            x=bm_net.x, height=bm_net.end_balance_out, width=0.6, brushes=out_brushes
-        )
-        axis_net = RotateLabelAxisItem(25, "bottom")
-        net_plot = layout.addPlot(
-            row=1, col=0, colspan=2, axisItems={"bottom": axis_net}
-        )
-        net_plot.addItem(bg_net_in)
-        net_plot.addItem(bg_net_out)
-        axis_net.setHeight(100)
-        axis_net.setTicks([list(zip(bm_net.x, bm_net.xlabels))])
+            # #####
+            # Net #
+            # #####
 
-        net_plot.setTitle("Net water balance")
-        y_axis = net_plot.getAxis("left")
-        y_axis.setLabel("volume (m³)")
-        net_plot.getViewBox().setLimits(xMin=-1, xMax=max(bm_net.x) + 2)
+            domain_exchange_indexes = get_keyword_indexes(
+                bm_net.xlabels, domain_exchange_key
+            )
+            in_brushes = [standard_in_brush] * (len(bm_net.xlabels) - 1)
+            for i in domain_exchange_indexes:
+                in_brushes[i] = domain_exchange_in_brush
+            in_brushes.append(change_storate_brush)
+            out_brushes = [standard_out_brush] * (len(bm_net.xlabels) - 1)
+            for i in domain_exchange_indexes:
+                out_brushes[i] = domain_exchange_out_brush
+            out_brushes.append(change_storate_brush)
 
-        # # ######
-        # # Logo #
-        # # ######
+            bg_net_in = pg.BarGraphItem(
+                x=bm_net.x, height=bm_net.end_balance_in, width=0.6, brushes=in_brushes
+            )
+            bg_net_out = pg.BarGraphItem(
+                x=bm_net.x, height=bm_net.end_balance_out, width=0.6, brushes=out_brushes
+            )
+            axis_net = RotateLabelAxisItem(25, "bottom")
+            net_plot = layout.addPlot(
+                row=1, col=0, colspan=2, axisItems={"bottom": axis_net}
+            )
+            net_plot.addItem(bg_net_in)
+            net_plot.addItem(bg_net_out)
+            axis_net.setHeight(100)
+            axis_net.setTicks([list(zip(bm_net.x, bm_net.xlabels))])
 
-        path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
-        logo_3di = QPixmap(path_3di_logo)
-        logo_3di = logo_3di.scaledToHeight(40)
-        label_3di = QLabel()
-        label_3di.setPixmap(logo_3di)
+            net_plot.setTitle("Net water balance")
+            y_axis = net_plot.getAxis("left")
+            y_axis.setLabel("volume (m³)")
+            net_plot.getViewBox().setLimits(xMin=-1, xMax=max(bm_net.x) + 2)
 
-        path_topsector_logo = str(PLUGIN_DIR / "icons" / "topsector_small.png")
-        logo_topsector = QPixmap(path_topsector_logo)
-        logo_topsector = logo_topsector.scaledToHeight(40)
-        label_topsector = QLabel()
-        label_topsector.setPixmap(logo_topsector)
+            # # ######
+            # # Logo #
+            # # ######
 
-        path_deltares_logo = str(PLUGIN_DIR / "icons" / "deltares_small.png")
-        logo_deltares = QPixmap(path_deltares_logo)
-        logo_deltares = logo_deltares.scaledToHeight(40)
-        label_deltares = QLabel()
-        label_deltares.setPixmap(logo_deltares)
+            path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
+            logo_3di = QPixmap(path_3di_logo)
+            logo_3di = logo_3di.scaledToHeight(40)
+            label_3di = QLabel()
+            label_3di.setPixmap(logo_3di)
 
-        logo_label_text = QLabel("Powered by 3Di, Topsector Water and Deltares")
+            path_topsector_logo = str(PLUGIN_DIR / "icons" / "topsector_small.png")
+            logo_topsector = QPixmap(path_topsector_logo)
+            logo_topsector = logo_topsector.scaledToHeight(40)
+            label_topsector = QLabel()
+            label_topsector.setPixmap(logo_topsector)
 
-        powered_by_widget = QWidget()
-        pallete = QPalette(QColor("white"))
-        powered_by_widget.setAutoFillBackground(True)
-        powered_by_widget.setPalette(pallete)
-        powered_by_layout = QVBoxLayout()
-        powered_by_widget.setMaximumHeight(130)
+            path_deltares_logo = str(PLUGIN_DIR / "icons" / "deltares_small.png")
+            logo_deltares = QPixmap(path_deltares_logo)
+            logo_deltares = logo_deltares.scaledToHeight(40)
+            label_deltares = QLabel()
+            label_deltares.setPixmap(logo_deltares)
 
-        logo_container = QWidget()
-        logo_container.setMaximumWidth(300)
-        logo_container_layout = QHBoxLayout()
-        logo_container_layout.addWidget(label_3di)
-        logo_container_layout.addWidget(label_topsector)
-        logo_container_layout.addWidget(label_deltares)
-        logo_container.setLayout(logo_container_layout)
+            logo_label_text = QLabel("Powered by 3Di, Topsector Water and Deltares")
 
-        powered_by_layout.addWidget(logo_label_text)
-        powered_by_layout.addWidget(logo_container)
+            powered_by_widget = QWidget()
+            pallete = QPalette(QColor("white"))
+            powered_by_widget.setAutoFillBackground(True)
+            powered_by_widget.setPalette(pallete)
+            powered_by_layout = QVBoxLayout()
+            powered_by_widget.setMaximumHeight(130)
 
-        powered_by_widget.setLayout(powered_by_layout)
-        logo_ProxyWidget = layout.scene().addWidget(powered_by_widget)
-        layout.addItem(logo_ProxyWidget, row=1, col=2)
+            logo_container = QWidget()
+            logo_container.setMaximumWidth(300)
+            logo_container_layout = QHBoxLayout()
+            logo_container_layout.addWidget(label_3di)
+            logo_container_layout.addWidget(label_topsector)
+            logo_container_layout.addWidget(label_deltares)
+            logo_container.setLayout(logo_container_layout)
 
-        # # ####
-        # # 2D #
-        # # ####
+            powered_by_layout.addWidget(logo_label_text)
+            powered_by_layout.addWidget(logo_container)
 
-        domain_exchange_indexes = get_keyword_indexes(
-            bm_2d.xlabels, domain_exchange_key
-        )
-        in_brushes = [standard_in_brush] * (len(bm_2d.xlabels) - 1)
-        for i in domain_exchange_indexes:
-            in_brushes[i] = domain_exchange_in_brush
-        in_brushes.append(change_storate_brush)
-        out_brushes = [standard_out_brush] * (len(bm_2d.xlabels) - 1)
-        for i in domain_exchange_indexes:
-            out_brushes[i] = domain_exchange_out_brush
-        out_brushes.append(change_storate_brush)
+            powered_by_widget.setLayout(powered_by_layout)
+            logo_ProxyWidget = layout.scene().addWidget(powered_by_widget)
+            layout.addItem(logo_ProxyWidget, row=1, col=2)
 
-        surface_in = pg.BarGraphItem(
-            x=bm_2d.x, height=bm_2d.end_balance_in, width=0.6, brushes=in_brushes
-        )
-        surface_out = pg.BarGraphItem(
-            x=bm_2d.x, height=bm_2d.end_balance_out, width=0.6, brushes=out_brushes
-        )
-        axis_surface = RotateLabelAxisItem(25, "bottom")
-        surface_plot = layout.addPlot(row=2, col=0, axisItems={"bottom": axis_surface})
-        surface_plot.addItem(surface_in)
-        surface_plot.addItem(surface_out)
-        axis_surface.setHeight(100)
-        axis_surface.setTicks([list(zip(bm_net.x, bm_2d.xlabels))])
+            # # ####
+            # # 2D #
+            # # ####
 
-        surface_plot.setTitle("2D surface water domain")
-        y_axis = surface_plot.getAxis("left")
-        y_axis.setLabel("volume (m³)")
-        surface_plot.getViewBox().setLimits(xMin=-1, xMax=max(bm_2d.x) + 2)
+            domain_exchange_indexes = get_keyword_indexes(
+                bm_2d.xlabels, domain_exchange_key
+            )
+            in_brushes = [standard_in_brush] * (len(bm_2d.xlabels) - 1)
+            for i in domain_exchange_indexes:
+                in_brushes[i] = domain_exchange_in_brush
+            in_brushes.append(change_storate_brush)
+            out_brushes = [standard_out_brush] * (len(bm_2d.xlabels) - 1)
+            for i in domain_exchange_indexes:
+                out_brushes[i] = domain_exchange_out_brush
+            out_brushes.append(change_storate_brush)
 
-        # # ################
-        # # 2D groundwater #
-        # # ################
+            surface_in = pg.BarGraphItem(
+                x=bm_2d.x, height=bm_2d.end_balance_in, width=0.6, brushes=in_brushes
+            )
+            surface_out = pg.BarGraphItem(
+                x=bm_2d.x, height=bm_2d.end_balance_out, width=0.6, brushes=out_brushes
+            )
+            axis_surface = RotateLabelAxisItem(25, "bottom")
+            surface_plot = layout.addPlot(row=2, col=0, axisItems={"bottom": axis_surface})
+            surface_plot.addItem(surface_in)
+            surface_plot.addItem(surface_out)
+            axis_surface.setHeight(100)
+            axis_surface.setTicks([list(zip(bm_net.x, bm_2d.xlabels))])
 
-        domain_exchange_indexes = get_keyword_indexes(
-            bm_2d_groundwater.xlabels, domain_exchange_key
-        )
-        in_brushes = [standard_in_brush] * (len(bm_2d_groundwater.xlabels) - 1)
-        for i in domain_exchange_indexes:
-            in_brushes[i] = domain_exchange_in_brush
-        in_brushes.append(change_storate_brush)
-        out_brushes = [standard_out_brush] * (len(bm_2d_groundwater.xlabels) - 1)
-        for i in domain_exchange_indexes:
-            out_brushes[i] = domain_exchange_out_brush
-        out_brushes.append(change_storate_brush)
+            surface_plot.setTitle("2D surface water domain")
+            y_axis = surface_plot.getAxis("left")
+            y_axis.setLabel("volume (m³)")
+            surface_plot.getViewBox().setLimits(xMin=-1, xMax=max(bm_2d.x) + 2)
 
-        groundwater_in = pg.BarGraphItem(
-            x=bm_2d_groundwater.x,
-            height=bm_2d_groundwater.end_balance_in,
-            width=0.6,
-            brushes=in_brushes,
-        )
-        groundwater_out = pg.BarGraphItem(
-            x=bm_2d_groundwater.x,
-            height=bm_2d_groundwater.end_balance_out,
-            width=0.6,
-            brushes=out_brushes,
-        )
-        axis_groundwater = RotateLabelAxisItem(25, "bottom")
-        groundwater_plot = layout.addPlot(
-            row=2, col=1, axisItems={"bottom": axis_groundwater}
-        )
-        groundwater_plot.addItem(groundwater_in)
-        groundwater_plot.addItem(groundwater_out)
-        axis_groundwater.setHeight(100)
-        axis_groundwater.setTicks(
-            [list(zip(bm_2d_groundwater.x, bm_2d_groundwater.xlabels))]
-        )
+            # # ################
+            # # 2D groundwater #
+            # # ################
 
-        groundwater_plot.setTitle("2D groundwater domain")
-        y_axis = groundwater_plot.getAxis("left")
-        y_axis.setLabel("volume (m³)")
-        groundwater_plot.getViewBox().setLimits(
-            xMin=-1, xMax=max(bm_2d_groundwater.x) + 2
-        )
+            domain_exchange_indexes = get_keyword_indexes(
+                bm_2d_groundwater.xlabels, domain_exchange_key
+            )
+            in_brushes = [standard_in_brush] * (len(bm_2d_groundwater.xlabels) - 1)
+            for i in domain_exchange_indexes:
+                in_brushes[i] = domain_exchange_in_brush
+            in_brushes.append(change_storate_brush)
+            out_brushes = [standard_out_brush] * (len(bm_2d_groundwater.xlabels) - 1)
+            for i in domain_exchange_indexes:
+                out_brushes[i] = domain_exchange_out_brush
+            out_brushes.append(change_storate_brush)
 
-        # # ####
-        # # 1D #
-        # # ####
+            groundwater_in = pg.BarGraphItem(
+                x=bm_2d_groundwater.x,
+                height=bm_2d_groundwater.end_balance_in,
+                width=0.6,
+                brushes=in_brushes,
+            )
+            groundwater_out = pg.BarGraphItem(
+                x=bm_2d_groundwater.x,
+                height=bm_2d_groundwater.end_balance_out,
+                width=0.6,
+                brushes=out_brushes,
+            )
+            axis_groundwater = RotateLabelAxisItem(25, "bottom")
+            groundwater_plot = layout.addPlot(
+                row=2, col=1, axisItems={"bottom": axis_groundwater}
+            )
+            groundwater_plot.addItem(groundwater_in)
+            groundwater_plot.addItem(groundwater_out)
+            axis_groundwater.setHeight(100)
+            axis_groundwater.setTicks(
+                [list(zip(bm_2d_groundwater.x, bm_2d_groundwater.xlabels))]
+            )
 
-        domain_exchange_indexes = get_keyword_indexes(
-            bm_1d.xlabels, domain_exchange_key
-        )
-        in_brushes = [standard_in_brush] * (len(bm_1d.xlabels) - 1)
-        for i in domain_exchange_indexes:
-            in_brushes[i] = domain_exchange_in_brush
-        in_brushes.append(change_storate_brush)
-        out_brushes = [standard_out_brush] * (len(bm_1d.xlabels) - 1)
-        for i in domain_exchange_indexes:
-            out_brushes[i] = domain_exchange_out_brush
-        out_brushes.append(change_storate_brush)
+            groundwater_plot.setTitle("2D groundwater domain")
+            y_axis = groundwater_plot.getAxis("left")
+            y_axis.setLabel("volume (m³)")
+            groundwater_plot.getViewBox().setLimits(
+                xMin=-1, xMax=max(bm_2d_groundwater.x) + 2
+            )
 
-        network1d_in = pg.BarGraphItem(
-            x=bm_1d.x, height=bm_1d.end_balance_in, width=0.6, brushes=in_brushes
-        )
-        network1d_out = pg.BarGraphItem(
-            x=bm_1d.x, height=bm_1d.end_balance_out, width=0.6, brushes=out_brushes
-        )
-        axis_network1d = RotateLabelAxisItem(25, "bottom")
-        network1d_plot = layout.addPlot(
-            row=2, col=2, axisItems={"bottom": axis_network1d}
-        )
-        network1d_plot.addItem(network1d_in)
-        network1d_plot.addItem(network1d_out)
-        axis_network1d.setHeight(100)
-        axis_network1d.setTicks([list(zip(bm_1d.x, bm_1d.xlabels))])
+            # # ####
+            # # 1D #
+            # # ####
 
-        network1d_plot.setTitle("1D network domain")
-        y_axis = network1d_plot.getAxis("left")
-        y_axis.setLabel("volume (m³)")
-        network1d_plot.getViewBox().setLimits(xMin=-1, xMax=max(bm_1d.x) + 2)
+            domain_exchange_indexes = get_keyword_indexes(
+                bm_1d.xlabels, domain_exchange_key
+            )
+            in_brushes = [standard_in_brush] * (len(bm_1d.xlabels) - 1)
+            for i in domain_exchange_indexes:
+                in_brushes[i] = domain_exchange_in_brush
+            in_brushes.append(change_storate_brush)
+            out_brushes = [standard_out_brush] * (len(bm_1d.xlabels) - 1)
+            for i in domain_exchange_indexes:
+                out_brushes[i] = domain_exchange_out_brush
+            out_brushes.append(change_storate_brush)
 
-        # Link y-axes
-        surface_plot.setYLink(groundwater_plot)
-        surface_plot.setYLink(network1d_plot)
-        network1d_plot.setYLink(groundwater_plot)
+            network1d_in = pg.BarGraphItem(
+                x=bm_1d.x, height=bm_1d.end_balance_in, width=0.6, brushes=in_brushes
+            )
+            network1d_out = pg.BarGraphItem(
+                x=bm_1d.x, height=bm_1d.end_balance_out, width=0.6, brushes=out_brushes
+            )
+            axis_network1d = RotateLabelAxisItem(25, "bottom")
+            network1d_plot = layout.addPlot(
+                row=2, col=2, axisItems={"bottom": axis_network1d}
+            )
+            network1d_plot.addItem(network1d_in)
+            network1d_plot.addItem(network1d_out)
+            axis_network1d.setHeight(100)
+            axis_network1d.setTicks([list(zip(bm_1d.x, bm_1d.xlabels))])
 
-        # Set y-range so all bars are visible
-        y_min = min(
-            bm_2d.end_balance_out
-            + bm_2d_groundwater.end_balance_out
-            + bm_1d.end_balance_out
-        )
-        y_max = max(
-            bm_2d.end_balance_in
-            + bm_2d_groundwater.end_balance_in
-            + bm_1d.end_balance_in
-        )
-        network1d_plot.setYRange(min=y_min, max=y_max)
+            network1d_plot.setTitle("1D network domain")
+            y_axis = network1d_plot.getAxis("left")
+            y_axis.setLabel("volume (m³)")
+            network1d_plot.getViewBox().setLimits(xMin=-1, xMax=max(bm_1d.x) + 2)
+
+            # Link y-axes
+            surface_plot.setYLink(groundwater_plot)
+            surface_plot.setYLink(network1d_plot)
+            network1d_plot.setYLink(groundwater_plot)
+
+            # Set y-range so all bars are visible
+            y_min = min(
+                bm_2d.end_balance_out
+                + bm_2d_groundwater.end_balance_out
+                + bm_1d.end_balance_out
+            )
+            y_max = max(
+                bm_2d.end_balance_in
+                + bm_2d_groundwater.end_balance_in
+                + bm_1d.end_balance_in
+            )
+            network1d_plot.setYRange(min=y_min, max=y_max)
+
+            self.wb_tabbed_view.addTab(wb_barchart_widget, tab_label)
+        self.wb_tabbed_view.setWindowTitle("Waterbalance")
+        self.wb_tabbed_view.resize(1000, 600)
+        self.wb_tabbed_view.show()
 
     def data_changed(self, index):
         if self.model.columns[index.column()].name == "active":
