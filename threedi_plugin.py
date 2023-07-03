@@ -71,7 +71,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Init the rest of the tools
         self.about_tool = About(iface)
-        self.toggle_results_manager = ToggleResultsManager(iface, self)
+        self.toggle_results_manager = ToggleResultsManager(iface)
         self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self.model)
         self.stats_tool = StatisticsTool(iface, self.model)
