@@ -8,7 +8,6 @@ from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 
 import glob
-import h5py
 import logging
 import numpy as np
 import os
@@ -43,7 +42,6 @@ class ThreediResult(BaseDataSource):
     Some helper methods are available query the result data using a variable
     name (example of variable names: 's1', 'q_cum', 'vol', etc)
 
-    This class also provides for direct access to the data files via h5py.
     However, it is recommended to use threedigrid instead.
 
     """
@@ -241,7 +239,7 @@ class ThreediResult(BaseDataSource):
     #     result = result_filter.get_filtered_field_value(variable)
     #
     #     if node_ids is not None:
-    #         # Unfortunately h5py/threedigrid indexing is not as fancy as
+    #         # Unfortunately threedigrid indexing is not as fancy as
     #         # numpy, i.e. we can't use duplicate indexes/unsorted indexes.
     #         # Thus we load a bit more in memory as a numpy array and then apply
     #         # the final indexing with numpy.
@@ -347,33 +345,6 @@ class ThreediResult(BaseDataSource):
         file_like_object_h5.startswith = lambda x: False
         file_like_object_nc = open(agg_path, 'rb')
         return GridH5AggregateResultAdmin(file_like_object_h5, file_like_object_nc)
-
-    @cached_property
-    def datasource(self):
-        try:
-            return h5py.File(self.file_path, "r")
-        except IOError:
-            # TODO: a non-existing file raises an OSError, not an IOError!
-            logger.exception("Datasource %s could not be opened", self.file_path)
-            raise
-
-    @cached_property
-    def ds_aggregation(self):
-        """The aggregation netcdf dataset."""
-        # Note: we don't want module level imports of dynamically loaded
-        # libraries because importing them will cause files to be held open
-        # which cause trouble when updating the plugin. Therefore we delay
-        # the import as much as possible.
-
-        # Load aggregation netcdf
-        try:
-            aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
-        except FileNotFoundError:
-            logger.error("Could not find the aggregation netcdf.")
-            return None
-
-        logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
-        return h5py.File(aggregation_netcdf_file, mode="r")
 
     @property
     def short_model_slug(self):

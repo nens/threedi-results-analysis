@@ -7,7 +7,6 @@ from threedi_results_analysis.datasource.threedi_results import normalized_objec
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
 from threedi_results_analysis.tests.utilities import TemporaryDirectory
 
-import h5py
 import mock
 import numpy as np
 import os
@@ -363,15 +362,6 @@ def test_normalized_object_type2():
 def test_aggregate_result_admin_file_missing(threedi_result):
     threedi_result.file_path = "reinout.txt"
     assert threedi_result.aggregate_result_admin is None
-
-
-def test_ds_aggregation(threedi_result):
-    assert isinstance(threedi_result.ds_aggregation, h5py.File)
-
-
-def test_ds_aggregation_file_missing(threedi_result):
-    threedi_result.file_path = "reinout.txt"
-    assert threedi_result.ds_aggregation is None
 
 
 def test_find_h5_file_not_found():
