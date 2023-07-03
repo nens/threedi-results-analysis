@@ -59,6 +59,7 @@ class WaterBalanceTool(ThreeDiPluginTool):
         # TODO disconnect signals of result changes
 
     def result_added(self, result):
+        self.action_icon.setEnabled(self.manager.model.number_of_results() > 0)
         if self.is_active:
             self.widget.add_result(result)
 

@@ -86,7 +86,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.graph_tool, False),
             (self.sideview_tool, False),
             (self.stats_tool, False),
-            (self.water_balance_tool, True),
+            (self.water_balance_tool, False),
             (self.watershed_tool, False),
             (self.logfile_tool, True),
         ]
