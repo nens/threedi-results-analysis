@@ -3,11 +3,6 @@ def reversed_dict(d):
     return dict([(b, a) for a, b in d])
 
 
-def choices_as_set(d):
-    """Handy to check if domain is correct"""
-    return set([b for a, b in d])
-
-
 class Constants(object):
     """Constants for all databases, or unsorted"""
 
@@ -229,10 +224,3 @@ class Constants(object):
         (SURFACE_INCLINATION_UITGESTREKT, "uitgestrekt"),
     )
     SURFACE_INCLINATIONS = dict(SURFACE_INCLINATION_CHOICES)
-
-
-class QualityCheckResult(object):
-
-    RELIABLE = 0
-    UNCERTAIN = 1
-    UNRELIABLE = 2

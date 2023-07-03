@@ -12,6 +12,7 @@
 - Result Manager: hide dockwidget on startup (#816)
 - Animation: fixed bug in changing parameters
 - Animation: Flowline arrows are now correctly disabled when zoomed out (#859)
+- Removed a lot of unused code
 
 
 3.1.5 (2023-06-21)
