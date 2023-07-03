@@ -216,16 +216,11 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         )
 
         # threshold column
-        threshold_widget = QtWidgets.QDoubleSpinBox()
-        threshold_widget.setRange(sys.float_info.min, sys.float_info.max)
-        self.tableWidgetAggregations.setCellWidget(
-            current_row, 3, threshold_widget
-        )
-        method = method_combobox.itemData(method_combobox.currentIndex())
+        method = method_combobox.currentData()
         self.set_threshold_widget(row=current_row, method=method)
+        threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, 3)
         if aggregation.threshold is not None:
             threshold_widget.setValue(aggregation.threshold)
-        threshold_widget.valueChanged.connect(self.threshold_value_changed)
 
         # units column
         units_combobox = QtWidgets.QComboBox()
@@ -343,35 +338,47 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_threshold_widget(row=row, method=method)
 
     def set_threshold_widget(self, row, method):
-        enabled = False if method is None else method.has_threshold
-        self.tableWidgetAggregations.cellWidget(row, 3).setEnabled(enabled)
+        if method.threshold_sources:
+            threshold_widget = QtWidgets.QComboBox()
+            signal = threshold_widget.currentIndexChanged
+            for threshold_source in method.threshold_sources:
+                threshold_widget.addItem(threshold_source)
+        else:
+            threshold_widget = QtWidgets.QDoubleSpinBox()
+            threshold_widget.setRange(sys.float_info.min, sys.float_info.max)
+            signal = threshold_widget.valueChanged
+
+        threshold_widget.setEnabled(method is not None and method.has_threshold)
+        self.tableWidgetAggregations.setCellWidget(row, 3, threshold_widget)
+        signal.connect(self.threshold_value_changed)
 
     def set_units_widget(self, row, variable, method):
         """Called when variable or method changes"""
         units_widget = self.tableWidgetAggregations.cellWidget(row, 4)
         units_widget.clear()
-        units_dict = variable.units
-        for i, (units, multiplier_tuple) in enumerate(units_dict.items()):
+
+        if not method:
+            text = next(iter(variable.units.items()))[0][0]
+            return units_widget.addItem(text, 1)
+        if method.is_percentage:
+            return units_widget.addItem("%", 1)
+        if method.is_duration:
+            return units_widget.addItem("s", 1)
+
+        for i, (units, multiplier_tuple) in enumerate(variable.units.items()):
             multiplier = multiplier_tuple[0]
-            if method:
-                if method.integrates_over_time:
-                    units_str = units[0]
-                else:
-                    units_str = "/".join(units)
-                    if len(multiplier_tuple) == 2:
-                        multiplier *= multiplier_tuple[1]
-                if method.is_percentage:
-                    units_str = "%"
-                    multiplier = 1
-            else:
+            if method.integrates_over_time:
                 units_str = units[0]
+            else:
+                units_str = "/".join(units)
+                if len(multiplier_tuple) == 2:
+                    multiplier *= multiplier_tuple[1]
             # add item to the widget if no similar item exists:
             if not any(
                 units_str in units_widget.itemText(x)
                 for x in range(units_widget.count())
             ):
-                units_widget.addItem(units_str)
-                units_widget.setItemData(i, multiplier)
+                units_widget.addItem(units_str, multiplier)
 
     def get_styling_parameters(self, output_type):
         if output_type == "node":
@@ -717,6 +724,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if not self.lineEditOutputRasterLayer.isModified():
             self.lineEditOutputRasterLayer.setText(preset.raster_layer_name if preset.raster_layer_name else "")
 
+        # set manhole filter
+        self.onlyManholeCheckBox.setChecked(preset.only_manholes)
+
         # remove existing aggregations
         self.tableWidgetAggregations.setRowCount(0)
 
@@ -828,7 +838,11 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             method = method_widget.itemData(method_widget.currentIndex())
 
             # Threshold
-            threshold = self.tableWidgetAggregations.cellWidget(row, 3).value()
+            threshold_widget = self.tableWidgetAggregations.cellWidget(row, 3)
+            if method.threshold_sources:
+                threshold = threshold_widget.currentText()
+            else:
+                threshold = threshold_widget.value()
 
             # Multiplier (unit conversion)
             units_widget = self.tableWidgetAggregations.cellWidget(row, 4)
@@ -871,9 +885,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         return True
 
     def validate(self) -> bool:
-        logger.error("VALIDATING")
         valid = True
-        logger.error([agg.variable.long_name for agg in self.demanded_aggregations])
+        logger.info([agg.variable.long_name for agg in self.demanded_aggregations])
         if not isinstance(self.gr, GridH5ResultAdmin):
             logger.warning("Invalid or no result file selected")
             valid = False

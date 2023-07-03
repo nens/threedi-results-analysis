@@ -112,13 +112,21 @@ class AggregationMethod:
         has_threshold: bool = False,
         integrates_over_time: bool = False,
         is_percentage: bool = False,
+        is_duration: bool = False,
+        threshold_sources=None
     ):
         self.short_name = short_name
         self.long_name = long_name
         self.has_threshold = has_threshold
         self.integrates_over_time = integrates_over_time
         self.is_percentage = is_percentage
+        self.is_duration = is_duration
         self.var_type = None
+
+        if threshold_sources is not None:
+            self.threshold_sources = threshold_sources
+        else:
+            self.threshold_sources = []
 
 
 NA_TEXT = "[Not applicable]"
