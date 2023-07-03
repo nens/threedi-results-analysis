@@ -94,8 +94,8 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.grid_file_selected.emit(self.gridQgsFileWidget.filePath())
 
     @pyqtSlot()
+    @disable_dialog
     def _add_result(self) -> None:
-        self.setEnabled(False)
         self.addResultPushButton.setEnabled(False)
         grid_file = os.path.join(os.path.dirname(self.resultQgsFileWidget.filePath()), "gridadmin.h5")
         if not os.path.isfile(grid_file):
