@@ -26,12 +26,10 @@ def disable_dialog(func):
     @wraps(func)
     def wrapper(obj, *args, **kwargs):
         obj.setEnabled(False)
-        print('************* Dialog disabled ******************')
         try:
             func(obj, *args, **kwargs)
         finally:
             obj.setEnabled(True)
-            print('************* Dialog enabled ******************')
     return wrapper
 
 
