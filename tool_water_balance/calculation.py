@@ -933,7 +933,7 @@ class WaterBalanceCalculation(object):
                 qgs_points[c].append(geom)
         return qgs_lines, qgs_points
 
-    def get_graph_data(self, agg, time_units):
+    def get_graph_data(self, agg, time_units, pb):
         """
         Return data corresponding to the graph series.
         """
@@ -943,7 +943,7 @@ class WaterBalanceCalculation(object):
         flow_index = dict(INPUT_SERIES)
 
         graph_data = deepcopy(GRAPH_SERIES)
-        for item in graph_data:
+        for idx, item in enumerate(graph_data):
             item["fill_color"] = [
                 int(c) for c in item["def_fill_color"].split(",")
             ]
@@ -980,6 +980,9 @@ class WaterBalanceCalculation(object):
                 item["values"]["out"] = np.cumsum(
                     diff * item["values"]["out"], axis=0
                 )
+
+            if pb:
+                pb.increase_progress((idx / len(graph_data)) / 2.0)
 
         time = self.time / TIME_UNITS_TO_SECONDS[time_units]
         agg_label = {

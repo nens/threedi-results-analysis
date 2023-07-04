@@ -112,6 +112,9 @@ class WaterBalanceCalculationManager:
     def polygon(self):
         return self._polygon
 
+    def nr_of_results(self):
+        return len(self._calculations)
+
     @polygon.setter
     def polygon(self, polygon):
         if polygon is None:

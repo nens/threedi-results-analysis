@@ -31,7 +31,7 @@ from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
-from threedi_results_analysis.utils.user_messages import messagebar_message
+from threedi_results_analysis.utils.user_messages import messagebar_message, StatusProgressBar
 
 from ..utils import PolygonWithCRS
 from ..config import BC_IO_SERIES
@@ -345,10 +345,10 @@ class WaterBalancePlotWidget(pg.PlotWidget):
 
         self._plot_data_items = None
 
-    def redraw_water_balance(self, time, time_label, values, values_label):
+    def redraw_water_balance(self, time, time_label, values, values_label, progress_bar=None):
         """
         Plotdata depends on the previous item, to be able to stack on top of
-        it. Therefore adding to the grap goes in reversed order.
+        it. Therefore adding to the graph goes in reversed order.
         """
         self.clear()
         zeros = np.zeros(shape=(np.size(time, 0),))
@@ -407,6 +407,9 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                         prev_serie = cum_serie
                         prev_pldi = plot_item
 
+        if progress_bar:
+            progress_bar.set_value(70.0)
+
         # add PlotItems to graph
         for d7n in ["in", "out"]:
             for item in reversed(self.model.rows):
@@ -442,6 +445,9 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         text_lower.setPos(0, 0)
         self.addItem(text_upper)
         self.addItem(text_lower)
+
+        if progress_bar:
+            progress_bar.set_value(100.0)
 
     def hover_enter_plot_highlight(self, name):
         if name not in self._plot_data_items:  # meaning it is not active
@@ -935,7 +941,7 @@ class WaterBalanceWidget(QDockWidget):
 
         return table_data
 
-    def update_water_balance(self):
+    def update_water_balance(self, *args, progress_bar=None):
         """
         Redraw plots after comboboxes or active tab changes.
         """
@@ -944,10 +950,13 @@ class WaterBalanceWidget(QDockWidget):
 
         plot_widget = self.tab_widget.currentWidget()
         calc = self.manager[plot_widget.result]
+        if progress_bar:
+            logger.error("PB NOT NONE")
         graph_data = calc.get_graph_data(
-            agg=self.agg, time_units=self.time_units,
+            agg=self.agg, time_units=self.time_units, pb=progress_bar,
         )
-        plot_widget.redraw_water_balance(**graph_data)
+        logger.error("PREPARE TO REDRAW")
+        plot_widget.redraw_water_balance(**graph_data, progress_bar=progress_bar)
 
     def closeEvent(self, event):
         self.select_polygon_button.clicked.disconnect(self._set_map_tool)
@@ -1082,15 +1091,19 @@ class WaterBalanceWidget(QDockWidget):
     def set_wb_polygon(self, polygon, layer):
         """ Highlight and set the current water balance polygon."""
         # highlight must be done before transform
+        progress_bar = StatusProgressBar(100, "Generating water balance graph")
+
         highlight = QgsHighlight(self.iface.mapCanvas(), polygon, layer)
         highlight.setColor(QColor(0, 0, 255, 127))
         # highlight.setWidth(3)
 
         self.wb_polygon_highlight = highlight
         self.manager.polygon = PolygonWithCRS(polygon=polygon, crs=layer.crs())
-        for result in self.manager:
+        for idx, result in enumerate(self.manager):
             self.add_result(result, update=False)
-        self.update_water_balance()
+            progress_bar.set_value((idx / self.manager.nr_of_results()) * 10)
+
+        self.update_water_balance(progress_bar=progress_bar)
 
     def unset_wb_polygon(self):
         """ De-highlight and unset the current water balance polygon."""

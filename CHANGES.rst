@@ -13,7 +13,7 @@
 - Animation: fixed bug in changing parameters
 - Animation: flowline arrows are now correctly disabled when zoomed out (#859)
 - Removed a lot of unused code
-- Water Balance: updated Water Balance tool (#856, #868)
+- Water Balance: updated Water Balance tool (#856, #868, #855)
 - Statistics: added preset "Water on street duration" (#845)
 
 
