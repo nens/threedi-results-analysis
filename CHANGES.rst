@@ -15,6 +15,7 @@
 - Removed a lot of unused code
 - Water Balance: updated Water Balance tool (#856, #868, #855)
 - Statistics: added preset "Water on street duration" (#845)
+- Bumped h5py to 3.8.0
 
 
 3.1.5 (2023-06-21)
