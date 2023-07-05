@@ -587,21 +587,22 @@ class WaterBalanceWidget(QDockWidget):
         t2 = t2 * TIME_UNITS_TO_SECONDS[self.time_units]
 
         self.wb_tabbed_view = QTabWidget()
+
+        io_series_net = self._get_io_series_net()
+        io_series_2d = self._get_io_series_2d()
+        io_series_2d_groundwater = self._get_io_series_2d_groundwater()
+        io_series_1d = self._get_io_series_1d()
+
         for result in self.manager:
             calc = self.manager[result]
-            tab_label = self.manager[result].label
-
+            tab_label = calc.label
             time, flow = calc.time, calc.flow
+            relevant = functools.partial(calc.filter_series, "label_name")
 
-            io_series_net = self._get_io_series_net()
-            io_series_2d = self._get_io_series_2d()
-            io_series_2d_groundwater = self._get_io_series_2d_groundwater()
-            io_series_1d = self._get_io_series_1d()
-
-            bm_net = BarManager(io_series_net)
-            bm_2d = BarManager(io_series_2d)
-            bm_2d_groundwater = BarManager(io_series_2d_groundwater)
-            bm_1d = BarManager(io_series_1d)
+            bm_net = BarManager(relevant(io_series_net))
+            bm_2d = BarManager(relevant(io_series_2d))
+            bm_2d_groundwater = BarManager(relevant(io_series_2d_groundwater))
+            bm_1d = BarManager(relevant(io_series_1d))
 
             bm_net.calc_balance(time, flow, t1, t2, net=True)
             bm_2d.calc_balance(time, flow, t1, t2)
@@ -643,7 +644,7 @@ class WaterBalanceWidget(QDockWidget):
             domain_exchange_in_brush.setTransform(QTransform().scale(0.01, 0.01))
             domain_exchange_out_brush = QBrush(QColor(255, 128, 0), style=Qt.BDiagPattern)
             domain_exchange_out_brush.setTransform(QTransform().scale(0.01, 0.01))
-            change_storate_brush = QBrush(QColor("grey"))
+            change_storage_brush = QBrush(QColor("grey"))
 
             # #####
             # Net #
@@ -655,11 +656,11 @@ class WaterBalanceWidget(QDockWidget):
             in_brushes = [standard_in_brush] * (len(bm_net.xlabels) - 1)
             for i in domain_exchange_indexes:
                 in_brushes[i] = domain_exchange_in_brush
-            in_brushes.append(change_storate_brush)
+            in_brushes.append(change_storage_brush)
             out_brushes = [standard_out_brush] * (len(bm_net.xlabels) - 1)
             for i in domain_exchange_indexes:
                 out_brushes[i] = domain_exchange_out_brush
-            out_brushes.append(change_storate_brush)
+            out_brushes.append(change_storage_brush)
 
             bg_net_in = pg.BarGraphItem(
                 x=bm_net.x, height=bm_net.end_balance_in, width=0.6, brushes=in_brushes
@@ -737,11 +738,11 @@ class WaterBalanceWidget(QDockWidget):
             in_brushes = [standard_in_brush] * (len(bm_2d.xlabels) - 1)
             for i in domain_exchange_indexes:
                 in_brushes[i] = domain_exchange_in_brush
-            in_brushes.append(change_storate_brush)
+            in_brushes.append(change_storage_brush)
             out_brushes = [standard_out_brush] * (len(bm_2d.xlabels) - 1)
             for i in domain_exchange_indexes:
                 out_brushes[i] = domain_exchange_out_brush
-            out_brushes.append(change_storate_brush)
+            out_brushes.append(change_storage_brush)
 
             surface_in = pg.BarGraphItem(
                 x=bm_2d.x, height=bm_2d.end_balance_in, width=0.6, brushes=in_brushes
@@ -759,6 +760,7 @@ class WaterBalanceWidget(QDockWidget):
             surface_plot.setTitle("2D surface water domain")
             y_axis = surface_plot.getAxis("left")
             y_axis.setLabel("volume (m³)")
+
             surface_plot.getViewBox().setLimits(xMin=-1, xMax=max(bm_2d.x) + 2)
 
             # # ################
@@ -771,11 +773,11 @@ class WaterBalanceWidget(QDockWidget):
             in_brushes = [standard_in_brush] * (len(bm_2d_groundwater.xlabels) - 1)
             for i in domain_exchange_indexes:
                 in_brushes[i] = domain_exchange_in_brush
-            in_brushes.append(change_storate_brush)
+            in_brushes.append(change_storage_brush)
             out_brushes = [standard_out_brush] * (len(bm_2d_groundwater.xlabels) - 1)
             for i in domain_exchange_indexes:
                 out_brushes[i] = domain_exchange_out_brush
-            out_brushes.append(change_storate_brush)
+            out_brushes.append(change_storage_brush)
 
             groundwater_in = pg.BarGraphItem(
                 x=bm_2d_groundwater.x,
@@ -817,11 +819,11 @@ class WaterBalanceWidget(QDockWidget):
             in_brushes = [standard_in_brush] * (len(bm_1d.xlabels) - 1)
             for i in domain_exchange_indexes:
                 in_brushes[i] = domain_exchange_in_brush
-            in_brushes.append(change_storate_brush)
+            in_brushes.append(change_storage_brush)
             out_brushes = [standard_out_brush] * (len(bm_1d.xlabels) - 1)
             for i in domain_exchange_indexes:
                 out_brushes[i] = domain_exchange_out_brush
-            out_brushes.append(change_storate_brush)
+            out_brushes.append(change_storage_brush)
 
             network1d_in = pg.BarGraphItem(
                 x=bm_1d.x, height=bm_1d.end_balance_in, width=0.6, brushes=in_brushes
@@ -862,6 +864,7 @@ class WaterBalanceWidget(QDockWidget):
             network1d_plot.setYRange(min=y_min, max=y_max)
 
             self.wb_tabbed_view.addTab(wb_barchart_widget, tab_label)
+
         self.wb_tabbed_view.setWindowTitle("Waterbalance")
         self.wb_tabbed_view.resize(1000, 600)
         self.wb_tabbed_view.show()

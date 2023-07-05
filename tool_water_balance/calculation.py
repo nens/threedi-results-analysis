@@ -137,6 +137,9 @@ class WaterBalanceCalculation(object):
     def label(self):
         return self.wrapped_result.text
 
+    def filter_series(self, key, series):
+        return [s for s in series if s[key] in self.wrapped_result]
+
     @property
     def result(self):
         return self.wrapped_result.result

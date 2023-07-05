@@ -1,13 +1,13 @@
-from logging import getLogger
 
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsGeometry
 from qgis.core import QgsProject
+from qgis.PyQt.QtWidgets import QMessageBox
 
 from itertools import zip_longest
+from logging import getLogger
 
 import numpy as np
-from qgis.PyQt.QtWidgets import QMessageBox
 
 logger = getLogger(__name__)
 
@@ -225,3 +225,48 @@ class WrappedResult:
         msg = "q_cum and vol_current have different timesteps:\n" + table
         logger.warning(msg)
         QMessageBox.warning(None, header, msg)
+
+    def __contains__(self, flow_name):
+        """ Return if a flow is relevant for the wrapped result. """
+        if flow_name in {
+            "2D Boundary flow",
+            "2D Flow",
+            "2D Flow",
+            "Lateral flow to 2D",
+            "Rain on 2D",
+            "Surface sources and sinks",
+            "Volume change 2D",
+        }:
+            return self.result.threedi_result.gridadmin.has_2d
+        if flow_name in {
+            "1D Boundary flow",
+            "1D Flow",
+            "Lateral flow to 1D",
+            "Volume change 1D",
+        }:
+            return self.result.threedi_result.gridadmin.has_1d
+        if flow_name in {
+            "Volume change groundwater",
+            "Leakage",
+            "In/exfiltration (domain exchange)",
+        }:
+            return self.result.threedi_result.gridadmin.has_groundwater
+        if flow_name in {
+            "2D Flow to 1D",
+            "2D Flow to 1D (domain exchange)",
+        }:
+            return (
+                self.result.threedi_result.gridadmin.has_1d and
+                self.result.threedi_result.gridadmin.has_2d
+            )
+        if flow_name == "Pumps":
+            return self.result.threedi_result.gridadmin.has_pumpstations
+        if flow_name == "Groundwater flow":
+            return self.result.threedi_result.gridadmin.has_groundwater_flow
+        if flow_name == "Simple infiltration":
+            return self.result.threedi_result.gridadmin.has_simple_infiltration
+        if flow_name == "Interception":
+            return self.result.threedi_result.gridadmin.has_interception
+        if flow_name == "0D rainfall runoff on 1D":
+            return self.result.threedi_result.gridadmin.has_0d
+        return True  # everything else relevant
