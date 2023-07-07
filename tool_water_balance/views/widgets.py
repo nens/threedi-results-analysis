@@ -345,7 +345,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
 
         self._plot_data_items = None
 
-    def redraw_water_balance(self, time, time_label, values, values_label, progress_bar=None):
+    def redraw_water_balance(self, time, time_label, values, values_label):
         """
         Plotdata depends on the previous item, to be able to stack on top of
         it. Therefore adding to the graph goes in reversed order.
@@ -407,9 +407,6 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                         prev_serie = cum_serie
                         prev_pldi = plot_item
 
-        if progress_bar:
-            progress_bar.set_value(70.0)
-
         # add PlotItems to graph
         for d7n in ["in", "out"]:
             for item in reversed(self.model.rows):
@@ -445,9 +442,6 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         text_lower.setPos(0, 0)
         self.addItem(text_upper)
         self.addItem(text_lower)
-
-        if progress_bar:
-            progress_bar.set_value(100.0)
 
     def hover_enter_plot_highlight(self, name):
         if name not in self._plot_data_items:  # meaning it is not active
@@ -496,7 +490,6 @@ class WaterBalanceWidget(QDockWidget):
         self.setup_ui(self)
 
         self.model = WaterbalanceItemModel()
-        self.model.insertRows(self.get_table_data())
         self.model.dataChanged.connect(self.data_changed)
         self.wb_item_table.setModel(self.model)
         self.selection_vis = SelectionVisualisation(iface.mapCanvas())
@@ -508,13 +501,15 @@ class WaterBalanceWidget(QDockWidget):
         # add listeners
         self.select_polygon_button.clicked.connect(self._set_map_tool)
         self.chart_button.clicked.connect(self.show_barchart)
-        self.agg_combo_box.currentIndexChanged.connect(self.update_water_balance)
-        self.ts_units_combo_box.currentIndexChanged.connect(self.update_water_balance)
+
         self.wb_item_table.hoverEnterRow.connect(self.hover_enter_action)
-        self.tab_widget.currentChanged.connect(self.update_water_balance)
         self.wb_item_table.hoverExitRow.connect(self.hover_exit_action)
         self.activate_all_button.clicked.connect(self.activate_layers)
         self.deactivate_all_button.clicked.connect(self.deactivate_layers)
+
+        self.tab_widget.currentChanged.connect(self.tab_changed)
+        self.agg_combo_box.currentIndexChanged.connect(self.combo_changed)
+        self.ts_units_combo_box.currentIndexChanged.connect(self.combo_changed)
 
         # initially turn on tool
         self._set_map_tool()
@@ -871,7 +866,13 @@ class WaterBalanceWidget(QDockWidget):
 
     def data_changed(self, index):
         if self.model.columns[index.column()].name == "active":
-            self.update_water_balance()
+            self.update_water_balance(reset_model=False)
+
+    def combo_changed(self, index):
+        self.update_water_balance(reset_model=False)
+
+    def tab_changed(self, index):
+        self.update_water_balance(reset_model=True)
 
     def hover_enter_action(self, name):
         if not self.manager:
@@ -916,14 +917,14 @@ class WaterBalanceWidget(QDockWidget):
         for item in self.model.rows:
             item.active.value = True
         self.model.dataChanged.connect(self.data_changed)
-        self.update_water_balance()
+        self.update_water_balance(reset_model=False)
 
     def deactivate_layers(self):
         self.model.dataChanged.disconnect(self.data_changed)
         for item in self.model.rows:
             item.active.value = False
         self.model.dataChanged.connect(self.data_changed)
-        self.update_water_balance()
+        self.update_water_balance(reset_model=False)
 
     def get_table_data(self):
         """
@@ -944,35 +945,39 @@ class WaterBalanceWidget(QDockWidget):
 
         return table_data
 
-    def update_water_balance(self, *args, progress_bar=None):
+    def update_water_balance(self, index=None, reset_model=False):
         """
         Redraw plots after comboboxes or active tab changes.
         """
         if not self.manager:
+            self.model.removeRows(0, len(self.model.rows))
             return
 
         plot_widget = self.tab_widget.currentWidget()
         calc = self.manager[plot_widget.result]
-        if progress_bar:
-            logger.error("PB NOT NONE")
-        graph_data = calc.get_graph_data(
-            agg=self.agg, time_units=self.time_units, pb=progress_bar,
-        )
-        logger.error("PREPARE TO REDRAW")
-        plot_widget.redraw_water_balance(**graph_data, progress_bar=progress_bar)
+
+        if reset_model:
+            table_data = calc.filter_series(
+                key="name", series=self.get_table_data(),
+            )
+            self.model.removeRows(0, len(self.model.rows))
+            self.model.insertRows(table_data)
+
+        graph_data = calc.get_graph_data(agg=self.agg, time_units=self.time_units)
+        plot_widget.redraw_water_balance(**graph_data)
 
     def closeEvent(self, event):
         self.select_polygon_button.clicked.disconnect(self._set_map_tool)
         self.chart_button.clicked.disconnect(self.show_barchart)
 
         self.wb_item_table.hoverEnterRow.disconnect(self.hover_enter_action)
-        self.tab_widget.currentChanged.disconnect(self.update_water_balance)
         self.wb_item_table.hoverExitRow.disconnect(self.hover_exit_action)
         self.activate_all_button.clicked.disconnect(self.activate_layers)
         self.deactivate_all_button.clicked.disconnect(self.deactivate_layers)
 
-        self.agg_combo_box.currentIndexChanged.disconnect(self.update_water_balance)
-        self.ts_units_combo_box.currentIndexChanged.disconnect(self.update_water_balance)
+        self.tab_widget.currentChanged.disconnect(self.tab_changed)
+        self.agg_combo_box.currentIndexChanged.disconnect(self.combo_changed)
+        self.ts_units_combo_box.currentIndexChanged.disconnect(self.combo_changed)
 
         self.unset_wb_polygon()
         self._unset_map_tool()
@@ -1067,7 +1072,7 @@ class WaterBalanceWidget(QDockWidget):
         tab_label = self.manager[result].label
         self.tab_widget.addTab(plot_widget, tab_label)
         if update:
-            self.update_water_balance()
+            self.update_water_balance(reset_model=True)
 
     def _get_tab_index(self, result):
         tab_widget = self.tab_widget
@@ -1082,7 +1087,7 @@ class WaterBalanceWidget(QDockWidget):
         update = tab_index == self.tab_widget.currentIndex()
         self.tab_widget.removeTab(tab_index)
         if update:
-            self.update_water_balance()
+            self.update_water_balance(reset_model=True)
 
     def change_result(self, result):
         if result not in self.manager:
@@ -1093,20 +1098,22 @@ class WaterBalanceWidget(QDockWidget):
 
     def set_wb_polygon(self, polygon, layer):
         """ Highlight and set the current water balance polygon."""
-        # highlight must be done before transform
-        progress_bar = StatusProgressBar(100, "Generating water balance graph")
 
+        # highlight must be done before transform
         highlight = QgsHighlight(self.iface.mapCanvas(), polygon, layer)
         highlight.setColor(QColor(0, 0, 255, 127))
         # highlight.setWidth(3)
 
         self.wb_polygon_highlight = highlight
         self.manager.polygon = PolygonWithCRS(polygon=polygon, crs=layer.crs())
+        progress_bar = StatusProgressBar(
+            len(self.manager), "Calculating water balance",
+        )
         for idx, result in enumerate(self.manager):
             self.add_result(result, update=False)
-            progress_bar.set_value((idx / self.manager.nr_of_results()) * 10)
+            progress_bar.increase_progress()
 
-        self.update_water_balance(progress_bar=progress_bar)
+        self.update_water_balance(reset_model=True)
 
     def unset_wb_polygon(self):
         """ De-highlight and unset the current water balance polygon."""
@@ -1116,6 +1123,7 @@ class WaterBalanceWidget(QDockWidget):
         self.wb_polygon_highlight = None
         self.manager.polygon = None
         self.tab_widget.clear()
+        self.model.removeRows(0, len(self.model.rows))
 
 
 class SelectionVisualisation(object):

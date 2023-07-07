@@ -229,43 +229,53 @@ class WrappedResult:
     def __contains__(self, flow_name):
         """ Return if a flow is relevant for the wrapped result. """
         if flow_name in {
-            "2D Boundary flow",
-            "2D Flow",
-            "2D Flow",
-            "Lateral flow to 2D",
-            "Rain on 2D",
-            "Surface sources and sinks",
-            "Volume change 2D",
+            "2D boundary flow",
+            "2D flow",
+            "lateral flow to 2D",
+            "rain on 2D",
+            "surface sources and sinks",
+            "volume change 2D",
         }:
             return self.result.threedi_result.gridadmin.has_2d
         if flow_name in {
-            "1D Boundary flow",
-            "1D Flow",
-            "Lateral flow to 1D",
-            "Volume change 1D",
+            "1D boundary flow",
+            "1D flow",
+            "lateral flow to 1D",
+            "volume change 1D",
         }:
             return self.result.threedi_result.gridadmin.has_1d
         if flow_name in {
-            "Volume change groundwater",
-            "Leakage",
-            "In/exfiltration (domain exchange)",
+            "volume change groundwater",
+            "leakage",
+            "in/exfiltration (domain exchange)",
         }:
             return self.result.threedi_result.gridadmin.has_groundwater
         if flow_name in {
-            "2D Flow to 1D",
-            "2D Flow to 1D (domain exchange)",
+            "1D: 2D flow to 1D (domain exchange)",
+            "1D: 2D flow to 1D",
+            "2D flow to 1D (all domains)",
+            "2D flow to 1D (domain exchange)",
+            "2D flow to 1D",
+            "2D: 2D flow to 1D (domain exchange)",
+            "2D: 2D flow to 1D",
         }:
             return (
                 self.result.threedi_result.gridadmin.has_1d and
                 self.result.threedi_result.gridadmin.has_2d
             )
-        if flow_name == "Pumps":
+        if flow_name in {
+            "pumps",
+            "pump",
+        }:
             return self.result.threedi_result.gridadmin.has_pumpstations
-        if flow_name == "Groundwater flow":
+        if flow_name == "groundwater flow":
             return self.result.threedi_result.gridadmin.has_groundwater_flow
-        if flow_name == "Simple infiltration":
+        if flow_name in {
+            "simple infiltration",
+            "constant infiltration",
+        }:
             return self.result.threedi_result.gridadmin.has_simple_infiltration
-        if flow_name == "Interception":
+        if flow_name == "interception":
             return self.result.threedi_result.gridadmin.has_interception
         if flow_name == "0D rainfall runoff on 1D":
             return self.result.threedi_result.gridadmin.has_0d

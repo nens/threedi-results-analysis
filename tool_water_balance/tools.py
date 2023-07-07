@@ -2,6 +2,7 @@ from pathlib import Path
 import logging
 
 from qgis.PyQt.QtCore import Qt
+from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 
 from .calculation import WaterBalanceCalculation
@@ -61,7 +62,9 @@ class WaterBalanceTool(ThreeDiPluginTool):
     def result_added(self, result):
         self.action_icon.setEnabled(self.manager.model.number_of_results() > 0)
         if self.is_active:
+            progress_bar = StatusProgressBar(1, "Calculating water balance")
             self.widget.add_result(result)
+            progress_bar.increase_progress()
 
     def result_removed(self, result):
         if self.is_active:
@@ -112,9 +115,6 @@ class WaterBalanceCalculationManager:
     def polygon(self):
         return self._polygon
 
-    def nr_of_results(self):
-        return len(self._calculations)
-
     @polygon.setter
     def polygon(self, polygon):
         if polygon is None:
@@ -138,3 +138,6 @@ class WaterBalanceCalculationManager:
 
     def __contains__(self, result):
         return result.path in self._calculations
+
+    def __len__(self):
+        return len(self._calculations)
