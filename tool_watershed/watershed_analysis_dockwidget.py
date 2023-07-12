@@ -483,7 +483,7 @@ class Graph3DiQgsConnector:
         else:
             location = ["downstream"] * flowlines.count
         from_polygon = [0] * flowlines.count
-        content_type = [0] * flowlines.count
+        content_type = [''] * flowlines.count
         attributes = {
             "id": nw_ids,
             "location": location,
