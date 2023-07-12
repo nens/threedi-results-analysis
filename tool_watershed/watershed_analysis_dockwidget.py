@@ -99,6 +99,7 @@ class Graph3DiQgsConnector:
         "location": ogr.OFTString,
         "catchment_id": ogr.OFTInteger,
         "from_polygon": ogr.OFTInteger,
+        "exchange_level": ogr.OFTReal,
     }
 
     def __init__(self, result_item: ThreeDiResultItem, model, parent_dock, preloaded_layers):
@@ -482,11 +483,13 @@ class Graph3DiQgsConnector:
         else:
             location = ["downstream"] * flowlines.count
         from_polygon = [0] * flowlines.count
+        content_type = [0] * flowlines.count
         attributes = {
             "id": nw_ids,
             "location": location,
             "catchment_id": nw_catchment_ids,
             "from_polygon": from_polygon,
+            "content_type": content_type,
         }
 
         ds = MEMORY_DRIVER.CreateDataSource("")
