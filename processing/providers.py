@@ -12,6 +12,7 @@ from ThreeDiToolbox.processing.schematisation_algorithms import (
     ImportHydXAlgorithm,
 )
 from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepthAlgorithm
+from ThreeDiToolbox.processing.threedidepth_maxlevel_algorithm import ThreediMaxDepthAlgorithm
 import os
 
 
@@ -20,6 +21,7 @@ class ThreediProvider(QgsProcessingProvider):
 
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(ThreediDepthAlgorithm())
+        self.addAlgorithm(ThreediMaxDepthAlgorithm())
         self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
