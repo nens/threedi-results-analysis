@@ -120,7 +120,8 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                     if layer_name not in loaded_layer_dict:
                         continue
                 layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
-                set_read_only(layer, False)
+                if layer is not None:
+                    set_read_only(layer, False)
 
     def update_preloaded_layers(self) -> None:
         """Check the list of preloaded layers, in case one if removed, it will be removed from cache"""
