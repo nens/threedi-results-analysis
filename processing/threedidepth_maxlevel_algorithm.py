@@ -219,7 +219,7 @@ class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
 
     def name(self):
         """Returns the algorithm name, used for identifying the algorithm"""
-        return "threedidepth"
+        return "threedidepth_max"
 
     def displayName(self):
         """
