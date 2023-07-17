@@ -17,14 +17,12 @@ from qgis.core import QgsFeedback
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingContext
 from qgis.core import QgsProcessingException
-from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterEnum
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
 from qgis.core import QgsProcessingParameterNumber
 from qgis.core import QgsProcessingParameterRasterLayer
 from qgis.core import QgsProcessingParameterString
-from qgis.core import QgsMeshLayer
 from qgis.core import QgsRasterLayer
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication
@@ -217,7 +215,7 @@ class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
         return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
-        return ThreediDepthAlgorithm()
+        return ThreediMaxDepthAlgorithm()
 
     def name(self):
         """Returns the algorithm name, used for identifying the algorithm"""
