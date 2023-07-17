@@ -22,7 +22,6 @@ from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
 from qgis.core import QgsProcessingParameterNumber
 from qgis.core import QgsProcessingParameterRasterLayer
-from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsRasterLayer
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication
