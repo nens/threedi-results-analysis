@@ -38,6 +38,7 @@ from ThreeDiToolbox.utils.user_messages import pop_up_info
 import h5py
 import logging
 import os
+import pathlib
 
 
 logger = logging.getLogger(__name__)
@@ -204,7 +205,6 @@ class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
     RESULTS_3DI_INPUT = "RESULTS_3DI_INPUT"
     DEM_INPUT = "DEM_INPUT"
     MODE_INPUT = "MODE_INPUT"
-    WATER_DEPTH_LEVEL_NAME = "WATER_DEPTH_LEVEL_NAME"
     OUTPUT_FILENAME = "OUTPUT_FILENAME"
     WATER_DEPTH_OUTPUT = "WATER_DEPTH_OUTPUT"
 
@@ -259,17 +259,9 @@ class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            QgsProcessingParameterString(
-                self.WATER_DEPTH_LEVEL_NAME,
-                self.tr("Water depth/level raster name"),
-                defaultValue="water_depth_level",
-            )
-        )
-        self.addParameter(
             QgsProcessingParameterFileDestination(
                 self.OUTPUT_FILENAME,
-                self.tr("Destination file for water depth/level raster"),
-                defaultFileExtension="tif",
+                self.tr("Destination file path for water depth/level raster"),
                 fileFilter="*.tif",
             )
         )
@@ -283,11 +275,12 @@ class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
         results_3di_path = parameters[self.RESULTS_3DI_INPUT]
         mode_index = self.parameterAsEnum(parameters, self.MODE_INPUT, context)
 
-        raster_filename = parameters[self.WATER_DEPTH_LEVEL_NAME]
-        if not raster_filename:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.WATER_DEPTH_LEVEL_NAME))
-
         waterdepth_output_file = parameters[self.OUTPUT_FILENAME]
+        if not waterdepth_output_file:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT_FILENAME))
+
+        layer_name = pathlib.Path(waterdepth_output_file).stem
+
         if os.path.isfile(waterdepth_output_file):
             os.remove(waterdepth_output_file)
 
@@ -305,9 +298,9 @@ class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
             # When the process is cancelled, we just show the intermediate product
             pass
 
-        layer = QgsRasterLayer(waterdepth_output_file, raster_filename)
+        layer = QgsRasterLayer(waterdepth_output_file, layer_name)
         context.temporaryLayerStore().addMapLayer(layer)
-        layer_details = QgsProcessingContext.LayerDetails(raster_filename, context.project(), self.WATER_DEPTH_OUTPUT)
+        layer_details = QgsProcessingContext.LayerDetails(layer_name, context.project(), self.WATER_DEPTH_OUTPUT)
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
         return {}
 
