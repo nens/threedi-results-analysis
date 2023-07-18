@@ -85,7 +85,7 @@ WINDOWS_PLATFORM_DEPENDENCIES = [
 # On Windows, the hdf5 binary and thus h5py version depends on the QGis version
 # QGis upgraded from hdf5 == 1.10.7 to hdf5 == 1.14.0 in QGis 3.28.6
 QGIS_VERSION = Qgis.QGIS_VERSION_INT
-if QGIS_VERSION < 32860 and platform.system() == "Windows":
+if QGIS_VERSION < 32806 and platform.system() == "Windows":
     SUPPORTED_HDF5_VERSIONS = ["1.10.7"]
     H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0", False)
 else:
