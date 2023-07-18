@@ -45,6 +45,9 @@ tar -xvf python3-h5py-3.8.0-1.tar.bz2
 tar -cf h5py-3.8.0.tar -C ./apps/Python39/Lib/site-packages/ .
 cp h5py-3.8.0.tar ..
 
+# Also copy the custom compiled windows h5py to external dependencies for QGis versions before 3.28.6
+cp h5py/h5py-2.10.0-cp39-cp39-win_amd64.whl .
+
 # Back up a level and clean up the build/ directory.
 cd ..
 rm -rf build
