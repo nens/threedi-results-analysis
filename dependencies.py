@@ -214,7 +214,7 @@ def _ensure_h5py_installed():
     We use the H5pyMarker to mark the installed h5py version. This is because we cannot check the version
     by importing h5py, as Qgis will crash if the HDF5 and h5py binaries do not match.
     """
-    if QGIS_VERSION < 32806:
+    if QGIS_VERSION < 32806 and platform.system() == "Windows":
         hdf5_version = "1.10.7"
     else:
         hdf5_version = "1.14.0"
