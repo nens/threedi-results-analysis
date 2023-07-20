@@ -17,6 +17,9 @@
 - Water Balance: updated Water Balance tool (#856, #868, #855)
 - Statistics: added preset "Water on street duration" (#845)
 - Bumped h5py to 3.8.0
+- Bump threedidepth to 0.6.1
+- Add algorithm for maximum waterdepth to processing toolbox.
+- Make the plugin work with all QGis versions by making installed h5py version depend on QGis version.
 
 
 3.1.5 (2023-06-21)
