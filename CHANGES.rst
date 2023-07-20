@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.5.4 (unreleased)
+2.5.4 (2023-07-20)
 ------------------
 
 - Bump threedidepth to 0.6.1
