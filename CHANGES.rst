@@ -7,7 +7,8 @@ ThreeDiToolBox changelog
 
 - Bump threedidepth to 0.6.1
 - Add algorithm for maximum waterdepth to processing toolbox.
-
+- Make the plugin work with all QGis versions by making installed
+  h5py version depend on QGis version.
 
 2.5.3 (2023-06-16)
 ------------------
