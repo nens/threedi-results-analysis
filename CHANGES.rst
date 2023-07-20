@@ -5,7 +5,7 @@ ThreeDiToolBox changelog
 2.5.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add algorithm for maximum waterdepth to processing toolbox.
 
 
 2.5.3 (2023-06-16)
