@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.6 (unreleased)
+3.1.6 (2023-07-20)
 ------------------
 
 - Sideview: added dots at vertical line intersections with bottom level, cross-section top, exchange level and water level) (#838)
