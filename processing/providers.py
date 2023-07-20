@@ -11,8 +11,7 @@ from ThreeDiToolbox.processing.schematisation_algorithms import (
     GuessIndicatorAlgorithm,
     ImportHydXAlgorithm,
 )
-from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepthAlgorithm
-from ThreeDiToolbox.processing.threedidepth_maxlevel_algorithm import ThreediMaxDepthAlgorithm
+from ThreeDiToolbox.processing.threedidepth_algorithms import ThreediDepthAlgorithm, ThreediMaxDepthAlgorithm
 import os
 
 
