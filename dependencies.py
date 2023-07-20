@@ -48,7 +48,6 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint", "tar"])
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6", False),
     Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*", False),
-    Dependency("lizard-connector", "lizard_connector", "==0.7.3", False),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2", False),
     Dependency("threedigrid", "threedigrid", ">=2.0.3", False),
     Dependency("threedi-schema", "threedi_schema", "==0.217.*", False),
@@ -166,7 +165,7 @@ def ensure_everything_installed():
         if restart_required or not restart_marker.exists():
             if _is_windows():
                 # We always want to restart when deps are missing
-                from ThreeDiToolbox.utils.user_messages import pop_up_info
+                from threedi_results_analysis.utils.user_messages import pop_up_info
 
                 pop_up_info(
                     "Please restart QGIS to complete the installation process of "
