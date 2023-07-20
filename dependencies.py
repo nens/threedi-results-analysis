@@ -27,6 +27,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QProgressDialog
+from qgis.core import Qgis
 
 import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import importlib
@@ -47,13 +48,13 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint", "tar"])
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6", False),
     Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*", False),
+    Dependency("lizard-connector", "lizard_connector", "==0.7.3", False),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2", False),
     Dependency("threedigrid", "threedigrid", ">=2.0.3", False),
     Dependency("threedi-schema", "threedi_schema", "==0.217.*", False),
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.2.*", False),
-    Dependency("threedidepth", "threedidepth", "==0.5", False),
+    Dependency("threedidepth", "threedidepth", "==0.6.1", False),
     Dependency("click", "click", ">=8.0", False),
-    Dependency("cftime", "cftime", ">=1.5.0", False),  # via threedigrid[results]
     Dependency("alembic", "alembic", "==1.8.*", False),
     Dependency(
         "importlib-resources", "importlib_resources", "", False
@@ -64,8 +65,6 @@ DEPENDENCIES = [
     Dependency("Mako", "mako", "", False),
     Dependency("cftime", "cftime", ">=1.5.0", False),  # threedigrid[results]
     Dependency("packaging", "packaging", "", False),
-    Dependency("greenlet", "greenlet", "!=0.4.17", False),
-    Dependency("typing-extensions", "typing_extensions", ">=4.2.0", False),
     Dependency(
         "colorama", "colorama", "", False
     ),  # dep of click and threedi-modelchecker (windows)
@@ -75,14 +74,23 @@ DEPENDENCIES = [
     Dependency("threedigrid_builder", "threedigrid_builder", ">=1.11.4", False),
     Dependency("hydxlib", "hydxlib", "==1.5.1", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
+    Dependency("greenlet", "greenlet", "!=0.4.17", False),
+    Dependency("typing-extensions", "typing_extensions", ">=4.2.0", False),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
 WINDOWS_PLATFORM_DEPENDENCIES = [
     Dependency("scipy", "scipy", "==1.6.2", False),
 ]
-H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.8.0", True)
-SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
+# On Windows, the hdf5 binary and thus h5py version depends on the QGis version
+# QGis upgraded from hdf5 == 1.10.7 to hdf5 == 1.14.0 in QGis 3.28.6
+QGIS_VERSION = Qgis.QGIS_VERSION_INT
+if QGIS_VERSION < 32806 and platform.system() == "Windows":
+    SUPPORTED_HDF5_VERSIONS = ["1.10.7"]
+    H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0", False)
+else:
+    SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
+    H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.8.0", True)
 
 # If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "osgeo", "pip", "setuptools"]
@@ -112,7 +120,6 @@ def create_progress_dialog(progress, text):
 
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
-    logger.info('Ensuring dependencies are installed')
 
     _remove_old_distributions(DEPENDENCIES + WINDOWS_PLATFORM_DEPENDENCIES + [H5PY_DEPENDENCY], _prev_dependencies_target_dir())
 
@@ -126,6 +133,10 @@ def ensure_everything_installed():
 
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
     print("Contents of our deps dir:\n    %s" % "\n    ".join(profile_python_names))
+
+    print("sys.path:")
+    for directory in sys.path:
+        print("  - %s" % directory)
 
     _ensure_prerequisite_is_installed()
 
@@ -155,7 +166,7 @@ def ensure_everything_installed():
         if restart_required or not restart_marker.exists():
             if _is_windows():
                 # We always want to restart when deps are missing
-                from threedi_results_analysis.utils.user_messages import pop_up_info
+                from ThreeDiToolbox.utils.user_messages import pop_up_info
 
                 pop_up_info(
                     "Please restart QGIS to complete the installation process of "
@@ -182,35 +193,38 @@ def _ensure_h5py_installed():
 
     The following situations can occur:
 
-                           | QGIS HDF5 = 1.10.7  | QGIS HDF5 != 1.10.7
-    -----------------------|---------------------|---------------
-    h5py build with 1.10.7 | A: Good             | B: Qgis crash
+                                       | QGIS HDF5 = 1.10.7  | QGIS HDF5 = 1.14.0
+    -----------------------------------|---------------------|---------------
+    h5py build with 1.10.7             | A: Good             | B: Qgis crash
+    h5py build with 1.14.0             | A: Qgis crash       | B: Good
+    h5py build with other HDF5 version | A: Qgis crash       | B: Qgis crash
 
-    The different situations are marked A and B in the table above.
+    The different situations are marked A, B, and C in the table above.
 
-    In situations A everything is good and the plugin can be loaded without any
-    problems.
+    In version 3.28.6, QGis updated their HDF5.dll binary from 1.10.7 to 1.14.0.
 
-    Situations B occur when a user upgrades/downgrades their Qgis version when
-    the plugin is already installed with a specific version of h5py.
+    When the h5py is built for the qgis-included HDF5 DLL,
+    everything is good and the plugin can be loaded without any problems.
+
+    A crash occurs when a user upgrades/downgrades their Qgis version when
+    the ThreediToolbox is already installed with a specific version of h5py.
     In these cases we also need to upgrade/downgrade the h5py version installed with
-    the plugin.
-
-    In situations B Qgis will crash when trying to import h5py.
+    ThreediToolbox.
 
     We use the H5pyMarker to mark the installed h5py version. This is because we cannot check the version
     by importing h5py, as Qgis will crash if the HDF5 and h5py binaries do not match.
     """
-    hdf5_version = (
-        "1.14.0"  # there is only one version of HDF5 available in the QGIS installer
-    )
+    if QGIS_VERSION < 32806 and platform.system() == "Windows":
+        hdf5_version = "1.10.7"
+    else:
+        hdf5_version = "1.14.0"
     h5py_missing = _check_presence([H5PY_DEPENDENCY])
     marker_version = H5pyMarker.version()
     if h5py_missing:
         return _install_h5py(hdf5_version)
 
-    if hdf5_version == "1.10.7":
-        if marker_version == "1.10.7":
+    if hdf5_version in SUPPORTED_HDF5_VERSIONS:
+        if marker_version == hdf5_version:
             # Do nothing
             pass
         else:

@@ -51,6 +51,9 @@ rm -rf build
 # Copy the compiled windows scipy to external dependencies
 cp scipy/scipy-1.6.2-cp39-cp39-win_amd64.whl .
 
+# Also copy the custom compiled windows h5py to external dependencies for QGis versions before 3.28.6
+cp h5py/h5py-2.10.0-cp39-cp39-win_amd64.whl .
+
 # Copy pure wheels to prevent pip in docker (or Windows) to select platform dependent version
 wget https://files.pythonhosted.org/packages/cd/84/66072ee12c3e79061f183c09a24be24f45bb1286600589640363d9d416b0/SQLAlchemy-2.0.6-py3-none-any.whl#sha256=c5d754665edea1ecdc79e3023659cb5594372e10776f3b3734d75c2c3ce95013
 
