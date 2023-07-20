@@ -64,6 +64,7 @@ DEPENDENCIES = [
     Dependency("Mako", "mako", "", False),
     Dependency("cftime", "cftime", ">=1.5.0", False),  # threedigrid[results]
     Dependency("packaging", "packaging", "", False),
+    Dependency("typing-extensions", "typing_extensions", ">=4.2.0", False),
     Dependency(
         "colorama", "colorama", "", False
     ),  # dep of click and threedi-modelchecker (windows)
@@ -74,7 +75,6 @@ DEPENDENCIES = [
     Dependency("hydxlib", "hydxlib", "==1.5.1", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
-    Dependency("typing-extensions", "typing_extensions", ">=4.2.0", False),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
