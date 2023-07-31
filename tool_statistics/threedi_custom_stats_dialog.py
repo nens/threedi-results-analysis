@@ -244,6 +244,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if update_output_layer_names:
             self._update_output_layer_fields_based_on_aggregations()
         self.validate()
+        self._update_variable_list()
 
     def remove_aggregation(self):
         index_list = []
@@ -704,6 +705,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.presetHelpTextBrowser.setText(preset.description)
         self.apply_preset(preset)
+        self._update_variable_list()
 
     def apply_preset(self, preset: Preset):
         """

@@ -5,8 +5,7 @@
 3.1.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Statistics: fixed issue in making variables list dynamic based on model meta (#851)
 
 3.1.6 (2023-07-20)
 ------------------
