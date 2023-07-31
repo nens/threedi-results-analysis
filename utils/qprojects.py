@@ -264,7 +264,7 @@ class ProjectStateMixin(object):
 
         name = self.get_tool_state_name(tool_name)
 
-        if type(value) == float:
+        if isinstance(value, float):
             QgsProject.instance().writeEntryDouble(name, key, value)
         else:
             if name in self.file_dict:
