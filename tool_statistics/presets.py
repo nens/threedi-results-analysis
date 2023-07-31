@@ -8,6 +8,7 @@ from .style import (
     STYLE_VECTOR,
     STYLE_TIMESTEP_REDUCTION_ANALYSIS,
     STYLE_BALANCE,
+    STYLE_WATER_ON_STREET_DURATION_NODE,
 )
 
 
@@ -257,12 +258,9 @@ WATER_ON_STREET_DURATION_PRESET = Preset(
     name="Water on street duration",
     description="Duration of waterlevel above manhole drain level.",
     aggregations=water_on_street_aggregations,
-    nodes_style=STYLE_SINGLE_COLUMN_GRADUATED_NODE,
-    cells_style=STYLE_SINGLE_COLUMN_GRADUATED_CELL,
+    nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold"},
-    cells_style_param_values={"column": "s1_time_above_threhsold"},
     nodes_layer_name="Water on street duration (nodes)",
-    cells_layer_name="Water on street duration (cells)",
     raster_layer_name="Water on street duration (raster)",
     only_manholes=True,
 )
