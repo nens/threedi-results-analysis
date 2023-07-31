@@ -245,6 +245,13 @@ def style_ts_reduction_analysis(
     utils.iface.layerTreeView().refreshLayerSymbology(layer.id())
 
 
+def style_fixed_style(layer, qml: str):
+    """ Load a style as-is. """
+    layer.loadNamedStyle(qml)
+    layer.triggerRepaint()
+    utils.iface.layerTreeView().refreshLayerSymbology(layer.id())
+
+
 STYLE_FLOW_DIRECTION = Style(
     name="Flow direction",
     output_type="flowline",
@@ -283,6 +290,14 @@ STYLE_SINGLE_COLUMN_GRADUATED_NODE = Style(
     params={"column": "column"},
     qml="node.qml",
     styling_method=style_on_single_column,
+)
+
+STYLE_WATER_ON_STREET_DURATION_NODE = Style(
+    name="Water on street duration",
+    output_type="node",
+    params={},
+    qml="water_on_street_duration.qml",
+    styling_method=style_fixed_style,
 )
 
 STYLE_CHANGE_WL = Style(
@@ -334,6 +349,7 @@ STYLES = [
     STYLE_SINGLE_COLUMN_GRADUATED_CELL,
     STYLE_CHANGE_WL,
     STYLE_BALANCE,
+    STYLE_WATER_ON_STREET_DURATION_NODE,
 ]
 
 DEFAULT_STYLES = {
