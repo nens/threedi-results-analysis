@@ -6,6 +6,9 @@
 ------------------
 
 - Statistics: fixed issue in making variables list dynamic based on model meta (#851)
+- Statistics: Change style for water on street duration preset (#872)
+- Waterbalance: Fixed bug in hover event processing. (#871)
+
 
 3.1.6 (2023-07-20)
 ------------------
@@ -21,8 +24,6 @@
 - Removed a lot of unused code
 - Water Balance: updated Water Balance tool (#856, #868, #855)
 - Statistics: added preset "Water on street duration" (#845)
-- Statistics: Change style for water on street duration preset (#872)
-- Waterbalance: Fixed bug in hover event processing. (#871)
 
 
 3.1.5 (2023-06-21)
