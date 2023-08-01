@@ -73,61 +73,6 @@ def pairwise(iterable):
     return zip(a, b)
 
 
-def parse_db_source_info(source_info):
-    """
-    parses the source info string as returned by
-    <layer name>.dataProvider().dataSourceUri()
-
-    Args:
-        source_info: source info string as returned by
-          <layer name>.dataProvider().dataSourceUri()
-
-    Returns:
-        A dict like so::
-
-            {
-                'db_name': '',
-                'host': '',
-                'password': '',
-                'port': '',
-                'srid': '',
-                'table_name': '',
-                'schema_name': '',
-                'type': '',
-                'user': ''
-            }
-
-    """
-    import re
-
-    info_dict = {}
-
-    if not source_info[:6] == "dbname":
-        return
-    layer_info = source_info.replace("'", '"')
-    raw_dict = dict(re.findall(r'(\S+)="?(.*?)"? ', layer_info))
-    info_dict["database"] = raw_dict.get("dbname", "")
-    info_dict["username"] = raw_dict.get("user", "")
-    info_dict["password"] = raw_dict.get("password", "")
-    info_dict["srid"] = raw_dict.get("srid", "")
-    info_dict["type"] = raw_dict.get("type", "")
-    info_dict["host"] = raw_dict.get("host", "")
-    info_dict["port"] = raw_dict.get("port", "")
-
-    if info_dict["database"].endswith("sqlite"):
-        info_dict["table_name"] = raw_dict["table"]
-        info_dict["schema"] = ""
-        info_dict["db_type"] = "spatialite"
-        info_dict["host"] = info_dict["database"]
-    else:
-        # need some extra processing to get table name and schema
-        schema_name, table_name = raw_dict["table"].split(".")
-        info_dict["schema"] = schema_name.strip('"')
-        info_dict["table_name"] = table_name.strip('"')
-        info_dict["db_type"] = "postgres"
-    return info_dict
-
-
 def parse_aggvarname(aggvarname):
     """Parse a combined agg var name.
 
