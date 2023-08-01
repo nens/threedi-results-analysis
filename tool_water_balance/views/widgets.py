@@ -256,7 +256,7 @@ class WaterbalanceItemTable(QTableView):
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.model = None
 
-        self._last_hovered_row = None
+        self._last_hovered_row = -1
         self.viewport().installEventFilter(self)
 
     def on_close(self):
@@ -282,7 +282,7 @@ class WaterbalanceItemTable(QTableView):
 
         if event.type() == QEvent.Leave:
             self.hoverExitAllRows.emit()
-            new_row = None
+            new_row = -1
         elif event.type() == QEvent.MouseMove:
             new_row = self.indexAt(event.pos()).row()
         else:
@@ -290,12 +290,12 @@ class WaterbalanceItemTable(QTableView):
 
         old_row = self._last_hovered_row
 
-        if old_row is not None and (new_row is None or new_row != old_row):
+        if old_row >= 0 and new_row != old_row:
             old_name = self.model.rows[old_row].name.value
             self.hover_exit(old_row)
             self.hoverExitRow.emit(old_name)
 
-        if new_row is not None and (old_row is None or new_row != old_row):
+        if new_row >= 0 and new_row != old_row:
             new_name = self.model.rows[new_row].name.value
             self.hover_enter(new_row)
             self.hoverEnterRow.emit(new_name)
