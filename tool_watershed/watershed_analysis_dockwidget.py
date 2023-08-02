@@ -47,6 +47,13 @@ from .smoothing import polygon_gaussian_smooth
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.utils.qprojects import set_read_only
 from threedi_results_analysis.utils.geo_utils import create_vectorlayer
+from threedigrid.admin.utils import KCUDescriptor
+
+KCU_DICT = KCUDescriptor()
+KCU_DICT._descr[
+    -9999
+] = "unknown"  # to deal with the dummy flowline/cell/node that has coords [nan, nan, nan,
+# nan] and kcu -9999
 
 
 logger = logging.getLogger(__name__)
@@ -476,7 +483,6 @@ class Graph3DiQgsConnector:
 
         grid_item = self.model.get_result(self.result_id).parent()
         computational_grid_flowline_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["flowline"])
-
         new_features = []
 
         for flowline_id in flowline_ids:
@@ -493,15 +499,14 @@ class Graph3DiQgsConnector:
             new_feature["catchment_id"] = result_set
             new_feature["from_polygon"] = 0
             new_feature["content_type"] = ''
+            new_feature["kcu"] = orig_feature['line_type']
+            new_feature["kcu_description"] = KCU_DICT[orig_feature['line_type']]
             new_feature.setGeometry(orig_feature.geometry())
             new_features.append(new_feature)
 
-        logger.error(f"Appending {len(new_features)} new features")
-        success, feat = self.result_flowline_layer.dataProvider().addFeatures(new_features)
+        success = self.result_flowline_layer.dataProvider().addFeatures(new_features)
         if not success:
             logger.error("Error appending new features")
-        else:
-            logger.error(f"Added {len(feat)} features")
 
         self.result_flowline_layer.updateExtents()
 
