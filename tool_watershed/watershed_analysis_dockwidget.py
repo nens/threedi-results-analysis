@@ -473,39 +473,41 @@ class Graph3DiQgsConnector:
         self.append_result_flowlines(flowline_ids=flowlines_ids, upstream=upstream, result_set=result_set)
 
     def append_result_flowlines(self, flowline_ids, upstream: bool, result_set: int):
-        flowlines = self.gr.lines.filter(id__in=list(flowline_ids))
+
+        grid_item = self.model.get_result(self.result_id).parent()
+        computational_grid_flowline_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["flowline"])
+
         new_features = []
-        for flowline in flowlines:
+
+        for flowline_id in flowline_ids:
             # Find the feature in the original computational grid flowline layer
-            grid_item = self.model.get_result(self.result_id).parent()
-            computational_grid_flowline_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["flowline"])
-
-            # query layer for object
-            request = QgsFeatureRequest().setFilterExpression(u'"id" = {0}'.format(flowline.id))
+            request = QgsFeatureRequest().setFilterExpression(u'"id" = {0}'.format(flowline_id))
             orig_features = computational_grid_flowline_layer.getFeatures(request)
-            assert len(orig_features) == 1
-            orig_feature = orig_features
+            orig_feature = next(orig_features)
 
-            # if upstream:
-            #     location = ["upstream"]
-            # else:
-            #     location = ["downstream"]
-            # attributes = {
-            #     "location": location,
-            #     "catchment_id": result_set,
-            #     "from_polygon": [0],
-            #     "content_type": [''],
-            # }
+            new_feature = QgsFeature(self.result_flowline_layer.fields())
+            for field, value in orig_feature.attributeMap().items():
+                new_feature[field] = value
 
-            new_feature = QgsFeature()
-            new_feature.setFields(self.result_flowline_layer.fields())
+            new_feature["location"] = "upstream" if upstream else "downstream"
+            new_feature["catchment_id"] = result_set
+            new_feature["from_polygon"] = 0
+            new_feature["content_type"] = ''
             new_feature.setGeometry(orig_feature.geometry())
             new_features.append(new_feature)
 
-        self.result_flowline_layer.dataProvider().addFeatures(new_features)
+        logger.error(f"Appending {len(new_features)} new features")
+        success, feat = self.result_flowline_layer.dataProvider().addFeatures(new_features)
+        if not success:
+            logger.error("Error appending new features")
+        else:
+            logger.error(f"Added {len(feat)} features")
+
+        self.result_flowline_layer.updateExtents()
 
     def clear_result_flowline_layer(self):
         """Remove all features from layer that contains the upstream and/or downstream flowlines"""
+        logger.error("Clearing result flowline layer")
         if self.result_flowline_layer is not None:
             self.result_flowline_layer.dataProvider().truncate()
 
