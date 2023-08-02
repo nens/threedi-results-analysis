@@ -18,7 +18,7 @@ def get_coord_transformation_instance(src_epsg, dest_epsg):
     return QgsCoordinateTransform(src_crs, dest_crs, QgsProject.instance())
 
 
-def create_vectorlayer(source_layer: QgsVectorLayer, layer_name: str, additional_attributes) -> QgsVectorLayer:
+def copy_vectorlayer_attributes(source_layer: QgsVectorLayer, layer_name: str, additional_attributes) -> QgsVectorLayer:
     """
     Create a new QgsVectorLayer containing the attributes of the base_layer plus the list
     of additional attributes.
