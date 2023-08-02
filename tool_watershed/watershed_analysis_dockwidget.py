@@ -378,8 +378,7 @@ class Graph3DiQgsConnector:
             logger.info("Watershed: creating new cell result layer.")
 
             # We also want to add the computational grid cell attributes for extended filtering
-            result = self.model.get_result(self.result_id)
-            grid_item = result.parent()
+            grid_item = self.model.get_result(self.result_id).parent()
             computational_grid_cell_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["cell"])
             self.result_cell_layer = copy_vectorlayer_attributes(computational_grid_cell_layer, "Result cells", self.result_cell_attr_types)
             self.add_to_layer_tree_group(self.result_cell_layer)
@@ -573,7 +572,7 @@ class Graph3DiQgsConnector:
         ]
 
         self.result_catchment_layer.startEditing()
-        # Catchment table now has different number of attributes
+        # Catchment table now has different number of attributes compared to cell layer
         # self.result_catchment_layer.dataProvider().addFeatures(nw_result_catchments_layer.getFeatures())
         new_features = []
         for orig_feature in nw_result_catchments_layer.getFeatures():
