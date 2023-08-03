@@ -418,7 +418,7 @@ class Graph3DiQgsConnector:
             orig_features = computational_grid_cell_layer.getFeatures(request)
             try:
                 orig_feature = next(orig_features)
-            except:
+            except StopIteration:
                 logger.error(f"Cell with {cell_id} not found")
                 return
 
