@@ -419,8 +419,8 @@ class Graph3DiQgsConnector:
             try:
                 orig_feature = next(orig_features)
             except StopIteration:
-                logger.error(f"Cell with {cell_id} not found")
-                return
+                logger.warning(f"Cell with {cell_id} not found")
+                continue
 
             new_feature = QgsFeature(self.result_cell_layer.fields())
             for field, value in orig_feature.attributeMap().items():
