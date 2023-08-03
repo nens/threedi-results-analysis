@@ -1165,6 +1165,7 @@ def aggregate_threedi_results(
                 tgt_ds=tgt_ds,
                 attributes=attributes,
                 attr_data_types=attr_data_types,
+                include_all_threedigrid_attributes=True,
             )
         if output_cells or output_rasters or resample_point_layer:
             threedigrid_to_ogr(
@@ -1172,6 +1173,7 @@ def aggregate_threedi_results(
                 tgt_ds=tgt_ds,
                 attributes=attributes,
                 attr_data_types=attr_data_types,
+                include_all_threedigrid_attributes=True,
             )
 
         # rasters
@@ -1255,6 +1257,7 @@ def aggregate_threedi_results(
             tgt_ds=tgt_ds,
             attributes=attributes,
             attr_data_types=attr_data_types,
+            include_all_threedigrid_attributes=True,
         )
 
     if not output_rasters:

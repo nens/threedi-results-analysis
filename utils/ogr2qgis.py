@@ -7,6 +7,7 @@ FIELD_TYPES = {
     ogr.OFTInteger: "integer",  # OFTInteger, Simple 32bit integer
     ogr.OFTReal: "double",  # OFTReal, Double Precision floating point
     ogr.OFTString: "string",  # OFTString, String of ASCII chars
+    ogr.OFSTBoolean: "boolean",
 }
 
 GEOMETRY_TYPES = {  # See full list: https://gdal.org/doxygen/ogr__core_8h.html, search for OGRwkbGeometryType

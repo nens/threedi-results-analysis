@@ -28,8 +28,9 @@ NODE_TYPE_DICT = {
 def threedigrid_to_ogr(
     threedigrid_src: Union[Nodes, Cells, Lines],
     tgt_ds: ogr.DataSource,
-    attributes: dict = None,
-    attr_data_types: dict = None,
+    attributes: dict,
+    attr_data_types: dict,
+    include_all_threedigrid_attributes=False,
 ):
     """
     Create an ogr target_node_layer from the coordinates of threedigrid Nodes, Cells, or Lines with custom attributes
@@ -38,7 +39,7 @@ def threedigrid_to_ogr(
     :param tgt_ds: ogr Datasource
     :param attributes: {attribute name: list of values}
     :param attr_data_types: {attribute name: ogr data type}
-    :param epsg: EPSG code
+    :param include_all_threedigrid_attributes: Add most threegrid grid attributes to layers as well
     :return: ogr Datasource
     """
     default_attributes = {}
@@ -78,6 +79,26 @@ def threedigrid_to_ogr(
         default_attributes["exchange_level"] = threedigrid_src.dpumax.astype(float)
         default_attr_types["exchange_level"] = ogr.OFTReal
 
+        if include_all_threedigrid_attributes:
+            default_attributes["discharge_coefficient_positive"] = threedigrid_src.discharge_coefficient_positive.astype(float)
+            default_attr_types["discharge_coefficient_positive"] = ogr.OFTReal
+            default_attributes["discharge_coefficient_negative"] = threedigrid_src.discharge_coefficient_negative.astype(float)
+            default_attr_types["discharge_coefficient_negative"] = ogr.OFTReal
+            default_attributes["line_type"] = threedigrid_src.kcu
+            default_attr_types["line_type"] = ogr.OFTInteger
+            default_attributes["source_table"] = threedigrid_src.content_type
+            default_attr_types["source_table"] = ogr.OFTString
+            default_attributes["source_table_id"] = threedigrid_src.content_pk
+            default_attr_types["source_table_id"] = ogr.OFTInteger
+            default_attributes["invert_level_start_point"] = threedigrid_src.invert_level_start_point.astype(float)
+            default_attr_types["invert_level_start_point"] = ogr.OFTReal
+            default_attributes["invert_level_end_point"] = threedigrid_src.invert_level_end_point.astype(float)
+            default_attr_types["invert_level_end_point"] = ogr.OFTReal
+            default_attributes["calculation_node_id_start"] = threedigrid_src.line[0]
+            default_attr_types["calculation_node_id_start"] = ogr.OFTInteger
+            default_attributes["calculation_node_id_end"] = threedigrid_src.line[1]
+            default_attr_types["calculation_node_id_end"] = ogr.OFTInteger
+
     if isinstance(threedigrid_src, Cells) or isinstance(
         threedigrid_src, Nodes
     ):
@@ -93,9 +114,34 @@ def threedigrid_to_ogr(
             NODE_TYPE_DICT.get, otypes=[str]
         )(threedigrid_src.node_type)
         default_attr_types["node_type_description"] = ogr.OFTString
+        if include_all_threedigrid_attributes:
+            default_attributes["max_surface_area"] = threedigrid_src.sumax.astype(float)
+            default_attr_types["max_surface_area"] = ogr.OFTReal
+            default_attributes["bottom_level"] = threedigrid_src.dmax.astype(float)
+            default_attr_types["bottom_level"] = ogr.OFTReal
+
         if isinstance(threedigrid_src, Cells):
             default_attributes["z_coordinate"] = threedigrid_src.z_coordinate
             default_attr_types["z_coordinate"] = ogr.OFTReal
+
+            if include_all_threedigrid_attributes:
+                default_attributes["has_dem_averaged"] = threedigrid_src.has_dem_averaged
+                default_attr_types["has_dem_averaged"] = ogr.OFSTBoolean
+                default_attributes["impervious_layer_elevation"] = threedigrid_src.dimp.astype(float)
+                default_attr_types["impervious_layer_elevation"] = ogr.OFTReal
+
+        if isinstance(threedigrid_src, Nodes):
+            if include_all_threedigrid_attributes:
+                default_attributes["connection_node_id"] = threedigrid_src.content_pk
+                default_attr_types["connection_node_id"] = ogr.OFTInteger
+                default_attributes["calculation_type"] = threedigrid_src.calculation_type.astype(float)
+                default_attr_types["calculation_type"] = ogr.OFTReal
+                default_attributes["is_manhole"] = threedigrid_src.is_manhole
+                default_attr_types["is_manhole"] = ogr.OFSTBoolean
+                default_attributes["connection_node_storage_area"] = threedigrid_src.storage_area.astype(float)
+                default_attr_types["connection_node_storage_area"] = ogr.OFTReal
+                default_attributes["drain_level"] = threedigrid_src.drain_level.astype(float)
+                default_attr_types["drain_level"] = ogr.OFTReal
 
     all_attributes = default_attributes
     all_attributes.update(attributes)
