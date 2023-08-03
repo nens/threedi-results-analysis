@@ -407,16 +407,6 @@ class Graph3DiQgsConnector:
         self.target_node_layer.triggerRepaint()
         self.update_layer_filters()
 
-    def find_cells(self, target_node_ids: List, upstream: bool, result_set: int):
-        """Find cells upstream or downstream from the list of target nodes and append them to the result cell layer"""
-        if upstream:
-            cell_ids_full_set = self.graph_3di.upstream_nodes(target_node_ids)
-        else:
-            cell_ids_full_set = self.graph_3di.downstream_nodes(target_node_ids)
-        # cell_ids = cell_ids_full_set - set(target_node_ids)
-        self.append_result_cells(cell_ids=cell_ids_full_set, upstream=upstream, result_set=result_set)
-        self.update_analyzed_target_cells(target_node_ids, result_set)
-
     def append_result_cells(self, cell_ids, upstream: bool, result_set: int):
         grid_item = self.model.get_result(self.result_id).parent()
         computational_grid_cell_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["cell"])
@@ -426,7 +416,11 @@ class Graph3DiQgsConnector:
             # Find the feature in the original computational grid cell layer
             request = QgsFeatureRequest().setFilterExpression(u'"id" = {0}'.format(cell_id))
             orig_features = computational_grid_cell_layer.getFeatures(request)
-            orig_feature = next(orig_features)
+            try:
+                orig_feature = next(orig_features)
+            except:
+                logger.error(f"Cell with {cell_id} not found")
+                return
 
             new_feature = QgsFeature(self.result_cell_layer.fields())
             for field, value in orig_feature.attributeMap().items():
