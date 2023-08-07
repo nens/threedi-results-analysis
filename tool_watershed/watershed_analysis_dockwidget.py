@@ -28,8 +28,8 @@ from qgis.core import (
     QgsProject,
     QgsDataSourceUri,
     QgsFeatureRequest,
-    QgsFeature,
     QgsExpression,
+    QgsFeature,
     QgsGeometry,
     QgsProcessingFeedback,
     QgsMapLayerProxyModel,
@@ -42,20 +42,11 @@ from qgis.gui import QgsMapToolIdentify
 from osgeo import ogr, osr
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from .watershed_analysis_networkx import Graph3Di
-from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer
+from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import threedigrid_to_ogr
+from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
 from .smoothing import polygon_gaussian_smooth
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.utils.qprojects import set_read_only
-from threedi_results_analysis.utils.geo_utils import copy_vectorlayer_attributes
-from threedi_results_analysis.utils.threedi_result_aggregation.constants import NODE_TYPE_DICT
-from threedigrid.admin.utils import KCUDescriptor
-
-KCU_DICT = KCUDescriptor()
-KCU_DICT._descr[
-    -9999
-] = "unknown"  # to deal with the dummy flowline/cell/node that has coords [nan, nan, nan,
-# nan] and kcu -9999
-
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +83,7 @@ class Graph3DiQgsConnector:
     """Connect a Graph3Di and its inputs and outputs to a QGIS Project"""
 
     # TODO: class alles laten erven van Graph3Di en evt. nieuw object met alle QGIS-dingen
-    result_catchment_attr_types = {
+    result_cell_attr_types = {
         "id": ogr.OFTInteger,
         "node_type": ogr.OFTInteger,
         "node_type_description": ogr.OFTString,
@@ -101,22 +92,15 @@ class Graph3DiQgsConnector:
         "from_polygon": ogr.OFTInteger,
     }
 
-    result_cell_attr_types = {
-        "node_type": QVariant.Int,
-        "node_type_description": QVariant.String,
-        "location": QVariant.String,
-        "catchment_id": QVariant.Int,
-        "from_polygon": QVariant.Int,
-    }
-
     result_flowline_attr_types = {
-        "content_type": QVariant.String,
-        "kcu": QVariant.Int,
-        "kcu_description": QVariant.String,
-        "location": QVariant.String,
-        "catchment_id": QVariant.Int,
-        "from_polygon": QVariant.Int,
-        "exchange_level": QVariant.Double,
+        "id": ogr.OFTInteger,
+        "content_type": ogr.OFTString,
+        "kcu": ogr.OFTInteger,
+        "kcu_description": ogr.OFTString,
+        "location": ogr.OFTString,
+        "catchment_id": ogr.OFTInteger,
+        "from_polygon": ogr.OFTInteger,
+        "exchange_level": ogr.OFTReal,
     }
 
     def __init__(self, result_item: ThreeDiResultItem, model, parent_dock, preloaded_layers):
@@ -124,7 +108,6 @@ class Graph3DiQgsConnector:
         self._filter = None
         self.parent_dock = parent_dock
         self.iface = parent_dock.iface
-        self.epsg = None
         self.graph_3di = Graph3Di(subset=None)
         self._sqlite = None
 
@@ -259,7 +242,6 @@ class Graph3DiQgsConnector:
     def gr_updated(self):
         """Executed when a new 3Di result is selected (self.gr is changed)"""
         if isinstance(self.graph_3di.gr, GridH5ResultAdmin):
-            self.epsg = int(self.graph_3di.gr.epsg_code)
 
             # prepare caching of result item layers
             if self.result_id not in self.preloaded_layers:
@@ -374,22 +356,7 @@ class Graph3DiQgsConnector:
             logger.info("Retrieving result cell layer from cache")
             layer_id = self.preloaded_layers[self.result_id]["cell"]
             self.result_cell_layer = QgsProject.instance().mapLayer(layer_id)
-        else:
-            logger.info("Watershed: creating new cell result layer.")
-
-            # We also want to add the computational grid cell attributes for extended filtering
-            grid_item = self.model.get_result(self.result_id).parent()
-            computational_grid_cell_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["cell"])
-            self.result_cell_layer = copy_vectorlayer_attributes(computational_grid_cell_layer, "Result cells", self.result_cell_attr_types)
-            self.add_to_layer_tree_group(self.result_cell_layer)
-
-            qml = os.path.join(STYLE_DIR, "result_cells.qml")
-            self.result_cell_layer.loadNamedStyle(qml)
-
-            # cache
-            self.preloaded_layers[self.result_id]["cell"] = self.result_cell_layer.id()
-
-        set_read_only(self.result_cell_layer, True)
+            set_read_only(self.result_cell_layer, True)
 
     def update_analyzed_target_cells(self, target_node_ids, result_set):
         ids_str = ",".join(map(str, target_node_ids))
@@ -408,36 +375,42 @@ class Graph3DiQgsConnector:
         self.update_layer_filters()
 
     def append_result_cells(self, cell_ids, upstream: bool, result_set: int):
-        grid_item = self.model.get_result(self.result_id).parent()
-        computational_grid_cell_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["cell"])
-        new_features = []
+        cells = self.gr.cells.filter(id__in=list(cell_ids))
 
-        for cell_id in cell_ids:
-            # Find the feature in the original computational grid cell layer
-            request = QgsFeatureRequest().setFilterExpression(u'"id" = {0}'.format(cell_id))
-            orig_features = computational_grid_cell_layer.getFeatures(request)
-            try:
-                orig_feature = next(orig_features)
-            except StopIteration:
-                logger.warning(f"Cell with {cell_id} not found")
-                continue
+        nw_ids = list(cells.id)
 
-            new_feature = QgsFeature(self.result_cell_layer.fields())
-            for field, value in orig_feature.attributeMap().items():
-                new_feature[field] = value
+        nw_catchment_ids = [result_set] * cells.count
 
-            new_feature["location"] = "upstream" if upstream else "downstream"
-            new_feature["catchment_id"] = result_set
-            new_feature["from_polygon"] = 0
-            new_feature["node_type_description"] = NODE_TYPE_DICT[orig_feature["node_type"]]
-            new_feature.setGeometry(orig_feature.geometry())
-            new_features.append(new_feature)
+        if upstream:
+            location = ["upstream"] * cells.count
+        else:
+            location = ["downstream"] * cells.count
 
-        success = self.result_cell_layer.dataProvider().addFeatures(new_features)
-        if not success:
-            logger.error("Error appending new features")
+        from_polygon = [0] * cells.count
 
-        self.result_cell_layer.updateExtents()
+        attributes = {
+            "id": nw_ids,
+            "location": location,
+            "catchment_id": nw_catchment_ids,
+            "from_polygon": from_polygon,
+        }
+
+        ds = MEMORY_DRIVER.CreateDataSource("")
+        threedigrid_to_ogr(
+            threedigrid_src=cells, tgt_ds=ds, attributes=attributes, attr_data_types=self.result_cell_attr_types, include_all_threedigrid_attributes=True,
+        )
+        layer = ds.GetLayerByName("cell")
+        if self.result_cell_layer:
+            append_to_qgs_vector_layer(ogr_layer=layer, qgs_vector_layer=self.result_cell_layer)
+        else:
+            qgs_lyr_name = "Result cells"
+            self.result_cell_layer = as_qgis_memory_layer(layer, qgs_lyr_name)
+            self.add_to_layer_tree_group(self.result_cell_layer)
+            qml = os.path.join(STYLE_DIR, "result_cells.qml")
+            self.result_cell_layer.loadNamedStyle(qml)
+            set_read_only(self.result_cell_layer, True)
+            # cache
+            self.preloaded_layers[self.result_id]["cell"] = self.result_cell_layer.id()
 
     def clear_result_cell_layer(self):
         """Remove all features from layer that contains the upstream and/or downstream cells"""
@@ -450,21 +423,7 @@ class Graph3DiQgsConnector:
             logger.info("Retrieving result flowline layer from cache")
             layer_id = self.preloaded_layers[self.result_id]["flowline"]
             self.result_flowline_layer = QgsProject.instance().mapLayer(layer_id)
-        else:
-            logger.info("Watershed: creating new flowline result layer.")
-
-            grid_item = self.model.get_result(self.result_id).parent()
-            computational_grid_flowline_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["flowline"])
-            self.result_flowline_layer = copy_vectorlayer_attributes(computational_grid_flowline_layer, "Result flowlines (1D)", self.result_flowline_attr_types)
-            self.add_to_layer_tree_group(self.result_flowline_layer)
-
-            self.result_flowline_layer.setSubsetString("kcu != 100")
-            qml = os.path.join(STYLE_DIR, "result_flowlines.qml")
-            self.result_flowline_layer.loadNamedStyle(qml)
-
-            self.preloaded_layers[self.result_id]["flowline"] = self.result_flowline_layer.id()
-
-        set_read_only(self.result_flowline_layer, True)
+            set_read_only(self.result_flowline_layer, True)
 
     def find_flowlines(self, node_ids: List, upstream: bool, result_set: int):
         """Find flowlines that connect the input nodes \
@@ -473,39 +432,41 @@ class Graph3DiQgsConnector:
         self.append_result_flowlines(flowline_ids=flowlines_ids, upstream=upstream, result_set=result_set)
 
     def append_result_flowlines(self, flowline_ids, upstream: bool, result_set: int):
+        flowlines = self.gr.lines.filter(id__in=list(flowline_ids))
+        nw_ids = list(flowlines.id)
+        nw_catchment_ids = [result_set] * flowlines.count
+        if upstream:
+            location = ["upstream"] * flowlines.count
+        else:
+            location = ["downstream"] * flowlines.count
+        from_polygon = [0] * flowlines.count
+        content_type = [''] * flowlines.count
+        attributes = {
+            "id": nw_ids,
+            "location": location,
+            "catchment_id": nw_catchment_ids,
+            "from_polygon": from_polygon,
+            "content_type": content_type,
+        }
 
-        grid_item = self.model.get_result(self.result_id).parent()
-        computational_grid_flowline_layer = QgsProject.instance().mapLayer(grid_item.layer_ids["flowline"])
-        new_features = []
-
-        for flowline_id in flowline_ids:
-            # Find the feature in the original computational grid flowline layer
-            request = QgsFeatureRequest().setFilterExpression(u'"id" = {0}'.format(flowline_id))
-            orig_features = computational_grid_flowline_layer.getFeatures(request)
-            orig_feature = next(orig_features)
-
-            new_feature = QgsFeature(self.result_flowline_layer.fields())
-            for field, value in orig_feature.attributeMap().items():
-                new_feature[field] = value
-
-            new_feature["location"] = "upstream" if upstream else "downstream"
-            new_feature["catchment_id"] = result_set
-            new_feature["from_polygon"] = 0
-            new_feature["content_type"] = orig_feature['source_table']
-            new_feature["kcu"] = orig_feature['line_type']
-            new_feature["kcu_description"] = KCU_DICT[orig_feature['line_type']]
-            new_feature.setGeometry(orig_feature.geometry())
-            new_features.append(new_feature)
-
-        success = self.result_flowline_layer.dataProvider().addFeatures(new_features)
-        if not success:
-            logger.error("Error appending new features")
-
-        self.result_flowline_layer.updateExtents()
+        ds = MEMORY_DRIVER.CreateDataSource("")
+        threedigrid_to_ogr(
+            threedigrid_src=flowlines, tgt_ds=ds, attributes=attributes, attr_data_types=self.result_flowline_attr_types, include_all_threedigrid_attributes=True
+        )
+        layer = ds.GetLayerByName("flowline")
+        if self.result_flowline_layer:
+            append_to_qgs_vector_layer(ogr_layer=layer, qgs_vector_layer=self.result_flowline_layer)
+        else:
+            self.result_flowline_layer = as_qgis_memory_layer(layer, "Result flowlines (1D)")
+            self.add_to_layer_tree_group(self.result_flowline_layer)
+            self.result_flowline_layer.setSubsetString("kcu != 100")
+            self.result_flowline_layer.loadNamedStyle(os.path.join(STYLE_DIR, "result_flowlines.qml"))
+            set_read_only(self.result_flowline_layer, True)
+            # cache
+            self.preloaded_layers[self.result_id]["flowline"] = self.result_flowline_layer.id()
 
     def clear_result_flowline_layer(self):
         """Remove all features from layer that contains the upstream and/or downstream flowlines"""
-        logger.error("Clearing result flowline layer")
         if self.result_flowline_layer is not None:
             self.result_flowline_layer.dataProvider().truncate()
 
@@ -520,14 +481,15 @@ class Graph3DiQgsConnector:
             ogr_driver = ogr.GetDriverByName("Memory")
             ogr_data_source = ogr_driver.CreateDataSource("")
             srs = osr.SpatialReference()
-            srs.ImportFromEPSG(self.epsg)
+            srs.ImportFromEPSG(int(self.graph_3di.gr.epsg_code))
             ogr_lyr = ogr_data_source.CreateLayer("", srs, geom_type=ogr.wkbPolygon)
 
-            for fieldname, fieldtype in self.result_catchment_attr_types.items():
+            for fieldname, fieldtype in self.result_cell_attr_types.items():
                 field = ogr.FieldDefn(fieldname, fieldtype)
                 ogr_lyr.CreateField(field)
 
-            self.result_catchment_layer = as_qgis_memory_layer(ogr_lyr, "Result catchments")
+            qgs_lyr_name = "Result catchments"
+            self.result_catchment_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
             self.add_to_layer_tree_group(self.result_catchment_layer)
 
             qml = os.path.join(STYLE_DIR, "result_catchments.qml")
@@ -566,7 +528,7 @@ class Graph3DiQgsConnector:
         ]
 
         self.result_catchment_layer.startEditing()
-        # Catchment table now has different number of attributes compared to cell layer
+        # Catchment table now has different number of attributes
         # self.result_catchment_layer.dataProvider().addFeatures(nw_result_catchments_layer.getFeatures())
         new_features = []
         for orig_feature in nw_result_catchments_layer.getFeatures():
@@ -583,7 +545,6 @@ class Graph3DiQgsConnector:
         success = self.result_catchment_layer.dataProvider().addFeatures(new_features)
         if not success:
             logger.error("Unable to add catchment features")
-
         self.result_catchment_layer.commitChanges()
         self.dissolved_result_sets = self.result_sets.copy()
         self.result_catchment_layer.triggerRepaint()
@@ -797,7 +758,7 @@ class Graph3DiQgsConnector:
         # not needed, because bbox of catchments < bbox of cells
 
         project_crs = QgsProject.instance().crs()
-        source_crs = QgsCoordinateReferenceSystem(f"EPSG:{self.epsg}")
+        source_crs = QgsCoordinateReferenceSystem(f"EPSG:{int(self.graph_3di.gr.epsg_code)}")
         transform = QgsCoordinateTransform(source_crs, project_crs, QgsProject.instance())
         impervious_surface_crs = QgsCoordinateReferenceSystem("EPSG:4326")
         impervious_surface_transform = QgsCoordinateTransform(
