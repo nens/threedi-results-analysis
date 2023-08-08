@@ -319,27 +319,21 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         )
 
     def set_method_widget(self, row, variable):
-        self.tableWidgetAggregations.cellWidget(row, 2).clear()
-        self.tableWidgetAggregations.cellWidget(row, 2).setEnabled(
-            False
-        )  # Disable if aggregation has no methods
-        for i, method_short_name in enumerate(variable.applicable_methods):
-            self.tableWidgetAggregations.cellWidget(row, 2).setEnabled(
-                True
-            )  # Enable if aggregation has methods
-            method = AGGREGATION_METHODS.get_by_short_name(method_short_name)
-            self.tableWidgetAggregations.cellWidget(row, 2).addItem(
-                method.long_name
-            )
-            self.tableWidgetAggregations.cellWidget(row, 2).setItemData(
-                i, method
-            )
         method_widget = self.tableWidgetAggregations.cellWidget(row, 2)
+        method_widget.blockSignals(True)
+        method_widget.setEnabled(False)
+        method_widget.clear()
+        if variable.applicable_methods:
+            for method_short_name in variable.applicable_methods:
+                method = AGGREGATION_METHODS.get_by_short_name(method_short_name)
+                method_widget.addItem(method.long_name, method)
+                method_widget.setEnabled(True)
+        method_widget.blockSignals(False)
         method = method_widget.itemData(method_widget.currentIndex())
         self.set_threshold_widget(row=row, method=method)
 
     def set_threshold_widget(self, row, method):
-        if method.threshold_sources:
+        if method is not None and method.threshold_sources:
             threshold_widget = QtWidgets.QComboBox()
             signal = threshold_widget.currentIndexChanged
             for threshold_source in method.threshold_sources:
