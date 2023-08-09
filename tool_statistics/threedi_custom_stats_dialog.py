@@ -218,9 +218,6 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         # threshold column
         method = method_combobox.currentData()
         self.set_threshold_widget(row=current_row, method=method)
-        threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, 3)
-        if aggregation.threshold is not None:
-            threshold_widget.setValue(aggregation.threshold)
 
         # units column
         units_combobox = QtWidgets.QComboBox()
@@ -234,11 +231,18 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             ),
             method=method,
         )
+
+        # set the threshold _after_ the units widget is in place
+        if aggregation.threshold is not None:
+            threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, 3)
+            threshold_widget.setValue(aggregation.threshold)
+
         # TODO: dit is nu lastig te setten obv aggregation, omdat die wel een attribuut multiplier heeft,
         #  maar niet een attribuut units. laat ik nu even voor wat het is
         units_combobox.currentTextChanged.connect(
             self.units_combobox_text_changed
         )
+
         self.update_demanded_aggregations()
         self.set_styling_tab()
         if update_output_layer_names:
