@@ -31,7 +31,7 @@ class About(ThreeDiPluginTool):
         version = version_file.read_text().rstrip()
 
         pop_up_info(
-            "3Di Toolbox version %s" % version, "About2", self.iface.mainWindow()
+            "Results Analysis version %s" % version, "About", self.iface.mainWindow()
         )
 
 
