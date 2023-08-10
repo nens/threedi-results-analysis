@@ -9,6 +9,7 @@
 - Statistics: Change style for water on street duration preset (#872)
 - Waterbalance: Fixed bug in hover event processing. (#871)
 - Statistics/Watershed: Attributes are now copied from computational grid layers (#862)
+- About: changed title and content (#878)
 
 
 3.1.6 (2023-07-20)
