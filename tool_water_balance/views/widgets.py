@@ -338,6 +338,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         self.model = model
         self.result = result
         self.showGrid(True, True, 0.5)
+        self.hideButtons()
         self.setLabel("bottom", "time", "hrs")
         self.setLabel("left", "flow", "m3/s")
         # Auto SI prefix scaling doesn't work properly with m3, m2 etc.

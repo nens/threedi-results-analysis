@@ -28,6 +28,9 @@ class RotateLabelAxisItem(AxisItem):
         self.angle = angle
         AxisItem.__init__(self, *args, **kwargs)
 
+    def boundingRect(self):
+        return super().boundingRect().adjusted(-500, 0, 500, 0)
+
     def drawPicture(self, p, axisSpec, tickSpecs, textSpecs):
         p.setRenderHint(p.Antialiasing, False)
         p.setRenderHint(p.TextAntialiasing, True)
