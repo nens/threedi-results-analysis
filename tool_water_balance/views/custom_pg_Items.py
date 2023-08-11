@@ -29,6 +29,7 @@ class RotateLabelAxisItem(AxisItem):
         AxisItem.__init__(self, *args, **kwargs)
 
     def boundingRect(self):
+        # make big outer labels survive to the drawPicture() phase
         return super().boundingRect().adjusted(-500, 0, 500, 0)
 
     def drawPicture(self, p, axisSpec, tickSpecs, textSpecs):
