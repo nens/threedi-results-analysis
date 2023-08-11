@@ -10,6 +10,7 @@
 - Waterbalance: Fixed bug in hover event processing. (#871)
 - Statistics/Watershed: Attributes are now copied from computational grid layers (#862)
 - About: changed title and content (#878)
+- Animation: fixed incorrect log warning (#879)
 
 
 3.1.6 (2023-07-20)
