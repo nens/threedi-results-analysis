@@ -122,6 +122,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
         "med": "median",
         "cum_positive": "positive cumulative",
         "cum_negative": "negative cumulative",
+        "current": "current",
     }
 
     for varname in subgrid_map_vars:
@@ -143,7 +144,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
         if _agg_method in verbose_agg_method:
             agg_method_display_name = verbose_agg_method[_agg_method]
         else:
-            logger.info("Unknown agg method: %s", _agg_method)
+            logger.info(f"Unknown agg method: {_agg_method} ({aggvarname})")
             agg_method_display_name = _agg_method
 
         # Adjust the unit for cumulative method
