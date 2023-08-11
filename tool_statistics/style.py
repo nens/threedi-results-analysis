@@ -295,7 +295,7 @@ STYLE_SINGLE_COLUMN_GRADUATED_NODE = Style(
 STYLE_WATER_ON_STREET_DURATION_NODE = Style(
     name="Water on street duration",
     output_type="node",
-    params={},
+    params={"column": "column"},
     qml="water_on_street_duration.qml",
     styling_method=style_fixed_style,
 )
