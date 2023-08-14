@@ -12,6 +12,7 @@
 - About: changed title and content (#878)
 - Waterbalance: Hide autorange and show labels (#877)
 - Animation: fixed incorrect log warning (#879)
+- Menu: changed label of toolbox item to "3Di Results Analysis"
 
 
 3.1.6 (2023-07-20)
@@ -125,7 +126,6 @@
 
 - Initial beta version of results analysis feature.
 
-2.5.4 ()
 2.5.5 (unreleased)
 ------------------
 

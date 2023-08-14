@@ -63,7 +63,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Declare instance attributes
         self.actions = []
-        self.menu = "&3Di toolbox"
+        self.menu = "&3Di Results Analysis"
 
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar("ThreeDiResultAnalysis")
@@ -250,7 +250,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
         for action in self.actions:
-            self.iface.removePluginMenu("&3Di toolbox", action)
+            self.iface.removePluginMenu("&3Di Results Analysis", action)
             self.iface.removeToolBarIcon(action)
 
         for tool, _ in self.tools:
