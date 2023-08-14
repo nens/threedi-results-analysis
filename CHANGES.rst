@@ -126,6 +126,13 @@
 - Initial beta version of results analysis feature.
 
 2.5.4 ()
+2.5.5 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+2.5.4 (2023-07-20)
 ------------------
 
 - Bump threedidepth to 0.6.1
