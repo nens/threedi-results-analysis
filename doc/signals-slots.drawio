@@ -1,16 +1,16 @@
-<mxfile host="Electron" modified="2023-06-26T12:24:09.391Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.0 Chrome/112.0.5615.204 Electron/24.5.1 Safari/537.36" etag="iBJZP-lfcZXgrXG-bcBJ" version="21.5.0" type="device">
+<mxfile host="Electron" modified="2023-08-15T09:29:09.016Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.5 Chrome/114.0.5735.243 Electron/25.3.1 Safari/537.36" etag="I5VDrMLnSGwaG2niSSGf" version="21.6.5" type="device">
   <diagram name="Page-1" id="b5b7bab2-c9e2-2cf4-8b2a-24fd1a2a6d21">
-    <mxGraphModel dx="2261" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
+    <mxGraphModel dx="2495" dy="965" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="5HlFLYyAjReFzfFvpWD5-10" value="" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="1340" y="205" width="280" height="550" as="geometry" />
+          <mxGeometry x="1340" y="205" width="350" height="715" as="geometry" />
         </mxCell>
         <mxCell id="shywv9QNYz3xRIldoQkV-1" value="3DiPluginDockWidget" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="1" vertex="1">
           <mxGeometry x="70" y="260" width="210" height="260" as="geometry" />
         </mxCell>
-        <mxCell id="shywv9QNYz3xRIldoQkV-2" value="                        🗲 grid_file_selected&#xa;&#xa;                        🗲 result_file_selected&#xa;&#xa;enable()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="shywv9QNYz3xRIldoQkV-1" vertex="1">
+        <mxCell id="shywv9QNYz3xRIldoQkV-2" value="                        🗲 grid_file_selected&#xa;&#xa;                        🗲 result_file_selected&#xa;&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="shywv9QNYz3xRIldoQkV-1" vertex="1">
           <mxGeometry y="26" width="210" height="84" as="geometry" />
         </mxCell>
         <mxCell id="shywv9QNYz3xRIldoQkV-3" value="                🗲 grid_removal_selected&#xa;                🗲 result_removal_selected" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontColor=#FF3333;" parent="shywv9QNYz3xRIldoQkV-1" vertex="1">
@@ -109,12 +109,12 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="5HlFLYyAjReFzfFvpWD5-21" value="3DiPluginModelSerializer" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="1" vertex="1">
-          <mxGeometry x="50" y="730" width="210" height="50" as="geometry" />
+          <mxGeometry x="50" y="730" width="210" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="5HlFLYyAjReFzfFvpWD5-22" value="read()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="5HlFLYyAjReFzfFvpWD5-21" vertex="1">
-          <mxGeometry y="26" width="210" height="24" as="geometry" />
+        <mxCell id="5HlFLYyAjReFzfFvpWD5-22" value="read()&#xa;write()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="5HlFLYyAjReFzfFvpWD5-21" vertex="1">
+          <mxGeometry y="26" width="210" height="64" as="geometry" />
         </mxCell>
-        <mxCell id="5HlFLYyAjReFzfFvpWD5-27" value="" style="endArrow=classic;html=1;rounded=0;fontSize=22;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=-0.006;entryY=0.207;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="5HlFLYyAjReFzfFvpWD5-22" target="shywv9QNYz3xRIldoQkV-13" edge="1">
+        <mxCell id="5HlFLYyAjReFzfFvpWD5-27" value="" style="endArrow=classic;html=1;rounded=0;fontSize=22;exitX=1;exitY=0.063;exitDx=0;exitDy=0;entryX=-0.006;entryY=0.207;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" parent="1" source="5HlFLYyAjReFzfFvpWD5-22" target="shywv9QNYz3xRIldoQkV-13" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="650" y="490" as="sourcePoint" />
             <mxPoint x="700" y="440" as="targetPoint" />
@@ -132,7 +132,7 @@
             <mxPoint x="700" y="440" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="5HlFLYyAjReFzfFvpWD5-32" value="" style="endArrow=classic;html=1;rounded=0;fontSize=21;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="5HlFLYyAjReFzfFvpWD5-22" target="shywv9QNYz3xRIldoQkV-13" edge="1">
+        <mxCell id="5HlFLYyAjReFzfFvpWD5-32" value="" style="endArrow=classic;html=1;rounded=0;fontSize=21;exitX=1.017;exitY=0.021;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;" parent="1" source="5HlFLYyAjReFzfFvpWD5-22" target="shywv9QNYz3xRIldoQkV-13" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="650" y="490" as="sourcePoint" />
             <mxPoint x="700" y="440" as="targetPoint" />
@@ -193,7 +193,7 @@
           <mxGeometry x="380" y="70" width="220" height="109" as="geometry" />
         </mxCell>
         <mxCell id="_2caxjIK2GwH3lVGI_GL-3" value="UI element where user can add/remove grids and results" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="70" y="121" width="220" height="109" as="geometry" />
+          <mxGeometry x="-80" y="130" width="455" height="110" as="geometry" />
         </mxCell>
         <mxCell id="_2caxjIK2GwH3lVGI_GL-4" value="Loads a model from the QGIS project and subsequenty loads grids and resuts" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="30" y="590" width="270" height="130" as="geometry" />
@@ -227,34 +227,37 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="_2caxjIK2GwH3lVGI_GL-9" value="These remove_grid and remove_result signals are emitted last so tools still have access to the data during removal of grid and results" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="740" y="690" width="370" height="110" as="geometry" />
+          <mxGeometry x="670" y="585" width="570" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="v-3oO8VQfox21B-r8ohU-1" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.375;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.005;entryY=0.869;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="shywv9QNYz3xRIldoQkV-23" target="shywv9QNYz3xRIldoQkV-2">
+        <mxCell id="v-3oO8VQfox21B-r8ohU-4" value="When a grid/result&amp;nbsp; is being loaded, the UI is disabled. After loading or invalidation, the UI is enabled again" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-111" y="228" width="161" height="144" as="geometry" />
+        </mxCell>
+        <mxCell id="od_VzAi8MUBwzMi8LiXm-1" value="Statistics" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f5f5f5;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="1410" y="700" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="od_VzAi8MUBwzMi8LiXm-2" value="○ results_changed&#xa;- result_added&#xa;- result_changed&#xa;                   " style="text;strokeColor=#666666;fillColor=#f5f5f5;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontColor=#333333;" parent="od_VzAi8MUBwzMi8LiXm-1" vertex="1">
+          <mxGeometry y="26" width="160" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="od_VzAi8MUBwzMi8LiXm-8" value="Watershed" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="1450" y="750" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="od_VzAi8MUBwzMi8LiXm-9" value="○ results_changed&#xa;- result_added&#xa;- result_changed&#xa;                   " style="text;strokeColor=#666666;fillColor=#f5f5f5;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontColor=#333333;" parent="od_VzAi8MUBwzMi8LiXm-8" vertex="1">
+          <mxGeometry y="26" width="160" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="od_VzAi8MUBwzMi8LiXm-10" value="Water Balance" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="1494" y="790" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="od_VzAi8MUBwzMi8LiXm-11" value="○ results_changed&#xa;- result_added&#xa;- result_changed&#xa;                   " style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="od_VzAi8MUBwzMi8LiXm-10" vertex="1">
+          <mxGeometry y="26" width="160" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="od_VzAi8MUBwzMi8LiXm-16" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="5HlFLYyAjReFzfFvpWD5-22" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="720" y="450" as="sourcePoint" />
-            <mxPoint y="300" as="targetPoint" />
-            <Array as="points">
-              <mxPoint x="650" y="285" />
-              <mxPoint x="650" y="10" />
-              <mxPoint y="10" />
-              <mxPoint y="360" />
-            </Array>
+            <mxPoint x="540" y="610" as="sourcePoint" />
+            <mxPoint x="1410" y="810" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="v-3oO8VQfox21B-r8ohU-2" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.207;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.005;entryY=0.857;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="shywv9QNYz3xRIldoQkV-6" target="shywv9QNYz3xRIldoQkV-2">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="1329.5700000000002" y="60" as="sourcePoint" />
-            <mxPoint x="169.99999999999997" y="90.84799999999996" as="targetPoint" />
-            <Array as="points">
-              <mxPoint x="1300" y="330" />
-              <mxPoint x="1300" y="10" />
-              <mxPoint x="-20" y="10" />
-              <mxPoint x="-20" y="360" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="v-3oO8VQfox21B-r8ohU-4" value="When a grid/result&amp;nbsp; is being loaded, the UI is disabled. After loading or invalidation, the UI is enabled again" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1200" y="16" width="161" height="144" as="geometry" />
+        <mxCell id="od_VzAi8MUBwzMi8LiXm-17" value="Tools can also read from/write into the project (for&amp;nbsp;&lt;br&gt;example, to reuse result layers" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="660" y="725" width="570" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
