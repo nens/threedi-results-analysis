@@ -78,8 +78,6 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.gridQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
         self.resultQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
 
-        self.addGridPushButton.setEnabled(True)
-
     @pyqtSlot(str)
     def _select_result(self, input_result_nc: str) -> None:
         if not input_result_nc:
@@ -91,18 +89,20 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.resultQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
         self.gridQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
 
-        self.addResultPushButton.setEnabled(True)
-
     @pyqtSlot()
     @disable_dialog
     def _add_grid(self) -> None:
-        self.addGridPushButton.setEnabled(False)
+        if not self.gridQgsFileWidget.filePath():
+            return
+
         self.grid_file_selected.emit(self.gridQgsFileWidget.filePath())
 
     @pyqtSlot()
     @disable_dialog
     def _add_result(self) -> None:
-        self.addResultPushButton.setEnabled(False)
+        if not self.resultQgsFileWidget.filePath():
+            return
+
         grid_file = os.path.join(os.path.dirname(self.resultQgsFileWidget.filePath()), "gridadmin.h5")
         if not os.path.isfile(grid_file):
             pop_up_critical("No computational grid file (gridadmin.h5) could be found for the selected simulation result. Simulation result not added to the project.")

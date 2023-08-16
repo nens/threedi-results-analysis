@@ -13,6 +13,7 @@
 - Waterbalance: Hide autorange and show labels (#877)
 - Animation: fixed incorrect log warning (#879)
 - Menu: changed label of toolbox item to "3Di Results Analysis"
+- Result browser tab: add buttons are enabled again after addition of grid or result (#881)
 
 
 3.1.6 (2023-07-20)
