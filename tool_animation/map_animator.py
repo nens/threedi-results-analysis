@@ -171,6 +171,7 @@ class MapAnimator(QGroupBox):
             return
 
         self._restyle(lines=True, nodes=True)
+        self.update_results()
         # iface.mapCanvas().refresh()
 
     def _update_parameter_attributes(self):

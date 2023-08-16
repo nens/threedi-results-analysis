@@ -1,18 +1,22 @@
+from functools import partial
 from pathlib import Path
-from qgis.core import QgsVectorLayer
+from typing import List
+import logging
+
+import numpy as np
+
 from qgis.core import QgsMarkerSymbol
-from qgis.core import QgsSymbolLayer
 from qgis.core import QgsProperty
+from qgis.core import QgsRuleBasedRenderer
+from qgis.core import QgsSymbolLayer
+from qgis.core import QgsVectorLayer
 from qgis.utils import iface
+
 from threedi_results_analysis.datasource.result_constants import WET_CROSS_SECTION_AREA
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_CURL
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_DEEP
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_HALINE
 from threedi_results_analysis.utils.color import color_ramp_from_data
-from typing import List
-
-import logging
-import numpy as np
 
 
 STYLES_ROOT = Path(__file__).parent / "layer_styles"
@@ -20,6 +24,27 @@ ANIMATION_LAYERS_NR_LEGEND_CLASSES = 24
 assert ANIMATION_LAYERS_NR_LEGEND_CLASSES % 2 == 0
 
 logger = logging.getLogger(__name__)
+
+
+Rule = partial(QgsRuleBasedRenderer.Rule, symbol=None)
+
+
+def convert_to_rule_based_renderer(renderer, rules):
+    """
+    Return QgsRuleBasedRenderer instance.
+
+    Create a rule based renderer with `rules` as children. Convert `renderer`
+    to rules and add those as grandchildren to each child.
+    """
+    converted_renderer = QgsRuleBasedRenderer.convertFromRenderer(renderer)
+    subrules = converted_renderer.rootRule().children()
+
+    root = Rule()
+    for rule in rules:
+        root.appendChild(rule)
+        for subrule in subrules:
+            rule.appendChild(subrule.clone())  # clone to prevent segfault
+    return QgsRuleBasedRenderer(root)
 
 
 def style_animation_flowline_current(
@@ -84,7 +109,7 @@ def style_animation_flowline_current(
 
     # Quotes are required to indicate that field name needs to be used
     class_attribute_str = f'abs("result{field_postfix}")'
-    lyr.renderer().setClassAttribute(class_attribute_str)
+    renderer.setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
     nr_classes = len(class_bounds) - 1
     for i in range(nr_classes):
@@ -98,6 +123,18 @@ def style_animation_flowline_current(
 
     # Symbol size
     renderer.setSymbolSizes(max_symbol_size / 3, max_symbol_size)
+
+    # convert the renderer into rule based renderer to enable subgroups
+    rules = [
+        Rule(label="1D", filterExp='"line_type" in (0,1,2,3,4,5)'),
+        Rule(label="1D2D Surface water", filterExp='"line_type" in (51,52,53,54,55,56)'),
+        Rule(label="2D Surface water", filterExp='"line_type" in (100,101,200,300,400,500)'),
+        Rule(label="1D2D Groundwater", filterExp='"line_type" in (57,58)'),
+        Rule(label="2D Groundwater", filterExp='"line_type" in (-150)'),
+        Rule(label="Vertical", filterExp='"line_type" in (150)'),
+    ]
+    rule_renderer = convert_to_rule_based_renderer(renderer, rules)
+    lyr.setRenderer(rule_renderer)
 
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
@@ -125,13 +162,27 @@ def style_animation_node_current(
         )  # to make nodes / cells also visible when dry and bottom_level < percentile[0]
     else:
         class_attribute_str = f'"result{field_postfix}"'
-    lyr.renderer().setClassAttribute(class_attribute_str)
+    renderer.setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
     nr_classes = len(percentiles) - 1
     for i in range(nr_classes):
         renderer.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)
-    lyr.renderer().updateColorRamp(color_ramp)
+    renderer.updateColorRamp(color_ramp)
+
+    # convert the renderer into rule based renderer to enable subgroups
+    if cells:
+        rules = []
+    else:
+        rules = [
+            Rule(label="1D", filterExp='"node_type" in (3,4,7)'),
+        ]
+    rules.extend([
+        Rule(label="2D Surface water", filterExp='"node_type" in (1,5)'),
+        Rule(label="2D Groundwater", filterExp='"node_type" in (2,6)'),
+    ])
+    rule_renderer = convert_to_rule_based_renderer(renderer, rules)
+    lyr.setRenderer(rule_renderer)
 
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
@@ -148,6 +199,7 @@ def style_animation_node_difference(
     else:
         qml_path = STYLES_ROOT / "node_difference.qml"
     lyr.loadNamedStyle(str(qml_path), True)
+    renderer = lyr.renderer()
 
     # disregard the absolute maximum values when defining class bounds for a prettier result
     # instead, base the class bounds on the second highest percentile value (abs_high)
@@ -177,14 +229,29 @@ def style_animation_node_difference(
             )
         else:
             class_attribute_str = str(f'"result{field_postfix}" - "initial_value{field_postfix}"')
-        lyr.renderer().setClassAttribute(class_attribute_str)
-        lyr.renderer().deleteAllClasses()
+        renderer.setClassAttribute(class_attribute_str)
+        renderer.deleteAllClasses()
         for i in range(len(class_bounds) - 1):
-            lyr.renderer().addClassLowerUpper(
+            renderer.addClassLowerUpper(
                 lower=class_bounds[i], upper=class_bounds[i + 1]
             )
 
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_CURL)
-    lyr.renderer().updateColorRamp(color_ramp)
+    renderer.updateColorRamp(color_ramp)
+
+    # convert the renderer into rule based renderer to enable subgroups
+    if cells:
+        rules = []
+    else:
+        rules = [
+            Rule(label="1D", filterExp='"node_type" in (3,4,7)'),
+        ]
+    rules.extend([
+        Rule(label="2D Surface water", filterExp='"node_type" in (1,5)'),
+        Rule(label="2D Groundwater", filterExp='"node_type" in (2,6)'),
+    ])
+    rule_renderer = convert_to_rule_based_renderer(renderer, rules)
+    lyr.setRenderer(rule_renderer)
+
     lyr.triggerRepaint()
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
