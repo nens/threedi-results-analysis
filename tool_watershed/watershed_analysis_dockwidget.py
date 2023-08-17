@@ -329,7 +329,9 @@ class Graph3DiQgsConnector:
         if not provider.changeAttributeValues(update_dict):
             logger.error("Unable to set default values in 'result_set' attribute.")
 
-        # Load appropriate style
+        self._style_target_layer()
+
+    def _style_target_layer(self) -> None:
         qml = os.path.join(STYLE_DIR, "target_nodes.qml")
         msg, res = self.target_node_layer.loadNamedStyle(qml)
         if not res:
@@ -359,6 +361,9 @@ class Graph3DiQgsConnector:
             set_read_only(self.result_cell_layer, True)
 
     def update_analyzed_target_cells(self, target_node_ids, result_set):
+        # Reset styling in case another tool changed it
+        self._style_target_layer()
+
         ids_str = ",".join(map(str, target_node_ids))
         request = QgsFeatureRequest()
         request.setFilterExpression(f"id IN ({ids_str})")
@@ -947,9 +952,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             # The style can be reset by the anim tool, reload appropriate style (TODO: better solution?)
             if self.gq and self.gq.target_node_layer:
-                msg, res = self.gq.target_node_layer.loadNamedStyle(os.path.join(STYLE_DIR, "target_nodes.qml"))
-                if not res:
-                    logger.error(f"Unable to load style: {msg}")
+                self._style_target_layer()
 
         self.comboBoxResult.removeItem(idx)
 
