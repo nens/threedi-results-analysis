@@ -38,7 +38,7 @@ from qgis.core import (
     QgsField,
     QgsVectorLayer,
 )
-from qgis.gui import QgsMapToolIdentify
+from qgis.gui import QgsMapToolIdentify, QgsVertexMarker
 from osgeo import ogr, osr
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from .watershed_analysis_networkx import Graph3Di
@@ -118,6 +118,7 @@ class Graph3DiQgsConnector:
 
         self.result_group = None
         self.target_node_layer = None
+        self.result_markers = []
 
         self.preloaded_layers = preloaded_layers
 
@@ -129,6 +130,7 @@ class Graph3DiQgsConnector:
         self.result_sets = []
         self.dissolved_result_sets = []
         self.smooth_result_catchments = []
+        self._result_markers = []
 
     @property
     def gr(self):
@@ -215,20 +217,13 @@ class Graph3DiQgsConnector:
         filtered_ids_str = ",".join(map(str, filtered_ids))
         if self.filter is None:
             subset_string = ""
-            target_node_layer_analyzed_nodes_rule_str = f"{ATTRIBUTE_NAME} != ''"
         else:
             subset_string = "catchment_id IN ({})".format(filtered_ids_str)
-            target_node_layer_analyzed_nodes_rule_str = (
-                f'array_intersect( string_to_array("{ATTRIBUTE_NAME}"),  array({filtered_ids_str}))'
-            )
         # filter to leave subset_string out if empty
         flowline_subset_string = " AND ".join(filter(None, [subset_string, "kcu != 100"]))
         self.result_catchment_layer.setSubsetString(subset_string)
         self.result_cell_layer.setSubsetString(subset_string)
         self.result_flowline_layer.setSubsetString(flowline_subset_string)
-        self.target_node_layer.renderer().rootRule().children()[0].setFilterExpression(
-            target_node_layer_analyzed_nodes_rule_str
-        )
         if self.impervious_surface_layer is not None:
             self.impervious_surface_layer.setSubsetString(subset_string)
 
@@ -329,16 +324,6 @@ class Graph3DiQgsConnector:
         if not provider.changeAttributeValues(update_dict):
             logger.error("Unable to set default values in 'result_set' attribute.")
 
-        self._style_target_layer()
-
-    def _style_target_layer(self) -> None:
-        qml = os.path.join(STYLE_DIR, "target_nodes.qml")
-        msg, res = self.target_node_layer.loadNamedStyle(qml)
-        if not res:
-            logger.error(f"Unable to load style: {msg}")
-
-        self.target_node_layer.triggerRepaint()
-
     def clear_target_node_layer(self):
         """Empty the result_set field of all features in the target_node_layer"""
         if self.target_node_layer is not None:
@@ -349,6 +334,10 @@ class Graph3DiQgsConnector:
             update_dict = {i: {attr_idx: ""} for i in id_list}
             if not self.target_node_layer.dataProvider().changeAttributeValues(update_dict):
                 logger.error("Unable to set default values in 'result_set' attribute for clearing.")
+
+            for marker in self._result_markers:
+                self.iface.mapCanvas().scene().removeItem(marker)
+            self._result_markers.clear()
 
             self.target_node_layer.triggerRepaint()
 
@@ -361,13 +350,11 @@ class Graph3DiQgsConnector:
             set_read_only(self.result_cell_layer, True)
 
     def update_analyzed_target_cells(self, target_node_ids, result_set):
-        # Reset styling in case another tool changed it
-        self._style_target_layer()
-
         ids_str = ",".join(map(str, target_node_ids))
         request = QgsFeatureRequest()
         request.setFilterExpression(f"id IN ({ids_str})")
         idx = self.target_node_layer.fields().indexFromName(ATTRIBUTE_NAME)
+
         for feat in self.target_node_layer.getFeatures(request):
             old_result_sets = feat[ATTRIBUTE_NAME]
             old_result_sets = str(old_result_sets or '')
@@ -376,6 +363,15 @@ class Graph3DiQgsConnector:
             new_result_sets = ",".join(map(str, result_sets_list))
             if not self.target_node_layer.dataProvider().changeAttributeValues({feat.id(): {idx: new_result_sets}}):
                 logger.error("Unable to update result sets")
+
+            result_marker = QgsVertexMarker(self.iface.mapCanvas())
+            result_marker.setIconType(QgsVertexMarker.ICON_BOX)
+            result_marker.setColor(Qt.yellow)
+            result_marker.setFillColor(Qt.black)
+            result_marker.setPenWidth(3)
+            result_marker.setCenter(feat.geometry().asPoint())
+            self._result_markers.append(result_marker)
+
         self.target_node_layer.triggerRepaint()
         self.update_layer_filters()
 
@@ -949,10 +945,6 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.disconnect_gq()
             self.comboBoxResult.setCurrentIndex(-1)
             self.QgsFileWidgetSqlite.setEnabled(False)
-        else:
-            # The style can be reset by the anim tool, reload appropriate style (TODO: better solution?)
-            if self.gq and self.gq.target_node_layer:
-                self.gq._style_target_layer()
 
         self.comboBoxResult.removeItem(idx)
 

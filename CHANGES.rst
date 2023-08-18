@@ -17,6 +17,7 @@
 - Animation: Legend subgroups (#769)
 - Watershed: adding catchment result when animation styling is selected results no longer results in error (#883)
 - Watershed: fixed bug when removing result
+- Watershed: use markers instead of styling to denote analyzed nodes (#882)
 
 
 3.1.6 (2023-07-20)
