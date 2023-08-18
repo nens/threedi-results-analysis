@@ -36,14 +36,10 @@ def convert_to_rule_based_renderer(renderer, rules):
     Create a rule based renderer with `rules` as children. Convert `renderer`
     to rules and add those as grandchildren to each child.
     """
-    converted_renderer = QgsRuleBasedRenderer.convertFromRenderer(renderer)
-    subrules = converted_renderer.rootRule().children()
-
     root = Rule()
     for rule in rules:
+        QgsRuleBasedRenderer.refineRuleRanges(rule, renderer)
         root.appendChild(rule)
-        for subrule in subrules:
-            rule.appendChild(subrule.clone())  # clone to prevent segfault
     return QgsRuleBasedRenderer(root)
 
 
