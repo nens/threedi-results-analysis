@@ -952,7 +952,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             # The style can be reset by the anim tool, reload appropriate style (TODO: better solution?)
             if self.gq and self.gq.target_node_layer:
-                self._style_target_layer()
+                self.gq._style_target_layer()
 
         self.comboBoxResult.removeItem(idx)
 
