@@ -8,6 +8,7 @@ import numpy as np
 from qgis.core import QgsMarkerSymbol
 from qgis.core import QgsProperty
 from qgis.core import QgsRuleBasedRenderer
+from qgis.core import QgsSettings
 from qgis.core import QgsSymbolLayer
 from qgis.core import QgsVectorLayer
 from qgis.utils import iface
@@ -17,7 +18,7 @@ from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_CURL
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_DEEP
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_HALINE
 from threedi_results_analysis.utils.color import color_ramp_from_data
-
+from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 
 STYLES_ROOT = Path(__file__).parent / "layer_styles"
 ANIMATION_LAYERS_NR_LEGEND_CLASSES = 24
@@ -36,6 +37,13 @@ def convert_to_rule_based_renderer(renderer, rules):
     Create a rule based renderer with `rules` as children. Convert `renderer`
     to rules and add those as grandchildren to each child.
     """
+    # disabled by default, because of performance issues
+    animation_sublegends = QgsSettings().value(
+        TOOLBOX_QGIS_SETTINGS_GROUP + "/animationSublegends", False, bool,
+    )
+    if not animation_sublegends:
+        return renderer
+
     root = Rule()
     for rule in rules:
         QgsRuleBasedRenderer.refineRuleRanges(rule, renderer)
