@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.7 (unreleased)
+3.1.7 (2023-08-21)
 ------------------
 
 - Statistics: fixed issue in making variables list dynamic based on model meta (#851)
