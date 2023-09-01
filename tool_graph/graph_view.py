@@ -19,7 +19,7 @@ from qgis.PyQt.QtWidgets import QSplitter
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QActionGroup, QToolButton
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QTableView
@@ -905,12 +905,42 @@ class GraphDockWidget(QDockWidget):
 
         self.buttonBarHLayout.setSpacing(10)
 
-        self.addFlowlinePumpButton = QPushButton(text="Add flowlines/pumps", parent=self.dockWidgetContent)
+        selection_flowline_pump_menu = QMenu(self)
+        action_group = QActionGroup(self)
+        action_group.setExclusive(True)
+        single_pick = selection_flowline_pump_menu.addAction("Pick single flowline/pump")
+        single_pick.setCheckable(True)
+        single_pick.setChecked(True)
+        action_group.addAction(single_pick)
+        selected_pick = selection_flowline_pump_menu.addAction("Add all selected flowlines/pump")
+        selected_pick.setCheckable(True)
+        action_group.addAction(selected_pick)
+
+        selection_node_cell_menu = QMenu(self)
+        action_group = QActionGroup(self)
+        action_group.setExclusive(True)
+        single_pick = selection_node_cell_menu.addAction("Pick single node/cell")
+        single_pick.setCheckable(True)
+        single_pick.setChecked(True)
+        action_group.addAction(single_pick)
+        selected_pick = selection_node_cell_menu.addAction("Add all selected nodes/cells")
+        selected_pick.setCheckable(True)
+        action_group.addAction(selected_pick)
+
+        # connect( configureAction, &QAction::triggered, this, &QgsSymbolButton::showSettingsDialog );
+
+        self.addFlowlinePumpButton = QToolButton(parent=self.dockWidgetContent)
         self.addFlowlinePumpButton.setCheckable(True)
+        self.addFlowlinePumpButton.setText("Add flowlines/pumps")
+        self.addFlowlinePumpButton.setPopupMode(QToolButton.MenuButtonPopup)
+        self.addFlowlinePumpButton.setMenu(selection_flowline_pump_menu)
         self.buttonBarHLayout.addWidget(self.addFlowlinePumpButton)
 
-        self.addNodeCellButton = QPushButton(text="Add nodes/cells", parent=self.dockWidgetContent)
+        self.addNodeCellButton = QToolButton(parent=self.dockWidgetContent)
+        self.addNodeCellButton.setText("Add nodes/cells")
         self.addNodeCellButton.setCheckable(True)
+        self.addNodeCellButton.setPopupMode(QToolButton.MenuButtonPopup)
+        self.addNodeCellButton.setMenu(selection_node_cell_menu)
         self.buttonBarHLayout.addWidget(self.addNodeCellButton)
 
         self.absoluteCheckbox = QCheckBox("Absolute", parent=self.dockWidgetContent)
