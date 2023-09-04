@@ -908,10 +908,11 @@ class GraphDockWidget(QDockWidget):
         selection_flowline_pump_menu = QMenu(self)
         action_group = QActionGroup(self)
         action_group.setExclusive(True)
-        single_pick = selection_flowline_pump_menu.addAction("Pick single flowline/pump")
-        single_pick.setCheckable(True)
-        single_pick.setChecked(True)
-        action_group.addAction(single_pick)
+        self.flowline_single_pick = selection_flowline_pump_menu.addAction("Pick single flowline/pump")
+        self.flowline_single_pick.setCheckable(True)
+        self.flowline_single_pick.setChecked(True)
+        self.flowline_single_pick.toggled.connect(self._changeFlowlineSelectionMode)
+        action_group.addAction(self.flowline_single_pick)
         selected_pick = selection_flowline_pump_menu.addAction("Add all selected flowlines/pump")
         selected_pick.setCheckable(True)
         action_group.addAction(selected_pick)
@@ -919,25 +920,24 @@ class GraphDockWidget(QDockWidget):
         selection_node_cell_menu = QMenu(self)
         action_group = QActionGroup(self)
         action_group.setExclusive(True)
-        single_pick = selection_node_cell_menu.addAction("Pick single node/cell")
-        single_pick.setCheckable(True)
-        single_pick.setChecked(True)
-        action_group.addAction(single_pick)
+        self.node_single_pick = selection_node_cell_menu.addAction("Pick single node/cell")
+        self.node_single_pick.setCheckable(True)
+        self.node_single_pick.setChecked(True)
+        self.node_single_pick.toggled.connect(self._changeNodeCellSelectionMode)
+        action_group.addAction(self.node_single_pick)
         selected_pick = selection_node_cell_menu.addAction("Add all selected nodes/cells")
         selected_pick.setCheckable(True)
         action_group.addAction(selected_pick)
 
-        # connect( configureAction, &QAction::triggered, this, &QgsSymbolButton::showSettingsDialog );
-
         self.addFlowlinePumpButton = QToolButton(parent=self.dockWidgetContent)
         self.addFlowlinePumpButton.setCheckable(True)
-        self.addFlowlinePumpButton.setText("Add flowlines/pumps")
+        self.addFlowlinePumpButton.setText("Pick flowlines/pumps")
         self.addFlowlinePumpButton.setPopupMode(QToolButton.MenuButtonPopup)
         self.addFlowlinePumpButton.setMenu(selection_flowline_pump_menu)
         self.buttonBarHLayout.addWidget(self.addFlowlinePumpButton)
 
         self.addNodeCellButton = QToolButton(parent=self.dockWidgetContent)
-        self.addNodeCellButton.setText("Add nodes/cells")
+        self.addNodeCellButton.setText("Pick nodes/cells")
         self.addNodeCellButton.setCheckable(True)
         self.addNodeCellButton.setPopupMode(QToolButton.MenuButtonPopup)
         self.addNodeCellButton.setMenu(selection_node_cell_menu)
@@ -970,15 +970,48 @@ class GraphDockWidget(QDockWidget):
         self.setWindowTitle("3Di Time Series Plot %i" % self.nr)
         QMetaObject.connectSlotsByName(self)
 
+    def _changeFlowlineSelectionMode(self, single_pick_selected: bool) -> None:
+        if not single_pick_selected:
+            if self.iface.mapCanvas().mapTool() is self.map_tool_add_flowline_pump:
+                self.iface.mapCanvas().unsetMapTool(self.map_tool_add_flowline_pump)
+            self.addFlowlinePumpButton.setCheckable(False)
+            self.addFlowlinePumpButton.setText("Add flowlines/pumps")
+        else:
+            self.addFlowlinePumpButton.setCheckable(True)
+            self.addFlowlinePumpButton.setText("Pick flowlines/pumps")
+
+    def _changeNodeCellSelectionMode(self, single_pick_selected: bool) -> None:
+        if not single_pick_selected:
+            if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
+                self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
+            self.addNodeCellButton.setCheckable(False)
+            self.addNodeCellButton.setText("Add nodes/cells")
+        else:
+            self.addNodeCellButton.setCheckable(True)
+            self.addNodeCellButton.setText("Pick nodes/cells")
+
     def add_flowline_pump_button_clicked(self):
-        self.iface.mapCanvas().setMapTool(
-            self.map_tool_add_flowline_pump,
-        )
+        if self.flowline_single_pick.isChecked():
+            self.iface.mapCanvas().setMapTool(self.map_tool_add_flowline_pump)
+        else:
+            current_layer = self.iface.mapCanvas().currentLayer()
+            if not current_layer or current_layer.objectName() not in ['flowline', 'pump_linestring', 'pump']:
+                logger.error("Select features from flowline or pump layer first.")
+                return
+
+            self.add_results([QgsMapToolIdentify.IdentifyResult(current_layer, f, dict()) for f in current_layer.selectedFeatures()], feature_type=FLOWLINE_OR_PUMP)
 
     def add_node_cell_button_clicked(self):
-        self.iface.mapCanvas().setMapTool(
-            self.map_tool_add_node_cell,
-        )
+        if self.node_single_pick.isChecked():
+            self.iface.mapCanvas().setMapTool(self.map_tool_add_node_cell)
+        else:
+            current_layer = self.iface.mapCanvas().currentLayer()
+
+            if not current_layer or current_layer.objectName() not in ['node', 'cell']:
+                logger.error("Select features from node or cell layer first.")
+                return
+
+            self.add_results([QgsMapToolIdentify.IdentifyResult(current_layer, f, dict()) for f in current_layer.selectedFeatures()], feature_type=NODE_OR_CELL)
 
     def unset_map_tools(self):
         if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
@@ -986,10 +1019,11 @@ class GraphDockWidget(QDockWidget):
         elif self.iface.mapCanvas().mapTool() is self.map_tool_add_flowline_pump:
             self.iface.mapCanvas().unsetMapTool(self.map_tool_add_flowline_pump)
 
-    def add_results(self, results, feature_type):
+    def add_results(self, results, feature_type, single_feature_per_layer=False):
         """
         Add results for features of specific types.
         """
+        logger.error(len(results))
         if feature_type == FLOWLINE_OR_PUMP:
             layer_keys = ['flowline', 'pump_linestring', 'pump']
             graph_widget = self.q_graph_widget
@@ -1009,8 +1043,9 @@ class GraphDockWidget(QDockWidget):
             layer_id = result.mLayer.id()
             if layer_id not in relevant_grid_layer_ids:
                 continue
-            if layer_id in layers_added:
+            if single_feature_per_layer and layer_id in layers_added:
                 continue
+            logger.error(f"Adding result {result.mFeature.id()}")
             graph_widget.add_objects(result.mLayer, [result.mFeature])
             layers_added.add(layer_id)
 
@@ -1032,7 +1067,7 @@ class BaseAddMapTool(QgsMapToolIdentify):
             layerList=self.parent().layers(),
         )
         self.widget.add_results(
-            results=results, feature_type=self.feature_type,
+            results=results, feature_type=self.feature_type, single_feature_per_layer=True
         )
 
 
