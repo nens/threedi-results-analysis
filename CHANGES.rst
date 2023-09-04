@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.8 (unreleased)
+3.1.8 (2023-09-04)
 ------------------
 
 - Graph: added option to add multiple selected features at once (#888)
