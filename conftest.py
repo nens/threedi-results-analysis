@@ -79,8 +79,8 @@ def three_di_result_item(tmpdir_factory):
 
     path_gpkg = tmp_path / "v2_bergermeer" / "gridadmin.gpkg"
     path_nc = tmp_path / "v2_bergermeer" / "results_3di.nc"
-    grid = ThreeDiGridItem(path=path_gpkg, text="foo")
-    result = ThreeDiResultItem(path=path_nc)
+    grid = ThreeDiGridItem(path=str(path_gpkg), text="foo")
+    result = ThreeDiResultItem(path=str(path_nc))
     grid.appendRow(result)
 
     gpkg_layers = {"Node": "node", "Flowline": "flowline"}
