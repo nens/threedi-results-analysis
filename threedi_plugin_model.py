@@ -93,7 +93,7 @@ class ThreeDiResultItem(ThreeDiModelItem):
     def threedi_result(self):
         # ThreediResult is a wrapper around a theedigrid's
         # netcdf support
-        return ThreediResult(self.path)
+        return ThreediResult(self.path, self.parent().path.with_suffix(".h5"))
 
 
 class ThreeDiPluginModel(QStandardItemModel):

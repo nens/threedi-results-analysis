@@ -112,7 +112,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Addition signals
         self.dockwidget.grid_file_selected.connect(self.validator.validate_grid)
-        self.dockwidget.result_file_selected.connect(self.validator.validate_result_grid)
+        self.dockwidget.result_grid_file_selected.connect(self.validator.validate_result_grid)
         self.validator.result_valid.connect(self.loader.load_result)
         self.validator.grid_valid.connect(self.loader.load_grid)
         self.loader.grid_loaded.connect(self.model.add_grid)

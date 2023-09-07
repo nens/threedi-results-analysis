@@ -5,7 +5,8 @@
 3.1.9 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Validator: now reparents an added result when a grid with same slug is already present in model.
+- ThreediResult class now uses grid from parent node instead of relative (local) (#890)
 
 
 3.1.8 (2023-09-04)

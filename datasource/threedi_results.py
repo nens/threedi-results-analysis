@@ -46,8 +46,9 @@ class ThreediResult(BaseDataSource):
 
     """
 
-    def __init__(self, file_path=None):
+    def __init__(self, file_path, h5_path):
         self.file_path = file_path
+        self.h5_path = h5_path
         self._cache = {}
 
     @cached_property
@@ -318,12 +319,12 @@ class ThreediResult(BaseDataSource):
 
     @cached_property
     def gridadmin(self):
-        h5 = find_h5_file(self.file_path)
+        h5 = self.h5_path
         return GridH5Admin(open(h5, 'rb'))
 
     @cached_property
     def result_admin(self):
-        h5 = find_h5_file(self.file_path)
+        h5 = self.h5_path
         # TODO: there's no FileNotFound try/except here like for
         # aggregates. Richard says that a missing regular result file is just
         # as likely.
@@ -337,7 +338,7 @@ class ThreediResult(BaseDataSource):
         try:
             # Note: both of these might raise the FileNotFoundError
             agg_path = find_aggregation_netcdf(self.file_path)
-            h5 = find_h5_file(self.file_path)
+            h5 = self.h5_path
         except FileNotFoundError:
             logger.exception("Aggregate result not found")
             return None
@@ -357,37 +358,6 @@ class ThreediResult(BaseDataSource):
                 "Using model_name"
             )
             return self.gridadmin.model_name
-
-
-def find_h5_file(netcdf_file_path):
-    """An ad-hoc way to get the h5_file.
-
-    We assume the h5_file file is in one of the following locations (note:
-    this order is also the searching order):
-
-    1) . (in the same dir as the netcdf)
-    2) ../preprocessed
-
-    relative to the netcdf file and has extension '.h5'
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        h5_file path
-
-    Raises:
-        FileNotFoundError if no file can be found
-    """
-    pattern = "*.h5"
-    result_dir = os.path.dirname(netcdf_file_path)
-    inpdir = os.path.join(result_dir, os.path.pardir, "preprocessed")
-
-    for directory in [result_dir, inpdir]:
-        h5_files = glob.glob(os.path.join(directory, pattern))
-        if h5_files:
-            return h5_files[0]
-    raise FileNotFoundError("'.h5' file not found relative to %s." % result_dir)
 
 
 def find_aggregation_netcdf(netcdf_file_path):

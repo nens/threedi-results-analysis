@@ -24,7 +24,7 @@ FORM_CLASS, _ = uic.loadUiType(
 
 class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
-    result_file_selected = pyqtSignal([str, str])
+    result_grid_file_selected = pyqtSignal([str, str])
     align_starts_checked = pyqtSignal(bool)
 
     grid_removal_selected = pyqtSignal(ThreeDiGridItem)
@@ -62,7 +62,7 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         # We'll make the dialog persistent so we can set some signals
         self.dialog = ThreeDiPluginGridResultDialog(self)
         self.dialog.grid_file_selected.connect(self.grid_file_selected)
-        self.dialog.result_file_selected.connect(self.result_file_selected)
+        self.dialog.result_grid_file_selected.connect(self.result_grid_file_selected)
 
     def customMenuRequested(self, pos):
         index = self.treeView.indexAt(pos)

@@ -45,7 +45,7 @@ def threedi_result():
     # Late import, otherwise we get circular import errors.
     from threedi_results_analysis.datasource.threedi_results import ThreediResult
 
-    return ThreediResult(file_path=RESULTS_3DI_PATH)
+    return ThreediResult(file_path=RESULTS_3DI_PATH, h5_path=BERGERMEER_DIR / "gridadmin.h5")
 
 
 @pytest.fixture()

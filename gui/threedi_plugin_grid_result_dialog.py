@@ -35,7 +35,7 @@ def disable_dialog(func):
 
 class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
-    result_file_selected = pyqtSignal([str, str])
+    result_grid_file_selected = pyqtSignal([str, str])
 
     def __init__(self, parent):
         super(ThreeDiPluginGridResultDialog, self).__init__(parent)
@@ -105,10 +105,9 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
         grid_file = os.path.join(os.path.dirname(self.resultQgsFileWidget.filePath()), "gridadmin.h5")
         if not os.path.isfile(grid_file):
-            pop_up_critical("No computational grid file (gridadmin.h5) could be found for the selected simulation result. Simulation result not added to the project.")
-            return
+            grid_file = None
 
-        self.result_file_selected.emit(self.resultQgsFileWidget.filePath(), grid_file)
+        self.result_grid_file_selected.emit(self.resultQgsFileWidget.filePath(), grid_file)
 
     @staticmethod
     def _get_dir() -> str:
@@ -165,7 +164,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         grid_file = os.path.join(self._retrieve_selected_grid_folder(self.tableView.currentIndex()), "gridadmin.h5")
 
         # Also emit corresponding grid file
-        self.result_file_selected.emit(result_file, grid_file)
+        self.result_grid_file_selected.emit(result_file, grid_file)
 
     def _item_selected(self, index: QModelIndex):
         self.loadGridPushButton.setEnabled(True)
@@ -183,7 +182,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
 
             # Also emit corresponding grid file
-            self.result_file_selected.emit(result_file, grid_file)
+            self.result_grid_file_selected.emit(result_file, grid_file)
         else:
             grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
             self.grid_file_selected.emit(grid_file)

@@ -27,19 +27,35 @@ class ThreeDiPluginModelValidator(QObject):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(str)
-    def validate_grid(self, grid_file: str) -> ThreeDiGridItem:
+    def validate_grid(self, grid_file: str, required_slug: str = None) -> ThreeDiGridItem:
         """
         Validates the grid and returns the new (or already existing) ThreeDiGridItem
+
+        if required_slug is not None, the first grid in the model with this slug will be favored.
         """
-        new_item = ThreeDiGridItem(Path(grid_file), "")
+        logger.info(f"Validate_grid({grid_file}, {required_slug}")
+        # Check whether the model already contains a grid with this slug
+        if grid_file is None or required_slug:
+            for grid in self.model.get_grids():
+                # Check whether corresponding grid item belongs to same model as result
+                other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
+                if required_slug == other_grid_model_slug:
+                    logger.info(f"Found other corresponding grid with slug {required_slug}, setting that grid as parent.")
+                    return grid
+
+        if grid_file is None:
+            logger.error("No appropriate grid file detected, aborting")
+            return None
 
         # Check whether model already contains this grid file.
         for i in range(self.model.invisibleRootItem().rowCount()):
             grid_item = self.model.invisibleRootItem().child(i)
             if grid_item.path.with_suffix("") == Path(grid_file).with_suffix(""):
                 logger.warning("Model already contains this file")
-                self.grid_invalid.emit(new_item)
+                self.grid_invalid.emit(ThreeDiGridItem(Path(grid_file), ""))
                 return grid_item
+
+        new_item = ThreeDiGridItem(Path(grid_file), "")
 
         # Note that in the 3Di M&S working directory setup, each results
         # folder in the revision can contain the same gridadmin file. Check
@@ -68,7 +84,11 @@ class ThreeDiPluginModelValidator(QObject):
         """
         Validate the result, but first validate (and add) the grid.
         """
-        grid_item = self.validate_grid(grid_path)
+        # First check whether this is the right grid, or a more appropriate is already
+        # in the model
+        result_model_slug = ThreeDiPluginModelValidator.get_result_slug(Path(results_path))
+        logger.info(f"Validating {results_path} ({result_model_slug}) and {grid_path}")
+        grid_item = self.validate_grid(grid_path, result_model_slug)
         if not grid_item:
             return
 
