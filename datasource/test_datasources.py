@@ -21,7 +21,7 @@ spatialite_datasource_path = os.path.join(
 class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_constructor(self):
         """Test empty constructor."""
-        ThreediResult()
+        ThreediResult("bla.nc", "bla.h5")
 
     @mock.patch(
         "threedi_results_analysis.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
@@ -29,7 +29,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     )
     @mock.patch("threedi_results_analysis.datasource.threedi_results.ThreediResult.result_admin")
     def test_get_timeseries(self, result_admin_mock):
-        threedi_result = ThreediResult()
+        threedi_result = ThreediResult("bla.nc", "bla.h5")
         threedi_result.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
