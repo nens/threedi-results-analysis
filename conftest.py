@@ -12,6 +12,8 @@ from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 
+from pathlib import Path
+
 import os
 import pytest
 import shutil
@@ -79,8 +81,8 @@ def three_di_result_item(tmpdir_factory):
 
     path_gpkg = tmp_path / "v2_bergermeer" / "gridadmin.gpkg"
     path_nc = tmp_path / "v2_bergermeer" / "results_3di.nc"
-    grid = ThreeDiGridItem(path=str(path_gpkg), text="foo")
-    result = ThreeDiResultItem(path=str(path_nc))
+    grid = ThreeDiGridItem(path=Path(path_gpkg), text="foo")
+    result = ThreeDiResultItem(path=Path(path_nc))
     grid.appendRow(result)
 
     gpkg_layers = {"Node": "node", "Flowline": "flowline"}
