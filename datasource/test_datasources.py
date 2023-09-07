@@ -2,7 +2,6 @@ from threedigrid.admin import gridresultadmin
 from threedigrid.admin.constants import NO_DATA_VALUE
 from threedi_results_analysis.datasource import base
 from threedi_results_analysis.datasource.threedi_results import find_aggregation_netcdf
-from threedi_results_analysis.datasource.threedi_results import find_h5_file
 from threedi_results_analysis.datasource.threedi_results import normalized_object_type
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
 from threedi_results_analysis.tests.utilities import TemporaryDirectory
@@ -362,8 +361,3 @@ def test_normalized_object_type2():
 def test_aggregate_result_admin_file_missing(threedi_result):
     threedi_result.file_path = "reinout.txt"
     assert threedi_result.aggregate_result_admin is None
-
-
-def test_find_h5_file_not_found():
-    with pytest.raises(FileNotFoundError):
-        find_h5_file("/does/not/exist/")
