@@ -59,7 +59,7 @@ class ThreeDiPluginModelValidator(QObject):
                         logger.warning(f"Found other grid with grid slug {grid_model_slug}, setting that grid as parent.")
                         return grid
 
-        if grid_file is None:
+        if not grid_file:
             logger.error("No appropriate grid file detected, aborting")
             return None
 
@@ -67,7 +67,7 @@ class ThreeDiPluginModelValidator(QObject):
         for i in range(self.model.invisibleRootItem().rowCount()):
             grid_item = self.model.invisibleRootItem().child(i)
             if grid_item.path.with_suffix("") == Path(grid_file).with_suffix(""):
-                logger.warning("Model already contains this file")
+                logger.warning("Model already contains this grid file")
                 self.grid_invalid.emit(ThreeDiGridItem(Path(grid_file), ""))
                 return grid_item
 
@@ -124,7 +124,7 @@ class ThreeDiPluginModelValidator(QObject):
         result_item = ThreeDiResultItem(Path(results_path))
 
         if self.model.contains(Path(results_path), True):
-            return fail("Model already contains this file")
+            return fail("Model already contains this result file")
 
         # Check correct file name
         if not result_item.path.name == "results_3di.nc":
