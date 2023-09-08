@@ -27,21 +27,37 @@ class ThreeDiPluginModelValidator(QObject):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(str)
-    def validate_grid(self, grid_file: str, required_slug: str = None) -> ThreeDiGridItem:
+    def validate_grid(self, grid_file: str, result_slug: str = None) -> ThreeDiGridItem:
         """
-        Validates the grid and returns the new (or already existing) ThreeDiGridItem
+        Validates the grid and returns the new (or already existing) ThreeDiGridItem. Also emits signal.
 
-        if required_slug is not None, the first grid in the model with this slug will be favored.
+        if required_slug is not None, the first grid in the model with this slug will be selected.
+
+        If not, the validator will check whether a grid with the same slug is found as the grid_file.
+
+        If not, the validor will create a new ThreeDiGridItem and emit the grid_valid signal.
         """
-        logger.info(f"Validate_grid({grid_file}, {required_slug}")
-        # Check whether the model already contains a grid with this slug
-        if grid_file is None or required_slug:
+        logger.info(f"Validate_grid({grid_file}, {result_slug}")
+
+        # First check whether a grid with the result_slug already exists
+        if result_slug:
             for grid in self.model.get_grids():
                 # Check whether corresponding grid item belongs to same model as result
                 other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
-                if required_slug == other_grid_model_slug:
-                    logger.info(f"Found other corresponding grid with slug {required_slug}, setting that grid as parent.")
+                if result_slug == other_grid_model_slug:
+                    logger.warning(f"Found other grid with result slug: {result_slug}, setting that grid as parent.")
                     return grid
+
+        # Check whether the model already contains a grid with the new grid files slug
+        if grid_file:
+            grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(grid_file)
+            if grid_model_slug:
+                for grid in self.model.get_grids():
+                    # Check whether corresponding grid item belongs to same model as result
+                    other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
+                    if grid_model_slug == other_grid_model_slug:
+                        logger.warning(f"Found other grid with grid slug {grid_model_slug}, setting that grid as parent.")
+                        return grid
 
         if grid_file is None:
             logger.error("No appropriate grid file detected, aborting")
@@ -54,8 +70,6 @@ class ThreeDiPluginModelValidator(QObject):
                 logger.warning("Model already contains this file")
                 self.grid_invalid.emit(ThreeDiGridItem(Path(grid_file), ""))
                 return grid_item
-
-        new_item = ThreeDiGridItem(Path(grid_file), "")
 
         # Note that in the 3Di M&S working directory setup, each results
         # folder in the revision can contain the same gridadmin file. Check
@@ -76,8 +90,9 @@ class ThreeDiPluginModelValidator(QObject):
                         self.grid_invalid.emit(grid_item)
                         return grid_item
 
-        self.grid_valid.emit(new_item)
-        return new_item
+        new_grid = ThreeDiGridItem(Path(grid_file), "")
+        self.grid_valid.emit(new_grid)
+        return new_grid
 
     @pyqtSlot(str, str)
     def validate_result_grid(self, results_path: str, grid_path: str):
@@ -85,18 +100,17 @@ class ThreeDiPluginModelValidator(QObject):
         Validate the result, but first validate (and add) the grid.
         """
         # First check whether this is the right grid, or a more appropriate is already
-        # in the model
+        # in the model (with same slug)
         result_model_slug = ThreeDiPluginModelValidator.get_result_slug(Path(results_path))
         logger.info(f"Validating {results_path} ({result_model_slug}) and {grid_path}")
         grid_item = self.validate_grid(grid_path, result_model_slug)
         if not grid_item:
+            logger.error("Unable to resolve grid file, aborting")
             return
 
-        # The grid should now be added, retrieve the corresponding grid from model and validate result
-        self.validate_result(results_path, grid_item)
+        self._validate_result(results_path, grid_item)
 
-    @pyqtSlot(str, ThreeDiGridItem)
-    def validate_result(self, results_path: str, grid_item: ThreeDiGridItem) -> bool:
+    def _validate_result(self, results_path: str, grid_item: ThreeDiGridItem) -> bool:
         logger.info(f"Validating result with grid item {grid_item.text()}")
         """
         Validate the result when added to the selected grid item. Returns True
