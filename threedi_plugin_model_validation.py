@@ -45,7 +45,7 @@ class ThreeDiPluginModelValidator(QObject):
                 # Check whether corresponding grid item belongs to same model as result
                 other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
                 if result_slug == other_grid_model_slug:
-                    logger.warning(f"Found other grid with result slug: {result_slug}, setting that grid as parent.")
+                    messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found existing grid with result slug: {result_slug}, setting that grid as parent.", Qgis.Info, 5)
                     return grid
 
         # Check whether the model already contains a grid with the new grid files slug
@@ -56,7 +56,7 @@ class ThreeDiPluginModelValidator(QObject):
                     # Check whether corresponding grid item belongs to same model as result
                     other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
                     if grid_model_slug == other_grid_model_slug:
-                        logger.warning(f"Found other grid with grid slug {grid_model_slug}, setting that grid as parent.")
+                        messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found existing grid with grid slug {grid_model_slug}, setting that grid as parent.", Qgis.Info, 5)
                         return grid
 
         if not grid_file:
@@ -67,7 +67,7 @@ class ThreeDiPluginModelValidator(QObject):
         for i in range(self.model.invisibleRootItem().rowCount()):
             grid_item = self.model.invisibleRootItem().child(i)
             if grid_item.path.with_suffix("") == Path(grid_file).with_suffix(""):
-                logger.warning("Model already contains this grid file")
+                messagebar_message(TOOLBOX_MESSAGE_TITLE, "Model already contains this grid file", Qgis.Warning, 5)
                 self.grid_invalid.emit(ThreeDiGridItem(Path(grid_file), ""))
                 return grid_item
 
@@ -85,7 +85,7 @@ class ThreeDiPluginModelValidator(QObject):
                     assert isinstance(grid_item, ThreeDiGridItem)
                     grid_folder = Path(grid_item.path).parent
                     if grid_folder in result_folders:
-                        logger.warning("Model already contains grid file from this revision.")
+                        messagebar_message(TOOLBOX_MESSAGE_TITLE, "Model already contains grid file from this revision.", Qgis.Warning, 5)
                         # Todo: should we do a simple shallow file-compare?
                         self.grid_invalid.emit(grid_item)
                         return grid_item
@@ -105,7 +105,7 @@ class ThreeDiPluginModelValidator(QObject):
         logger.info(f"Validating {results_path} ({result_model_slug}) and {grid_path}")
         grid_item = self.validate_grid(grid_path, result_model_slug)
         if not grid_item:
-            logger.error("Unable to resolve grid file, aborting")
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, "Unable to resolve grid file, aborting", Qgis.Error, 5)
             return
 
         self._validate_result(results_path, grid_item)
@@ -177,7 +177,7 @@ class ThreeDiPluginModelValidator(QObject):
                 other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(other_grid_item.path)
 
                 if result_model_slug == other_grid_model_slug:
-                    logger.info(f"Found other corresponding grid with slug {other_grid_model_slug}, setting that grid as parent.")
+                    messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found other corresponding grid with slug {other_grid_model_slug}, setting that grid as parent.", Qgis.Warning, 5)
 
                     # Propagate the result with the new parent grid
                     self.result_valid.emit(result_item, other_grid_item)
