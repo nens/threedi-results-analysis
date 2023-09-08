@@ -107,7 +107,6 @@ class TestGridValidator(unittest.TestCase):
             self.assertTrue(existing_grid is grid_item)
 
     def test_grid_with_same_slug_as_result_is_retrieved_instead_of_created(self):
-        # add a first grid which will have the right slug, this should be reused
         wrong_grid_item = ThreeDiGridItem(Path("c:/thisfolder/gridadmin.h5"), "text2")
         self.model.add_grid(wrong_grid_item)
 
@@ -124,14 +123,16 @@ class TestGridValidator(unittest.TestCase):
             grid_valid.emit.assert_not_called()
 
     def test_grid_with_same_slug_as_grid_is_retrieved(self):
-        # add a first grid which will have the right slug
+        wrong_grid_item = ThreeDiGridItem(Path("c:/thisfolder/gridadmin.h5"), "text2")
+        self.model.add_grid(wrong_grid_item)
+
         right_grid_item = ThreeDiGridItem(Path("c:/otherfolder/gridadmin.h5"), "text2")
         self.model.add_grid(right_grid_item)
 
         validator = ThreeDiPluginModelValidator(self.model)
         with patch.object(validator, "grid_valid") as grid_valid, patch.object(
                 ThreeDiPluginModelValidator, "get_grid_slug") as grid_slug:
-            grid_slug.side_effect = ["result_slug", "result_slug"]
+            grid_slug.side_effect = ["result_slug", "bla", "result_slug"]
             self.assertTrue(validator.validate_grid("c:/test/gridadmin.h5") is right_grid_item)
             grid_valid.emit.assert_not_called()
 
