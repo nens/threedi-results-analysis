@@ -163,7 +163,10 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         result_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "results_3di.nc")
         grid_file = os.path.join(self._retrieve_selected_grid_folder(self.tableView.currentIndex()), "gridadmin.h5")
 
-        # Also emit corresponding grid file
+        # Also emit corresponding grid file, if existst
+        if not os.path.isfile(grid_file):
+            grid_file = None
+
         self.result_grid_file_selected.emit(result_file, grid_file)
 
     def _item_selected(self, index: QModelIndex):

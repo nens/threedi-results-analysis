@@ -60,7 +60,7 @@ class ThreeDiPluginModelValidator(QObject):
                         return grid
 
         if not grid_file:
-            logger.error("No appropriate grid file detected, aborting")
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, "No appropriate grid file detected, aborting", Qgis.Error, 5)
             return None
 
         # Check whether model already contains this grid file.

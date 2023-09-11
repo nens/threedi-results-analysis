@@ -61,6 +61,7 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
 
         # We'll make the dialog persistent so we can set some signals
         self.dialog = ThreeDiPluginGridResultDialog(self)
+        # Map signal to signal
         self.dialog.grid_file_selected.connect(self.grid_file_selected)
         self.dialog.result_grid_file_selected.connect(self.result_grid_file_selected)
 
