@@ -51,7 +51,7 @@ class ThreeDiPluginModelValidator(QObject):
 
         # Check whether the model already contains a grid with the new grid files slug
         if grid_file:
-            grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(grid_file)
+            grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid_file))
             if grid_model_slug:
                 for grid in self.model.get_grids():
                     # Check whether corresponding grid item belongs to same model as result
