@@ -107,7 +107,7 @@ class ThreeDiPluginModelValidator(QObject):
         logger.info(f"Validating {results_path} ({result_model_slug}) and {grid_path}")
         grid_item = self.validate_grid(grid_path, result_model_slug)
         if not grid_item:
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, "Unable to resolve grid file, aborting", Qgis.Error, 5)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, "Unable to resolve grid file, aborting", Qgis.Critical, 5)
             return
 
         self._validate_result(results_path, grid_item)
@@ -195,7 +195,7 @@ class ThreeDiPluginModelValidator(QObject):
 
     @staticmethod
     def get_grid_slug(geopackage_path: Path) -> str:
-        meta_layer = QgsVectorLayer(str(geopackage_path) + "|layername=meta", "meta", "ogr")
+        meta_layer = QgsVectorLayer(str(geopackage_path.with_suffix(".gpkg")) + "|layername=meta", "meta", "ogr")
 
         if not meta_layer.isValid() or not (meta_layer.featureCount() == 1):
             logger.warning("Invalid, zero or more than 1 meta data table. Unable to derive slug")
