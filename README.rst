@@ -1,8 +1,5 @@
-ThreeDiToolbox
+3Di Results Analysis Tool
 ==============
-
-.. image:: https://coveralls.io/repos/github/nens/ThreeDiToolbox/badge.svg?branch=HEAD
-    :target: https://coveralls.io/github/nens/ThreeDiToolbox?branch=HEAD
 
 
 A QGIS plugin with tools for working with models and netCDF results from
