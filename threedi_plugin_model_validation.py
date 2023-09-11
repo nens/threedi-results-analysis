@@ -45,6 +45,7 @@ class ThreeDiPluginModelValidator(QObject):
                 # Check whether corresponding grid item belongs to same model as result
                 other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
                 if result_slug == other_grid_model_slug:
+                    print("using result slug")
                     messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found existing grid with result slug: {result_slug}, setting that grid as parent.", Qgis.Info, 5)
                     return grid
 
@@ -56,11 +57,12 @@ class ThreeDiPluginModelValidator(QObject):
                     # Check whether corresponding grid item belongs to same model as result
                     other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
                     if grid_model_slug == other_grid_model_slug:
+                        print("using grid slug")
                         messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found existing grid with grid slug {grid_model_slug}, setting that grid as parent.", Qgis.Info, 5)
                         return grid
 
         if not grid_file:
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, "No appropriate grid file detected, aborting", Qgis.Error, 5)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, "No appropriate grid file detected, aborting", Qgis.Critical, 5)
             return None
 
         # Check whether model already contains this grid file.
@@ -163,7 +165,7 @@ class ThreeDiPluginModelValidator(QObject):
         result_model_slug = ThreeDiPluginModelValidator.get_result_slug(result_item.path)
 
         grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(grid_item.path)
-
+        print(f"Comparing grid slug: {grid_model_slug} to result slug: {result_model_slug}")
         logger.info(f"Comparing grid slug: {grid_model_slug} to result slug: {result_model_slug}")
 
         if not grid_model_slug or not result_model_slug:
@@ -176,6 +178,7 @@ class ThreeDiPluginModelValidator(QObject):
                 other_grid_item = root_node.child(i)
                 other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(other_grid_item.path)
 
+                print("comparing result slug to other grids agian")
                 if result_model_slug == other_grid_model_slug:
                     messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found other corresponding grid with slug {other_grid_model_slug}, setting that grid as parent.", Qgis.Warning, 5)
 

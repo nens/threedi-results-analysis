@@ -104,6 +104,33 @@ class TestResultValidation(unittest.TestCase):
             calls = [call(result_item_mock.return_value, correct_grid), call(result_item_mock.return_value, correct_grid)]
             result_valid.emit.assert_has_calls(calls)
 
+    def test_grid_result_with_grid_slug_if_already_present(self, test_h5, result_item_mock):
+        wrong_grid = ThreeDiGridItem(Path("c:/thisfolder/gridadmin.h5"), "text2")
+        self.model.add_grid(wrong_grid)
+
+        correct_grid = ThreeDiGridItem(Path("c:/otherfolder/gridadmin.h5"), "text2")
+        self.model.add_grid(correct_grid)
+
+        result_item_mock.return_value.path.name = "results_3di.nc"
+        test_h5.return_value.attrs = {"threedicore_version": "", "model_slug": "result_slug".encode()}
+
+        with patch.object(self.validator, "result_valid") as result_valid, patch.object(
+            ThreeDiPluginModelValidator, "get_grid_slug") as grid_slug, patch.object(
+                    ThreeDiPluginModelValidator, "get_result_slug") as result_slug:
+            # last side effect is in _validate_result, prevent for being reparent
+            grid_slug.side_effect = ["wrong_slug", "wrong_slug", "wrong_slug", "current_grid", "wrong_slug", "wrong_slug", "current_grid", "result_slug"]
+            result_slug.return_value = "result_slug"
+
+            self.validator.validate_result_grid("c:/test/results_3di.nc", "c:/thisfolder/gridadmin.h5")
+            calls = [call(result_item_mock.return_value, correct_grid)]
+            result_valid.emit.assert_has_calls(calls)
+
+            # Do it again, but let the result be reparent in _validate_result to wrong_grid
+            grid_slug.side_effect = ["wrong_slug", "wrong_slug", "wrong_slug", "current_grid", "wrong_slug", "wrong_slug", "current_grid", "current_grid", "wrong_slug", "result_slug"]
+            self.validator.validate_result_grid("c:/test/results_3di.nc", "c:/thisfolder/gridadmin.h5")
+            calls = [call(result_item_mock.return_value, wrong_grid)]
+            result_valid.emit.assert_has_calls(calls)
+
 
 class TestGridValidator(unittest.TestCase):
     def setUp(self):
