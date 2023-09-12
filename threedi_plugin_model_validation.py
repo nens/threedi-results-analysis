@@ -38,7 +38,7 @@ class ThreeDiPluginModelValidator(QObject):
         If not, the validor will create a new ThreeDiGridItem and emit the grid_valid signal.
         """
         logger.info(f"Validate_grid({grid_file}, {result_slug}")
-        
+
         # First check whether a grid with the result_slug already exists
         if result_slug:
             for grid in self.model.get_grids():
@@ -46,9 +46,9 @@ class ThreeDiPluginModelValidator(QObject):
                 other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
                 if result_slug == other_grid_model_slug:
                     print("using result slug")
-                    messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Result attached to computational grid that was already loaded.", Qgis.Info, 5)
+                    messagebar_message(TOOLBOX_MESSAGE_TITLE, "Result attached to computational grid that was already loaded.", Qgis.Info, 5)
                     return grid
-        
+
         # Check whether the model already contains a grid with the new grid files slug
         if grid_file:
             grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid_file))
@@ -58,7 +58,7 @@ class ThreeDiPluginModelValidator(QObject):
                     other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
                     if grid_model_slug == other_grid_model_slug:
                         print("using grid slug")
-                        messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Result attached to computational grid that was already loaded.", Qgis.Info, 5)
+                        messagebar_message(TOOLBOX_MESSAGE_TITLE, "Result attached to computational grid that was already loaded.", Qgis.Info, 5)
                         return grid
 
         if not grid_file:
@@ -180,7 +180,7 @@ class ThreeDiPluginModelValidator(QObject):
 
                 print("comparing result slug to other grids again")
                 if result_model_slug == other_grid_model_slug:
-                    messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Result attached to computational grid that was already loaded.", Qgis.Warning, 5)
+                    messagebar_message(TOOLBOX_MESSAGE_TITLE, "Result attached to computational grid that was already loaded.", Qgis.Warning, 5)
 
                     # Propagate the result with the new parent grid
                     self.result_valid.emit(result_item, other_grid_item)
