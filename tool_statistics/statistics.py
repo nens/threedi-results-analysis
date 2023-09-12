@@ -247,7 +247,7 @@ class Aggregate3DiResults(QgsTask):
 
             self.parent.setEnabled(True)
             self.parent.iface.messageBar().pushMessage(
-                "3Di Statistics",
+                "3Di Result aggregation",
                 "Finished custom aggregation",
                 level=Qgis.Success,
                 duration=3,
@@ -256,7 +256,7 @@ class Aggregate3DiResults(QgsTask):
         else:
             self.parent.setEnabled(True)
             self.parent.iface.messageBar().pushMessage(
-                "3Di Statistics",
+                "3Di Result aggregation",
                 "Aggregating 3Di results returned no results",
                 level=Qgis.Warning,
                 duration=3,
@@ -264,7 +264,7 @@ class Aggregate3DiResults(QgsTask):
 
     def cancel(self):
         self.parent.iface.messageBar().pushMessage(
-            "3Di Statistics",
+            "3Di Result aggregation",
             "Pre-processing simulation results cancelled by user",
             level=Qgis.Info,
             duration=3,

@@ -16,7 +16,7 @@ class ThreeDiGraph(ThreeDiPluginTool):
         self.model = model
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_graph.png")
-        self.menu_text = "Time Series Plotter"
+        self.menu_text = "Time series plotter"
 
         self.dock_widgets = []
         self.widget_nr = 0

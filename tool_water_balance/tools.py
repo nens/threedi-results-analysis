@@ -25,7 +25,7 @@ class WaterBalanceTool(ThreeDiPluginTool):
         super().__init__()
         self.iface = iface
         self.icon_path = str(Path(__file__).parent.parent / 'icons' / 'weight-scale.png')
-        self.menu_text = u"Water Balance Tool"
+        self.menu_text = u"Water balance tool"
 
         self.is_active = False
         self.widget = None
@@ -36,7 +36,7 @@ class WaterBalanceTool(ThreeDiPluginTool):
             return
 
         widget = WaterBalanceWidget(
-            "3Di Water Balance", manager=self.manager, iface=self.iface,
+            "3Di Water balance", manager=self.manager, iface=self.iface,
         )
         widget.closingWidget.connect(self.on_close_child_widget)
         self.iface.addDockWidget(Qt.BottomDockWidgetArea, widget)
@@ -62,7 +62,7 @@ class WaterBalanceTool(ThreeDiPluginTool):
     def result_added(self, result):
         self.action_icon.setEnabled(self.manager.model.number_of_results() > 0)
         if self.is_active:
-            progress_bar = StatusProgressBar(1, "Calculating water balance")
+            progress_bar = StatusProgressBar(1, "Calculating water balance...")
             self.widget.add_result(result)
             progress_bar.increase_progress()
 

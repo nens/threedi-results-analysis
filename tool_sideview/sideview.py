@@ -14,7 +14,7 @@ class ThreeDiSideView(ThreeDiPluginTool):
         self.iface = iface
         self.model = model
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_route.png")
-        self.menu_text = u"Sideview Tool"
+        self.menu_text = u"Side view tool"
         self.dock_widgets = []
         self.widget_nr = 0
 

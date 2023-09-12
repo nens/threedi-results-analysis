@@ -696,7 +696,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             for agg_var in preset.aggregations():
                 missing_info = [item for item in agg_var.variable.requirements if item not in containing_information]
                 if missing_info:
-                    pop_up_critical(f"The currently selected model does not contain all required info for aggregation '{agg_var.variable.long_name}': {[VR_NAMES[item] for item in missing_info]}")
+                    pop_up_critical(f"The currently selected 3Di model does not contain all required info for aggregation '{agg_var.variable.long_name}': {[VR_NAMES[item] for item in missing_info]}")
                     no_preset_idx = self.comboBoxPreset.findText(NO_PRESET.name)
                     self.comboBoxPreset.setCurrentIndex(no_preset_idx)  # reset to no preset
                     return

@@ -38,7 +38,7 @@ class ThreeDiPluginModelValidator(QObject):
         If not, the validor will create a new ThreeDiGridItem and emit the grid_valid signal.
         """
         logger.info(f"Validate_grid({grid_file}, {result_slug}")
-
+        
         # First check whether a grid with the result_slug already exists
         if result_slug:
             for grid in self.model.get_grids():
@@ -46,9 +46,9 @@ class ThreeDiPluginModelValidator(QObject):
                 other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
                 if result_slug == other_grid_model_slug:
                     print("using result slug")
-                    messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found existing grid with result slug: {result_slug}, setting that grid as parent.", Qgis.Info, 5)
+                    messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Result attached to computational grid that was already loaded.", Qgis.Info, 5)
                     return grid
-
+        
         # Check whether the model already contains a grid with the new grid files slug
         if grid_file:
             grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid_file))
@@ -58,18 +58,18 @@ class ThreeDiPluginModelValidator(QObject):
                     other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(Path(grid.path))
                     if grid_model_slug == other_grid_model_slug:
                         print("using grid slug")
-                        messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found existing grid with grid slug {grid_model_slug}, setting that grid as parent.", Qgis.Info, 5)
+                        messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Result attached to computational grid that was already loaded.", Qgis.Info, 5)
                         return grid
 
         if not grid_file:
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, "No appropriate grid file detected, aborting", Qgis.Critical, 5)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, "No computational grid for this result could be found, aborting", Qgis.Critical, 5)
             return None
 
         # Check whether model already contains this grid file.
         for i in range(self.model.invisibleRootItem().rowCount()):
             grid_item = self.model.invisibleRootItem().child(i)
             if grid_item.path.with_suffix("") == Path(grid_file).with_suffix(""):
-                messagebar_message(TOOLBOX_MESSAGE_TITLE, "Model already contains this grid file", Qgis.Warning, 5)
+                messagebar_message(TOOLBOX_MESSAGE_TITLE, "This computional grid was already loaded.", Qgis.Info, 5)
                 self.grid_invalid.emit(ThreeDiGridItem(Path(grid_file), ""))
                 return grid_item
 
@@ -87,7 +87,7 @@ class ThreeDiPluginModelValidator(QObject):
                     assert isinstance(grid_item, ThreeDiGridItem)
                     grid_folder = Path(grid_item.path).parent
                     if grid_folder in result_folders:
-                        messagebar_message(TOOLBOX_MESSAGE_TITLE, "Model already contains grid file from this revision.", Qgis.Warning, 5)
+                        messagebar_message(TOOLBOX_MESSAGE_TITLE, "This computional grid was already loaded.", Qgis.Info, 5)
                         # Todo: should we do a simple shallow file-compare?
                         self.grid_invalid.emit(grid_item)
                         return grid_item
@@ -107,7 +107,7 @@ class ThreeDiPluginModelValidator(QObject):
         logger.info(f"Validating {results_path} ({result_model_slug}) and {grid_path}")
         grid_item = self.validate_grid(grid_path, result_model_slug)
         if not grid_item:
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, "Unable to resolve grid file, aborting", Qgis.Critical, 5)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, "No computational grid for this result could be found, aborting", Qgis.Critical, 5)
             return
 
         self._validate_result(results_path, grid_item)
@@ -126,7 +126,7 @@ class ThreeDiPluginModelValidator(QObject):
         result_item = ThreeDiResultItem(Path(results_path))
 
         if self.model.contains(Path(results_path), True):
-            return fail("Model already contains this result file")
+            return fail("This result was already loaded")
 
         # Check correct file name
         if not result_item.path.name == "results_3di.nc":
@@ -159,7 +159,7 @@ class ThreeDiPluginModelValidator(QObject):
 
         # Any modern enough calc core adds a 'threedicore_version' atribute
         if "threedicore_version" not in results_h5.attrs:
-            return fail("Result file is too old, please recalculate.")
+            return fail("Result file is too old and cannot be opened with 3Di Result Analysis.")
 
         # Check whether corresponding grid item belongs to same model as result
         result_model_slug = ThreeDiPluginModelValidator.get_result_slug(result_item.path)
@@ -169,7 +169,7 @@ class ThreeDiPluginModelValidator(QObject):
         logger.info(f"Comparing grid slug: {grid_model_slug} to result slug: {result_model_slug}")
 
         if not grid_model_slug or not result_model_slug:
-            msg = "No model meta information in result or grid, skipping slug validation."
+            msg = "Unable to determine to which 3Di model this computational grid or result belongs"
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5)
         elif result_model_slug != grid_model_slug:
             # Really wrong grid, find a grid with the right slug, if not available, abort with pop-up
@@ -178,15 +178,15 @@ class ThreeDiPluginModelValidator(QObject):
                 other_grid_item = root_node.child(i)
                 other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(other_grid_item.path)
 
-                print("comparing result slug to other grids agian")
+                print("comparing result slug to other grids again")
                 if result_model_slug == other_grid_model_slug:
-                    messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Found other corresponding grid with slug {other_grid_model_slug}, setting that grid as parent.", Qgis.Warning, 5)
+                    messagebar_message(TOOLBOX_MESSAGE_TITLE, f"Result attached to computational grid that was already loaded.", Qgis.Warning, 5)
 
                     # Propagate the result with the new parent grid
                     self.result_valid.emit(result_item, other_grid_item)
                     return True
 
-            msg = "Result corresponds to different model than loaded grids, removed from Results Manager"
+            msg = "No computational grid for this result could be found, cannot load this result."
             pop_up_critical(msg)
             return fail(msg)
 

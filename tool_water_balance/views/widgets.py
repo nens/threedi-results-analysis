@@ -51,7 +51,7 @@ import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
 
-MSG_TITLE = "Water Balance Tool"
+MSG_TITLE = "Water balance tool"
 QCOLOR_RED = QColor(255, 0, 0)
 POLYGON_TYPES = {
     QgsWkbTypes.Polygon,
@@ -340,7 +340,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         self.showGrid(True, True, 0.5)
         self.hideButtons()
         self.setLabel("bottom", "time", "hrs")
-        self.setLabel("left", "flow", "m3/s")
+        self.setLabel("left", "flow", "m³/s")
         # Auto SI prefix scaling doesn't work properly with m3, m2 etc.
         self.getAxis("left").enableAutoSIPrefix(False)
 
@@ -496,7 +496,7 @@ class WaterBalanceWidget(QDockWidget):
         self.selection_vis = SelectionVisualisation(iface.mapCanvas())
 
         # fill comboboxes with selections
-        self.agg_combo_box.insertItems(0, ["m3/s", "m3 cumulative"])
+        self.agg_combo_box.insertItems(0, ["m³/s", "m³ cumulative"])
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
 
         # add listeners
