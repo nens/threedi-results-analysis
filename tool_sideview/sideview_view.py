@@ -69,15 +69,15 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.setLabel("bottom", "Distance", "m")
         self.setLabel("left", "Elevation", "m MSL")
 
-        pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
+        pen = pg.mkPen(color=QColor(200, 200, 200), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         # Used for intersection dots with horizontal lines
-        self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=7)
+        self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(200, 200, 200), symbolSize=7)
         # Used for intersection dots with waterlevel lines
-        self.node_indicator_water_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=7)
+        self.node_indicator_water_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(200, 200, 200), symbolSize=7)
 
-        pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
+        pen = pg.mkPen(color=QColor(200, 200, 200), width=2)
         self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.sewer_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
@@ -85,7 +85,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.sewer_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.sewer_exchange_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(190, 190, 190), width=2)
+        pen = pg.mkPen(color=QColor(200, 200, 200), width=2)
         self.channel_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(150, 75, 0), width=4)
@@ -113,7 +113,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, LOWER_LIMIT), (10000, LOWER_LIMIT)]), pen=pen)
         self.bottom_fill = pg.FillBetweenItem(
-            self.bottom_plot, self.absolute_bottom, pg.mkBrush(240, 240, 240)
+            self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
         # Add some structure specific fills
