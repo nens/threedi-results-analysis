@@ -295,14 +295,14 @@ class ThreeDiPluginLayerManager(QObject):
 
     @staticmethod
     def _generate_gpkg(path_h5, path_gpkg) -> None:
-        progress_bar = StatusProgressBar(100, "Generating geopackage")
+        progress_bar = StatusProgressBar(100, "Generating computational grid geopackage")
         exporter = GeopackageExporter(path_h5.open('rb'), str(path_gpkg))
         exporter.export(
             lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
         )
         del progress_bar
 
-        messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated geopackage")
+        messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated computational grid geopackage")
 
     @staticmethod
     def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
@@ -318,7 +318,7 @@ class ThreeDiPluginLayerManager(QObject):
         # Use to modify grid name when LayerGroup is renamed
         item.layer_group.nameChanged.connect(lambda node, txt, grid_item=item: ThreeDiPluginLayerManager._layer_node_renamed(node, txt, grid_item))
 
-        progress_bar = StatusProgressBar(len(gpkg_layers) - 1, "Adding layers")
+        progress_bar = StatusProgressBar(len(gpkg_layers) - 1, "Adding computational grid layers")
         for layer_name, table_name in gpkg_layers.items():
 
             # QGIS does save memory layers to the project file (but without the data)

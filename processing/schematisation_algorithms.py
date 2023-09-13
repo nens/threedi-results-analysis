@@ -83,8 +83,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
             shutil.rmtree(os.path.dirname(backup_filepath))
         except errors.UpgradeFailedError:
             feedback.pushWarning(
-                "There are errors in the spatialite. Please re-open this file in QGIS 3.16, run the model checker and "
-                "fix error messages. Then attempt to upgrade again. For questions please contact the servicedesk."
+                "The spatialite database schema cannot be migrated to the current version. Please contact the service desk for assistance."
             )
             return {self.OUTPUT: None}
         success = True

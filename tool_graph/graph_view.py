@@ -967,7 +967,7 @@ class GraphDockWidget(QDockWidget):
 
         # add dockwidget
         self.setWidget(self.dockWidgetContent)
-        self.setWindowTitle("3Di Time Series Plot %i" % self.nr)
+        self.setWindowTitle("3Di Time series plot %i" % self.nr)
         QMetaObject.connectSlotsByName(self)
 
     def _changeFlowlineSelectionMode(self, single_pick_selected: bool) -> None:

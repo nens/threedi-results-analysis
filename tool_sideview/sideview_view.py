@@ -67,7 +67,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.showGrid(False, True, 0.5)
         self.setLabel("bottom", "Distance", "m")
-        self.setLabel("left", "Height", "m MSL")
+        self.setLabel("left", "Elevation", "m MSL")
 
         pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -666,7 +666,7 @@ class SideViewDockWidget(QDockWidget):
         self.select_grid_combobox.setItemText(idx, item.text())
         item_id = self.select_grid_combobox.itemData(idx)
         if self.current_grid_id == item_id:
-            self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {item.text()}")
+            self.setWindowTitle(f"3Di Side View {self.nr}: {item.text()}")
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_added(self, item: ThreeDiGridItem):
@@ -685,7 +685,7 @@ class SideViewDockWidget(QDockWidget):
             self.deinitialize_route()
             # Removes all plots from table
             self.sideview_result_model.clear()
-            self.setWindowTitle(f"3Di Sideview Plot {self.nr}:")
+            self.setWindowTitle(f"3Di Side View {self.nr}:")
 
         self.select_grid_combobox.removeItem(idx)
 
@@ -699,7 +699,7 @@ class SideViewDockWidget(QDockWidget):
         grid = self.model.get_grid(item_id)
         assert grid
         self.initialize_route(grid)
-        self.setWindowTitle(f"3Di Sideview Plot {self.nr}: {grid.text()}")
+        self.setWindowTitle(f"3Di Side view {self.nr}: {grid.text()}")
 
     def result_item_toggled(self, _: QStandardItem):
         # For now, just rebuild and redraw the whole sideview, taking into account new checks
@@ -716,7 +716,7 @@ class SideViewDockWidget(QDockWidget):
             # Route tool is unset, clean up virtual tree and current route
             self.route.reset()
             self.map_visualisation.reset()
-            self.select_sideview_button.setText("Choose sideview trajectory")
+            self.select_sideview_button.setText("Choose side view trajectory")
 
     def toggle_route_tool(self):
         if self.current_grid_id is None:
@@ -856,7 +856,7 @@ class SideViewDockWidget(QDockWidget):
 
         success, msg = self.route.add_point(next_point)
 
-        self.select_sideview_button.setText("Continue sideview trajectory")
+        self.select_sideview_button.setText("Continue side view trajectory")
         if not success:
             messagebar_message("Sideview", msg, 0, 3)
             return
@@ -869,7 +869,7 @@ class SideViewDockWidget(QDockWidget):
         self.map_visualisation.reset()
         # Also removes all waterlevel plots
         self.side_view_plot_widget.set_sideprofile([], None)
-        self.select_sideview_button.setText("Choose sideview trajectory")
+        self.select_sideview_button.setText("Choose side view trajectory")
 
     def update_dots(self, state):
         # Just redraw the whole thing for now
@@ -899,7 +899,7 @@ class SideViewDockWidget(QDockWidget):
     def setup_ui(self):
 
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowTitle(f"3Di Sideview Plot {self.nr}: ")
+        self.setWindowTitle(f"3Di Side view {self.nr}: ")
 
         self.dock_widget_content = QWidget(self)
 
@@ -909,9 +909,9 @@ class SideViewDockWidget(QDockWidget):
         self.button_bar_hlayout = QHBoxLayout(self)
         self.button_bar_hlayout.setSpacing(10)
 
-        self.select_sideview_button = QPushButton("Choose sideview trajectory", self.dock_widget_content)
+        self.select_sideview_button = QPushButton("Choose side view trajectory", self.dock_widget_content)
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
-        self.reset_sideview_button = QPushButton("Reset sideview trajectory", self.dock_widget_content)
+        self.reset_sideview_button = QPushButton("Reset side view trajectory", self.dock_widget_content)
         self.select_sideview_button.setEnabled(False)
         self.reset_sideview_button.setEnabled(False)
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
@@ -921,7 +921,7 @@ class SideViewDockWidget(QDockWidget):
         self.button_bar_hlayout.addWidget(self.show_nodes_checkbox)
         spacer_item = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
-        self.button_bar_hlayout.addWidget(QLabel("Grid: ", self.dock_widget_content))
+        self.button_bar_hlayout.addWidget(QLabel("Computational grid: ", self.dock_widget_content))
         self.select_grid_combobox = QComboBox(self.dock_widget_content)
         self.button_bar_hlayout.addWidget(self.select_grid_combobox)
         self.main_vlayout.addItem(self.button_bar_hlayout)

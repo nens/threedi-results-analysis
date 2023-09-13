@@ -169,7 +169,7 @@ def ensure_everything_installed():
 
                 pop_up_info(
                     "Please restart QGIS to complete the installation process of "
-                    "3Di Toolbox.",
+                    "3Di Results Analysis.",
                     title="Restart required",
                 )
                 restart_marker.touch()

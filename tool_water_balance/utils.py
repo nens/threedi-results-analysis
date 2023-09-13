@@ -167,7 +167,7 @@ class WrappedResult:
     def _pop_up_no_agg_found(self):
         header = "Error: No aggregation netcdf found"
         msg = (
-            "The WaterBalanceTool requires an 'aggregate_results_3di.nc' "
+            "The Water balance tool requires an 'aggregate_results_3di.nc' "
             "but this file could not be found. Please make sure you run "
             "your simulation using the 'v2_aggregation_settings' table "
             "with the following variables:"
@@ -193,7 +193,7 @@ class WrappedResult:
     def _pop_up_missing_agg_vars(self, missing_vars):
         header = "Error: Missing aggregation settings"
         msg = (
-            "The WaterBalanceTool found the 'aggregate_results_3di.nc' but "
+            "The Water balance tool found the 'aggregate_results_3di.nc' but "
             "the file does not include all required aggregation "
             "variables. Please add them to the sqlite table "
             "'v2_aggregation_settings' and run your simulation again. The "

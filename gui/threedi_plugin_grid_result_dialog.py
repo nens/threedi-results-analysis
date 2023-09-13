@@ -196,7 +196,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.model.setHorizontalHeaderLabels(self.header_labels)
         threedi_working_dir = QgsSettings().value("threedi/working_dir", "")
         if not threedi_working_dir:
-            pop_up_critical("3Di Models & Simulations working directory not yet set.")
+            pop_up_critical("3Di Working Directory not yet set. Please set this in the 3Di Models & Simulations settings.")
             return
 
         local_schematisations = list_local_schematisations(threedi_working_dir)
