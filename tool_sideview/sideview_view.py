@@ -72,8 +72,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
-        self.node_indicator_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         # Used for intersection dots with horizontal lines
         self.node_indicator_intersection_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(210, 210, 210), symbolSize=7)
         # Used for intersection dots with waterlevel lines
@@ -155,7 +153,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_upper_plot)
         self.addItem(self.orifice_middle_plot)
         self.addItem(self.orifice_top_plot)
-        self.addItem(self.node_indicator_plot)
         self.addItem(self.node_indicator_intersection_plot)
         self.addItem(self.node_indicator_water_intersection_plot)
         self.addItem(self.orifice_full_fill)
@@ -183,7 +180,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.orifice_top_plot.setZValue(10)
 
         self.exchange_plot.setZValue(100)
-        self.node_indicator_plot.setZValue(55)
         self.node_indicator_intersection_plot.setZValue(55)
         self.node_indicator_water_intersection_plot.setZValue(55)
         self.orifice_full_fill.setZValue(20)
@@ -409,11 +405,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node_indicator_table.append((node["distance"], LOWER_LIMIT))
                 node_indicator_table.append((node["distance"], UPPER_LIMIT))
 
-            if self.show_dots:
-                self.node_indicator_plot.setData(np.array(node_indicator_table, dtype=float), connect="pairs")
-            else:
-                self.node_indicator_plot.setData(np.array([(0.0, np.nan)], dtype=float), connect="pairs")
-
             # Determine intersections between vertical node lines and horizontal lines
             if self.show_dots:
                 horizontal_lines = [exchange_line, upper_line, ts_table]
@@ -466,7 +457,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_upper_plot.setData(ts_table)
             self.orifice_middle_plot.setData(ts_table)
             self.exchange_plot.setData(ts_table)
-            self.node_indicator_plot.setData(ts_table)
             self.node_indicator_intersection_plot.setData(ts_table)
             self.node_indicator_water_intersection_plot.setData(ts_table)
 
