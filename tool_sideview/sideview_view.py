@@ -65,7 +65,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.show_dots = True
 
-        self.showGrid(False, True, 0.5)
+        self.showGrid(True, True, 0.5)
         self.setLabel("bottom", "Distance", "m")
         self.setLabel("left", "Elevation", "m MSL")
 
