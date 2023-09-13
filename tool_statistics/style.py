@@ -39,14 +39,15 @@ class Style:
         self.styling_method(qgis_layer, self.qml, **style_kwargs)
 
 
-def style_on_single_column(layer, qml: str, column: str):
+def style_on_single_column(layer, qml: str, column: str, update_classes: bool = True):
     layer.loadNamedStyle(qml)
     layer.renderer().setClassAttribute(column)
-    layer.renderer().updateClasses(
-        vlayer=layer,
-        mode=layer.renderer().mode(),
-        nclasses=len(layer.renderer().ranges()),
-    )
+    if update_classes:
+        layer.renderer().updateClasses(
+            vlayer=layer,
+            mode=layer.renderer().mode(),
+            nclasses=len(layer.renderer().ranges()),
+        )
     layer.triggerRepaint()
     utils.iface.layerTreeView().refreshLayerSymbology(layer.id())
 
@@ -245,13 +246,6 @@ def style_ts_reduction_analysis(
     utils.iface.layerTreeView().refreshLayerSymbology(layer.id())
 
 
-def style_fixed_style(layer, qml: str):
-    """ Load a style as-is. """
-    layer.loadNamedStyle(qml)
-    layer.triggerRepaint()
-    utils.iface.layerTreeView().refreshLayerSymbology(layer.id())
-
-
 STYLE_FLOW_DIRECTION = Style(
     name="Flow direction",
     output_type="flowline",
@@ -297,7 +291,12 @@ STYLE_WATER_ON_STREET_DURATION_NODE = Style(
     output_type="node",
     params={"column": "column"},
     qml="water_on_street_duration.qml",
-    styling_method=style_fixed_style,
+    styling_method=lambda layer, qml, column, update_classes=False: style_on_single_column(
+        layer,
+        qml,
+        column,
+        update_classes
+    ),
 )
 
 STYLE_CHANGE_WL = Style(
