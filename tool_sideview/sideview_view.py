@@ -203,7 +203,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.getPlotItem().autoBtn.clicked.connect(self.auto_scale)
 
     def auto_scale(self, include_waterlevels: bool = True) -> None:
-        range_plots = [self.bottom_plot, self.exchange_plot]
+        range_plots = [self.bottom_plot, self.exchange_plot, self.culvert_upper_plot]
         if include_waterlevels:
             for waterlevel_plot, _ in self.waterlevel_plots.values():
                 range_plots.append(waterlevel_plot)
