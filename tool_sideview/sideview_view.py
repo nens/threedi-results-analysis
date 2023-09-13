@@ -72,8 +72,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(0, 0, 0), width=2, style=Qt.DashLine)
-        self.node_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         pen = pg.mkPen(color=QColor(190, 190, 190), width=1)
         self.node_indicator_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         # Used for intersection dots with horizontal lines
@@ -136,7 +134,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         self.sewer_top_fill = pg.FillBetweenItem(
-            self.sewer_exchange_plot, self.sewer_top_plot, pg.mkBrush(240, 240, 240)
+            self.sewer_exchange_plot, self.sewer_top_plot, pg.mkBrush(200, 200, 200)
         )
 
         self.addItem(self.bottom_fill)
@@ -157,7 +155,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_upper_plot)
         self.addItem(self.orifice_middle_plot)
         self.addItem(self.orifice_top_plot)
-        self.addItem(self.node_plot)
         self.addItem(self.node_indicator_plot)
         self.addItem(self.node_indicator_intersection_plot)
         self.addItem(self.node_indicator_water_intersection_plot)
@@ -186,7 +183,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.orifice_top_plot.setZValue(10)
 
         self.exchange_plot.setZValue(100)
-        self.node_plot.setZValue(60)
         self.node_indicator_plot.setZValue(55)
         self.node_indicator_intersection_plot.setZValue(55)
         self.node_indicator_water_intersection_plot.setZValue(55)
@@ -408,12 +404,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_top_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
 
             # draw nodes
-            node_table = []
-            for node in self.sideview_nodes:
-                node_table.append((node["distance"], node["level"]))
-                node_table.append((node["distance"], node["level"] + node["height"]))
-            self.node_plot.setData(np.array(node_table, dtype=float), connect="pairs")
-
             node_indicator_table = []
             for node in self.sideview_nodes:
                 node_indicator_table.append((node["distance"], LOWER_LIMIT))
@@ -476,7 +466,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_upper_plot.setData(ts_table)
             self.orifice_middle_plot.setData(ts_table)
             self.exchange_plot.setData(ts_table)
-            self.node_plot.setData(ts_table)
             self.node_indicator_plot.setData(ts_table)
             self.node_indicator_intersection_plot.setData(ts_table)
             self.node_indicator_water_intersection_plot.setData(ts_table)
