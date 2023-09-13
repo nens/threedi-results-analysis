@@ -25,6 +25,7 @@ from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.utils import available_styles
 from threedi_results_analysis.utils.user_messages import messagebar_message, messagebar_pop_message
 from threedi_results_analysis.utils.widgets import PenStyleWidget
+from threedi_results_analysis.utils.color import COLOR_LIST
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from bisect import bisect_left
@@ -485,11 +486,11 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             result_id = check_item.data()
             pattern_item = self.sideview_result_model.item(row_number, 1)
-            plot_pattern = pattern_item.data()
+            plot_pattern, plot_color = pattern_item.data()
 
             logger.error(f"Retrieved result: {result_id} with pattern {plot_pattern} from model")
             # Create the waterlevel plots
-            pen = pg.mkPen(color=QColor(153, 214, 255), width=2, style=plot_pattern)
+            pen = pg.mkPen(color=plot_color, width=2, style=plot_pattern)
             water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
             water_level_plot.setZValue(100)  # always visible
             water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(0, 0, 122, 127))
@@ -795,14 +796,15 @@ class SideViewDockWidget(QDockWidget):
 
         # pick new pattern
         pattern = available_styles[self.sideview_result_model.rowCount() % 5]
+        color = COLOR_LIST[self.sideview_result_model.rowCount() % len(COLOR_LIST)]
         pattern_table_item = QStandardItem("")
         pattern_table_item.setEditable(False)
-        pattern_table_item.setData(pattern)
+        pattern_table_item.setData((pattern, color))
         self.sideview_result_model.appendRow([checkbox_table_item, pattern_table_item, result_table_item])
 
         # Add a PenStyle display in the table
         index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
-        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, QColor(153, 214, 255), self.table_view))
+        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, QColor(*color), self.table_view))
 
     def on_route_point_select(self, selected_features, clicked_coordinate):
         """Select and add the closest point from the list of selected features.
