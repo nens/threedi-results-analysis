@@ -169,7 +169,7 @@ class ThreeDiPluginModelValidator(QObject):
         logger.info(f"Comparing grid slug: {grid_model_slug} to result slug: {result_model_slug}")
 
         if not grid_model_slug or not result_model_slug:
-            msg = "Unable to determine to which 3Di model this computational grid or result belongs"
+            msg = "No grid or result slug available, unable to validate to which 3Di model this computational grid or result belongs"
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5)
         elif result_model_slug != grid_model_slug:
             # Really wrong grid, find a grid with the right slug, if not available, abort with pop-up
