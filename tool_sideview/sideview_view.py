@@ -493,7 +493,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             pen = pg.mkPen(color=plot_color, width=2, style=plot_pattern)
             water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
             water_level_plot.setZValue(100)  # always visible
-            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(0, 0, 122, 127))
+            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(plot_color[0], plot_color[1], plot_color[2], 40))
             water_fill.setZValue(0)
             self.addItem(water_level_plot)
             self.addItem(water_fill)
