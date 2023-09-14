@@ -698,10 +698,6 @@ class SideViewDockWidget(QDockWidget):
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
             self.select_sideview_button.setChecked(False)
 
-            # Route tool is unset, clean up virtual tree
-            self.route.reset()
-            self.select_sideview_button.setText("Choose side view trajectory")
-
     def toggle_route_tool(self):
         if self.current_grid_id is None:
             return

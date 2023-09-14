@@ -11,6 +11,7 @@
 - Sideview: Water colors now different for each result (#891)
 - Sideview: autoscale now takes culvert into account (#891)
 - Sideview: minor changes in look&feel (#891)
+- Sideview: current route is now kept when maptool is deselected (#891)
 
 
 3.1.8 (2023-09-04)
