@@ -25,7 +25,6 @@ from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.utils import available_styles
 from threedi_results_analysis.utils.user_messages import messagebar_message, messagebar_pop_message
 from threedi_results_analysis.utils.widgets import PenStyleWidget
-from threedi_results_analysis.utils.color import COLOR_LIST
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from bisect import bisect_left
@@ -38,6 +37,15 @@ logger = logging.getLogger(__name__)
 
 UPPER_LIMIT = 10000
 LOWER_LIMIT = -10000
+
+COLOR_LIST = [
+    (28, 180, 234), 
+    (234, 28, 178), 
+    (178, 234, 28), 
+    (86, 28, 234), 
+    (234, 86, 28), 
+    (28, 233, 86), 
+]
 
 
 class SideViewPlotWidget(pg.PlotWidget):
@@ -493,7 +501,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             pen = pg.mkPen(color=plot_color, width=2, style=plot_pattern)
             water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
             water_level_plot.setZValue(100)  # always visible
-            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(plot_color[0], plot_color[1], plot_color[2], 40))
+            water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(plot_color[0], plot_color[1], plot_color[2], 128))
             water_fill.setZValue(0)
             self.addItem(water_level_plot)
             self.addItem(water_fill)
@@ -795,7 +803,7 @@ class SideViewDockWidget(QDockWidget):
         result_table_item.setEditable(False)
 
         # pick new pattern
-        pattern = available_styles[self.sideview_result_model.rowCount() % 5]
+        pattern = Qt.SolidLine
         color = COLOR_LIST[self.sideview_result_model.rowCount() % len(COLOR_LIST)]
         pattern_table_item = QStandardItem("")
         pattern_table_item.setEditable(False)
