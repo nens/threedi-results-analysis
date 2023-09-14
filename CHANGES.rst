@@ -7,6 +7,10 @@
 
 - Validator: now reparents an added result when a grid with same slug is already present in model.
 - ThreediResult class now uses grid from parent node instead of relative (local) (#890)
+- Sideview: X marker and red path remain when different maptool is selected (#891)
+- Sideview: Water colors now different for each result (#891)
+- Sideview: autoscale now takes culvert into account (#891)
+- Sideview: minor changes in look&feel (#891)
 
 
 3.1.8 (2023-09-04)

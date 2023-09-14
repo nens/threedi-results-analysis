@@ -24,6 +24,7 @@ class SideViewMapVisualisation(object):
 
         self.point_markers = []
         self.active_route = None
+        self.last_path = None
 
         self.hover_marker = QgsVertexMarker(self.iface.mapCanvas())
         self.hover_marker.setIconType(QgsVertexMarker.ICON_X)
@@ -45,6 +46,8 @@ class SideViewMapVisualisation(object):
             self.graph_layer_crs, QgsProject.instance().crs(), QgsProject.instance()
         )
 
+        self.last_path = route.path.copy()
+
         for pnt in route.path_vertexes:
             t_pnt = transform.transform(pnt)
             self.rb.addPoint(t_pnt)
@@ -61,6 +64,7 @@ class SideViewMapVisualisation(object):
     def reset(self):
         self.rb.reset()
         self.active_route = None
+        self.last_path = None
 
         for marker in self.point_markers:
             self.iface.mapCanvas().scene().removeItem(marker)
@@ -84,7 +88,11 @@ class SideViewMapVisualisation(object):
         elif (len(self.active_route.path) > 0 and meters_from_start > self.active_route.path[-1][-1][1]):
             meters_from_start = self.active_route.path[-1][-1][1]
 
-        for route_part in self.active_route.path:
+        path = self.active_route.path if len(self.active_route.path) > 0 else self.last_path
+        if not path:
+            return
+
+        for route_part in path:
             if meters_from_start <= route_part[-1][1]:
                 for (begin_dist, end_dist, direction, feature) in Route.aggregate_route_parts(route_part):
                     if meters_from_start <= end_dist:
