@@ -7,7 +7,6 @@ from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
 from qgis.core import QgsProject
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
@@ -257,7 +256,7 @@ class LocationTimeseriesTable(QTableView):
     hoverExitRow = pyqtSignal(int)
     hoverExitAllRows = pyqtSignal()  # exit the whole widget
     hoverEnterRow = pyqtSignal(int, str, ThreeDiResultItem)
-    deleteRequested = pyqtSignal(QModelIndex)
+    deleteRequested = pyqtSignal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -273,15 +272,12 @@ class LocationTimeseriesTable(QTableView):
         self.viewport().installEventFilter(self)
 
     def customMenuRequested(self, pos):
-        index = self.indexAt(pos)
+        selectionModel = self.selectionModel()
         menu = QMenu(self)
         action_delete = QAction("Delete", self)
-        action_delete.triggered.connect(lambda checked, sel_index=index: self.customMenuDeleteRequested(checked, sel_index))
+        action_delete.triggered.connect(lambda _, sel_inx=selectionModel.selectedRows(): self.deleteRequested.emit(sel_inx))
         menu.addAction(action_delete)
         menu.popup(self.viewport().mapToGlobal(pos))
-
-    def customMenuDeleteRequested(self, checked: bool, index):
-        self.deleteRequested.emit(index)
 
     def on_close(self):
         """
@@ -414,7 +410,7 @@ class GraphWidget(QWidget):
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.showFullLegendCheckbox.stateChanged.connect(self._updateHiddenColumns)
-        self.location_timeseries_table.deleteRequested.connect(lambda index: self.location_model.removeRows(index.row(), 1))
+        self.location_timeseries_table.deleteRequested.connect(self._removeRows)
 
         # init parameter selection
         self.set_parameter_list(parameter_config)
@@ -422,6 +418,13 @@ class GraphWidget(QWidget):
         self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
+
+    def _removeRows(self, index_list):
+        # Also here, remove in decreasing order to keep table idx valid
+        row_list = [index.row() for index in index_list]
+        row_list.sort(reverse=True)
+        for row in row_list:
+            self.location_model.removeRows(row, 1)
 
     def _updateHiddenColumns(self, state):
         if state == Qt.Unchecked:

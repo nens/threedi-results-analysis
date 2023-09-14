@@ -12,6 +12,7 @@
 - Sideview: autoscale now takes culvert into account (#891)
 - Sideview: minor changes in look&feel (#891)
 - Sideview: current route is now kept when maptool is deselected (#891)
+- Graph: added batch delete option (#884)
 
 
 3.1.8 (2023-09-04)
