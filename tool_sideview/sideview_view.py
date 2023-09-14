@@ -22,7 +22,6 @@ from shapely.geometry import LineString, Point
 from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import LineType
-from threedi_results_analysis.tool_sideview.utils import available_styles
 from threedi_results_analysis.utils.user_messages import messagebar_message, messagebar_pop_message
 from threedi_results_analysis.utils.widgets import PenStyleWidget
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
@@ -39,12 +38,12 @@ UPPER_LIMIT = 10000
 LOWER_LIMIT = -10000
 
 COLOR_LIST = [
-    (28, 180, 234), 
-    (234, 28, 178), 
-    (178, 234, 28), 
-    (86, 28, 234), 
-    (234, 86, 28), 
-    (28, 233, 86), 
+    (28, 180, 234),
+    (234, 28, 178),
+    (178, 234, 28),
+    (86, 28, 234),
+    (234, 86, 28),
+    (28, 233, 86),
 ]
 
 
