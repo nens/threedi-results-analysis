@@ -1,27 +1,26 @@
 3Di Results Analysis Tool
 ==============
 
+Analyse `3Di`_ results and visualize computational grids in the 3Di Modeller Interface.
+A QGIS plugin for analying 3Di results and visualize computational grids in the 3Di Modeller Interface.
 
-A QGIS plugin with tools for working with models and netCDF results from
-`3Di`_ hydraulic/hydrologic modelling software.
+.. _`3Di`: https://3diwatermanagement.com/
 
-.. _`3Di`: http://www.3di.nu/
+  The tools that this plugin provides allow you to:
 
-The main features are:
-
-- Visualization of model network structure and discretization
-- Time series visualization
-- Sideviews
-- Visualize results spatially
-- An extensible toolbox with custom Python scripts (for e.g. statistical analysis)
-- Import of sufhyd files
+    - Make (maximum) water depth or water level rasters from raw 3Di simulation results.
+    - Visualize results on the map canvas for a specific timestep
+    - Plot timeseries of discharge, water level or any other variable in a graph
+    - Make side view plots of water levels and water level gradients at any time during the simulation
+    - Calculate the water balance for any given area in the model domain
+    - Calculate aggregated results such as maximum water level per node or total discharge per flowline
+    - Calculate the total discharge crossing a user-defined line
+    - Find the upstream or downstream area for any node or group of nodes
 
 Installation on windows
 -----------------------
 
-You need to install Qgis 3.22.16+ (the "long term release"). Either the
-stand-alone installer or the osgeo4w install is fine. For osgeo4w, pick the
-"qgis LTR full" version.
+You need to install Qgis 3.28.5+ (the "long term release") at qgis.org. 
 
 Add the Lizard QGIS repository: via the QGIS menu bar go to "Plugins > Manage
 And Install Plugins... > Settings". Add
@@ -29,8 +28,7 @@ And Install Plugins... > Settings". Add
 selecting 3Di Results Analysis.
 
 The extra dependencies that we need are bundled with the plugins and
-automatically installed into the ``python\`` directory of your qgis profile.
-
+automatically installed into the ``deps`` directory of the plugin in your qgis profile.
 
 Installation on linux
 ---------------------
@@ -53,32 +51,16 @@ plugins and automatically installed into the ``python\\`` directory of your
 qgis profile.
 
 
-Installation on OSX
--------------------
-
-Running the plugin on OSX *should* be possible, but you need to make sure to
-install qgis LTR with gdal, numpy and h5py.
-
-
 Local development
 -----------------
 
-Local development happens with docker to make sure we're working in a nicely
+On Linux, local development happens with docker to make sure we're working in a nicely
 isolated environment. So first build the docker::
 
   $ docker-compose build
 
-If your user ID isn't ``1000``, you can run it like this::
-
-  $ docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
-
 The docker-qgis's settings are persisted in a "named docker volume",
 ``qgis-docker``. To wipe it clean, run ``docker-compose down -v``.
-
-The tests that run on github cache the docker image that is being build
-in order to shave 5 minutes off the test duration. The image is automatically
-rebuild when the ``Dockerfile``, ``docker-compose.yml`` or one of the two
-`requirements` files changes.
 
 To run the full tests including coverage report and flake8::
 
