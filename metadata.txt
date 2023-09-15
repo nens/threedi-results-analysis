@@ -6,10 +6,23 @@ version=3.1.9
 author=3Di Water Management
 email=servicedesk@nelen-schuurmans.nl
 
-about=EXPERIMENTAL VERSION, USE FOR TESTING PURPOSES ONLY.
-	This plugin will replace the 3Di Toolbox in the future. At this moment, only a subset of the functionality of the 3Di Toolbox has been inplemented in 3Di Results Analysis.
-	Analyse 3Di results and visualize computational grids in the Modeller Interface. Visualize results on the map canvas for a specific timestep, plot timeseries of discharge, water level or any other variable in a graph, make side view plots of water levels and water level gradients at any time during the simulation, calculate the water balance for any given area in the model domain, calculate aggregated results such as maximum water level per node or total discharge per flowline, find the upstream or downstream area for any node or group of nodes.
-	For questions on 3Di or the use of this plugin please contact us via servicedesk@nelen-schuurmans.nl 
+about=Analyse 3Di results and visualize computational grids in the 3Di Modeller Interface.
+
+    The tools that this plugin provides allow you to:
+
+    - Make (maximum) water depth or water level rasters from raw 3Di simulation results.
+    - Visualize results on the map canvas for a specific timestep
+    - Plot timeseries of discharge, water level or any other variable in a graph
+    - Make side view plots of water levels and water level gradients at any time during the simulation
+    - Calculate the water balance for any given area in the model domain
+    - Calculate aggregated results such as maximum water level per node or total discharge per flowline
+    - Calculate the total discharge crossing a user-defined line
+    - Find the upstream or downstream area for any node or group of nodes
+
+
+    This plugin replaces the 3Di Toolbox plugin. See the transition guide: https://docs.3di.live/i_transition_from_3di_toolbox.html
+    
+    For questions on 3Di or the use of this plugin please contact us via servicedesk@nelen-schuurmans.nl 
 
 tracker=https://github.com/nens/ThreeDiToolbox
 repository=https://github.com/nens/ThreeDiToolbox
