@@ -19,6 +19,9 @@ about=Analyse 3Di results and visualize computational grids in the 3Di Modeller 
     - Calculate the total discharge crossing a user-defined line
     - Find the upstream or downstream area for any node or group of nodes
 
+
+    This plugin replaces the 3Di Toolbox plugin. See the transition guide: https://docs.3di.live/i_transition_from_3di_toolbox.html
+    
     For questions on 3Di or the use of this plugin please contact us via servicedesk@nelen-schuurmans.nl 
 
 tracker=https://github.com/nens/ThreeDiToolbox
