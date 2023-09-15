@@ -6,16 +6,15 @@ A QGIS plugin for analying 3Di results and visualize computational grids in the 
 
 .. _`3Di`: https://3diwatermanagement.com/
 
-  The tools that this plugin provides allow you to:
-
-    - Make (maximum) water depth or water level rasters from raw 3Di simulation results.
-    - Visualize results on the map canvas for a specific timestep
-    - Plot timeseries of discharge, water level or any other variable in a graph
-    - Make side view plots of water levels and water level gradients at any time during the simulation
-    - Calculate the water balance for any given area in the model domain
-    - Calculate aggregated results such as maximum water level per node or total discharge per flowline
-    - Calculate the total discharge crossing a user-defined line
-    - Find the upstream or downstream area for any node or group of nodes
+The tools that this plugin provides allow you to:
+- Make (maximum) water depth or water level rasters from raw 3Di simulation results.
+- Visualize results on the map canvas for a specific timestep
+- Plot timeseries of discharge, water level or any other variable in a graph
+- Make side view plots of water levels and water level gradients at any time during the simulation
+- Calculate the water balance for any given area in the model domain
+- Calculate aggregated results such as maximum water level per node or total discharge per flowline
+- Calculate the total discharge crossing a user-defined line
+- Find the upstream or downstream area for any node or group of nodes
 
 Installation on windows
 -----------------------
