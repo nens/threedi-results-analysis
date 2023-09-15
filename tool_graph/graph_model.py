@@ -3,7 +3,6 @@ from random import randint
 from threedi_results_analysis.models.base import BaseModel
 from threedi_results_analysis.models.base_fields import CheckboxField, CHECKBOX_FIELD
 from threedi_results_analysis.models.base_fields import ValueField
-from typing import Dict
 
 import logging
 import numpy as np
@@ -41,19 +40,20 @@ def select_default_color(item_field):
 class LocationTimeseriesModel(BaseModel):
     """Model implementation for (selected objects) for display in graph"""
 
-    feature_color_map: Dict[int, int] = {}
+    feature_color_map = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_color(self, idx: int) -> QColor:
+    def get_color(self, idx: int, layer_id: str) -> QColor:
+        key = (idx, layer_id)
         if not self.feature_color_map:
-            self.feature_color_map[idx] = 0
-        elif idx not in self.feature_color_map:
+            self.feature_color_map[key] = 0
+        elif key not in self.feature_color_map:
             # pick next color from COLOR_LIST
-            self.feature_color_map[idx] = ((max(self.feature_color_map.values())+1) % len(COLOR_LIST))
+            self.feature_color_map[key] = ((max(self.feature_color_map.values())+1) % len(COLOR_LIST))
 
-        return COLOR_LIST[self.feature_color_map[idx]]
+        return COLOR_LIST[self.feature_color_map[key]]
 
     def flags(self, index):
 

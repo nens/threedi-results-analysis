@@ -703,7 +703,7 @@ class GraphWidget(QWidget):
                         "object_name": new_object_name,
                         "object_label": f"{result_item.parent().text()} | {result_item.text()} | ID: {new_idx}",
                         "result": result_item,
-                        "color": self.location_model.get_color(new_idx),
+                        "color": self.location_model.get_color(new_idx, layer.id()),
                     }
                     new_items.append(item)
 
