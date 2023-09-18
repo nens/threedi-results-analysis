@@ -108,7 +108,7 @@ def style_change_water_level(layer, qml: str, first: str, last: str):
 
     layer.loadNamedStyle(qml)
     class_attribute_string = (
-        f"((coalesce({last}, z_coordinate))-(coalesce({first}, z_coordinate)))"
+        f"((coalesce({last}, bottom_level))-(coalesce({first}, bottom_level)))"
     )
     layer.renderer().setClassAttribute(class_attribute_string)
     # layer.renderer().deleteAllClasses()

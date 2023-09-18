@@ -104,8 +104,8 @@ change_wl_aggregations = [
 CHANGE_WL_PRESETS = Preset(
     name="Change in water level",
     description="Calculates the difference in water level (last - first). In the styling "
-    "NULL values (when the cell is dry) are replaced by the cells lowest "
-    "pixel elevation (z_coordinate).",
+    "NULL values (when the cell is dry) are replaced by the cell's lowest "
+    "pixel elevation (bottom_level).",
     aggregations=change_wl_aggregations,
     cells_style=STYLE_CHANGE_WL,
     cells_style_param_values={"first": "s1_first", "last": "s1_last"},
@@ -256,7 +256,7 @@ water_on_street_aggregations = [
 
 WATER_ON_STREET_DURATION_PRESET = Preset(
     name="Water on street duration",
-    description="Duration of waterlevel above manhole drain level.",
+    description="Duration of water level above manhole drain level.",
     aggregations=water_on_street_aggregations,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold"},
