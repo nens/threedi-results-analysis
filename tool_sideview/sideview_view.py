@@ -93,9 +93,10 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.channel_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(150, 75, 0), width=4)
+        pen = pg.mkPen(color=QColor(255, 192, 203), width=4)
         self.culvert_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.culvert_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.culvert_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(255, 0, 0), width=1)
         self.weir_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -129,6 +130,14 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_top_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
         )
 
+        self.culvert_opening_fill = pg.FillBetweenItem(
+            self.culvert_upper_plot, self.culvert_bottom_plot, pg.mkBrush(255, 192, 203)
+        )
+
+        self.culvert_full_fill = pg.FillBetweenItem(
+            self.culvert_top_plot, self.culvert_upper_plot, pg.mkBrush(255, 20, 147)
+        )
+
         self.weir_opening_fill = pg.FillBetweenItem(
             self.weir_upper_plot, self.weir_middle_plot, pg.mkBrush(250, 217, 213)
         )
@@ -150,6 +159,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.channel_bottom_plot)
         self.addItem(self.culvert_bottom_plot)
         self.addItem(self.culvert_upper_plot)
+        self.addItem(self.culvert_top_plot)
         self.addItem(self.weir_bottom_plot)
         self.addItem(self.weir_middle_plot)
         self.addItem(self.weir_upper_plot)
@@ -163,6 +173,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_opening_fill)
         self.addItem(self.weir_full_fill)
         self.addItem(self.weir_opening_fill)
+        self.addItem(self.culvert_full_fill)
+        self.addItem(self.culvert_opening_fill)
         self.addItem(self.exchange_plot)
 
         # Set the z-order of the curves (note that fill take minimum of its two defining curve as z-value)
@@ -174,6 +186,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.channel_bottom_plot.setZValue(10)
         self.culvert_bottom_plot.setZValue(10)
         self.culvert_upper_plot.setZValue(10)
+        self.culvert_top_plot.setZValue(10)
         self.weir_bottom_plot.setZValue(10)
         self.weir_middle_plot.setZValue(10)
         self.weir_upper_plot.setZValue(10)
@@ -189,6 +202,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.orifice_opening_fill.setZValue(21)
         self.weir_full_fill.setZValue(20)
         self.weir_opening_fill.setZValue(21)
+        self.culvert_full_fill.setZValue(20)
+        self.culvert_opening_fill.setZValue(21)
         self.bottom_fill.setZValue(3)
         self.sewer_top_fill.setZValue(3)
 
@@ -224,7 +239,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         upper_line = []  # Top of structures
         middle_line = []  # Typically crest-level
         exchange_line = []  # exchange level
-        upper_limit_line = []  # For top fill of weirs and orifices
+        upper_limit_line = []  # For top fill of weirs, orifices and culverts
 
         self.current_grid_id = current_grid.id if current_grid else None
 
@@ -270,6 +285,11 @@ class SideViewPlotWidget(pg.PlotWidget):
                         else:
                             upper_limit_line.append((begin_dist, UPPER_LIMIT, ltype))
                             upper_limit_line.append((end_dist, UPPER_LIMIT, ltype))
+                    elif ltype == LineType.CULVERT:
+                        upper_line.append((begin_dist, begin_level + begin_height, ltype))
+                        upper_line.append((end_dist, end_level + end_height, ltype))
+                        upper_limit_line.append((begin_dist, UPPER_LIMIT, ltype))
+                        upper_limit_line.append((end_dist, UPPER_LIMIT, ltype))
                     else:
                         upper_line.append((begin_dist, begin_level + begin_height, ltype))
                         upper_line.append((end_dist, end_level + end_height, ltype))
@@ -399,6 +419,9 @@ class SideViewPlotWidget(pg.PlotWidget):
             for point in upper_limit_line:
                 tables[point[2]].append((point[0], point[1]))
 
+            logger.info("---------")
+            logger.info(tables[LineType.CULVERT])
+            self.culvert_top_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
             self.weir_top_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
             self.orifice_top_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
 
