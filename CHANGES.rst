@@ -14,6 +14,7 @@
 - Sideview: current route is now kept when maptool is deselected (#891)
 - Graph: added batch delete option (#884)
 - Graph: features with same id, but different layer should have different color (#895)
+- Removed BaseDataSource abstract class
 
 
 3.1.8 (2023-09-04)
