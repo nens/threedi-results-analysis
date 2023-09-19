@@ -1,6 +1,5 @@
 from threedigrid.admin import gridresultadmin
 from threedigrid.admin.constants import NO_DATA_VALUE
-from threedi_results_analysis.datasource import base
 from threedi_results_analysis.datasource.threedi_results import find_aggregation_netcdf
 from threedi_results_analysis.datasource.threedi_results import normalized_object_type
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
@@ -314,40 +313,6 @@ def test_available_vars(threedi_result):
     }
     expected = normal_vars | agg_vars
     assert set(actual) == expected
-
-
-def test_base_data_source_is_abstract():
-    # A concrete class needs to implement the abstract properties and methods
-    # defined in the abstract base class.
-    class ConcreteDataSource(base.BaseDataSource):
-        pass
-
-    with pytest.raises(TypeError):
-        # TypeError: Can't instantiate abstract class ConcreteDataSource with
-        # abstract methods __init__, available_aggregation_vars, etc
-        ConcreteDataSource()
-
-
-def test_base_data_source_can_be_implemented():
-    class ConcreteDataSource(base.BaseDataSource):
-        available_subgrid_map_vars = None
-        available_aggregation_vars = None
-
-        def __init__(self):
-            pass
-
-        def get_timeseries(self):
-            # Note: the abstract base class mechanism doesn't check the signature!
-            pass  # pragma: no cover
-
-        def get_timestamps(self):
-            pass  # pragma: no cover
-
-        def get_values_by_timestep_nr(self):
-            pass  # pragma: no cover
-
-    instance = ConcreteDataSource()
-    assert instance
 
 
 def test_normalized_object_type1():

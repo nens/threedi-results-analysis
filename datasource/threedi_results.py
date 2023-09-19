@@ -1,6 +1,5 @@
 from functools import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
-from threedi_results_analysis.datasource.base import BaseDataSource
 from threedi_results_analysis.datasource.result_constants import LAYER_OBJECT_TYPE_MAPPING
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
 from threedigrid.admin.gridadmin import GridH5Admin
@@ -24,7 +23,7 @@ def normalized_object_type(current_layer_name):
         return None
 
 
-class ThreediResult(BaseDataSource):
+class ThreediResult():
     """Provides access to result data of a 3Di simulation
 
     Result data of 3di is stored in netcdf4. Two types of result data

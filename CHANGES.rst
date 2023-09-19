@@ -14,6 +14,7 @@
 - Sideview: current route is now kept when maptool is deselected (#891)
 - Graph: added batch delete option (#884)
 - Graph: features with same id, but different layer should have different color (#895)
+- Removed BaseDataSource abstract class
 - Statistics: fix python error with "Bed level gradient" (#876)
 - Statistics: assume has_interflow for older models (#889)
 - Visualization: Remove legend subgroup hidden feature (#769)
