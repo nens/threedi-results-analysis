@@ -791,7 +791,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.gr:
             if self.gr.has_simple_infiltration:
                 containing_information.append(VR_SIMPLE_INFILTRATION)
-            if self.gr.has_interflow:
+            if getattr(self.gr, "has_interflow", True):
+                containing_information.append(VR_INTERFLOW)
+            elif self.gr.has_interflow:
                 containing_information.append(VR_INTERFLOW)
             if self.gr.has_interception:
                 containing_information.append(VR_INTERCEPTION)
