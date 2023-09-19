@@ -15,6 +15,8 @@
 - Graph: added batch delete option (#884)
 - Graph: features with same id, but different layer should have different color (#895)
 - Removed BaseDataSource abstract class
+- Statistics: fix python error with "Bed level gradient" (#876)
+- Visualization: Remove legend subgroup hidden feature (#769)
 
 
 3.1.8 (2023-09-04)

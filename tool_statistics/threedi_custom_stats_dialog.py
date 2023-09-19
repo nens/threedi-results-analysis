@@ -839,7 +839,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
             # Threshold
             threshold_widget = self.tableWidgetAggregations.cellWidget(row, 3)
-            if method.threshold_sources:
+            if method is not None and method.threshold_sources:
                 threshold = threshold_widget.currentText()
             else:
                 threshold = threshold_widget.value()

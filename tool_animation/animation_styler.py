@@ -1,4 +1,3 @@
-from functools import partial
 from pathlib import Path
 from typing import List
 import logging
@@ -7,8 +6,6 @@ import numpy as np
 
 from qgis.core import QgsMarkerSymbol
 from qgis.core import QgsProperty
-from qgis.core import QgsRuleBasedRenderer
-from qgis.core import QgsSettings
 from qgis.core import QgsSymbolLayer
 from qgis.core import QgsVectorLayer
 from qgis.utils import iface
@@ -18,37 +15,12 @@ from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_CURL
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_DEEP
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_HALINE
 from threedi_results_analysis.utils.color import color_ramp_from_data
-from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 
 STYLES_ROOT = Path(__file__).parent / "layer_styles"
 ANIMATION_LAYERS_NR_LEGEND_CLASSES = 24
 assert ANIMATION_LAYERS_NR_LEGEND_CLASSES % 2 == 0
 
 logger = logging.getLogger(__name__)
-
-
-Rule = partial(QgsRuleBasedRenderer.Rule, symbol=None)
-
-
-def convert_to_rule_based_renderer(renderer, rules):
-    """
-    Return QgsRuleBasedRenderer instance.
-
-    Create a rule based renderer with `rules` as children. Convert `renderer`
-    to rules and add those as grandchildren to each child.
-    """
-    # disabled by default, because of performance issues
-    animation_sublegends = QgsSettings().value(
-        TOOLBOX_QGIS_SETTINGS_GROUP + "/animationSublegends", False, bool,
-    )
-    if not animation_sublegends:
-        return renderer
-
-    root = Rule()
-    for rule in rules:
-        QgsRuleBasedRenderer.refineRuleRanges(rule, renderer)
-        root.appendChild(rule)
-    return QgsRuleBasedRenderer(root)
 
 
 def style_animation_flowline_current(
@@ -128,18 +100,6 @@ def style_animation_flowline_current(
     # Symbol size
     renderer.setSymbolSizes(max_symbol_size / 3, max_symbol_size)
 
-    # convert the renderer into rule based renderer to enable subgroups
-    rules = [
-        Rule(label="1D", filterExp='"line_type" in (0,1,2,3,4,5)'),
-        Rule(label="1D2D Surface water", filterExp='"line_type" in (51,52,53,54,55,56)'),
-        Rule(label="2D Surface water", filterExp='"line_type" in (100,101,200,300,400,500)'),
-        Rule(label="1D2D Groundwater", filterExp='"line_type" in (57,58)'),
-        Rule(label="2D Groundwater", filterExp='"line_type" in (-150)'),
-        Rule(label="Vertical", filterExp='"line_type" in (150)'),
-    ]
-    rule_renderer = convert_to_rule_based_renderer(renderer, rules)
-    lyr.setRenderer(rule_renderer)
-
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
 
@@ -173,20 +133,6 @@ def style_animation_node_current(
         renderer.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)
     renderer.updateColorRamp(color_ramp)
-
-    # convert the renderer into rule based renderer to enable subgroups
-    if cells:
-        rules = []
-    else:
-        rules = [
-            Rule(label="1D", filterExp='"node_type" in (3,4,7)'),
-        ]
-    rules.extend([
-        Rule(label="2D Surface water", filterExp='"node_type" in (1,5)'),
-        Rule(label="2D Groundwater", filterExp='"node_type" in (2,6)'),
-    ])
-    rule_renderer = convert_to_rule_based_renderer(renderer, rules)
-    lyr.setRenderer(rule_renderer)
 
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
@@ -242,20 +188,6 @@ def style_animation_node_difference(
 
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_CURL)
     renderer.updateColorRamp(color_ramp)
-
-    # convert the renderer into rule based renderer to enable subgroups
-    if cells:
-        rules = []
-    else:
-        rules = [
-            Rule(label="1D", filterExp='"node_type" in (3,4,7)'),
-        ]
-    rules.extend([
-        Rule(label="2D Surface water", filterExp='"node_type" in (1,5)'),
-        Rule(label="2D Groundwater", filterExp='"node_type" in (2,6)'),
-    ])
-    rule_renderer = convert_to_rule_based_renderer(renderer, rules)
-    lyr.setRenderer(rule_renderer)
 
     lyr.triggerRepaint()
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
