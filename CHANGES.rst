@@ -6,7 +6,7 @@ ThreeDiToolBox changelog
 ------------------
 
 - Bump threedigrid to 2.0.*
-- Bump threedi-modelchecker to 2.3.*
+- Bump threedi-modelchecker to 2.4.*
 - Bump threedigrid-builder to 1.12.*
 
 
