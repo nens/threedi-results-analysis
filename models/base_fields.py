@@ -61,7 +61,7 @@ class RowFieldValue(object):
         :return: new value of field row
         """
         if self.field.field_type == CHECKBOX_FIELD:
-            if type(value) == bool:
+            if isinstance(value, bool):
                 self._set_value(value)
             elif value == Qt.Checked:
                 self._set_value(True)
