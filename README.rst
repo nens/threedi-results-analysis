@@ -6,6 +6,7 @@ A QGIS plugin for analyzing 3Di results and visualize computational grids in the
 .. _`3Di`: https://3diwatermanagement.com/
 
 The tools that this plugin provides allow you to:
+
 - Make (maximum) water depth or water level rasters from raw 3Di simulation results.
 - Visualize results on the map canvas for a specific timestep
 - Plot timeseries of discharge, water level or any other variable in a graph
@@ -37,18 +38,18 @@ Install QGIS and the required python3-h5py dependency::
 Getting the plugin
 ^^^^^^^^^^^^^^^^^^
 
-  - In QGIS, goto "Plugins > Manage And Install Plugins... > Settings"
-  - Add ``https://plugins.lizard.net/plugins.xml`` and reload
-  - Install the plugin by selecting ``3Di Results Analysis``
+- In QGIS, goto "Plugins > Manage And Install Plugins... > Settings"
+- Add ``https://plugins.lizard.net/plugins.xml`` and reload
+- Install the plugin by selecting ``3Di Results Analysis``
 
 
 Installation notes
 ^^^^^^^^^^^^^^^^^^
 
-If you have the PIP_REQUIRE_VIRTUALENV=1 setting you may have to (temporally)
-remove that in order to install the plugin, but be assured that all the
-required dependencies are bundled with the plugin and automatically installed
-into the ``deps`` directory of the plugin in your QGIS profile.
+If you have the ``PIP_REQUIRE_VIRTUALENV=1`` setting you may have to
+(temporally) remove that in order to install the plugin, but be assured that
+all the required dependencies are bundled with the plugin and automatically
+installed into the ``deps`` directory of the plugin in your QGIS profile.
 
 
 Local development
