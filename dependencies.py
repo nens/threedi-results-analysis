@@ -71,7 +71,7 @@ DEPENDENCIES = [
     Dependency("networkx", "networkx", "", False),
     Dependency("condenser", "condenser", ">=0.2.1", False),
     Dependency("Shapely", "shapely", ">=2.0.0", False),
-    Dependency("threedigrid_builder", "threedigrid_builder", ">=1.12.*", False),
+    Dependency("threedigrid_builder", "threedigrid_builder", "==1.12.*", False),
     Dependency("hydxlib", "hydxlib", "==1.5.1", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
