@@ -18,6 +18,7 @@
 - Statistics: fix python error with "Bed level gradient" (#876)
 - Statistics: assume has_interflow for older models (#889)
 - Visualization: Remove legend subgroup hidden feature (#769)
+- Visualization: fix TypeError for result without net cumulative discharge (#903)
 
 
 3.1.8 (2023-09-04)
