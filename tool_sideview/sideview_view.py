@@ -146,13 +146,13 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         self.weir_lower_fill = pg.FillBetweenItem(
-            self.weir_middle_plot, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
+            self.weir_middle_plot, self.weir_bottom_plot, pg.mkBrush(227, 26, 28)
         )
         self.weir_middle_fill = pg.FillBetweenItem(
-            self.weir_upper_plot, self.weir_middle_plot, pg.mkBrush(180, 180, 180)
+            self.weir_upper_plot, self.weir_middle_plot, pg.mkBrush(255, 153, 155)
         )
         self.weir_upper_fill = pg.FillBetweenItem(
-            self.weir_top_plot, self.weir_upper_plot, pg.mkBrush(255, 0, 0)
+            self.weir_top_plot, self.weir_upper_plot, pg.mkBrush(227, 26, 28)
         )
 
         self.sewer_top_fill = pg.FillBetweenItem(
