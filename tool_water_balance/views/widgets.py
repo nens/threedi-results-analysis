@@ -54,6 +54,9 @@ logger = logging.getLogger(__name__)
 MSG_TITLE = "Water balance tool"
 QCOLOR_RED = QColor(255, 0, 0)
 POLYGON_TYPES = {
+    QgsWkbTypes.MultiPolygon,
+    QgsWkbTypes.MultiPolygonZ,
+    QgsWkbTypes.MultiPolygon25D,
     QgsWkbTypes.Polygon,
     QgsWkbTypes.PolygonZ,
     QgsWkbTypes.Polygon25D,
