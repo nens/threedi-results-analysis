@@ -131,12 +131,14 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.orifice_top_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
         )
 
-        self.culvert_opening_fill = pg.FillBetweenItem(
+        self.culvert_lower_fill = pg.FillBetweenItem(
+            self.culvert_bottom_plot, self.culvert_lowest_plot, pg.mkBrush(100, 100, 100)
+        )
+        self.culvert_middle_fill = pg.FillBetweenItem(
             self.culvert_upper_plot, self.culvert_bottom_plot, pg.mkBrush(230, 230, 230)
         )
-
-        self.culvert_full_fill = pg.FillBetweenItem(
-            self.culvert_top_plot, self.culvert_lowest_plot, pg.mkBrush(100, 100, 100)
+        self.culvert_upper_fill = pg.FillBetweenItem(
+            self.culvert_top_plot, self.culvert_upper_plot, pg.mkBrush(100, 100, 100)
         )
 
         self.weir_opening_fill = pg.FillBetweenItem(
@@ -175,8 +177,9 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_opening_fill)
         self.addItem(self.weir_full_fill)
         self.addItem(self.weir_opening_fill)
-        self.addItem(self.culvert_full_fill)
-        self.addItem(self.culvert_opening_fill)
+        self.addItem(self.culvert_upper_fill)
+        self.addItem(self.culvert_middle_fill)
+        self.addItem(self.culvert_lower_fill)
         self.addItem(self.exchange_plot)
 
         # Set the z-order of the curves (note that fill take minimum of its two defining curve as z-value)
@@ -205,9 +208,10 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.orifice_opening_fill.setZValue(21)
         self.weir_full_fill.setZValue(20)
         self.weir_opening_fill.setZValue(21)
-        self.culvert_full_fill.setZValue(20)
-        self.culvert_opening_fill.setZValue(21)
-        self.bottom_fill.setZValue(3)
+        self.culvert_upper_fill.setZValue(20)
+        self.culvert_middle_fill.setZValue(3)
+        self.culvert_lower_fill.setZValue(20)
+        self.bottom_fill.setZValue(7)
         self.sewer_top_fill.setZValue(3)
 
         # set listeners to signals
@@ -538,7 +542,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
             water_level_plot.setZValue(100)  # always visible
             water_fill = pg.FillBetweenItem(water_level_plot, self.absolute_bottom, pg.mkBrush(plot_color[0], plot_color[1], plot_color[2], 128))
-            water_fill.setZValue(0)
+            water_fill.setZValue(5)
             water_level_nodes = pg.PlotDataItem(np.array([(0.0, np.nan)]), symbolBrush=pg.mkBrush(plot_color[0], plot_color[1], plot_color[2]), symbolSize=7)
             water_level_nodes.setZValue(100)
             self.addItem(water_level_plot)
