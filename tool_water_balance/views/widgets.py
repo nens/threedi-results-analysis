@@ -34,6 +34,8 @@ from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import Ro
 from threedi_results_analysis.utils.user_messages import messagebar_message, StatusProgressBar
 
 from ..utils import PolygonWithCRS
+from ..config import AGG_CUMULATIVE_FLOW
+from ..config import AGG_FLOW
 from ..config import BC_IO_SERIES
 from ..config import GRAPH_SERIES
 from ..config import INPUT_SERIES
@@ -499,7 +501,7 @@ class WaterBalanceWidget(QDockWidget):
         self.selection_vis = SelectionVisualisation(iface.mapCanvas())
 
         # fill comboboxes with selections
-        self.agg_combo_box.insertItems(0, ["m³/s", "m³ cumulative"])
+        self.agg_combo_box.insertItems(0, [AGG_FLOW, AGG_CUMULATIVE_FLOW])
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
 
         # add listeners

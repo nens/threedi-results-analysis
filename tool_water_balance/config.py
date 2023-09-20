@@ -363,3 +363,6 @@ BC_IO_SERIES = [
 ]
 
 TIME_UNITS_TO_SECONDS = {"hrs": 3600, "mins": 60, "s": 1}
+
+AGG_CUMULATIVE_FLOW = "m³ cumulative"
+AGG_FLOW = "m³/s"

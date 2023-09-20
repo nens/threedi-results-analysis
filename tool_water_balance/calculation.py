@@ -11,8 +11,10 @@ from qgis.core import QgsProject
 from threedigrid_builder.constants import LineType
 from threedigrid_builder.constants import NodeType
 
-from .config import INPUT_SERIES
+from .config import AGG_CUMULATIVE_FLOW
+from .config import AGG_FLOW
 from .config import GRAPH_SERIES
+from .config import INPUT_SERIES
 from .config import TIME_UNITS_TO_SECONDS
 from .utils import WrappedResult
 
@@ -58,6 +60,7 @@ logger = logging.getLogger(__name__)
 
 
 class WaterBalanceCalculation(object):
+
     def __init__(self, result, polygon, mapcrs):
         self.wrapped_result = WrappedResult(result)
         self.polygon = polygon
@@ -974,7 +977,7 @@ class WaterBalanceCalculation(object):
                 item["values"]["in"] = sum_pos
                 item["values"]["out"] = sum_neg
 
-            if agg == "m3 cumulative":
+            if agg == AGG_CUMULATIVE_FLOW:
                 # aggregate the serie
                 diff = np.append([0], np.diff(time))
                 item["values"]["in"] = np.cumsum(
@@ -986,8 +989,8 @@ class WaterBalanceCalculation(object):
 
         time = self.time / TIME_UNITS_TO_SECONDS[time_units]
         agg_label = {
-            "m3/s": ("Flow", "m3/s"),
-            "m3 cumulative": ("Cumulative flow", "m3"),
+            AGG_FLOW: ("Flow", "m³/s"),
+            AGG_CUMULATIVE_FLOW: ("Cumulative flow", "m³"),
         }[agg]
 
         return {
