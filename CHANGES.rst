@@ -19,6 +19,7 @@
 - Statistics: assume has_interflow for older models (#889)
 - Visualization: Remove legend subgroup hidden feature (#769)
 - Visualization: fix TypeError for result without net cumulative discharge (#903)
+- Water balance: enable selection of multipolygons (#885)
 
 
 3.1.8 (2023-09-04)
