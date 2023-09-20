@@ -49,12 +49,12 @@ DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6", False),
     Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*", False),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2", False),
+    Dependency("alembic", "alembic", "==1.8.*", False),
     Dependency("threedigrid", "threedigrid", "==2.0.*", False),
     Dependency("threedi-schema", "threedi_schema", "==0.217.*", False),
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.4.*", False),
     Dependency("threedidepth", "threedidepth", "==0.6.1", False),
     Dependency("click", "click", ">=8.0", False),
-    Dependency("alembic", "alembic", "==1.8.*", False),
     Dependency(
         "importlib-resources", "importlib_resources", "", False
     ),  # backward compat. alembic
