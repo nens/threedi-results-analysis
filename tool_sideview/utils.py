@@ -66,7 +66,7 @@ def split_line_at_points(
     polyline.transform(transform)
 
     for point in point_features:
-        if type(point) == QgsFeature:
+        if isinstance(point, QgsFeature):
             point = {
                 point_feature_id_field: point[point_feature_id_field],
                 "geom": point.geometry(),
