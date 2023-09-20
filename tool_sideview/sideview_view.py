@@ -124,12 +124,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         # Add some structure specific fills
-        self.orifice_opening_fill = pg.FillBetweenItem(
-            self.orifice_upper_plot, self.orifice_middle_plot, pg.mkBrush(208, 240, 192)
-        )
-        self.orifice_full_fill = pg.FillBetweenItem(
-            self.orifice_top_plot, self.orifice_bottom_plot, pg.mkBrush(0, 255, 0)
-        )
 
         self.culvert_lower_fill = pg.FillBetweenItem(
             self.culvert_bottom_plot, self.culvert_lowest_plot, pg.mkBrush(100, 100, 100)
@@ -141,11 +135,24 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.culvert_top_plot, self.culvert_upper_plot, pg.mkBrush(100, 100, 100)
         )
 
-        self.weir_opening_fill = pg.FillBetweenItem(
+        self.orifice_lower_fill = pg.FillBetweenItem(
+            self.orifice_middle_plot, self.orifice_bottom_plot, pg.mkBrush(51, 160, 44)
+        )
+        self.orifice_middle_fill = pg.FillBetweenItem(
+            self.orifice_upper_plot, self.orifice_middle_plot, pg.mkBrush(165, 230, 161)
+        )
+        self.orifice_upper_fill = pg.FillBetweenItem(
+            self.orifice_top_plot, self.orifice_upper_plot, pg.mkBrush(51, 160, 44)
+        )
+
+        self.weir_lower_fill = pg.FillBetweenItem(
+            self.weir_middle_plot, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
+        )
+        self.weir_middle_fill = pg.FillBetweenItem(
             self.weir_upper_plot, self.weir_middle_plot, pg.mkBrush(180, 180, 180)
         )
-        self.weir_full_fill = pg.FillBetweenItem(
-            self.weir_top_plot, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
+        self.weir_upper_fill = pg.FillBetweenItem(
+            self.weir_top_plot, self.weir_upper_plot, pg.mkBrush(255, 0, 0)
         )
 
         self.sewer_top_fill = pg.FillBetweenItem(
@@ -173,10 +180,12 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.orifice_middle_plot)
         self.addItem(self.orifice_top_plot)
         self.addItem(self.node_indicator_intersection_plot)
-        self.addItem(self.orifice_full_fill)
-        self.addItem(self.orifice_opening_fill)
-        self.addItem(self.weir_full_fill)
-        self.addItem(self.weir_opening_fill)
+        self.addItem(self.orifice_upper_fill)
+        self.addItem(self.orifice_middle_fill)
+        self.addItem(self.orifice_lower_fill)
+        self.addItem(self.weir_upper_fill)
+        self.addItem(self.weir_middle_fill)
+        self.addItem(self.weir_lower_fill)
         self.addItem(self.culvert_upper_fill)
         self.addItem(self.culvert_middle_fill)
         self.addItem(self.culvert_lower_fill)
@@ -204,10 +213,12 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.exchange_plot.setZValue(100)
         self.node_indicator_intersection_plot.setZValue(55)
-        self.orifice_full_fill.setZValue(20)
-        self.orifice_opening_fill.setZValue(21)
-        self.weir_full_fill.setZValue(20)
-        self.weir_opening_fill.setZValue(21)
+        self.orifice_upper_fill.setZValue(20)
+        self.orifice_middle_fill.setZValue(3)
+        self.orifice_lower_fill.setZValue(20)
+        self.weir_upper_fill.setZValue(20)
+        self.weir_middle_fill.setZValue(3)
+        self.weir_lower_fill.setZValue(20)
         self.culvert_upper_fill.setZValue(20)
         self.culvert_middle_fill.setZValue(3)
         self.culvert_lower_fill.setZValue(20)
