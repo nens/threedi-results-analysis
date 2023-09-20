@@ -49,12 +49,6 @@ DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6", False),
     Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*", False),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2", False),
-    Dependency("threedigrid", "threedigrid", ">=2.0.3", False),
-    Dependency("threedi-schema", "threedi_schema", "==0.217.*", False),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.2.*", False),
-    Dependency("threedidepth", "threedidepth", "==0.6.1", False),
-    Dependency("click", "click", ">=8.0", False),
-    Dependency("alembic", "alembic", "==1.8.*", False),
     Dependency(
         "importlib-resources", "importlib_resources", "", False
     ),  # backward compat. alembic
@@ -63,6 +57,12 @@ DEPENDENCIES = [
     ),  # backward compat. alembic
     Dependency("Mako", "mako", "", False),
     Dependency("cftime", "cftime", ">=1.5.0", False),  # threedigrid[results]
+    Dependency("alembic", "alembic", "==1.8.*", False),
+    Dependency("threedigrid", "threedigrid", "==2.0.*", False),
+    Dependency("threedi-schema", "threedi_schema", "==0.217.*", False),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.4.*", False),
+    Dependency("threedidepth", "threedidepth", "==0.6.1", False),
+    Dependency("click", "click", ">=8.0", False),
     Dependency("packaging", "packaging", "", False),
     Dependency("typing-extensions", "typing_extensions", ">=4.2.0", False),
     Dependency(
@@ -71,7 +71,7 @@ DEPENDENCIES = [
     Dependency("networkx", "networkx", "", False),
     Dependency("condenser", "condenser", ">=0.2.1", False),
     Dependency("Shapely", "shapely", ">=2.0.0", False),
-    Dependency("threedigrid_builder", "threedigrid_builder", ">=1.11.4", False),
+    Dependency("threedigrid_builder", "threedigrid_builder", "==1.12.*", False),
     Dependency("hydxlib", "hydxlib", "==1.5.1", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),

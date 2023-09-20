@@ -161,7 +161,9 @@
 2.5.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Bump threedigrid to 2.0.*
+- Bump threedi-modelchecker to 2.4.*
+- Bump threedigrid-builder to 1.12.*
 
 
 2.5.4 (2023-07-20)
