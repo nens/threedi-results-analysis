@@ -93,7 +93,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.channel_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(255, 192, 203), width=4)
+        pen = pg.mkPen(color=QColor(100, 100, 100), width=4)
+        self.culvert_lowest_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.culvert_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.culvert_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
         self.culvert_top_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -131,15 +132,15 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         self.culvert_opening_fill = pg.FillBetweenItem(
-            self.culvert_upper_plot, self.culvert_bottom_plot, pg.mkBrush(255, 192, 203)
+            self.culvert_upper_plot, self.culvert_bottom_plot, pg.mkBrush(180, 180, 180)
         )
 
         self.culvert_full_fill = pg.FillBetweenItem(
-            self.culvert_top_plot, self.culvert_upper_plot, pg.mkBrush(255, 20, 147)
+            self.culvert_top_plot, self.culvert_lowest_plot, pg.mkBrush(100, 100, 100)
         )
 
         self.weir_opening_fill = pg.FillBetweenItem(
-            self.weir_upper_plot, self.weir_middle_plot, pg.mkBrush(250, 217, 213)
+            self.weir_upper_plot, self.weir_middle_plot, pg.mkBrush(180, 180, 180)
         )
         self.weir_full_fill = pg.FillBetweenItem(
             self.weir_top_plot, self.weir_bottom_plot, pg.mkBrush(255, 0, 0)
@@ -157,6 +158,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.addItem(self.sewer_top_plot)
         self.addItem(self.sewer_exchange_plot)
         self.addItem(self.channel_bottom_plot)
+        self.addItem(self.culvert_lowest_plot)
         self.addItem(self.culvert_bottom_plot)
         self.addItem(self.culvert_upper_plot)
         self.addItem(self.culvert_top_plot)
@@ -184,6 +186,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.sewer_top_plot.setZValue(10)
         self.sewer_exchange_plot.setZValue(10)
         self.channel_bottom_plot.setZValue(10)
+        self.culvert_lowest_plot.setZValue(10)
         self.culvert_bottom_plot.setZValue(10)
         self.culvert_upper_plot.setZValue(10)
         self.culvert_top_plot.setZValue(10)
@@ -240,6 +243,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         middle_line = []  # Typically crest-level
         exchange_line = []  # exchange level
         upper_limit_line = []  # For top fill of weirs, orifices and culverts
+        lower_limit_line = []  # For bottom of culverts
 
         self.current_grid_id = current_grid.id if current_grid else None
 
@@ -290,6 +294,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                         upper_line.append((end_dist, end_level + end_height, ltype))
                         upper_limit_line.append((begin_dist, UPPER_LIMIT, ltype))
                         upper_limit_line.append((end_dist, UPPER_LIMIT, ltype))
+                        lower_limit_line.append((begin_dist, LOWER_LIMIT, ltype))
+                        lower_limit_line.append((end_dist, LOWER_LIMIT, ltype))
                     else:
                         upper_line.append((begin_dist, begin_level + begin_height, ltype))
                         upper_line.append((end_dist, end_level + end_height, ltype))
@@ -419,11 +425,22 @@ class SideViewPlotWidget(pg.PlotWidget):
             for point in upper_limit_line:
                 tables[point[2]].append((point[0], point[1]))
 
-            logger.info("---------")
-            logger.info(tables[LineType.CULVERT])
             self.culvert_top_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
             self.weir_top_plot.setData(np.array(tables[LineType.WEIR], dtype=float), connect="pairs")
             self.orifice_top_plot.setData(np.array(tables[LineType.ORIFICE], dtype=float), connect="pairs")
+
+            tables = {
+                LineType.PIPE: [],
+                LineType.CHANNEL: [],
+                LineType.CULVERT: [],
+                LineType.PUMP: [],
+                LineType.WEIR: [],
+                LineType.ORIFICE: [],
+            }
+
+            for point in lower_limit_line:
+                tables[point[2]].append((point[0], point[1]))
+            self.culvert_lowest_plot.setData(np.array(tables[LineType.CULVERT], dtype=float), connect="pairs")
 
             # draw nodes
             node_indicator_table = []
@@ -475,6 +492,8 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.channel_bottom_plot.setData(ts_table)
             self.culvert_bottom_plot.setData(ts_table)
             self.culvert_upper_plot.setData(ts_table)
+            self.culvert_lowest_plot.setData(ts_table)
+            self.culvert_top_plot.setData(ts_table)
             self.weir_bottom_plot.setData(ts_table)
             self.weir_upper_plot.setData(ts_table)
             self.weir_middle_plot.setData(ts_table)
