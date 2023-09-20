@@ -1,8 +1,7 @@
-3Di Results Analysis Tool
-==============
+3Di Results Analysis
+====================
 
-Analyse `3Di`_ results and visualize computational grids in the 3Di Modeller Interface.
-A QGIS plugin for analying 3Di results and visualize computational grids in the 3Di Modeller Interface.
+A QGIS plugin for analyzing 3Di results and visualize computational grids in the 3Di Modeller Interface.
 
 .. _`3Di`: https://3diwatermanagement.com/
 
@@ -16,38 +15,40 @@ The tools that this plugin provides allow you to:
 - Calculate the total discharge crossing a user-defined line
 - Find the upstream or downstream area for any node or group of nodes
 
-Installation on windows
------------------------
 
-You need to install Qgis 3.28.5+ (the "long term release") at qgis.org. 
+Installation
+------------
 
-Add the Lizard QGIS repository: via the QGIS menu bar go to "Plugins > Manage
-And Install Plugins... > Settings". Add
-``https://plugins.lizard.net/plugins.xml`` and reload. Install the plugin by
-selecting 3Di Results Analysis.
+Prerequisites
+^^^^^^^^^^^^^
 
-The extra dependencies that we need are bundled with the plugins and
-automatically installed into the ``deps`` directory of the plugin in your qgis profile.
+**Windows**
 
-Installation on linux
----------------------
+Install Qgis 3.28.5+ (the "long term release") from qgis.org. 
 
-You need to install Qgis 3.4 (the "long term release"). On ubuntu 18.04
-(bionic), the following works::
 
-  $ echo "deb https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
-  $ apt-key adv --keyserver keyserver.ubuntu.com --recv-key 51F523511C7028C
-  $ apt-get update
-  $ apt-get install qgis python3-h5py
+**Ubuntu**
 
-This installs qgis and the necessary ``h5py`` dependency.
+Install QGIS and the required python3-h5py dependency::
 
-Inside qgis, add https://plugins.lizard.net/plugins.xml as a package
-index. Now you can install ThreeDiToolbox.
+  $ sudo apt install qgis python-h5py
 
-The extra dependencies that we need (apart from ``h5py``) are bundled with the
-plugins and automatically installed into the ``python\\`` directory of your
-qgis profile.
+
+Getting the plugin
+^^^^^^^^^^^^^^^^^^
+
+  - In QGIS, goto "Plugins > Manage And Install Plugins... > Settings"
+  - Add ``https://plugins.lizard.net/plugins.xml`` and reload
+  - Install the plugin by selecting ``3Di Results Analysis``
+
+
+Installation notes
+^^^^^^^^^^^^^^^^^^
+
+If you have the PIP_REQUIRE_VIRTUALENV=1 setting you may have to (temporally)
+remove that in order to install the plugin, but be assured that all the
+required dependencies are bundled with the plugin and automatically installed
+into the ``deps`` directory of the plugin in your QGIS profile.
 
 
 Local development
