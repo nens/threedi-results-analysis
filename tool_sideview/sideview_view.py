@@ -132,7 +132,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         )
 
         self.culvert_opening_fill = pg.FillBetweenItem(
-            self.culvert_upper_plot, self.culvert_bottom_plot, pg.mkBrush(180, 180, 180)
+            self.culvert_upper_plot, self.culvert_bottom_plot, pg.mkBrush(230, 230, 230)
         )
 
         self.culvert_full_fill = pg.FillBetweenItem(
