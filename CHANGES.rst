@@ -21,6 +21,7 @@
 - Visualization: fix TypeError for result without net cumulative discharge (#903)
 - Water balance: enable selection of multipolygons (#885)
 - Results: changed notification when working directory not set in settings (#899)
+- Generated layers for watershed and statistics no longer contain (redundant) spatialite_id, node_type_description and z_coordinate (#862)
 
 3.1.8 (2023-09-04)
 ------------------
