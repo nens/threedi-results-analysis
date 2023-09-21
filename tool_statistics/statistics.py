@@ -433,6 +433,9 @@ class StatisticsTool(ThreeDiPluginTool):
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, grid_item: ThreeDiGridItem) -> None:
+        if not self.dlg:
+            return
+
         results = []
         self.model.get_results_from_item(grid_item, False, results)
         for result in results:
