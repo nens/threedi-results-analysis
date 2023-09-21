@@ -2,6 +2,12 @@ ThreeDiToolBox changelog
 ========================
 
 
+2.5.6 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 2.5.5 (2023-09-21)
 ------------------
 
