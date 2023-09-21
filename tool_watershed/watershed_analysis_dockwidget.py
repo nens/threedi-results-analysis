@@ -86,7 +86,6 @@ class Graph3DiQgsConnector:
     result_cell_attr_types = {
         "id": ogr.OFTInteger,
         "node_type": ogr.OFTInteger,
-        "node_type_description": ogr.OFTString,
         "location": ogr.OFTString,
         "catchment_id": ogr.OFTInteger,
         "from_polygon": ogr.OFTInteger,
@@ -536,7 +535,6 @@ class Graph3DiQgsConnector:
             new_feature = QgsFeature(self.result_catchment_layer.fields())
             new_feature["id"] = orig_feature["id"]
             new_feature["node_type"] = orig_feature["node_type"]
-            new_feature["node_type_description"] = orig_feature["node_type_description"]
             new_feature["location"] = orig_feature["location"]
             new_feature["catchment_id"] = orig_feature["catchment_id"]
             new_feature["from_polygon"] = orig_feature["from_polygon"]

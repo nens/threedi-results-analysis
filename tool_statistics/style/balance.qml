@@ -326,13 +326,6 @@
         </config>
       </editWidget>
     </field>
-    <field name="node_type_description">
-      <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
-      </editWidget>
-    </field>
     <field name="rain_depth_sum">
       <editWidget type="TextEdit">
         <config>
@@ -359,10 +352,9 @@
     <alias name="" field="id" index="0"/>
     <alias name="" field="spatialite_id" index="1"/>
     <alias name="" field="node_type" index="2"/>
-    <alias name="" field="node_type_description" index="3"/>
-    <alias name="" field="rain_depth_sum" index="4"/>
-    <alias name="" field="infiltration_rate_mm_sum" index="5"/>
-    <alias name="" field="intercepted_volume_mm_last" index="6"/>
+    <alias name="" field="rain_depth_sum" index="3"/>
+    <alias name="" field="infiltration_rate_mm_sum" index="4"/>
+    <alias name="" field="intercepted_volume_mm_last" index="5"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
@@ -370,7 +362,6 @@
     <default expression="" applyOnUpdate="0" field="id"/>
     <default expression="" applyOnUpdate="0" field="spatialite_id"/>
     <default expression="" applyOnUpdate="0" field="node_type"/>
-    <default expression="" applyOnUpdate="0" field="node_type_description"/>
     <default expression="" applyOnUpdate="0" field="rain_depth_sum"/>
     <default expression="" applyOnUpdate="0" field="infiltration_rate_mm_sum"/>
     <default expression="" applyOnUpdate="0" field="intercepted_volume_mm_last"/>
@@ -379,7 +370,6 @@
     <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="id" constraints="0"/>
     <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="spatialite_id" constraints="0"/>
     <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="node_type" constraints="0"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="node_type_description" constraints="0"/>
     <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="rain_depth_sum" constraints="0"/>
     <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="infiltration_rate_mm_sum" constraints="0"/>
     <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="intercepted_volume_mm_last" constraints="0"/>
@@ -388,7 +378,6 @@
     <constraint exp="" desc="" field="id"/>
     <constraint exp="" desc="" field="spatialite_id"/>
     <constraint exp="" desc="" field="node_type"/>
-    <constraint exp="" desc="" field="node_type_description"/>
     <constraint exp="" desc="" field="rain_depth_sum"/>
     <constraint exp="" desc="" field="infiltration_rate_mm_sum"/>
     <constraint exp="" desc="" field="intercepted_volume_mm_last"/>
@@ -403,7 +392,6 @@
       <column type="field" name="spatialite_id" hidden="0" width="-1"/>
       <column type="actions" hidden="1" width="-1"/>
       <column type="field" name="node_type" hidden="0" width="-1"/>
-      <column type="field" name="node_type_description" hidden="0" width="-1"/>
       <column type="field" name="rain_depth_sum" hidden="0" width="-1"/>
       <column type="field" name="infiltration_rate_mm_sum" hidden="0" width="-1"/>
       <column type="field" name="intercepted_volume_mm_last" hidden="0" width="-1"/>
@@ -441,7 +429,6 @@ def my_form_open(dialog, layer, feature):
     <field editable="1" name="infiltration_rate_mm_sum"/>
     <field editable="1" name="intercepted_volume_mm_last"/>
     <field editable="1" name="node_type"/>
-    <field editable="1" name="node_type_description"/>
     <field editable="1" name="q_out_x_sum"/>
     <field editable="1" name="q_out_y_sum"/>
     <field editable="1" name="rain_depth_sum"/>
@@ -452,7 +439,6 @@ def my_form_open(dialog, layer, feature):
     <field labelOnTop="0" name="infiltration_rate_mm_sum"/>
     <field labelOnTop="0" name="intercepted_volume_mm_last"/>
     <field labelOnTop="0" name="node_type"/>
-    <field labelOnTop="0" name="node_type_description"/>
     <field labelOnTop="0" name="q_out_x_sum"/>
     <field labelOnTop="0" name="q_out_y_sum"/>
     <field labelOnTop="0" name="rain_depth_sum"/>

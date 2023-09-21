@@ -374,13 +374,6 @@
         </config>
       </editWidget>
     </field>
-    <field name="node_type_description">
-      <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
-      </editWidget>
-    </field>
     <field name="s1_max">
       <editWidget type="TextEdit">
         <config>
@@ -393,8 +386,7 @@
     <alias index="0" field="id" name=""/>
     <alias index="1" field="spatialite_id" name=""/>
     <alias index="2" field="node_type" name=""/>
-    <alias index="3" field="node_type_description" name=""/>
-    <alias index="4" field="s1_max" name=""/>
+    <alias index="3" field="s1_max" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
@@ -402,21 +394,18 @@
     <default applyOnUpdate="0" expression="" field="id"/>
     <default applyOnUpdate="0" expression="" field="spatialite_id"/>
     <default applyOnUpdate="0" expression="" field="node_type"/>
-    <default applyOnUpdate="0" expression="" field="node_type_description"/>
     <default applyOnUpdate="0" expression="" field="s1_max"/>
   </defaults>
   <constraints>
     <constraint constraints="0" exp_strength="0" unique_strength="0" field="id" notnull_strength="0"/>
     <constraint constraints="0" exp_strength="0" unique_strength="0" field="spatialite_id" notnull_strength="0"/>
     <constraint constraints="0" exp_strength="0" unique_strength="0" field="node_type" notnull_strength="0"/>
-    <constraint constraints="0" exp_strength="0" unique_strength="0" field="node_type_description" notnull_strength="0"/>
     <constraint constraints="0" exp_strength="0" unique_strength="0" field="s1_max" notnull_strength="0"/>
   </constraints>
   <constraintExpressions>
     <constraint field="id" desc="" exp=""/>
     <constraint field="spatialite_id" desc="" exp=""/>
     <constraint field="node_type" desc="" exp=""/>
-    <constraint field="node_type_description" desc="" exp=""/>
     <constraint field="s1_max" desc="" exp=""/>
   </constraintExpressions>
   <expressionfields/>
@@ -429,7 +418,6 @@
       <column type="field" hidden="0" width="-1" name="spatialite_id"/>
       <column type="actions" hidden="1" width="-1"/>
       <column type="field" hidden="0" width="-1" name="node_type"/>
-      <column type="field" hidden="0" width="-1" name="node_type_description"/>
       <column type="field" hidden="0" width="-1" name="s1_max"/>
     </columns>
   </attributetableconfig>
@@ -464,7 +452,6 @@ def my_form_open(dialog, layer, feature):
   <editable>
     <field name="id" editable="1"/>
     <field name="node_type" editable="1"/>
-    <field name="node_type_description" editable="1"/>
     <field name="q_out_x_sum" editable="1"/>
     <field name="q_out_y_sum" editable="1"/>
     <field name="s1_max" editable="1"/>
@@ -473,7 +460,6 @@ def my_form_open(dialog, layer, feature):
   <labelOnTop>
     <field labelOnTop="0" name="id"/>
     <field labelOnTop="0" name="node_type"/>
-    <field labelOnTop="0" name="node_type_description"/>
     <field labelOnTop="0" name="q_out_x_sum"/>
     <field labelOnTop="0" name="q_out_y_sum"/>
     <field labelOnTop="0" name="s1_max"/>

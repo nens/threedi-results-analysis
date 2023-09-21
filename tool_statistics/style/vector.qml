@@ -618,7 +618,6 @@ def my_form_open(dialog, layer, feature):
   <editable>
     <field name="id" editable="1"/>
     <field name="node_type" editable="1"/>
-    <field name="node_type_description" editable="1"/>
     <field name="q_out_x_sum" editable="1"/>
     <field name="q_out_y_sum" editable="1"/>
     <field name="spatialite_id" editable="1"/>
@@ -626,7 +625,6 @@ def my_form_open(dialog, layer, feature):
   <labelOnTop>
     <field labelOnTop="0" name="id"/>
     <field labelOnTop="0" name="node_type"/>
-    <field labelOnTop="0" name="node_type_description"/>
     <field labelOnTop="0" name="q_out_x_sum"/>
     <field labelOnTop="0" name="q_out_y_sum"/>
     <field labelOnTop="0" name="spatialite_id"/>

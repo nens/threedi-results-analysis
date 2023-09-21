@@ -109,11 +109,7 @@ def threedigrid_to_ogr(
             default_attr_types["spatialite_id"] = ogr.OFTInteger
         default_attributes["node_type"] = threedigrid_src.node_type
         default_attr_types["node_type"] = ogr.OFTInteger
-        print(threedigrid_src.node_type)
-        default_attributes["node_type_description"] = np.vectorize(
-            NODE_TYPE_DICT.get, otypes=[str]
-        )(threedigrid_src.node_type)
-        default_attr_types["node_type_description"] = ogr.OFTString
+
         if include_all_threedigrid_attributes:
             default_attributes["max_surface_area"] = threedigrid_src.sumax.astype(float)
             default_attr_types["max_surface_area"] = ogr.OFTReal
