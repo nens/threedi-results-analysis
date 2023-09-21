@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.5.5 (unreleased)
+2.5.5 (2023-09-21)
 ------------------
 
 - Bump threedigrid to 2.0.*
