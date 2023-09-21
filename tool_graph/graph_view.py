@@ -709,7 +709,6 @@ class GraphWidget(QWidget):
 
         # Small usability tweak, if we are adding a pump flowline, set a specific parameter
         if not existing_items and "pump" in layer.objectName() and new_items:
-            logger.error(self.parameters)
             # Find the corresponding name for q_cum, set parameter (and set combobox)
             pump_params = [p for p in self.parameters.values() if p["parameters"] == "q_pump"]
             if pump_params:
@@ -1026,7 +1025,6 @@ class GraphDockWidget(QDockWidget):
         """
         Add results for features of specific types.
         """
-        logger.error(len(results))
         if feature_type == FLOWLINE_OR_PUMP:
             layer_keys = ['flowline', 'pump_linestring', 'pump']
             graph_widget = self.q_graph_widget
@@ -1048,7 +1046,6 @@ class GraphDockWidget(QDockWidget):
                 continue
             if single_feature_per_layer and layer_id in layers_added:
                 continue
-            logger.error(f"Adding result {result.mFeature.id()}")
             graph_widget.add_objects(result.mLayer, [result.mFeature])
             layers_added.add(layer_id)
 

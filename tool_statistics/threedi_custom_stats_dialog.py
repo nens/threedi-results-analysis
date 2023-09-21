@@ -682,7 +682,6 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.validate()
 
     def preset_combobox_changed(self, index):
-        logger.error("preset_combobox_changed")
         preset = self.comboBoxPreset.itemData(index)
 
         # Check whether the currently selected model support the preset's aggregations
