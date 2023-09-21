@@ -223,7 +223,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.culvert_middle_fill.setZValue(3)
         self.culvert_lower_fill.setZValue(20)
         self.bottom_fill.setZValue(7)
-        self.sewer_top_fill.setZValue(3)
+        self.sewer_top_fill.setZValue(7)
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
