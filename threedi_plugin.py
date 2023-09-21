@@ -175,6 +175,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_added.connect(self.stats_tool.result_added)
         self.model.result_removed.connect(self.stats_tool.result_removed)
         self.model.result_changed.connect(self.stats_tool.result_changed)
+        self.model.grid_changed.connect(self.stats_tool.grid_changed)
 
         # water balance signals
         self.model.result_added.connect(self.water_balance_tool.result_added)

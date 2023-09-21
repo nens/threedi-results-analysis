@@ -154,7 +154,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
     def _populate_results(self) -> None:
         self.resultComboBox.clear()
         for result in self.model.get_results(checked_only=False):
-            self.resultComboBox.addItem(result.text(), result.id)
+            self.resultComboBox.addItem(f"{result.parent().text()} | {result.text()}", result.id)
 
     def add_aggregation(
         self, *args, aggregation: Aggregation = DEFAULT_AGGREGATION, update_output_layer_names: bool = True
@@ -650,7 +650,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def add_result(self, result_item: ThreeDiResultItem) -> None:
         currentIndex = self.resultComboBox.currentIndex()
-        self.resultComboBox.addItem(result_item.text(), result_item.id)
+        self.resultComboBox.addItem(f"{result_item.parent().text()} | {result_item.text()}", result_item.id)
         self.resultComboBox.setCurrentIndex(currentIndex)
 
     def remove_result(self, result_item: ThreeDiResultItem):
@@ -666,12 +666,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
     def change_result(self, result_item: ThreeDiResultItem):
         idx = self.resultComboBox.findData(result_item.id)
         assert idx != -1
-        self.resultComboBox.setItemText(idx, result_item.text())
-
-        # # also rename result layer groups
-        # if result_item.id in self.preloaded_layers:
-        #     layer_result_group = self.preloaded_layers[result_item.id]["group"]
-        #     layer_result_group.setName(result_item.text())
+        self.resultComboBox.setItemText(idx, f"{result_item.parent().text()} | {result_item.text()}")
 
     def set_extent_from_map_canvas(self):
         canvas_extent = self.iface.mapCanvas().extent()

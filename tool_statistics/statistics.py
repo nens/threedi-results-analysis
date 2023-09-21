@@ -34,7 +34,7 @@ from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer
 # Import the code for the dialog
 from .threedi_custom_stats_dialog import ThreeDiCustomStatsDialog
 from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtCore import pyqtSlot
 
 import os
@@ -430,6 +430,13 @@ class StatisticsTool(ThreeDiPluginTool):
         if not self.dlg:
             return
         self.dlg.change_result(result_item)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_changed(self, grid_item: ThreeDiGridItem) -> None:
+        results = []
+        self.model.get_results_from_item(grid_item, False, results)
+        for result in results:
+            self.dlg.change_result(result)
 
     def on_unload(self):
         if self.dlg:

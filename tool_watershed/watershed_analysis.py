@@ -213,6 +213,8 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
 
     @pyqtSlot(ThreeDiResultItem)
     def grid_changed(self, grid_item: ThreeDiGridItem) -> None:
+        if not self.active:
+            return
 
         results = []
         self.model.get_results_from_item(grid_item, False, results)
