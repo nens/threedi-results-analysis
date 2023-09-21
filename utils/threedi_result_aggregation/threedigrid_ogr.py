@@ -66,8 +66,6 @@ def threedigrid_to_ogr(
         default_attributes["id"] = threedigrid_src.id.astype(int)
         default_attr_types["id"] = ogr.OFTInteger
         if threedigrid_src.has_1d:
-            default_attributes["spatialite_id"] = threedigrid_src.content_pk
-            default_attr_types["spatialite_id"] = ogr.OFTInteger
             default_attributes["content_type"] = threedigrid_src.content_type
             default_attr_types["content_type"] = ogr.OFTString
         default_attributes["kcu"] = threedigrid_src.kcu
@@ -104,9 +102,6 @@ def threedigrid_to_ogr(
     ):
         default_attributes["id"] = threedigrid_src.id.astype(int)
         default_attr_types["id"] = ogr.OFTInteger
-        if isinstance(threedigrid_src, Nodes) and threedigrid_src.has_1d:
-            default_attributes["spatialite_id"] = threedigrid_src.content_pk
-            default_attr_types["spatialite_id"] = ogr.OFTInteger
         default_attributes["node_type"] = threedigrid_src.node_type
         default_attr_types["node_type"] = ogr.OFTInteger
 
