@@ -2872,5 +2872,209 @@
   </renderer-v2>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
+  <fieldConfiguration>
+    <field name="fid">
+      <editWidget type="Hidden">
+        <config>
+          <Option/>
+        </config>
+      </editWidget>
+    </field>
+    <field name="id">
+      <editWidget type="Range">
+        <config>
+          <Option type="Map">
+            <Option name="AllowNull" type="bool" value="true"/>
+            <Option name="Max" type="int" value="2147483647"/>
+            <Option name="Min" type="int" value="-2147483648"/>
+            <Option name="Precision" type="int" value="0"/>
+            <Option name="Step" type="int" value="1"/>
+            <Option name="Style" type="QString" value="SpinBox"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="discharge_coefficient_positive">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="discharge_coefficient_negative">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="line_type">
+      <editWidget type="ValueMap">
+        <config>
+          <Option type="Map">
+            <Option name="map" type="List">
+              <Option type="Map">
+                <Option name="1D Embedded" type="QString" value="0"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D Isolated" type="QString" value="1"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D Connected" type="QString" value="2"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D Long-crested structure" type="QString" value="3"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D Short-crested structure" type="QString" value="4"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D Double connected" type="QString" value="5"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D-2D Single connected line with storage" type="QString" value="51"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D-2D Single connected line without storage" type="QString" value="52"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D-2D Double connected line with storage" type="QString" value="53"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D-2D Double connected line without storage" type="QString" value="54"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D-2D Connected line possible breach" type="QString" value="55"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D-2D Connected line active breach" type="QString" value="56"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D-2D Groundwater" type="QString" value="57"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1D-2D Groundwater" type="QString" value="58"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2D" type="QString" value="100"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2D Crossing obstacle/levee" type="QString" value="101"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2D Vertical surface/groundwater link" type="QString" value="150"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2D Groundwater" type="QString" value="-150"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2D Boundary" type="QString" value="200"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2D Boundary" type="QString" value="300"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2D Boundary" type="QString" value="400"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2D Boundary" type="QString" value="500"/>
+              </Option>
+              <Option type="Map">
+                <Option name="NULL" type="QString" value="{2839923C-8B7D-419E-B84B-CA2FE9B80EC7}"/>
+              </Option>
+            </Option>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="source_table">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="source_table_id">
+      <editWidget type="Range">
+        <config>
+          <Option type="Map">
+            <Option name="AllowNull" type="bool" value="true"/>
+            <Option name="Max" type="int" value="2147483647"/>
+            <Option name="Min" type="int" value="-2147483648"/>
+            <Option name="Precision" type="int" value="0"/>
+            <Option name="Step" type="int" value="1"/>
+            <Option name="Style" type="QString" value="SpinBox"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="invert_level_start_point">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="invert_level_end_point">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="exchange_level">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="calculation_node_id_start">
+      <editWidget type="Range">
+        <config>
+          <Option type="Map">
+            <Option name="AllowNull" type="bool" value="true"/>
+            <Option name="Max" type="int" value="2147483647"/>
+            <Option name="Min" type="int" value="-2147483648"/>
+            <Option name="Precision" type="int" value="0"/>
+            <Option name="Step" type="int" value="1"/>
+            <Option name="Style" type="QString" value="SpinBox"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="calculation_node_id_end">
+      <editWidget type="Range">
+        <config>
+          <Option type="Map">
+            <Option name="AllowNull" type="bool" value="true"/>
+            <Option name="Max" type="int" value="2147483647"/>
+            <Option name="Min" type="int" value="-2147483648"/>
+            <Option name="Precision" type="int" value="0"/>
+            <Option name="Step" type="int" value="1"/>
+            <Option name="Style" type="QString" value="SpinBox"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+  </fieldConfiguration>
   <layerGeometryType>1</layerGeometryType>
 </qgis>
