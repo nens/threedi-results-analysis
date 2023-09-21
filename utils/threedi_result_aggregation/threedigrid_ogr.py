@@ -121,8 +121,6 @@ def threedigrid_to_ogr(
             default_attr_types["bottom_level"] = ogr.OFTReal
 
         if isinstance(threedigrid_src, Cells):
-            default_attributes["z_coordinate"] = threedigrid_src.z_coordinate
-            default_attr_types["z_coordinate"] = ogr.OFTReal
 
             if include_all_threedigrid_attributes:
                 default_attributes["has_dem_averaged"] = threedigrid_src.has_dem_averaged

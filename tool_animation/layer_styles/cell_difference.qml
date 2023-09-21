@@ -1,6 +1,6 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
 <qgis version="3.16.4-Hannover" styleCategories="Symbology">
-  <renderer-v2 attr="coalesce(result, z_coordinate) - coalesce(initial_value, z_coordinate)" type="graduatedSymbol" graduatedMethod="GraduatedColor" forceraster="0" symbollevels="0" enableorderby="0">
+  <renderer-v2 attr="coalesce(result, bottom_level) - coalesce(initial_value, bottom_level)" type="graduatedSymbol" graduatedMethod="GraduatedColor" forceraster="0" symbollevels="0" enableorderby="0">
     <ranges>
       <range symbol="0" label="0 - 0" lower="0.000000000000000" upper="0.000000000000000" render="true"/>
       <range symbol="1" label="0 - 0" lower="0.000000000000000" upper="0.000000000000000" render="true"/>
