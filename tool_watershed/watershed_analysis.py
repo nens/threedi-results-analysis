@@ -210,3 +210,11 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
             return
 
         self.dock_widget.change_result(result_item)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def grid_changed(self, grid_item: ThreeDiGridItem) -> None:
+
+        results = []
+        self.model.get_results_from_item(grid_item, False, results)
+        for result in results:
+            self.dock_widget.change_result(result)
