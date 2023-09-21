@@ -904,7 +904,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def _populate_results(self) -> None:
         self.comboBoxResult.clear()
         for result in self.model.get_results(checked_only=False):
-            self.comboBoxResult.addItem(result.text(), result.id)
+            self.comboBoxResult.addItem(f"{result.parent().text()} | {result.text()}", result.id)
 
     def select_result(self, index: int) -> None:
         result_id = self.comboBoxResult.itemData(index)
@@ -932,7 +932,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def add_result(self, result_item: ThreeDiResultItem) -> None:
         currentIndex = self.comboBoxResult.currentIndex()
-        self.comboBoxResult.addItem(result_item.text(), result_item.id)
+        self.comboBoxResult.addItem(f"{result_item.parent().text()} | {result_item.text()}", result_item.id)
         self.comboBoxResult.setCurrentIndex(currentIndex)
 
     def remove_result(self, result_item: ThreeDiResultItem):
@@ -949,7 +949,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def change_result(self, result_item: ThreeDiResultItem):
         idx = self.comboBoxResult.findData(result_item.id)
         assert idx != -1
-        self.comboBoxResult.setItemText(idx, result_item.text())
+        self.comboBoxResult.setItemText(idx, f"{result_item.parent().text()} | {result_item.text()}")
 
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)
