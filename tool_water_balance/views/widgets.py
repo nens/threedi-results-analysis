@@ -1,5 +1,6 @@
 from qgis.core import Qgis
 from qgis.core import QgsFeatureRequest
+from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
 from qgis.core import QgsGeometry
 from qgis.gui import QgsHighlight
@@ -1197,10 +1198,11 @@ class SelectPolygonTool(QgsMapToolIdentify):
 
     def canvasReleaseEvent(self, event):
         self.widget.unset_wb_polygon()
-        layer_list = [
-            layer for layer in self.parent().layers()
-            if layer.wkbType() in POLYGON_TYPES
-        ]
+        layer_list = []
+        for layer in self.parent().layers():
+            if isinstance(layer, QgsVectorLayer):
+                if layer.wkbType() in POLYGON_TYPES:
+                    layer_list.append(layer)
         identify_results = self.identify(
             x=int(event.pos().x()),
             y=int(event.pos().y()),
@@ -1208,7 +1210,7 @@ class SelectPolygonTool(QgsMapToolIdentify):
             mode=self.IdentifyMode.LayerSelection,
         )
         if not identify_results:
-            msg = 'No geometries found in this location.'
+            msg = 'No polygons found in this location.'
             messagebar_message(MSG_TITLE, msg, Qgis.Warning, 3)
             return
 
