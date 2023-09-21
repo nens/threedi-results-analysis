@@ -10,7 +10,6 @@ from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from threedi_results_analysis.utils.workingdir import list_local_schematisations
-from threedi_results_analysis.utils.user_messages import pop_up_critical
 
 logger = logging.getLogger(__name__)
 
@@ -195,8 +194,9 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.model.clear()
         self.model.setHorizontalHeaderLabels(self.header_labels)
         threedi_working_dir = QgsSettings().value("threedi/working_dir", "")
+        self.messageLabel.setText("")
         if not threedi_working_dir:
-            pop_up_critical("3Di Working Directory not yet set. Please set this in the 3Di Models & Simulations settings.")
+            self.messageLabel.setText("Please set your 3Di working directory in the 3Di Models & Simulations settings to be able to load computational grids and results from your 3Di working directory.")
             return
 
         local_schematisations = list_local_schematisations(threedi_working_dir)
