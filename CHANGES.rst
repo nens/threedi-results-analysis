@@ -159,7 +159,14 @@
 
 - Initial beta version of results analysis feature.
 
-2.5.5 (unreleased)
+
+2.5.6 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+2.5.5 (2023-09-21)
 ------------------
 
 - Bump threedigrid to 2.0.*
