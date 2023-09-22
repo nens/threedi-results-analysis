@@ -9,8 +9,6 @@ can have also have such files in subdirectories. The fixtures in this file
 from ThreeDiToolbox import PLUGIN_DIR
 
 import os
-import pytest
-import shutil
 
 
 def fix_import_mechanism():

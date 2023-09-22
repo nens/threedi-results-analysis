@@ -1,6 +1,5 @@
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
-from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tool_result_selection import models
 
 import mock

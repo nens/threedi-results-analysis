@@ -4,7 +4,6 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import QSettings
-from qgis.PyQt.QtCore import QSortFilterProxyModel
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QWidget
@@ -23,6 +22,7 @@ ui_file = Path(__file__).parent / "result_selection_view.ui"
 FORM_CLASS, _ = uic.loadUiType(ui_file)
 
 logger = logging.getLogger(__name__)
+
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
     """Dialog for selecting model (spatialite and result files netCDFs)
@@ -43,15 +43,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         ts_datasources=None,
         tool=None,
     ):
-        """Constructor
-
-        :parent: Qt parent Widget
-        :iface: QGiS interface
-        :ts_datasources: TimeseriesDatasourceModel instance
-        :downloadable_results: DownloadableResultModel instance
-        :tool: the tool class which instantiated this widget. Is used
-             here for storing volatile information
-        """
         super().__init__(parent)
 
         self.tool = tool
@@ -105,6 +96,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.selectModelSpatialiteButton.clicked.disconnect(
             self.select_model_spatialite_file
         )
+
     def closeEvent(self, event):
         """
         Close widget, called by Qt on close
@@ -210,6 +202,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         add_spatialite_connection(filepath, self.iface)
         settings.setValue("last_used_spatialite_path", os.path.dirname(filepath))
         return True
+
 
 def add_spatialite_connection(spatialite_path, iface):
     """Add spatialite_path as a spatialite connection in the qgis-browser"""

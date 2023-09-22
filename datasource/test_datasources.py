@@ -4,18 +4,9 @@ from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
-from threedigrid.admin import gridresultadmin
-from threedigrid.admin.constants import NO_DATA_VALUE
-from ThreeDiToolbox.datasource import base
 from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.tests.utilities import TemporaryDirectory
-
-import h5py
-import mock
-import numpy as np
 import os
-import pytest
 import shutil
 import tempfile
 import unittest
@@ -89,4 +80,3 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertTrue("table_one" in [c[1] for c in spl.getTables()])
         # TODO 2021-03-31: re-enable the following line and fix the test!
         # self.assertEqual(layer.featureCount(), 1)
-

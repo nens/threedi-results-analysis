@@ -7,8 +7,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ThreeDiResultSelection(QObject):
-    """QGIS Plugin Implementation."""
 
     state_changed = pyqtSignal([str, str, list])
     tool_name = "result_selection"

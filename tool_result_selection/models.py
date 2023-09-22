@@ -1,13 +1,8 @@
-from functools import cached_property
-from pathlib import Path
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
-from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ValueField
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
 
@@ -74,6 +69,7 @@ class ValueWithChangeSignal(object):
         self.value = value
         getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
 
+
 class TimeseriesDatasourceModel(BaseModel):
     """Model for selecting threedi netcdf results.
 
@@ -111,7 +107,6 @@ class TimeseriesDatasourceModel(BaseModel):
         file_path = ValueField(show=True, column_width=615, column_name="File")
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
-
 
     def reset(self):
         self.removeRows(0, self.rowCount())
