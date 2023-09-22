@@ -14,6 +14,7 @@
 - Sideview: current route is now kept when maptool is deselected (#891)
 - Graph: added batch delete option (#884)
 - Graph: features with same id, but different layer should have different color (#895)
+- Graph: fixed type column in table.
 - Removed BaseDataSource abstract class
 - Statistics: fix python error with "Bed level gradient" (#876)
 - Statistics: assume has_interflow for older models (#889)
@@ -22,6 +23,8 @@
 - Water balance: enable selection of multipolygons (#885)
 - Results: changed notification when working directory not set in settings (#899)
 - Generated layers for watershed and statistics no longer contain (redundant) spatialite_id, node_type_description and z_coordinate (#862)
+- Sideview: do not autoscale when toggling results plot (#915)
+
 
 3.1.8 (2023-09-04)
 ------------------

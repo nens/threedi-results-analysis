@@ -528,7 +528,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.sideview_nodes = []
             messagebar_pop_message()
 
-    def update_water_level_cache(self):
+    def update_water_level_cache(self, update_range=True):
 
         for plot, fill, dots in self.waterlevel_plots.values():
             self.removeItem(plot)
@@ -569,7 +569,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                     node["timeseries"] = {}
                 node["timeseries"][result.id] = total_data[:, (int(node["id"])+1)]
 
-        self.update_waterlevel(True)
+        self.update_waterlevel(update_range)
         messagebar_pop_message()
 
     def update_waterlevel(self, update_range=False):
@@ -744,8 +744,8 @@ class SideViewDockWidget(QDockWidget):
         self.setWindowTitle(f"3Di Side view {self.nr}: {grid.text()}")
 
     def result_item_toggled(self, _: QStandardItem):
-        # For now, just rebuild and redraw the whole sideview, taking into account new checks
-        self.side_view_plot_widget.update_water_level_cache()
+        # For now, just rebuild and redraw the whole sideview, taking into account new checks, but no autoscaling
+        self.side_view_plot_widget.update_water_level_cache(False)
 
     def unset_route_tool(self):
         if self.current_grid_id is None:
