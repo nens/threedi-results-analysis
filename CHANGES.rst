@@ -25,6 +25,7 @@
 - Generated layers for watershed and statistics no longer contain (redundant) spatialite_id, node_type_description and z_coordinate (#862)
 - Sideview: do not autoscale when toggling results plot (#915)
 - Sideview, Statistics: include computational grid name in result selector comboboxes (#902)
+- Removed plugin "Experimental" tag (#917)
 
 
 3.1.8 (2023-09-04)

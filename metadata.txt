@@ -35,7 +35,7 @@ tags=analysis, catchment, drainage, flood, flooding, graph, grid, groundwater, h
 homepage=https://www.3diwatermanagement.com
 category=Plugins
 icon=icons/icon.png
-experimental=True
+experimental=False
 hasProcessingProvider=yes
 
 # deprecated flag (applies to the whole plugin, not just a single version)
