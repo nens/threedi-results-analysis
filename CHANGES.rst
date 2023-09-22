@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.9 (unreleased)
+3.1.9 (2023-09-22)
 ------------------
 
 - Validator: now reparents an added result when a grid with same slug is already present in model.
