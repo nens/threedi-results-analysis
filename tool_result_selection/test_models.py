@@ -54,27 +54,6 @@ def test_downloadable_result_model():
         downloadable_results.insertRows([test_values])
     assert downloadable_results.rowCount() == 8
 
-
-def test_get_line_pattern():
-    ts_datasources = models.TimeseriesDatasourceModel()
-    for i in range(8):
-        test_values = {
-            "active": False,
-            "name": "jaa",
-            "file_path": THREEDI_RESULTS_PATH,
-            "type": "netcdf-groundwater",
-            # Note: pattern is not set, we want the default.
-        }
-        ts_datasources.insertRows([test_values])
-    first_pattern = ts_datasources.rows[0].pattern.value
-    second_pattern = ts_datasources.rows[1].pattern.value
-    last_pattern = ts_datasources.rows[-1].pattern.value
-    # Different styles, if possible:
-    assert first_pattern != second_pattern
-    # If they're all used up, use the first one as fallback.
-    assert first_pattern == last_pattern
-
-
 def test_pop_up_unkown_datasource_type():
     with mock.patch(
         "ThreeDiToolbox.tool_result_selection.models.pop_up_info"

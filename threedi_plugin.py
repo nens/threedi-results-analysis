@@ -7,8 +7,7 @@ from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceMode
 from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils import styler
-from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-
+from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 import logging
 
 
@@ -20,7 +19,7 @@ logger = logging.getLogger(__name__)
 resources  # noqa
 
 
-class ThreeDiPlugin(QObject, ProjectStateMixin):
+class ThreeDiPlugin(QObject):
 
     def __init__(self, iface):
 
@@ -47,6 +46,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.group_layer_name = "3Di toolbox layers"
         self.group_layer = None
+        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
         # Styling
         for color_ramp in color.COLOR_RAMPS:
@@ -97,8 +97,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                 parent=self.iface.mainWindow(),
             )
 
-        self.init_state_sync()
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
@@ -108,6 +106,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
             for tool in self.tools:
                 tool.on_unload()
+
+        self.layer_manager.on_unload()
 
         try:
             del self.toolbar
