@@ -3,6 +3,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from ThreeDiToolbox import resources
 from ThreeDiToolbox.misc_tools import About
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils import styler
@@ -29,6 +30,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Declare instance attributes
         self.actions = []
         self.menu = "&3Di toolbox"
+
+        self.ts_datasources = TimeseriesDatasourceModel()
 
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar("ThreeDiToolbox")
