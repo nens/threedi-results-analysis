@@ -17,19 +17,6 @@ logger = logging.getLogger(__name__)
 Base = declarative_base()
 
 
-def prettify(value, postfix, value_format="%0.2f"):
-    """
-    return prettified string of given value
-    value may be None
-    postfix can be used for unit for example
-    """
-    if value is None:
-        value_str = "--"
-    else:
-        value_str = value_format % value
-    return "%s %s" % (value_str, postfix)
-
-
 class Interflow(Base):
     __tablename__ = "v2_interflow"
     id = Column(Integer, primary_key=True)

@@ -26,16 +26,12 @@ class ThreeDiPlugin(QObject):
         QObject.__init__(self)
         self.iface = iface
 
-        # Declare instance attributes
         self.actions = []
         self.menu = "&3Di toolbox"
 
         self.ts_datasources = TimeseriesDatasourceModel()
-
-        # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar("ThreeDiToolbox")
 
-        # Init the rest of the tools
         self.about_tool = About(iface)
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
 
@@ -44,8 +40,6 @@ class ThreeDiPlugin(QObject):
             self.result_selection_tool,
         ]
 
-        self.group_layer_name = "3Di toolbox layers"
-        self.group_layer = None
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
         # Styling

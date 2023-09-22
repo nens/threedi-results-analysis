@@ -41,27 +41,6 @@ def test_ts_datasource_model_init_with_values():
         assert itemvalue == v
 
 
-def test_downloadable_result_model():
-    # Smoke test, just initialize a few.
-    downloadable_results = models.DownloadableResultModel()
-    for i in range(8):
-        test_values = {
-            "name": "name-%s" % i,
-            "size_mebibytes": i,
-            "url": "http://reinout/%s" % i,
-            "results": "",
-        }
-        downloadable_results.insertRows([test_values])
-    assert downloadable_results.rowCount() == 8
-
-def test_pop_up_unkown_datasource_type():
-    with mock.patch(
-        "ThreeDiToolbox.tool_result_selection.models.pop_up_info"
-    ) as mock_pop_up_info:
-        models.pop_up_unkown_datasource_type()
-        assert mock_pop_up_info.called
-
-
 def test_value_with_change_signal():
     class Person(object):
         age_changed_signal = mock.Mock()
@@ -75,32 +54,6 @@ def test_value_with_change_signal():
     assert person.age == 42
     # And yes, we emitted the signal:
     assert Person.age_changed_signal.emit.called
-
-
-def test_datasource_layer_helper_datasource_dir():
-    datasource_layer_helper = models.DatasourceLayerHelper("/home/pietje/iets.sqlite")
-    assert str(datasource_layer_helper.datasource_dir) == "/home/pietje"
-
-
-def test_datasource_layer_helper_get_result_layers():
-    datasource_layer_helper = models.DatasourceLayerHelper(THREEDI_RESULTS_PATH)
-    # Just call it, check if we get three layers.
-    results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
-    assert len(results) == 4
-
-
-def test_datasource_layer_helper_get_result_layers_validation():
-    ensure_qgis_app_is_initialized()
-    datasource_layer_helper = models.DatasourceLayerHelper(THREEDI_RESULTS_PATH)
-    results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
-    lines = results[0]
-    nodes = results[1]
-    cells = results[2]
-    pumps = results[3]
-    cells  # flake8
-    assert lines.featureCount() == 31915
-    assert nodes.isValid()
-    assert pumps.name() == "pumplines"
 
 
 def test_ts_datasource_model_field_models():

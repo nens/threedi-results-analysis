@@ -41,7 +41,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         parent=None,
         iface=None,
         ts_datasources=None,
-        downloadable_results=None,
         tool=None,
     ):
         """Constructor

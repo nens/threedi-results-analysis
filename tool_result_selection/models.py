@@ -6,10 +6,6 @@ from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ValueField
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_cell_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
@@ -45,18 +41,6 @@ def get_line_pattern(item_field):
     return Qt.SolidLine
 
 
-def pop_up_unkown_datasource_type():
-    msg = (
-        "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n"
-        "results created after March 2018 (groundwater release). \n\n"
-        "You can do two things: \n"
-        "1. simulate this model again and load the result in QGIS3 \n"
-        "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
-    )
-    logger.error(msg)
-    pop_up_info(msg, title="Error")
-
-
 class ValueWithChangeSignal(object):
     """Value for use inside a BaseModel. A change emits a signal.
 
@@ -89,66 +73,6 @@ class ValueWithChangeSignal(object):
     def __set__(self, instance, value):
         self.value = value
         getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
-
-
-class DatasourceLayerHelper(object):
-    """Helper class for TimeseriesDatasourceModel
-
-    Our methods are transparently called from
-    :py:class:`TimeseriesDatasourceModel`, so effectively we could also be
-    methods on *that* class.
-
-    """
-
-    def __init__(self, file_path):
-        self.file_path = Path(file_path)
-        self.datasource_dir = self.file_path.parent
-        # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
-        self.sqlite_gridadmin_filepath = str(self.datasource_dir / "gridadmin.sqlite")
-
-        # The following three are caches for self.get_result_layers()
-        self._line_layer = None
-        self._node_layer = None
-        self._cell_layer = None
-        self._pumpline_layer = None
-
-    @cached_property
-    def threedi_result(self):
-        """Return an instance of a subclass of ``BaseDataSource``."""
-        return ThreediResult(self.file_path)
-
-    def get_result_layers(self, progress_bar=None):
-        """Return QgsVectorLayers for line, node, and pumpline layers.
-
-        Use cached versions (``self._line_layer`` and so) if present.
-
-        """
-        if progress_bar is None:
-            progress_bar = StatusProgressBar(100, "3Di Toolbox")
-        progress_bar.increase_progress(0, "Create flowline layer")
-        self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.threedi_result, self.sqlite_gridadmin_filepath
-        )
-        progress_bar.increase_progress(25, "Create node layer")
-        self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.threedi_result, self.sqlite_gridadmin_filepath
-        )
-        progress_bar.increase_progress(25, "Create cell layer")
-        self._cell_layer = self._cell_layer or get_or_create_cell_layer(
-            self.threedi_result, self.sqlite_gridadmin_filepath
-        )
-        progress_bar.increase_progress(25, "Create pumpline layer")
-        self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
-            self.threedi_result, self.sqlite_gridadmin_filepath
-        )
-        progress_bar.increase_progress(25, "Processing...")
-        return [
-            self._line_layer,
-            self._node_layer,
-            self._cell_layer,
-            self._pumpline_layer,
-        ]
-
 
 class TimeseriesDatasourceModel(BaseModel):
     """Model for selecting threedi netcdf results.
@@ -188,30 +112,6 @@ class TimeseriesDatasourceModel(BaseModel):
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
-        @cached_property
-        def datasource_layer_helper(self):
-            """Return DatasourceLayerHelper."""
-            datasource_type = self.type.value
-            if datasource_type != "netcdf-groundwater":
-                pop_up_unkown_datasource_type()
-                raise AssertionError("unknown datasource type: %s" % datasource_type)
-            # Previously, the manager could handle more kinds of datasource
-            # types. If in the future, more kinds again are needed,
-            # instantiate a different kind of manager here.
-            return DatasourceLayerHelper(self.file_path.value)
-
-        def threedi_result(self):
-            """Return ThreediResult instance."""
-            return self.datasource_layer_helper.threedi_result
-
-        def sqlite_gridadmin_filepath(self):
-            # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
-            return self.datasource_layer_helper.sqlite_gridadmin_filepath
-
-        def get_result_layers(self, progress_bar=None):
-            return self.datasource_layer_helper.get_result_layers(
-                progress_bar=progress_bar
-            )
 
     def reset(self):
         self.removeRows(0, self.rowCount())
