@@ -181,6 +181,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_added.connect(self.water_balance_tool.result_added)
         self.model.result_removed.connect(self.water_balance_tool.result_removed)
         self.model.result_changed.connect(self.water_balance_tool.result_changed)
+        self.model.grid_changed.connect(self.water_balance_tool.grid_changed)
 
         # Further administrative signals that need to happens last:
         # https://doc.qt.io/qt-5/signalsandslots.html#signals

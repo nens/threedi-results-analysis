@@ -49,6 +49,10 @@ class WrappedResult:
         return self.result.text()
 
     @property
+    def parent_text(self):
+        return self.result.parent().text()
+
+    @property
     def threedi_result(self):
         return self.result.threedi_result
 

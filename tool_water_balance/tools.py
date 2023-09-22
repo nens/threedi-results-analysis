@@ -74,6 +74,10 @@ class WaterBalanceTool(ThreeDiPluginTool):
         if self.is_active:
             self.widget.change_result(result)
 
+    def grid_changed(self, grid):
+        if self.is_active:
+            self.widget.change_grid(grid)
+
 
 class WaterBalanceCalculationManager:
     """

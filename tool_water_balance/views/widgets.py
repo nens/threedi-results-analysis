@@ -1096,6 +1096,17 @@ class WaterBalanceWidget(QDockWidget):
         if update:
             self.update_water_balance(reset_model=True)
 
+    def change_grid(self, grid):
+        results = []
+        grid.model().get_results_from_item(grid, False, results)
+        for result in results:
+            if result not in self.manager:
+                return
+
+            tab_index = self._get_tab_index(result)
+            tab_label = self.manager[result].label
+            self.tab_widget.setTabText(tab_index, tab_label)
+
     def change_result(self, result):
         if result not in self.manager:
             return
