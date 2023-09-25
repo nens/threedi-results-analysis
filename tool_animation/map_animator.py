@@ -39,8 +39,8 @@ def get_layer_by_id(layer_id):
 def strip_agg_options(param: str) -> str:
     for opt in AGGREGATION_OPTIONS:
         if param.endswith("_" + opt):
-            return param.rstrip("_" + opt)
-
+            stripchars = 1 + len(opt)
+            return param[:-stripchars]
     return param
 
 
@@ -337,26 +337,27 @@ class MapAnimator(QGroupBox):
         self._update_parameter_attributes()
 
         Q_CUM = 'q_cum'
-        default_items = {WATERLEVEL.name, Q_CUM}
+        default_short_names = {WATERLEVEL.name, Q_CUM}
         if Q_CUM not in (v['parameters'] for v in self.line_parameters.values()):
-            default_items.add(DISCHARGE.name)
+            default_short_names.add(DISCHARGE.name)
 
         for combo_box, parameters in (
             (self.line_parameter_combo_box, self.line_parameters),
             (self.node_parameter_combo_box, self.node_parameters),
         ):
-            last_param = combo_box.currentText()
+            current_long_name = combo_box.currentText()
             combo_box.clear()
             if parameters:
-                items = sorted(parameters)
-                combo_box.addItems(items)
-                if last_param in items:
+                long_names = sorted(parameters)
+                combo_box.addItems(long_names)
+                try:
                     # keep last choice if possible
-                    new_index = items.index(last_param)
-                else:
+                    new_index = long_names.index(current_long_name)
+                except ValueError:
                     # activate a default item if possible
-                    for index, item in enumerate(items):
-                        if item in default_items:
+                    for index, long_name in enumerate(long_names):
+                        short_name = parameters[long_name]["parameters"]
+                        if short_name in default_short_names:
                             new_index = index
                             break
                     else:  # no break, activate the first item
