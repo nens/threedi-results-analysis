@@ -18,6 +18,7 @@ from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QWidget
+from threedigrid.admin.constants import NO_DATA_VALUE
 from shapely.geometry import LineString, Point
 from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
@@ -26,6 +27,8 @@ from threedi_results_analysis.utils.user_messages import messagebar_message, mes
 from threedi_results_analysis.utils.widgets import PenStyleWidget
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+
+from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from bisect import bisect_left
 import logging
 import numpy as np
@@ -563,13 +566,23 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.waterlevel_plots[result_id] = (water_level_plot, water_fill, water_level_nodes)
 
             result = self.model.get_result(result_id)
-            total_data = result.threedi_result.get_timeseries("s1", fill_value=np.NaN)
+
+            gra = GridH5ResultAdmin(str(result.parent().path.with_suffix('.h5')), result.path)
+            node_ids = [int(node["id"]) for node in self.sideview_nodes]
+            data = gra.nodes.filter(id__in=node_ids).only("s1", "id").timeseries(indexes=slice(None)).data
+            node_levels = data["s1"]
+            node_id_table = data["id"].tolist()
+
             for node in self.sideview_nodes:
                 if "timeseries" not in node:
                     node["timeseries"] = {}
-                # Continuous access to the netcdf is quite slow, that is why we retrieve the whole batch above.
-                # node["timeseries"][result.id] = result.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
-                node["timeseries"][result.id] = total_data[:, (int(node["id"])+1)]  # Add 1 because first column is timekeys
+
+                # find index in node table
+                column = node_id_table.index(node["id"])
+                levels = node_levels[:, column]
+                levels[levels == NO_DATA_VALUE] = np.NaN
+
+                node["timeseries"][result.id] = levels
 
         self.update_waterlevel(update_range)
         messagebar_pop_message()
@@ -587,11 +600,9 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             result_id = check_item.data()
             result = self.model.get_result(result_id)
-            threedi_result = result.threedi_result
-
             current_delta = result._timedelta
             current_seconds = current_delta.total_seconds()
-            parameter_timestamps = threedi_result.get_timestamps("s1")
+            parameter_timestamps = result.threedi_result.get_timestamps("s1")
             timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
             timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
 
@@ -608,6 +619,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
             self.waterlevel_plots[result.id][0].setData(np.array(water_level_line, dtype=float))
 
+            # logger.error(water_level_line)
             # Draw dots at intersections between this water line and vertical node lines:
             # This is actually at the beginning of each segment of the water level line
             if self.show_dots:
