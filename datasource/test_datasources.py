@@ -144,15 +144,6 @@ def test_get_model_instance_by_field_name(threedi_result):
     gr.get_model_instance_by_field_name("q_cum")
 
 
-def test_get_values_by_timestep_nr(threedi_result):
-    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
-        trash_elements = np.zeros((3, 1))
-        variable_data = np.array(range(9)).reshape(3, 3)
-        data.return_value = np.hstack((trash_elements, variable_data))
-        values = threedi_result.get_values_by_timestep_nr("s1", 2)
-        np.testing.assert_equal(values, np.array([6, 7, 8]))
-
-
 def test_get_values_by_timestep_nr_with_index(threedi_result):
     with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
@@ -168,7 +159,7 @@ def test_get_values_by_timestep_nr_with_multipe_timestamps(threedi_result):
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
         values = threedi_result.get_values_by_timestep_nr(
-            "s1", timestamp_idx=np.array([0, 2])
+            "s1", timestamp_idx=np.array([0, 2]), node_ids=np.array([1, 2, 3])
         )
         np.testing.assert_equal(values, np.array([[0, 1, 2], [6, 7, 8]]))
 
