@@ -3,7 +3,6 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from ThreeDiToolbox import resources
 from ThreeDiToolbox.misc_tools import About
-from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils import styler
@@ -29,18 +28,16 @@ class ThreeDiPlugin(QObject):
         self.actions = []
         self.menu = "&3Di toolbox"
 
-        self.ts_datasources = TimeseriesDatasourceModel()
         self.toolbar = self.iface.addToolBar("ThreeDiToolbox")
+        self.layer_manager = LayerTreeManager(self.iface)
 
         self.about_tool = About(iface)
-        self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
+        self.result_selection_tool = ThreeDiResultSelection(iface, self.layer_manager)
 
         self.tools = [
             self.about_tool,
             self.result_selection_tool,
         ]
-
-        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
         # Styling
         for color_ramp in color.COLOR_RAMPS:
