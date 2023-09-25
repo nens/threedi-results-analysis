@@ -567,7 +567,9 @@ class SideViewPlotWidget(pg.PlotWidget):
             for node in self.sideview_nodes:
                 if "timeseries" not in node:
                     node["timeseries"] = {}
-                node["timeseries"][result.id] = total_data[:, (int(node["id"])+1)]
+                # Continuous access to the netcdf is quite slow, that is why we retrieve the whole batch above.
+                # node["timeseries"][result.id] = result.threedi_result.get_timeseries("s1", node_id=int(node["id"]), fill_value=np.NaN)
+                node["timeseries"][result.id] = total_data[:, (int(node["id"])+1)]  # Add 1 because first column is timekeys
 
         self.update_waterlevel(update_range)
         messagebar_pop_message()
