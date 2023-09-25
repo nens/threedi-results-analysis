@@ -200,80 +200,31 @@ class ThreediResult():
         timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
         return np.hstack([timestamps, values])
 
-    # This method is similar as get_values_by_timestep_nr but does not cache
-    # values. Moreover, it tries to only query the minimum needed data needed.
-    # def get_values_by_timestep_nr_no_caching(
-    #     self, variable, timestamp_idx, node_ids=None
-    # ):
-    #     """Return an array of values of the given variable on the specified timestamp(s)
-    #
-    #     If an array of timestamps is given, a 2d numpy array is returned.
-    #     If index is specified, only the node_ids specified in the index will
-    #     be returned.
-    #
-    #     :param variable: (str) variable name, e.g. 's1', 'q_pump'
-    #     :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
-    #     :param node_ids: 1d numpy.array of node_ids
-    #     :return: 1d/2d numpy.array
-    #     """
-    #     ga = self.get_gridadmin(variable)
-    #     model = ga.get_model_instance_by_field_name(variable)
-    #
-    #     time_slice = None
-    #     if isinstance(timestamp_idx, int):
-    #         time_slice = slice(timestamp_idx, timestamp_idx+1)
-    #         time_index_filter = 0
-    #     elif isinstance(timestamp_idx, np.ndarray):
-    #         # ga.timeseries unfortunately does not allow for index filter on
-    #         # aggregate results, only a slice filter. Thus we load a bit more
-    #         # in memory and apply the index filter at the end.
-    #         time_slice = slice(min(timestamp_idx), max(timestamp_idx) + 1)
-    #         if len(timestamp_idx) == 1:
-    #             time_index_filter = 0
-    #         else:
-    #             time_index_filter = timestamp_idx - min(timestamp_idx)
-    #     result_filter = model.timeseries(indexes=time_slice)
-    #
-    #     if node_ids is None:
-    #         result_filter = result_filter.filter(id__gt=0)
-    #     result = result_filter.get_filtered_field_value(variable)
-    #
-    #     if node_ids is not None:
-    #         # Unfortunately threedigrid indexing is not as fancy as
-    #         # numpy, i.e. we can't use duplicate indexes/unsorted indexes.
-    #         # Thus we load a bit more in memory as a numpy array and then apply
-    #         # the final indexing with numpy.
-    #         return result[time_index_filter][node_ids]
-    #     else:
-    #         return result[time_index_filter]
-
-    def get_values_by_timestep_nr(
-        self, variable, timestamp_idx, node_ids=None,
-    ):
-        """Return an array of values of the given variable on the specified timestamp(s)
-
-        If only one timestamp is specified, a 1d np.array is returned.  If an
-        array of multiple timestamp_idx is given, a 2d np.array is returned.
-
-        If node_ids is specified, only the node_ids specified in the nodes will
-        be returned.
+    def get_values_by_timestep_nr(self, variable, timestamp_idx, node_ids):
+        """Return an array of values of the given variable on the specified
+        timestamp(s)
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
         :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
         :param node_ids: 1d numpy.array of node_ids or None in which case all
             nodes are returned.
         :return: 1d/2d numpy.array
+
+        If only one timestamp is specified, a 1d np.array is returned.  If an
+        array of multiple timestamp_idx is given, a 2d np.array is returned.
+
+        If node_ids is specified, only the values corresponding to the
+        specified node_ids will be returned.
+
+        A note about the implementation: 3Di ids start at 1. The numpy array
+        from the GridResultAdmin starts with an extra, meaningless element
+        along the node dimension, so that the node_ids can be used as an index.
         """
         values = self._nc_from_mem(variable)
         if isinstance(timestamp_idx, int):
             timestamp_idx = np.array([timestamp_idx])
 
-        if node_ids is None:
-            # The first element is a trash element which we don't want to return
-            filtered_data = values[timestamp_idx, 1:]
-        else:
-            # node_ids should never be 0 thus the trash element gets filtered out.
-            filtered_data = values[timestamp_idx][:, node_ids]
+        filtered_data = values[timestamp_idx][:, node_ids]
 
         if len(timestamp_idx) == 1:
             # if only one timestamp is specified, an 1d array is returned

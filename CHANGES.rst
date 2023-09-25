@@ -5,7 +5,7 @@
 3.1.10 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Visualization: simplify getting result values.
 
 
 3.1.9 (2023-09-22)
