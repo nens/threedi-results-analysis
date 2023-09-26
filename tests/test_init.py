@@ -9,8 +9,6 @@ import ThreeDiToolbox
 
 logger = logging.getLogger(__name__)
 
-TEST_DATA_DIR = PLUGIN_DIR / "tests" / "data"
-
 
 def test_read_init():
     """Test that the plugin __init__ will validate on plugins.qgis.org."""
