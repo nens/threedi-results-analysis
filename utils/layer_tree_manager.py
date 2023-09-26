@@ -28,7 +28,6 @@ class LayerTreeManager(object):
     inflow_surface_subgroup_name = "surface"
 
     schematisation_advanced_settings_group_name = "advanced numerics"
-    result_layergroup_basename = "result: "
 
     def __init__(self, iface):
 
