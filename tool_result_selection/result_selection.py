@@ -72,7 +72,6 @@ class ThreeDiResultSelection(QObject):
             pop_up_info(msg, "Warning")
             return False
 
-
         self.add_spatialite_connection(filepath, self.iface)
         settings.setValue("last_used_spatialite_path", os.path.dirname(filepath))
 
@@ -85,6 +84,3 @@ class ThreeDiResultSelection(QObject):
             f"SpatiaLite/connections/{filename}/sqlitepath", spatialite_path
         )
         iface.reloadConnections()
-
-
-       

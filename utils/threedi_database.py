@@ -1,4 +1,3 @@
-from .sqlalchemy_add_columns import create_and_upgrade
 from osgeo import ogr
 from qgis.PyQt.QtCore import QSettings
 from sqlalchemy import create_engine
@@ -70,12 +69,6 @@ class ThreediDatabase(object):
         self._combined_base = None  # TODO: unused?
         self._base = None  # TODO: unused?
         self._base_metadata = None
-
-    def create_and_check_fields(self):
-
-        # engine = self.get_engine()
-        create_and_upgrade(self.engine, self.get_metadata())
-        # self.metadata(engine=engine, force_refresh=True)
 
     def create_db(self, overwrite=False):
         if self.db_type == "spatialite":
