@@ -35,7 +35,7 @@ def add_color_ramp(data: ColorRampData):
     # If ramp with this name already exists, it will be overridden (default QGIS API behaviour)
 
 
-def apply_style(layer, style_name, stype="tools"):
+def apply_style(layer, style_name, stype):
     qml_path = STYLES_ROOT / stype / style_name
 
     style_manager = layer.styleManager()
