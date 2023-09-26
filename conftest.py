@@ -6,8 +6,6 @@ can have also have such files in subdirectories. The fixtures in this file
 
 """
 
-from ThreeDiToolbox import PLUGIN_DIR
-
 import os
 
 
@@ -22,6 +20,3 @@ def fix_import_mechanism():
 
 
 fix_import_mechanism()  # Needs to be called right away.
-
-data_dir = PLUGIN_DIR / "tests" / "data"
-bergermeer_dir = data_dir / "testmodel" / "v2_bergermeer"
