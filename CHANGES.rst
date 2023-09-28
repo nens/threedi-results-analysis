@@ -6,6 +6,8 @@
 -------------------
 
 - Visualization: simplify getting result values.
+- Result browser: fixed error when result folder of schematisation is missing.
+- Sideview: directly retrieving waterlevels via threedigrid.
 
 
 3.1.9 (2023-09-22)

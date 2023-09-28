@@ -52,6 +52,8 @@ class LocalRevision:
     @property
     def results_dirs(self):
         """Get all (full) result folders"""
+        if not os.path.isdir(self.results_dir):
+            return []
         return listdirs(self.results_dir)
 
     @property
