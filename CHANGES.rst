@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.10 (unreleased)
+3.1.10 (2023-09-29)
 -------------------
 
 - Visualization: simplify getting result values.
