@@ -87,11 +87,8 @@ else:
     SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
     H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.8.0", True)
 
-if QGIS_VERSION < 32811 and platform.system() == "Windows":
-    WINDOWS_PLATFORM_DEPENDENCIES = [
-        Dependency("scipy", "scipy", "==1.6.2", False),
-    ]
-elif platform.system() == "Windows":
+WINDOWS_PLATFORM_DEPENDENCIES = [Dependency("scipy", "scipy", "==1.6.2", False)]
+if QGIS_VERSION >= 32811 and platform.system() == "Windows":
     WINDOWS_PLATFORM_DEPENDENCIES = [
         Dependency("scipy", "scipy", "==1.10.1", True),
     ]
