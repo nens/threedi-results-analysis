@@ -53,3 +53,6 @@ class ThreeDiResultSelection(QObject):
             f"SpatiaLite/connections/{filename}/sqlitepath", spatialite_path
         )
         iface.reloadConnections()
+
+    def on_unload(self):
+        pass
