@@ -77,10 +77,6 @@ DEPENDENCIES = [
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
 ]
 
-# Dependencies that contain compiled extensions for windows platform
-WINDOWS_PLATFORM_DEPENDENCIES = [
-    Dependency("scipy", "scipy", "==1.6.2", False),
-]
 # On Windows, the hdf5 binary and thus h5py version depends on the QGis version
 # QGis upgraded from hdf5 == 1.10.7 to hdf5 == 1.14.0 in QGis 3.28.6
 QGIS_VERSION = Qgis.QGIS_VERSION_INT
@@ -90,6 +86,15 @@ if QGIS_VERSION < 32806 and platform.system() == "Windows":
 else:
     SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
     H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.8.0", True)
+
+if QGIS_VERSION < 32811 and platform.system() == "Windows":
+    WINDOWS_PLATFORM_DEPENDENCIES = [
+        Dependency("scipy", "scipy", "==1.6.2", False),
+    ]
+elif platform.system() == "Windows":
+    WINDOWS_PLATFORM_DEPENDENCIES = [
+        Dependency("scipy", "scipy", "==1.10.1", True),
+    ]
 
 # If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "osgeo", "pip", "setuptools"]

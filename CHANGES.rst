@@ -1,6 +1,11 @@
 3Di Results Analysis changelog
 ========================
 
+3.1.11 (unreleased)
+-------------------
+
+- Bumped scipy to 1.10.1 (depending on qgis version)
+
 
 3.1.10 (2023-09-29)
 -------------------
