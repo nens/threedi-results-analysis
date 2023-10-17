@@ -25,6 +25,7 @@
 import os
 import sys
 from types import MethodType
+from typing import List
 
 from qgis.PyQt import QtWidgets
 from qgis.PyQt import uic
@@ -82,11 +83,17 @@ DEFAULT_AGGREGATION = Aggregation(
 
 
 def update_column_widget(
-    self, demanded_aggregations, aggregation_variable_types: list
+    self: QtWidgets.QComboBox, demanded_aggregations: List[Aggregation], aggregation_variable_types: List
 ):
+    """
+    This method is intended to be bound to QComboBox after instantiation
+
+    Adds the `as_column_name()` string representations of the `demanded_aggregations` as items to `self`
+    if the aggregation variable type is in `aggregation_variable_types`
+    """
     self.clear()
     filtered_das = filter_demanded_aggregations(
-        demanded_aggregations, aggregation_variable_types
+        das=demanded_aggregations, variable_types=aggregation_variable_types
     )
     for da in filtered_das:
         column_name = da.as_column_name()
@@ -555,7 +562,10 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 params_widget.insertRow(row)
                 param_name_item = QtWidgets.QTableWidgetItem(param_name)
                 params_widget.setItem(row, 0, param_name_item)
+                # if param_type == "column":  # here other param types like numbers or text input could be added
                 param_input_widget = QtWidgets.QComboBox()
+
+                # Add columns resulting from aggregations to parameter combobox
                 param_input_widget.update = MethodType(
                     update_column_widget, param_input_widget
                 )
