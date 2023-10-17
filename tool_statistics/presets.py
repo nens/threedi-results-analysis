@@ -256,13 +256,12 @@ water_on_street_aggregations = [
 ]
 
 WATER_ON_STREET_DURATION_PRESET = Preset(
-    name="Water on street duration",
-    description="Duration of water level above manhole drain level.",
+    name="Manhole: Water on street duration",
+    description="Time (s) that the water level in manholes exceeds the drain level.",
     aggregations=water_on_street_aggregations,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold"},
-    nodes_layer_name="Water on street duration (nodes)",
-    raster_layer_name="Water on street duration (raster)",
+    nodes_layer_name="Manhole: Water on street duration",
     only_manholes=True,
 )
 
