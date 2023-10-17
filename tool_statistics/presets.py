@@ -10,6 +10,7 @@ from .style import (
     STYLE_BALANCE,
     STYLE_WATER_ON_STREET_DURATION_NODE,
     STYLE_MANHOLE_WATER_DEPTH_NODE,
+    STYLE_MANHOLE_MIN_FREEBOARD,
 )
 
 
@@ -284,6 +285,25 @@ MAX_DEPTH_ON_STREET_PRESETS = Preset(
 )
 
 
+# Manhole: Minimum freeboard
+max_depth_on_street_aggregations = [
+    Aggregation(
+        variable=AGGREGATION_VARIABLES.get_by_short_name("s1"),
+        method=AGGREGATION_METHODS.get_by_short_name("max")
+    ),
+]
+
+MIN_FREEBOARD_PRESETS = Preset(
+    name="Manhole: Minimum freeboard",
+    description="Minimum freeboard for manholes, i.e. how far below the drain level the maximum water level is",
+    aggregations=max_depth_on_street_aggregations,
+    nodes_style=STYLE_MANHOLE_MIN_FREEBOARD,
+    nodes_style_param_values={"value": "s1_max"},
+    nodes_layer_name="Manhole: Minimum freeboard",
+    only_manholes=True
+)
+
+
 PRESETS = [
     NO_PRESET,
     MAX_WL_PRESETS,
@@ -292,5 +312,6 @@ PRESETS = [
     FLOW_PATTERN_PRESETS,
     TS_REDUCTION_ANALYSIS_PRESETS,
     WATER_ON_STREET_DURATION_PRESET,
-    MAX_DEPTH_ON_STREET_PRESETS
+    MAX_DEPTH_ON_STREET_PRESETS,
+    MIN_FREEBOARD_PRESETS,
 ]

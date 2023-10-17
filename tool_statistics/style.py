@@ -329,6 +329,21 @@ STYLE_MANHOLE_WATER_DEPTH_NODE = Style(
 )
 
 
+STYLE_MANHOLE_MIN_FREEBOARD = Style(
+    name="Manhole freeboard",
+    output_type="node",
+    params={"value": "column"},
+    qml="manhole_freeboard.qml",
+    # TODO: make "reference" user definable
+    styling_method=lambda layer, qml, value, reference="drain_level", update_classes=False: style_difference(
+        layer,
+        qml,
+        value,
+        reference,
+        update_classes
+    ),
+)
+
 STYLE_CHANGE_WL = Style(
     name="Change in water level",
     output_type="cell",
@@ -380,6 +395,7 @@ STYLES = [
     STYLE_BALANCE,
     STYLE_WATER_ON_STREET_DURATION_NODE,
     STYLE_MANHOLE_WATER_DEPTH_NODE,
+    STYLE_MANHOLE_MIN_FREEBOARD,
 ]
 
 DEFAULT_STYLES = {
