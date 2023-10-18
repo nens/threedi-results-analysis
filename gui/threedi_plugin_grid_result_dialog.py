@@ -9,7 +9,7 @@ from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot, QModelIndex
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
-from threedi_results_analysis.utils.workingdir import list_local_schematisations
+from threedi_mi_utils import list_local_schematisations
 
 logger = logging.getLogger(__name__)
 
