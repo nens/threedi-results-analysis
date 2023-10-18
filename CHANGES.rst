@@ -4,7 +4,7 @@
 3.1.12 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Cross-sectional discharge: minor bugfix to correctly set the attributes of the intersected flowlines
 
 
 3.1.11 (2023-10-02)

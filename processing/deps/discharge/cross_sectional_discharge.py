@@ -236,6 +236,7 @@ def left_to_right_discharge_ogr(
         tgt_ds=tgt_ds,
         attributes=attributes,
         attr_data_types=attr_data_types,
+        include_all_threedigrid_attributes=True
     )
     ogr_lyr = tgt_ds.GetLayerByName("flowline")
     for i, feature in enumerate(ogr_lyr):
