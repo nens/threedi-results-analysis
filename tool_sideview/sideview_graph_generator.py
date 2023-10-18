@@ -86,6 +86,7 @@ class SideViewGraphGenerator():
         bottom_level = node.dmax[0]
         if not self.ga.has_2d:
             upper_level = node.drain_level[0].item()  # can be nan
+            height = (upper_level-bottom_level)
         else:
             upper_level = SideViewGraphGenerator.retrieve_node_upper_level(node_id, self.lines_1d2d_data)
 

@@ -5,6 +5,7 @@
 -------------------
 
 - Cross-sectional discharge: minor bugfix to correctly set the attributes of the intersected flowlines
+- Sideview: fix for pure 1D models (#931)
 
 
 3.1.11 (2023-10-02)
