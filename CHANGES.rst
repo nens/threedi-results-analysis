@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.1.12 (unreleased)
+3.1.12 (2023-10-19)
 -------------------
 
 - Cross-sectional discharge: minor bugfix to correctly set the attributes of the intersected flowlines
