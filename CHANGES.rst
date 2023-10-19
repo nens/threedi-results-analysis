@@ -6,6 +6,7 @@
 
 - Cross-sectional discharge: minor bugfix to correctly set the attributes of the intersected flowlines
 - Sideview: fix for pure 1D models (#931)
+- Statistics: removed water_on_street preset
 
 
 3.1.11 (2023-10-02)

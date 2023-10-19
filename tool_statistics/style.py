@@ -286,19 +286,6 @@ STYLE_SINGLE_COLUMN_GRADUATED_NODE = Style(
     styling_method=style_on_single_column,
 )
 
-STYLE_WATER_ON_STREET_DURATION_NODE = Style(
-    name="Water on street duration",
-    output_type="node",
-    params={"column": "column"},
-    qml="water_on_street_duration.qml",
-    styling_method=lambda layer, qml, column, update_classes=False: style_on_single_column(
-        layer,
-        qml,
-        column,
-        update_classes
-    ),
-)
-
 STYLE_CHANGE_WL = Style(
     name="Change in water level",
     output_type="cell",
@@ -348,7 +335,6 @@ STYLES = [
     STYLE_SINGLE_COLUMN_GRADUATED_CELL,
     STYLE_CHANGE_WL,
     STYLE_BALANCE,
-    STYLE_WATER_ON_STREET_DURATION_NODE,
 ]
 
 DEFAULT_STYLES = {
