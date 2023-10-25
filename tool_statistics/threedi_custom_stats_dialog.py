@@ -235,7 +235,12 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         # set the threshold _after_ the units widget is in place
         if aggregation.threshold is not None:
             threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, 3)
-            threshold_widget.setValue(aggregation.threshold)
+            if method.threshold_sources:
+                threshold_widget.setCurrentIndex(
+                    threshold_widget.findText(aggregation.threshold),
+                )
+            else:
+                threshold_widget.setValue(aggregation.threshold)
 
         # TODO: dit is nu lastig te setten obv aggregation, omdat die wel een attribuut multiplier heeft,
         #  maar niet een attribuut units. laat ik nu even voor wat het is
@@ -882,6 +887,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def validate(self) -> bool:
         valid = True
+
         logger.info([agg.variable.long_name for agg in self.demanded_aggregations])
         if not isinstance(self.gr, GridH5ResultAdmin):
             logger.warning("Invalid or no result file selected")

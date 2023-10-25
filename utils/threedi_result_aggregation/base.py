@@ -19,7 +19,9 @@ from osgeo import osr
 from .constants import (
     AGGREGATION_VARIABLES,
     NON_TS_REDUCING_KCU,
-    NP_OGR_DTYPES
+    NP_OGR_DTYPES,
+    THRESHOLD_DRAIN_LEVEL,
+    THRESHOLD_EXCHANGE_LEVEL,
 )
 from .aggregation_classes import (
     Aggregation,
@@ -1073,7 +1075,9 @@ def aggregate_threedi_results(
                 raise Exception("No manholes found within bounding box.")
 
         for aggregation in demanded_aggregations:
-            if aggregation.threshold == "exchange_level":
+            if aggregation.threshold == THRESHOLD_DRAIN_LEVEL:
+                aggregation.threshold = nodes.drain_level
+            elif aggregation.threshold == THRESHOLD_EXCHANGE_LEVEL:
                 # set exchange level from dpumax of adjacent lines
                 lines = filter_lines_by_node_ids(lines, nodes.id).subset("1D2D")
                 dpumax = lines.dpumax

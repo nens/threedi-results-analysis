@@ -1,5 +1,10 @@
 from threedi_results_analysis.utils.threedi_result_aggregation.base import Aggregation
-from threedi_results_analysis.utils.threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
+from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
+    AGGREGATION_VARIABLES,
+    AGGREGATION_METHODS,
+    THRESHOLD_DRAIN_LEVEL,
+    THRESHOLD_EXCHANGE_LEVEL,
+)
 from .style import (
     Style,
     STYLE_SINGLE_COLUMN_GRADUATED_NODE,
@@ -247,17 +252,37 @@ SOURCE_SINK_MM_PRESETS = Preset(
 )
 
 # Change in water level
-water_on_street_aggregations = [
+water_on_street_aggregations_0d1d = [
     Aggregation(
         variable=AGGREGATION_VARIABLES.get_by_short_name("s1"),
         method=AGGREGATION_METHODS.get_by_short_name("time_above_threshold"),
+        threshold=THRESHOLD_DRAIN_LEVEL,
     ),
 ]
 
-WATER_ON_STREET_DURATION_PRESET = Preset(
-    name="Water on street duration",
+water_on_street_aggregations_1d2d = [
+    Aggregation(
+        variable=AGGREGATION_VARIABLES.get_by_short_name("s1"),
+        method=AGGREGATION_METHODS.get_by_short_name("time_above_threshold"),
+        threshold=THRESHOLD_EXCHANGE_LEVEL,
+    ),
+]
+
+WATER_ON_STREET_DURATION_0D1D_PRESET = Preset(
+    name="Water on street duration (0D1D)",
     description="Duration of water level above manhole drain level.",
-    aggregations=water_on_street_aggregations,
+    aggregations=water_on_street_aggregations_0d1d,
+    nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
+    nodes_style_param_values={"column": "s1_time_above_threshold"},
+    nodes_layer_name="Water on street duration (nodes)",
+    raster_layer_name="Water on street duration (raster)",
+    only_manholes=True,
+)
+
+WATER_ON_STREET_DURATION_1D2D_PRESET = Preset(
+    name="Water on street duration (1D2D)",
+    description="Duration of water level above manhole exchange level.",
+    aggregations=water_on_street_aggregations_1d2d,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold"},
     nodes_layer_name="Water on street duration (nodes)",
@@ -272,5 +297,6 @@ PRESETS = [
     SOURCE_SINK_MM_PRESETS,
     FLOW_PATTERN_PRESETS,
     TS_REDUCTION_ANALYSIS_PRESETS,
-    WATER_ON_STREET_DURATION_PRESET,
+    WATER_ON_STREET_DURATION_0D1D_PRESET,
+    WATER_ON_STREET_DURATION_1D2D_PRESET,
 ]
