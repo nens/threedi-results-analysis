@@ -73,7 +73,7 @@ agg_method_list = [
         "long_name": "Time above threshold",
         "has_threshold": True,
         "is_duration": True,
-        "threshold_sources": ["drain_level"],
+        "threshold_sources": ["exchange_level"],
     },
 ]
 

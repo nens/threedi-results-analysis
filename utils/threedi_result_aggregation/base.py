@@ -249,14 +249,6 @@ def prepare_timeseries(
     else:
         raw_values_signed = raw_values
 
-    if aggregation.method.short_name == "time_above_threshold":
-        # do the thresholding while we have the nodes around
-        threshold = getattr(nodes_or_lines, aggregation.threshold)[np.newaxis]
-        nanmask = np.isnan(raw_values_signed)
-        low = np.finfo(raw_values_signed.dtype).min
-        raw_values_signed[nanmask] = low
-        raw_values_signed = np.greater(raw_values_signed, threshold)
-
     return raw_values_signed, tintervals
 
 
@@ -309,11 +301,10 @@ def aggregate_prepared_timeseries(
         total_time = np.sum(tintervals)
         result = np.multiply(np.divide(time_below_threshold, total_time), 100.0)
     elif aggregation.method.short_name == "time_above_threshold":
-        # already thresholded in the prepare step
-        time_above_threshold = np.sum(
-            np.multiply(timeseries.T, tintervals).T, axis=0
-        )
-        result = time_above_threshold
+        threshold = aggregation.threshold[np.newaxis]
+        timeseries[np.isnan(timeseries)] = -np.inf
+        is_over_threshold = np.greater(timeseries, threshold)
+        result = (tintervals[:, np.newaxis] * is_over_threshold).sum(0)
     else:
         raise ValueError(
             'Unknown aggregation method "{}".'.format(
@@ -1080,6 +1071,20 @@ def aggregate_threedi_results(
             cells = cells.manholes
             if nodes.count == 0:
                 raise Exception("No manholes found within bounding box.")
+
+        for aggregation in demanded_aggregations:
+            if aggregation.threshold == "exchange_level":
+                # set exchange level from dpumax of adjacent lines
+                lines = filter_lines_by_node_ids(lines, nodes.id).subset("1D2D")
+                dpumax = lines.dpumax
+                begin, end = lines.line
+                # make threshold array big enough to fit all nodes in lines
+                threshold = np.full(lines.line.max() + 1, np.inf)
+                # populate with lowest dpumax per node
+                threshold[begin] = np.minimum(dpumax, threshold[begin])
+                threshold[end] = np.minimum(dpumax, threshold[end])
+                # set array with threshold per node on aggregation
+                aggregation.threshold = threshold[nodes.id]
 
         new_column_name = da.as_column_name()
 
