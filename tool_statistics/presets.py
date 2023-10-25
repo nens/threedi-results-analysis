@@ -258,7 +258,9 @@ water_on_street_aggregations = [
 
 WATER_ON_STREET_DURATION_PRESET = Preset(
     name="Manhole: Water on street duration",
-    description="Time (s) that the water level in manholes exceeds the drain level.",
+    description="Time (s) that the water level in manholes exceeds the drain level. For manholes with a connection to a "
+                "2D cell, the lowest 1D2D exchange level is used as drain level, which may be higher than the manhole "
+                "drain level defined in the schematisation.",
     aggregations=water_on_street_aggregations,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold"},
