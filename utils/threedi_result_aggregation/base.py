@@ -1078,15 +1078,19 @@ def aggregate_threedi_results(
             if aggregation.threshold == THRESHOLD_DRAIN_LEVEL:
                 aggregation.threshold = nodes.drain_level
             elif aggregation.threshold == THRESHOLD_EXCHANGE_LEVEL:
-                # set exchange level from dpumax of adjacent lines
+                # find adjacent lines
                 lines = filter_lines_by_node_ids(lines, nodes.id).subset("1D2D")
+
+                # make array to lookup thresholds by node id
+                max_node_id = max(nodes.id.max(), lines.line.max(initial=0))
+                threshold = np.full(max_node_id + 1, np.inf)
+
+                # populate lookup array with lowest dpumax
                 dpumax = lines.dpumax
                 begin, end = lines.line
-                # make threshold array big enough to fit all nodes in lines
-                threshold = np.full(lines.line.max() + 1, np.inf)
-                # populate with lowest dpumax per node
                 threshold[begin] = np.minimum(dpumax, threshold[begin])
                 threshold[end] = np.minimum(dpumax, threshold[end])
+
                 # set array with threshold per node on aggregation
                 aggregation.threshold = threshold[nodes.id]
 

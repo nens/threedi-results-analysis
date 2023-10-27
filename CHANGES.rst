@@ -4,7 +4,7 @@
 3.1.13 (unreleased)
 -------------------
 
-- Statistics: re-introduce fixed water_on_street preset
+- Statistics: Add two water on street presets.
 
 
 3.1.12 (2023-10-19)
