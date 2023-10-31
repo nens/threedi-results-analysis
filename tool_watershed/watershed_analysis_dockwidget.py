@@ -1054,7 +1054,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if self.gq.graph_3di.isready:
             polygon_lyr = self.mMapLayerComboBoxTargetPolygons.currentLayer()
             src_crs = polygon_lyr.crs()
-            tgt_crs = QgsCoordinateReferenceSystem(f"EPSG:{self.gq.epsg}")
+            tgt_crs = QgsCoordinateReferenceSystem(f"EPSG:{self.gq.gr.epsg_code}")
             tr = QgsCoordinateTransform(src_crs, tgt_crs, QgsProject.instance())
 
             if self.checkBoxSelectedPolygonsOnly.isChecked():
