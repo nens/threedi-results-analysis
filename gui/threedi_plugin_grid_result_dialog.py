@@ -4,6 +4,7 @@ import logging
 import os
 
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
+from threedi_results_analysis.utils.utils import listdirs
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot, QModelIndex
 from qgis.PyQt.QtWidgets import QAbstractItemView
@@ -204,7 +205,8 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             # Iterate over revisions
             for revision_number, local_revision in local_schematisation.revisions.items():
                 # Iterate over results
-                for result_dir in local_revision.results_dirs:
+                local_revision_results_dirs = listdirs(local_revision.results_dir) if os.path.isdir(local_revision.results_dir) else []
+                for result_dir in local_revision_results_dirs:
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))
@@ -218,7 +220,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     self.model.appendRow([schema_item, revision_item, result_item])
 
                 # In case no results are present, but a gridadmin is present, we still add the grid, but without result item
-                if len(local_revision.results_dirs) == 0 and os.path.exists(os.path.join(local_revision.grid_dir, "gridadmin.h5")):
+                if len(local_revision_results_dirs) == 0 and os.path.exists(os.path.join(local_revision.grid_dir, "gridadmin.h5")):
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))
