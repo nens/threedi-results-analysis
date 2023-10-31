@@ -270,23 +270,35 @@ water_on_street_aggregations_1d2d = [
 
 WATER_ON_STREET_DURATION_0D1D_PRESET = Preset(
     name="Water on street duration (0D1D)",
-    description="Duration of water level above manhole drain level.",
+    description="Time [s] that the water level in manholes exceeds the drain level.\n\n"
+                "In 3Di models without 2D, this is the level at which water flows onto the street (i.e., where the "
+                "storage area changes from what is specified at the connection node to what is specified as manhole "
+                "storage area in the global settings).\n\n"
+                "⚠ Do not use this preset for 3Di models with 2D. In such models, the drain level defined at the "
+                "manhole is not always the level at which water flows onto the street. If the drain level is lower "
+                "than the bottom level (lowest pixel) of the 2D cell the manhole is in, the water must rise to the "
+                "2D cell's bottom level before it can flow onto the street.",
     aggregations=water_on_street_aggregations_0d1d,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold_drain_level"},
-    nodes_layer_name="Water on street duration (nodes)",
-    raster_layer_name="Water on street duration (raster)",
+    nodes_layer_name="Water on street duration (0D1D)",
     only_manholes=True,
 )
 
 WATER_ON_STREET_DURATION_1D2D_PRESET = Preset(
     name="Water on street duration (1D2D)",
-    description="Duration of water level above manhole exchange level.",
+    description="Time [s] that the water level in manholes exceeds the 1D2D exchange level.\n\n"
+                "In 3Di models with 2D, this is the level at which water flows onto the street. The exchange level is "
+                "the maximum of two values: the drain level specified for the manhole, or the bottom level (lowest "
+                "pixel) of the 2D cell the manhole is in.\n\n"
+                "⚠ Manholes that have no connection to the 2D domain do not have an exchange level. The 'water on "
+                "street duration' is always 0 for these manholes.\n\n"
+                "⚠ Do not use this preset for 3Di models without 2D. In such models, none of the manholes have a "
+                "connection to the 2D domain, so the 'water on street duration' will be 0 for all manholes.",
     aggregations=water_on_street_aggregations_1d2d,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold_exchange_level"},
-    nodes_layer_name="Water on street duration (nodes)",
-    raster_layer_name="Water on street duration (raster)",
+    nodes_layer_name="Water on street duration (1D2D)",
     only_manholes=True,
 )
 
