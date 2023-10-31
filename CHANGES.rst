@@ -5,6 +5,7 @@
 -------------------
 
 - Statistics: Add two water on street presets.
+- General: added some layer loading feedback.
 
 
 3.1.12 (2023-10-19)
