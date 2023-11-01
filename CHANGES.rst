@@ -1,8 +1,8 @@
 3Di Results Analysis changelog
 ========================
 
-3.1.13 (unreleased)
--------------------
+3.2 (2023-11-01)
+----------------
 
 - Statistics: Add two water on street presets.
 - General: added some layer loading feedback.
