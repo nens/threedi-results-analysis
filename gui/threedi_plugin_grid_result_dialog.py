@@ -4,7 +4,6 @@ import logging
 import os
 
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
-from threedi_results_analysis.utils.utils import listdirs
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot, QModelIndex
 from qgis.PyQt.QtWidgets import QAbstractItemView
