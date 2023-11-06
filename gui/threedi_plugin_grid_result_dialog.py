@@ -199,7 +199,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             self.messageLabel.setText("Please set your 3Di working directory in the 3Di Models & Simulations settings to be able to load computational grids and results from your 3Di working directory.")
             return
 
-        local_schematisations = list_local_schematisations(threedi_working_dir)
+        local_schematisations = list_local_schematisations(threedi_working_dir, use_config_for_revisions=False)
         for schematisation_id, local_schematisation in local_schematisations.items():
             # Iterate over revisions
             for revision_number, local_revision in local_schematisation.revisions.items():
