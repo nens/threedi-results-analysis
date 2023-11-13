@@ -9,7 +9,7 @@ from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot, QModelIndex
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
-from threedi_results_analysis.utils.workingdir import list_local_schematisations
+from threedi_mi_utils import list_local_schematisations
 
 logger = logging.getLogger(__name__)
 
@@ -199,10 +199,11 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             self.messageLabel.setText("Please set your 3Di working directory in the 3Di Models & Simulations settings to be able to load computational grids and results from your 3Di working directory.")
             return
 
-        local_schematisations = list_local_schematisations(threedi_working_dir)
+        local_schematisations = list_local_schematisations(threedi_working_dir, use_config_for_revisions=False)
         for schematisation_id, local_schematisation in local_schematisations.items():
             # Iterate over revisions
             for revision_number, local_revision in local_schematisation.revisions.items():
+                num_of_results = len(local_revision.results_dirs)
                 # Iterate over results
                 for result_dir in local_revision.results_dirs:
                     schema_item = QStandardItem(local_schematisation.name)
@@ -218,7 +219,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     self.model.appendRow([schema_item, revision_item, result_item])
 
                 # In case no results are present, but a gridadmin is present, we still add the grid, but without result item
-                if len(local_revision.results_dirs) == 0 and os.path.exists(os.path.join(local_revision.grid_dir, "gridadmin.h5")):
+                if num_of_results == 0 and os.path.exists(os.path.join(local_revision.grid_dir, "gridadmin.h5")):
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))

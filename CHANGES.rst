@@ -12,6 +12,7 @@
 
 - Statistics: Add two water on street presets.
 - General: added some layer loading feedback.
+- Passed handling of the 3Di working directory structure to `threedi_mi_utils` package.
 
 
 3.1.12 (2023-10-19)
