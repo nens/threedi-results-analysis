@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.3 (unreleased)
+3.3 (2023-12-01)
 ----------------
 
 - Bumped threedigrid to 2.2.*
