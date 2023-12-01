@@ -4,7 +4,8 @@
 3.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bumped threedigrid to 2.2.*
+- Moved handling of the 3Di working directory structure to threedi_mi_utils module.
 
 
 3.2 (2023-11-01)
