@@ -4,7 +4,7 @@
 3.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed issue that no netcdf could be loaded in Water Depth Algorithm (caused by h5py breaking change) (#966)
 
 
 3.3 (2023-12-01)

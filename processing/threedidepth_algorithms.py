@@ -128,7 +128,7 @@ class TimeSliderWidget(BASE, WIDGET):
 
         try:
             with h5py.File(file_path, "r") as results:
-                timestamps = results["time"].value
+                timestamps = results["time"][()]
                 self.set_timestamps(timestamps)
         except Exception as e:
             logger.exception(e)
@@ -179,7 +179,7 @@ class TimeStepsCombobox(QComboBox):
 
         try:
             with h5py.File(file_path, "r") as results:
-                timestamps = results["time"].value
+                timestamps = results["time"][()]
                 self.populate_timestamps(timestamps)
         except Exception as e:
             logger.exception(e)
