@@ -109,6 +109,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
         # Capture threedigridbuilder logging
         logger = logging.getLogger("threedigrid_builder.grid.connection_nodes")
+        assert logger.hasHandlers()  # Check whether we have the right one
         log_capture_string = io.StringIO()
         ch = logging.StreamHandler(log_capture_string)
         ch.setFormatter(logging.Formatter(fmt='%(levelname)-8s :: %(message)s'))
