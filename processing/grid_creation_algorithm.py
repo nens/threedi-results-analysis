@@ -111,6 +111,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         logger = logging.getLogger("threedigrid_builder.grid.connection_nodes")
         log_capture_string = io.StringIO()
         ch = logging.StreamHandler(log_capture_string)
+        ch.setFormatter(logging.Formatter(fmt='%(levelname)-8s :: %(message)s'))
         ch.setLevel(logging.DEBUG)
         logger.addHandler(ch)
         try:
