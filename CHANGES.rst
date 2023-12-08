@@ -6,6 +6,7 @@
 
 - Fixed issue that no netcdf could be loaded in Water Depth Algorithm (caused by h5py breaking change) (#966)
 - Water depth algorithm: include days in time display (#661)
+- Show warnings (capture log) when using processing algorithm "Computational grid from schematisation" (#944)
 
 
 3.3 (2023-12-01)

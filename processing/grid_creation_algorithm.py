@@ -10,6 +10,8 @@ from qgis.core import (
 )
 from threedigrid_builder import make_gridadmin, SchematisationError
 from threedi_results_analysis.processing.processing_utils import gridadmin2geopackage, load_computational_layers
+import logging
+import io
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
@@ -105,11 +107,25 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             feedback.setProgress(int(progress * 100))
             feedback.pushInfo(info)
 
+        # Capture threedigridbuilder logging
+        logger = logging.getLogger("threedigrid_builder.grid.connection_nodes")
+        log_capture_string = io.StringIO()
+        ch = logging.StreamHandler(log_capture_string)
+        ch.setLevel(logging.DEBUG)
+        logger.addHandler(ch)
         try:
             make_gridadmin(input_spatialite, set_dem_path, gridadmin_file, progress_callback=progress_rep)
         except SchematisationError as e:
             err = f"Creating grid file failed with the following error: {repr(e)}"
             raise QgsProcessingException(err)
+        finally:
+            # Pull the contents back into a string and close the stream
+            log_contents = log_capture_string.getvalue()
+            log_capture_string.close()
+            logger.removeHandler(ch)
+            if log_contents:
+                feedback.pushWarning("3Di gridbuilder log:")
+                feedback.pushWarning(log_contents)
 
         feedback.setProgress(0)
         gpkg_layers = gridadmin2geopackage(gridadmin_file, output_gpkg_file, context, feedback)
