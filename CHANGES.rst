@@ -5,7 +5,7 @@ ThreeDiToolBox changelog
 2.5.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fetch check.column.key when running the modelchecker so checks don't fail on models.Pumpstation.type.
 
 
 2.5.5 (2023-09-21)
