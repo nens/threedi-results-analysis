@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.4 (unreleased)
+3.4 (2024-01-16)
 ----------------
 
 - Fixed issue that no netcdf could be loaded in Water Depth Algorithm (caused by h5py breaking change) (#966)
