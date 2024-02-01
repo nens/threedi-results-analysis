@@ -5,6 +5,7 @@
 ----------------
 
 - Bump threedi-modelchecker to 2.6.*
+- Bump threedi-schema to 0.129.*
 
 
 3.4 (2024-01-16)
