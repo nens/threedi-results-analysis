@@ -4,7 +4,7 @@
 3.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bump threedi-modelchecker to 2.6.*
 
 
 3.4 (2024-01-16)
