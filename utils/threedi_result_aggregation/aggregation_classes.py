@@ -139,7 +139,7 @@ class Aggregation:
         variable: AggregationVariable,
         method: Optional[AggregationMethod] = None,
         sign: Optional[AggregationSign] = AGGREGATION_SIGN_NA,
-        threshold: Optional[float] = None,
+        threshold=None,
         multiplier: float = 1,
     ):
         self.variable = variable
@@ -157,6 +157,8 @@ class Aggregation:
             if self.method.short_name in ["above_thres", "below_thres"]:
                 thres_parsed = str(self.threshold).replace(".", "_")
                 column_name_list.append(thres_parsed)
+            elif self.method.short_name == "time_above_threshold":
+                column_name_list.extend(self.threshold.split())
         except AttributeError:  # allow aggregation to have no method
             pass
         return "_".join(column_name_list).lower()

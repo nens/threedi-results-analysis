@@ -27,6 +27,7 @@ networkx \
 packaging \
 pyqtgraph \
 python-editor \
+threedi-mi-utils \
 threedi-modelchecker \
 threedi-schema \
 threedidepth \

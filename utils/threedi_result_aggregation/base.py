@@ -19,7 +19,9 @@ from osgeo import osr
 from .constants import (
     AGGREGATION_VARIABLES,
     NON_TS_REDUCING_KCU,
-    NP_OGR_DTYPES
+    NP_OGR_DTYPES,
+    THRESHOLD_DRAIN_LEVEL,
+    THRESHOLD_EXCHANGE_LEVEL,
 )
 from .aggregation_classes import (
     Aggregation,
@@ -249,15 +251,30 @@ def prepare_timeseries(
     else:
         raw_values_signed = raw_values
 
-    if aggregation.method.short_name == "time_above_threshold":
-        # do the thresholding while we have the nodes around
-        threshold = getattr(nodes_or_lines, aggregation.threshold)[np.newaxis]
-        nanmask = np.isnan(raw_values_signed)
-        low = np.finfo(raw_values_signed.dtype).min
-        raw_values_signed[nanmask] = low
-        raw_values_signed = np.greater(raw_values_signed, threshold)
-
     return raw_values_signed, tintervals
+
+
+def do_threshold_timeseries(gr, nodes, timeseries, aggregation):
+    if aggregation.threshold == THRESHOLD_DRAIN_LEVEL:
+        threshold = nodes.drain_level
+    elif aggregation.threshold == THRESHOLD_EXCHANGE_LEVEL:
+        # find adjacent lines
+        lines = filter_lines_by_node_ids(gr.lines, nodes.id).subset("1D2D")
+
+        # make array to lookup thresholds by node id
+        max_node_id = max(nodes.id.max(), lines.line.max(initial=-1))
+        threshold_by_id = np.full(max_node_id + 1, np.inf)
+
+        # populate lookup array with lowest dpumax
+        dpumax = lines.dpumax
+        begin, end = lines.line
+        threshold_by_id[begin] = np.minimum(dpumax, threshold_by_id[begin])
+        threshold_by_id[end] = np.minimum(dpumax, threshold_by_id[end])
+
+        threshold = threshold_by_id[nodes.id]
+
+    timeseries[np.isnan(timeseries)] = -np.inf
+    return np.greater(timeseries, threshold[np.newaxis])
 
 
 def aggregate_prepared_timeseries(
@@ -309,11 +326,8 @@ def aggregate_prepared_timeseries(
         total_time = np.sum(tintervals)
         result = np.multiply(np.divide(time_below_threshold, total_time), 100.0)
     elif aggregation.method.short_name == "time_above_threshold":
-        # already thresholded in the prepare step
-        time_above_threshold = np.sum(
-            np.multiply(timeseries.T, tintervals).T, axis=0
-        )
-        result = time_above_threshold
+        # the timeseries is already a the result of the thresholding
+        result = (tintervals[:, np.newaxis] * timeseries).sum(0)
     else:
         raise ValueError(
             'Unknown aggregation method "{}".'.format(
@@ -353,6 +367,14 @@ def time_aggregate(
         aggregation=aggregation,
         cfl_strictness=cfl_strictness,
     )
+
+    if aggregation.method.short_name == "time_above_threshold":
+        timeseries = do_threshold_timeseries(
+            gr=kwargs["gr"],
+            nodes=nodes_or_lines,
+            timeseries=timeseries,
+            aggregation=aggregation,
+        )
 
     # Apply aggregation method
     result = aggregate_prepared_timeseries(

@@ -1,5 +1,10 @@
 from threedi_results_analysis.utils.threedi_result_aggregation.base import Aggregation
-from threedi_results_analysis.utils.threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
+from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
+    AGGREGATION_VARIABLES,
+    AGGREGATION_METHODS,
+    THRESHOLD_DRAIN_LEVEL,
+    THRESHOLD_EXCHANGE_LEVEL,
+)
 from .style import (
     Style,
     STYLE_SINGLE_COLUMN_GRADUATED_NODE,
@@ -249,22 +254,53 @@ SOURCE_SINK_MM_PRESETS = Preset(
 )
 
 # Change in water level
-water_on_street_aggregations = [
+water_on_street_aggregations_0d1d = [
     Aggregation(
         variable=AGGREGATION_VARIABLES.get_by_short_name("s1"),
         method=AGGREGATION_METHODS.get_by_short_name("time_above_threshold"),
+        threshold=THRESHOLD_DRAIN_LEVEL,
     ),
 ]
 
-WATER_ON_STREET_DURATION_PRESET = Preset(
-    name="Manhole: Water on street duration",
-    description="Time (s) that the water level in manholes exceeds the drain level. For manholes with a connection to a "
-                "2D cell, the lowest 1D2D exchange level is used as drain level, which may be higher than the manhole "
-                "drain level defined in the schematisation.",
-    aggregations=water_on_street_aggregations,
+water_on_street_aggregations_1d2d = [
+    Aggregation(
+        variable=AGGREGATION_VARIABLES.get_by_short_name("s1"),
+        method=AGGREGATION_METHODS.get_by_short_name("time_above_threshold"),
+        threshold=THRESHOLD_EXCHANGE_LEVEL,
+    ),
+]
+
+WATER_ON_STREET_DURATION_0D1D_PRESET = Preset(
+    name="Water on street duration (0D1D)",
+    description="Time [s] that the water level in manholes exceeds the drain level.\n\n"
+                "In 3Di models without 2D, this is the level at which water flows onto the street (i.e., where the "
+                "storage area changes from what is specified at the connection node to what is specified as manhole "
+                "storage area in the global settings).\n\n"
+                "⚠ Do not use this preset for 3Di models with 2D. In such models, the drain level defined at the "
+                "manhole is not always the level at which water flows onto the street. If the drain level is lower "
+                "than the bottom level (lowest pixel) of the 2D cell the manhole is in, the water must rise to the "
+                "2D cell's bottom level before it can flow onto the street.",
+    aggregations=water_on_street_aggregations_0d1d,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
-    nodes_style_param_values={"column": "s1_time_above_threshold"},
-    nodes_layer_name="Manhole: Water on street duration",
+    nodes_style_param_values={"column": "s1_time_above_threshold_drain_level"},
+    nodes_layer_name="Water on street duration (0D1D)",
+    only_manholes=True,
+)
+
+WATER_ON_STREET_DURATION_1D2D_PRESET = Preset(
+    name="Water on street duration (1D2D)",
+    description="Time [s] that the water level in manholes exceeds the 1D2D exchange level.\n\n"
+                "In 3Di models with 2D, this is the level at which water flows onto the street. The exchange level is "
+                "the maximum of two values: the drain level specified for the manhole, or the bottom level (lowest "
+                "pixel) of the 2D cell the manhole is in.\n\n"
+                "⚠ Manholes that have no connection to the 2D domain do not have an exchange level. The 'water on "
+                "street duration' is always 0 for these manholes.\n\n"
+                "⚠ Do not use this preset for 3Di models without 2D. In such models, none of the manholes have a "
+                "connection to the 2D domain, so the 'water on street duration' will be 0 for all manholes.",
+    aggregations=water_on_street_aggregations_1d2d,
+    nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
+    nodes_style_param_values={"column": "s1_time_above_threshold_exchange_level"},
+    nodes_layer_name="Water on street duration (1D2D)",
     only_manholes=True,
 )
 
@@ -313,7 +349,8 @@ PRESETS = [
     SOURCE_SINK_MM_PRESETS,
     FLOW_PATTERN_PRESETS,
     TS_REDUCTION_ANALYSIS_PRESETS,
-    WATER_ON_STREET_DURATION_PRESET,
     MAX_DEPTH_ON_STREET_PRESETS,
     MIN_FREEBOARD_PRESETS,
+    WATER_ON_STREET_DURATION_0D1D_PRESET,
+    WATER_ON_STREET_DURATION_1D2D_PRESET,
 ]

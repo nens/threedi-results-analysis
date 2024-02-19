@@ -42,6 +42,10 @@ NP_OGR_DTYPES = {
     np.dtype("int64"): ogr.OFTInteger64,
 }
 
+# Thresholds for time above threshold aggregation method
+THRESHOLD_EXCHANGE_LEVEL = "Exchange level"
+THRESHOLD_DRAIN_LEVEL = "Drain level"
+
 # Aggregation methods
 AGGREGATION_METHODS = AggregationVariableList()
 
@@ -73,7 +77,7 @@ agg_method_list = [
         "long_name": "Time above threshold",
         "has_threshold": True,
         "is_duration": True,
-        "threshold_sources": ["drain_level"],
+        "threshold_sources": [THRESHOLD_EXCHANGE_LEVEL, THRESHOLD_DRAIN_LEVEL],
     },
 ]
 

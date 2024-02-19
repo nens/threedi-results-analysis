@@ -58,9 +58,9 @@ DEPENDENCIES = [
     Dependency("Mako", "mako", "", False),
     Dependency("cftime", "cftime", ">=1.5.0", False),  # threedigrid[results]
     Dependency("alembic", "alembic", "==1.8.*", False),
-    Dependency("threedigrid", "threedigrid", "==2.0.*", False),
-    Dependency("threedi-schema", "threedi_schema", "==0.217.*", False),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.4.*", False),
+    Dependency("threedigrid", "threedigrid", "==2.2.*", False),
+    Dependency("threedi-schema", "threedi_schema", "==0.219.*", False),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.6.*", False),
     Dependency("threedidepth", "threedidepth", "==0.6.1", False),
     Dependency("click", "click", ">=8.0", False),
     Dependency("packaging", "packaging", "", False),
@@ -75,6 +75,7 @@ DEPENDENCIES = [
     Dependency("hydxlib", "hydxlib", "==1.5.1", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
+    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.2", False),
 ]
 
 # On Windows, the hdf5 binary and thus h5py version depends on the QGis version

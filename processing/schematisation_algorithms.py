@@ -210,7 +210,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                                 error_row.id,
                                 check.table.name,
                                 check.column.name,
-                                getattr(error_row, check.column.name),
+                                getattr(error_row, check.column.key),
                                 check.description(),
                             ]
                         )

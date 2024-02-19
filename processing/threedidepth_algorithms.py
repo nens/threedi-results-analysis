@@ -109,7 +109,7 @@ class TimeSliderWidget(BASE, WIDGET):
             value = self.timestamps[index]
         else:
             value = 0
-        lcd_value = format_timestep_value(value)
+        lcd_value = format_timestep_value(value=value, drop_leading_zero=True)
         self.lcdNumber.display(lcd_value)
 
     def reset(self):
@@ -128,7 +128,7 @@ class TimeSliderWidget(BASE, WIDGET):
 
         try:
             with h5py.File(file_path, "r") as results:
-                timestamps = results["time"].value
+                timestamps = results["time"][()]
                 self.set_timestamps(timestamps)
         except Exception as e:
             logger.exception(e)
@@ -179,7 +179,7 @@ class TimeStepsCombobox(QComboBox):
 
         try:
             with h5py.File(file_path, "r") as results:
-                timestamps = results["time"].value
+                timestamps = results["time"][()]
                 self.populate_timestamps(timestamps)
         except Exception as e:
             logger.exception(e)
@@ -497,9 +497,14 @@ class Progress:
             raise CancelError()
 
 
-def format_timestep_value(value: float) -> str:
+def format_timestep_value(value: float, drop_leading_zero: bool = False) -> str:
     days, seconds = divmod(int(value), 24 * 60 * 60)
     hours, seconds = divmod(seconds, 60 * 60)
     minutes, seconds = divmod(seconds, 60)
+
+    if days == 0 and drop_leading_zero:
+        formatted_display = "{:02d}:{:02d}".format(hours, minutes)
+        return formatted_display
+
     formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
     return formatted_display

@@ -1,10 +1,42 @@
 3Di Results Analysis changelog
 ========================
 
-3.1.12 (unreleased)
+3.5 (unreleased)
+----------------
+
+- Bump threedi-modelchecker to 2.6.*
+- Bump threedi-schema to 0.129.*
+
+
+3.4 (2024-01-16)
+----------------
+
+- Fixed issue that no netcdf could be loaded in Water Depth Algorithm (caused by h5py breaking change) (#966)
+- Water depth algorithm: include days in time display (#661)
+- Show warnings (capture log) when using processing algorithm "Computational grid from schematisation" (#944)
+- Bumped threedi-modelchecker to 2.5.*
+
+3.3 (2023-12-01)
+----------------
+
+- Bumped threedigrid to 2.2.*
+- Moved handling of the 3Di working directory structure to threedi_mi_utils module.
+
+
+3.2 (2023-11-01)
+----------------
+
+- Statistics: Add two water on street presets.
+- General: added some layer loading feedback.
+- Passed handling of the 3Di working directory structure to `threedi_mi_utils` package.
+
+
+3.1.12 (2023-10-19)
 -------------------
 
-- Nothing changed yet.
+- Cross-sectional discharge: minor bugfix to correctly set the attributes of the intersected flowlines
+- Sideview: fix for pure 1D models (#931)
+- Statistics: removed water_on_street preset
 
 
 3.1.11 (2023-10-02)
@@ -187,7 +219,7 @@
 2.5.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fetch check.column.key when running the modelchecker so checks don't fail on models.Pumpstation.type.
 
 
 2.5.5 (2023-09-21)

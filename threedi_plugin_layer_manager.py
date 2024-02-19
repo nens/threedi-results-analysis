@@ -48,11 +48,16 @@ def copy_layer_into_memory_layer(source_layer, layer_name, dest_layer):
 
     dest_provider = dest_layer.dataProvider()
 
-    dest_provider.addAttributes(source_provider.fields())
+    if not dest_provider.addAttributes(source_provider.fields()):
+        logger.error(dest_provider.lastError())
     dest_layer.updateFields()
 
-    dest_provider.addFeatures(source_provider.getFeatures())
+    if not dest_provider.addFeatures(source_provider.getFeatures()):
+        logger.error(dest_provider.lastError())
     dest_layer.updateExtents()
+
+    if source_provider.featureCount() != dest_provider.featureCount():
+        messagebar_message("Error", "Not all features are loaded in layer {layer_name}!", level=2, duration=5)
 
     return dest_layer
 

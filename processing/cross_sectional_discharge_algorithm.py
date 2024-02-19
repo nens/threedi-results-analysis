@@ -263,14 +263,13 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
         flowlines_sink_fields = QgsFields()
         flowlines_sink_fields.append(QgsField(name="id", type=QVariant.Int))
         flowlines_sink_fields.append(
-            QgsField(name="spatialite_id", type=QVariant.Int)
+            QgsField(name="source_table_id", type=QVariant.Int)
         )
         flowlines_sink_fields.append(
-            QgsField(name="content_type", type=QVariant.String)
+            QgsField(name="source_table", type=QVariant.String)
         )
-        flowlines_sink_fields.append(QgsField(name="kcu", type=QVariant.Int))
         flowlines_sink_fields.append(
-            QgsField(name="kcu_description", type=QVariant.String)
+            QgsField(name="line_type", type=QVariant.Int)
         )
         flowlines_sink_fields.append(
             QgsField(name="gauge_line_id", type=QVariant.Int)
@@ -370,7 +369,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
         layer = QgsVectorLayer(self.csv_output_file_path, "Time series output")
         context.temporaryLayerStore().addMapLayer(layer)
         layer_details = QgsProcessingContext.LayerDetails(
-            "Output: Timeseries", context.project(), "Output: Timeseries"
+            "Output: Time series", context.project(), "Output: Time series"
         )
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
 
