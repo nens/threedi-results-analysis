@@ -273,7 +273,7 @@ water_on_street_aggregations_1d2d = [
 ]
 
 WATER_ON_STREET_DURATION_0D1D_PRESET = Preset(
-    name="Water on street duration (0D1D)",
+    name="Manhole: Water on street duration (0D1D)",
     description="Time [s] that the water level in manholes exceeds the drain level.\n\n"
                 "In 3Di models without 2D, this is the level at which water flows onto the street (i.e., where the "
                 "storage area changes from what is specified at the connection node to what is specified as manhole "
@@ -285,12 +285,12 @@ WATER_ON_STREET_DURATION_0D1D_PRESET = Preset(
     aggregations=water_on_street_aggregations_0d1d,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold_drain_level"},
-    nodes_layer_name="Water on street duration (0D1D)",
+    nodes_layer_name="Manhole: Water on street duration (0D1D)",
     only_manholes=True,
 )
 
 WATER_ON_STREET_DURATION_1D2D_PRESET = Preset(
-    name="Water on street duration (1D2D)",
+    name="Manhole: Water on street duration (1D2D)",
     description="Time [s] that the water level in manholes exceeds the 1D2D exchange level.\n\n"
                 "In 3Di models with 2D, this is the level at which water flows onto the street. The exchange level is "
                 "the maximum of two values: the drain level specified for the manhole, or the bottom level (lowest "
@@ -302,7 +302,7 @@ WATER_ON_STREET_DURATION_1D2D_PRESET = Preset(
     aggregations=water_on_street_aggregations_1d2d,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
     nodes_style_param_values={"column": "s1_time_above_threshold_exchange_level"},
-    nodes_layer_name="Water on street duration (1D2D)",
+    nodes_layer_name="Manhole: Water on street duration (1D2D)",
     only_manholes=True,
 )
 
