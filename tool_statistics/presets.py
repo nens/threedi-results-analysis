@@ -14,8 +14,10 @@ from .style import (
     STYLE_TIMESTEP_REDUCTION_ANALYSIS,
     STYLE_BALANCE,
     STYLE_WATER_ON_STREET_DURATION_NODE,
-    STYLE_MANHOLE_WATER_DEPTH_NODE,
-    STYLE_MANHOLE_MIN_FREEBOARD,
+    STYLE_MANHOLE_WATER_DEPTH_0D1D_NODE,
+    STYLE_MANHOLE_WATER_DEPTH_1D2D_NODE,
+    STYLE_MANHOLE_MIN_FREEBOARD_0D1D,
+    STYLE_MANHOLE_MIN_FREEBOARD_1D2D,
 )
 
 
@@ -312,11 +314,35 @@ max_depth_on_street_aggregations = [
     ),
 ]
 
-MAX_DEPTH_ON_STREET_PRESETS = Preset(
-    name="Manhole: Max water depth on street",
-    description="Maximum water depth on manholes, calculated as maximum water level - drain level",
+MAX_DEPTH_ON_STREET_0D1D_PRESETS = Preset(
+    name="Manhole: Max water depth on street (0D1D)",
+    description="Maximum water depth on manholes, calculated as maximum water level - drain level\n\n"
+                "In 3Di models without 2D, this is the level at which water flows onto the street (i.e., where the "
+                "storage area changes from what is specified at the connection node to what is specified as manhole "
+                "storage area in the global settings).\n\n"
+                "⚠ Do not use this preset for 3Di models with 2D. In such models, the drain level defined at the "
+                "manhole is not always the level at which water flows onto the street. If the drain level is lower "
+                "than the bottom level (lowest pixel) of the 2D cell the manhole is in, the water must rise to the "
+                "2D cell's bottom level before it can flow onto the street.",
     aggregations=max_depth_on_street_aggregations,
-    nodes_style=STYLE_MANHOLE_WATER_DEPTH_NODE,
+    nodes_style=STYLE_MANHOLE_WATER_DEPTH_0D1D_NODE,
+    nodes_style_param_values={"value": "s1_max"},
+    nodes_layer_name="Manhole: Max water depth on street",
+    only_manholes=True
+)
+
+MAX_DEPTH_ON_STREET_1D2D_PRESETS = Preset(
+    name="Manhole: Max water depth on street (0D1D)",
+    description="Maximum water depth on manholes, calculated as maximum water level - 1D2D exchange level. \n\n"
+                "In 3Di models with 2D, this is the level at which water flows onto the street. The exchange level is "
+                "the maximum of two values: the drain level specified for the manhole, or the bottom level (lowest "
+                "pixel) of the 2D cell the manhole is in.\n\n"
+                "⚠ Manholes that have no connection to the 2D domain do not have an exchange level. The 'water depth "
+                "on street' is NULL for these manholes.\n\n"
+                "⚠ Do not use this preset for 3Di models without 2D. In such models, none of the manholes have a "
+                "connection to the 2D domain, so the 'water depth on street' will be NULL for all manholes.",
+    aggregations=max_depth_on_street_aggregations,
+    nodes_style=STYLE_MANHOLE_WATER_DEPTH_1D2D_NODE,
     nodes_style_param_values={"value": "s1_max"},
     nodes_layer_name="Manhole: Max water depth on street",
     only_manholes=True
@@ -331,13 +357,39 @@ max_depth_on_street_aggregations = [
     ),
 ]
 
-MIN_FREEBOARD_PRESETS = Preset(
-    name="Manhole: Minimum freeboard",
-    description="Minimum freeboard for manholes, i.e. how far below the drain level the maximum water level is",
+MIN_FREEBOARD_0D1D_PRESETS = Preset(
+    name="Manhole: Minimum freeboard (0D1D)",
+    description="Minimum freeboard for manholes, "
+                "i.e. the difference between the maximum water level and the manhole drain level.\n\n"
+                "In 3Di models without 2D, this is the level at which water flows onto the street (i.e., where the "
+                "storage area changes from what is specified at the connection node to what is specified as manhole "
+                "storage area in the global settings).\n\n"
+                "⚠ Do not use this preset for 3Di models with 2D. In such models, the drain level defined at the "
+                "manhole is not always the level at which water flows onto the street. If the drain level is lower "
+                "than the bottom level (lowest pixel) of the 2D cell the manhole is in, the water must rise to the "
+                "2D cell's bottom level before it can flow onto the street.",
     aggregations=max_depth_on_street_aggregations,
-    nodes_style=STYLE_MANHOLE_MIN_FREEBOARD,
+    nodes_style=STYLE_MANHOLE_MIN_FREEBOARD_0D1D,
     nodes_style_param_values={"value": "s1_max"},
-    nodes_layer_name="Manhole: Minimum freeboard",
+    nodes_layer_name="Manhole: Minimum freeboard (0D1D)",
+    only_manholes=True
+)
+
+MIN_FREEBOARD_1D2D_PRESETS = Preset(
+    name="Manhole: Minimum freeboard (1D2D)",
+    description="Minimum freeboard for manholes, "
+                "i.e. the difference between the maximum water level and the 1D2D exchange level.\n\n"
+                "In 3Di models with 2D, this is the level at which water flows onto the street. The exchange level is "
+                "the maximum of two values: the drain level specified for the manhole, or the bottom level (lowest "
+                "pixel) of the 2D cell the manhole is in.\n\n"
+                "⚠ Manholes that have no connection to the 2D domain do not have an exchange level. The 'minimum "
+                "freeboard' is always NULL for these manholes.\n\n"
+                "⚠ Do not use this preset for 3Di models without 2D. In such models, none of the manholes have a "
+                "connection to the 2D domain, so the 'minimum freeboard' will be NULL for all manholes.",
+    aggregations=max_depth_on_street_aggregations,
+    nodes_style=STYLE_MANHOLE_MIN_FREEBOARD_1D2D,
+    nodes_style_param_values={"value": "s1_max"},
+    nodes_layer_name="Manhole: Minimum freeboard (1D2D)",
     only_manholes=True
 )
 
@@ -349,8 +401,10 @@ PRESETS = [
     SOURCE_SINK_MM_PRESETS,
     FLOW_PATTERN_PRESETS,
     TS_REDUCTION_ANALYSIS_PRESETS,
-    MAX_DEPTH_ON_STREET_PRESETS,
-    MIN_FREEBOARD_PRESETS,
+    MAX_DEPTH_ON_STREET_0D1D_PRESETS,
+    MAX_DEPTH_ON_STREET_1D2D_PRESETS,
+    MIN_FREEBOARD_0D1D_PRESETS,
+    MIN_FREEBOARD_1D2D_PRESETS,
     WATER_ON_STREET_DURATION_0D1D_PRESET,
     WATER_ON_STREET_DURATION_1D2D_PRESET,
 ]
