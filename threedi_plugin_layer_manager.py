@@ -65,6 +65,7 @@ def copy_layer_into_memory_layer(source_layer, layer_name, dest_layer):
 # Layers need to be in specific order and naming:
 gpkg_layers = OrderedDict(
     [
+        ("Model properties", "meta"),
         ("Pump (point)", "pump"),
         ("Node", "node"),
         ("Pump (line)", "pump_linestring"),
