@@ -276,6 +276,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         variable = variable_widget.itemData(variable_widget.currentIndex())
         self.set_method_widget(row, variable)
         self.set_direction_widget(row, variable)
+        self.set_units_widget(row=row, variable=variable, method=None)
         self.update_demanded_aggregations()
         self._update_output_layer_fields_based_on_aggregations()
         self.validate()
