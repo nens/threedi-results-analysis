@@ -879,7 +879,7 @@ class WaterBalanceWidget(QDockWidget):
         self.update_water_balance(reset_model=False)
 
     def tab_changed(self, index):
-        self.update_water_balance(reset_model=True)
+        self.update_water_balance(reset_model=False)
 
     def hover_enter_action(self, name):
         if not self.manager:
