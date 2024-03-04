@@ -10,7 +10,7 @@ docstr-coverage >= 1.0.4
 flake8
 isort
 mock
-pytest
+pytest < 8.0
 pytest-cov
 pytest-flake8
 pytest-qt
