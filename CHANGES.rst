@@ -4,8 +4,10 @@
 3.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- Add model metadata to the layer menu when loading a computational grid (#980)
+- Result aggregation: Fix units widget is not updated when switching Variable (#983)
+- Water balance tool: Fix switching tabs resets the water balance terms checkboxes (#984)
+- Water depth/level processing algorithm - Remove popups (#985)
 
 3.4 (2024-01-16)
 ----------------
