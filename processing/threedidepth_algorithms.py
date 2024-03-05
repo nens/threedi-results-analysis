@@ -122,7 +122,7 @@ class TimeSliderWidget(BASE, WIDGET):
 
     def new_file_event(self, file_path):
         """New file has been selected by the user. Try to read in the timestamps from the file."""
-        if file_path == "":
+        if not file_path or not os.path.isfile(file_path):
             self.reset()
             return
 
@@ -173,7 +173,7 @@ class TimeStepsCombobox(QComboBox):
 
     def new_file_event(self, file_path):
         """New file has been selected by the user. Try to read in the timestamps from the file."""
-        if file_path == "":
+        if not file_path or not os.path.isfile(file_path):
             self.clear()
             return
 
