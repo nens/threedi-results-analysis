@@ -584,25 +584,25 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="2D Surface water" type="QString" value="1"/>
+                <Option name="1: 2D Surface water" type="QString" value="1"/>
               </Option>
               <Option type="Map">
-                <Option name="2D Groundwater" type="QString" value="2"/>
+                <Option name="2: 2D Groundwater" type="QString" value="2"/>
               </Option>
               <Option type="Map">
-                <Option name="1D Without storage" type="QString" value="3"/>
+                <Option name="3: 1D Without storage" type="QString" value="3"/>
               </Option>
               <Option type="Map">
-                <Option name="1D With storage" type="QString" value="4"/>
+                <Option name="4: 1D With storage" type="QString" value="4"/>
               </Option>
               <Option type="Map">
-                <Option name="2D Surface water boundary" type="QString" value="5"/>
+                <Option name="5: 2D Surface water boundary" type="QString" value="5"/>
               </Option>
               <Option type="Map">
-                <Option name="2D Groundwater boundary" type="QString" value="6"/>
+                <Option name="6: 2D Groundwater boundary" type="QString" value="6"/>
               </Option>
               <Option type="Map">
-                <Option name="1D Boundary" type="QString" value="7"/>
+                <Option name="7: 1D Boundary" type="QString" value="7"/>
               </Option>
               <Option type="Map">
                 <Option name="&lt;NULL>" type="QString" value="{2839923C-8B7D-419E-B84B-CA2FE9B80EC7}"/>
@@ -618,37 +618,37 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="Boundary" type="QString" value="-1"/>
+                <Option name="-1: Boundary" type="QString" value="-1"/>
               </Option>
               <Option type="Map">
-                <Option name="Embedded" type="QString" value="0"/>
+                <Option name="0: Embedded" type="QString" value="0"/>
               </Option>
               <Option type="Map">
-                <Option name="Isolated" type="QString" value="1"/>
+                <Option name="1: Isolated" type="QString" value="1"/>
               </Option>
               <Option type="Map">
-                <Option name="Connected" type="QString" value="2"/>
+                <Option name="2: Connected" type="QString" value="2"/>
               </Option>
               <Option type="Map">
-                <Option name="Broad crested" type="QString" value="3"/>
+                <Option name="3: Broad crested" type="QString" value="3"/>
               </Option>
               <Option type="Map">
-                <Option name="Short crested" type="QString" value="4"/>
+                <Option name="4: Short crested" type="QString" value="4"/>
               </Option>
               <Option type="Map">
-                <Option name="Double connected" type="QString" value="5"/>
+                <Option name="5: Double connected" type="QString" value="5"/>
               </Option>
               <Option type="Map">
-                <Option name="Embedded added node" type="QString" value="100"/>
+                <Option name="100: Embedded added node" type="QString" value="100"/>
               </Option>
               <Option type="Map">
-                <Option name="Isolated added node" type="QString" value="101"/>
+                <Option name="101: Isolated added node" type="QString" value="101"/>
               </Option>
               <Option type="Map">
-                <Option name="Connected added node" type="QString" value="102"/>
+                <Option name="102: Connected added node" type="QString" value="102"/>
               </Option>
               <Option type="Map">
-                <Option name="Double connected added node" type="QString" value="105"/>
+                <Option name="105: Double connected added node" type="QString" value="105"/>
               </Option>
               <Option type="Map">
                 <Option name="&lt;NULL>" type="QString" value="{2839923C-8B7D-419E-B84B-CA2FE9B80EC7}"/>
