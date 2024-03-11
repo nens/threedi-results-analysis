@@ -841,7 +841,7 @@ class WaterBalanceCalculation(object):
             ("leak", "_cum", np_2d_groundwater_node, 26, 1),
             ("rain", "_cum", np_1d_node, 27, 1),
             ("intercepted_volume", "_current", np_2d_node, 34, -1),
-            ("q_sss", "_cum", np_2d_node, 35, 1),
+            ("q_sss", "", np_2d_node, 35, 1),
         ]:
 
             if node.size > 0:
