@@ -138,10 +138,10 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="Suction side water level determines pump behaviour" type="QString" value="1"/>
+                <Option name="1: Suction side water level determines pump behaviour" type="QString" value="1"/>
               </Option>
               <Option type="Map">
-                <Option name="Delivery side water level determines pump behaviour" type="QString" value="2"/>
+                <Option name="2: Delivery side water level determines pump behaviour" type="QString" value="2"/>
               </Option>
             </Option>
           </Option>
