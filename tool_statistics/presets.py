@@ -327,12 +327,12 @@ MAX_DEPTH_ON_STREET_0D1D_PRESETS = Preset(
     aggregations=max_depth_on_street_aggregations,
     nodes_style=STYLE_MANHOLE_WATER_DEPTH_0D1D_NODE,
     nodes_style_param_values={"value": "s1_max"},
-    nodes_layer_name="Manhole: Max water depth on street",
+    nodes_layer_name="Manhole: Max water depth on street (0D1D)",
     only_manholes=True
 )
 
 MAX_DEPTH_ON_STREET_1D2D_PRESETS = Preset(
-    name="Manhole: Max water depth on street (0D1D)",
+    name="Manhole: Max water depth on street (1D2D)",
     description="Maximum water depth on manholes, calculated as maximum water level - 1D2D exchange level. \n\n"
                 "In 3Di models with 2D, this is the level at which water flows onto the street. The exchange level is "
                 "the maximum of two values: the drain level specified for the manhole, or the bottom level (lowest "
@@ -344,7 +344,7 @@ MAX_DEPTH_ON_STREET_1D2D_PRESETS = Preset(
     aggregations=max_depth_on_street_aggregations,
     nodes_style=STYLE_MANHOLE_WATER_DEPTH_1D2D_NODE,
     nodes_style_param_values={"value": "s1_max"},
-    nodes_layer_name="Manhole: Max water depth on street",
+    nodes_layer_name="Manhole: Max water depth on street (1D2D)",
     only_manholes=True
 )
 
