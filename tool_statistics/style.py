@@ -52,6 +52,19 @@ def style_on_single_column(layer, qml: str, column: str, update_classes: bool = 
     utils.iface.layerTreeView().refreshLayerSymbology(layer.id())
 
 
+def style_difference(layer, qml: str, value: str, reference: str, update_classes: bool = True):
+    layer.loadNamedStyle(qml)
+    layer.renderer().setClassAttribute(f"{value} - {reference}")
+    if update_classes:
+        layer.renderer().updateClasses(
+            vlayer=layer,
+            mode=layer.renderer().mode(),
+            nclasses=len(layer.renderer().ranges()),
+        )
+    layer.triggerRepaint()
+    utils.iface.layerTreeView().refreshLayerSymbology(layer.id())
+
+
 def style_balance(
     layer,
     qml: str,
@@ -299,6 +312,62 @@ STYLE_WATER_ON_STREET_DURATION_NODE = Style(
     ),
 )
 
+STYLE_MANHOLE_WATER_DEPTH_0D1D_NODE = Style(
+    name="Manhole water depth (0D1D)",
+    output_type="node",
+    params={"value": "column"},
+    qml="manhole_water_depth.qml",
+    styling_method=lambda layer, qml, value, reference="drain_level", update_classes=False: style_difference(
+        layer,
+        qml,
+        value,
+        reference,
+        update_classes
+    ),
+)
+
+STYLE_MANHOLE_WATER_DEPTH_1D2D_NODE = Style(
+    name="Manhole water depth (1D2D)",
+    output_type="node",
+    params={"value": "column"},
+    qml="manhole_water_depth.qml",
+    styling_method=lambda layer, qml, value, reference="exchange_level_1d2d", update_classes=False: style_difference(
+        layer,
+        qml,
+        value,
+        reference,
+        update_classes
+    ),
+)
+
+STYLE_MANHOLE_MIN_FREEBOARD_0D1D = Style(
+    name="Manhole freeboard (0D1D)",
+    output_type="node",
+    params={"value": "column"},
+    qml="manhole_freeboard.qml",
+    styling_method=lambda layer, qml, value, reference="drain_level", update_classes=False: style_difference(
+        layer,
+        qml,
+        value,
+        reference,
+        update_classes
+    ),
+)
+
+STYLE_MANHOLE_MIN_FREEBOARD_1D2D = Style(
+    name="Manhole freeboard (1D2D)",
+    output_type="node",
+    params={"value": "column"},
+    qml="manhole_freeboard.qml",
+    styling_method=lambda layer, qml, value, reference="exchange_level_1d2d", update_classes=False: style_difference(
+        layer,
+        qml,
+        value,
+        reference,
+        update_classes
+    ),
+)
+
 STYLE_CHANGE_WL = Style(
     name="Change in water level",
     output_type="cell",
@@ -349,6 +418,10 @@ STYLES = [
     STYLE_CHANGE_WL,
     STYLE_BALANCE,
     STYLE_WATER_ON_STREET_DURATION_NODE,
+    STYLE_MANHOLE_WATER_DEPTH_0D1D_NODE,
+    STYLE_MANHOLE_WATER_DEPTH_1D2D_NODE,
+    STYLE_MANHOLE_MIN_FREEBOARD_0D1D,
+    STYLE_MANHOLE_MIN_FREEBOARD_1D2D
 ]
 
 DEFAULT_STYLES = {

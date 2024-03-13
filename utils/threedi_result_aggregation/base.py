@@ -254,24 +254,36 @@ def prepare_timeseries(
     return raw_values_signed, tintervals
 
 
+def get_exchange_level(nodes: Nodes, lines: Lines, no_data: float) -> np.array:
+    """
+    Return an array of lowest dpumax of adjacent 1D2D lines.
+
+    Returned array has the same length and order as the input nodes
+
+    Returned value for nodes without 1D2D connections is ``no_data``
+    """
+    # find adjacent lines
+    lines = filter_lines_by_node_ids(lines, nodes.id).subset("1D2D")
+
+    # make array to lookup thresholds by node id
+    max_node_id = max(nodes.id.max(), lines.line.max(initial=-1))
+    threshold_by_id = np.full(max_node_id + 1, no_data)
+
+    # populate lookup array with lowest dpumax
+    dpumax = lines.dpumax
+    begin, end = lines.line
+    threshold_by_id[begin] = np.fmin(dpumax, threshold_by_id[begin])
+    threshold_by_id[end] = np.fmin(dpumax, threshold_by_id[end])
+
+    threshold = threshold_by_id[nodes.id]
+    return threshold
+
+
 def do_threshold_timeseries(gr, nodes, timeseries, aggregation):
     if aggregation.threshold == THRESHOLD_DRAIN_LEVEL:
         threshold = nodes.drain_level
     elif aggregation.threshold == THRESHOLD_EXCHANGE_LEVEL:
-        # find adjacent lines
-        lines = filter_lines_by_node_ids(gr.lines, nodes.id).subset("1D2D")
-
-        # make array to lookup thresholds by node id
-        max_node_id = max(nodes.id.max(), lines.line.max(initial=-1))
-        threshold_by_id = np.full(max_node_id + 1, np.inf)
-
-        # populate lookup array with lowest dpumax
-        dpumax = lines.dpumax
-        begin, end = lines.line
-        threshold_by_id[begin] = np.minimum(dpumax, threshold_by_id[begin])
-        threshold_by_id[end] = np.minimum(dpumax, threshold_by_id[end])
-
-        threshold = threshold_by_id[nodes.id]
+        threshold = get_exchange_level(nodes, gr.lines, no_data=np.inf)
 
     timeseries[np.isnan(timeseries)] = -np.inf
     return np.greater(timeseries, threshold[np.newaxis])
@@ -1182,10 +1194,21 @@ def aggregate_threedi_results(
             except KeyError:
                 attr_data_types[attr] = ogr.OFTString
         if output_nodes:
+            node_attributes = attributes
+            node_attributes["exchange_level_1d2d"] = get_exchange_level(
+                nodes,
+                filter_lines_by_node_ids(
+                    lines=gr.lines.subset("1D2D"),
+                    node_ids=nodes.id
+                ),
+                no_data=np.nan
+            )
+            node_attr_data_types = attr_data_types
+            node_attr_data_types["exchange_level_1d2d"] = ogr.OFTReal
             threedigrid_to_ogr(
                 threedigrid_src=nodes,
                 tgt_ds=tgt_ds,
-                attributes=attributes,
+                attributes=node_attributes,
                 attr_data_types=attr_data_types,
                 include_all_threedigrid_attributes=True,
             )
