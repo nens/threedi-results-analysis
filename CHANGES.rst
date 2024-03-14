@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.5 (unreleased)
+3.5 (2024-03-14)
 ----------------
 
 - Add model metadata to the layer menu when loading a computational grid (#980)
