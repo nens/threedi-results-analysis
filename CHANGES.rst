@@ -4,7 +4,7 @@
 3.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bump threedidepth to 0.6.2.
 
 
 3.5 (2024-03-14)
