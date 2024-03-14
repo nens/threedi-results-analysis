@@ -1,6 +1,12 @@
 3Di Results Analysis changelog
 ========================
 
+3.6 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
 3.5 (2024-03-14)
 ----------------
 
