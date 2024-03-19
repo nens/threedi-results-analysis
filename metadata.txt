@@ -27,7 +27,7 @@ about=Analyse 3Di results and visualize computational grids in the 3Di Modeller 
 tracker=https://github.com/nens/ThreeDiToolbox
 repository=https://github.com/nens/ThreeDiToolbox
 
-changelog=https://github.com/nens/ThreeDiToolbox/blob/master/CHANGES.rst
+changelog=https://docs.3di.live/a_releasenotes_3di_mi.html
 
 # Tags are comma separated with spaces allowed
 tags=analysis, catchment, drainage, flood, flooding, graph, grid, groundwater, hydraulics, hydrology, modelling, netcdf, network analysis, plot, profile, statistics, time series, water
