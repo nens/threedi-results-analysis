@@ -4,9 +4,8 @@
 3.7 (unreleased)
 ----------------
 
-- Bump threedi-modelchecker to 2.6.*
-- Bump threedi-schema to 0.219.*
-- Bump threedigrid-builder to 1.13.*
+- Nothing changed yet.
+
 
 3.6 (2024-03-14)
 ----------------
