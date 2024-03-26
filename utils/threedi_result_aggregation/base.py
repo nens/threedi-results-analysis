@@ -35,7 +35,7 @@ from .aggregation_classes import (
     VT_NODE,
     VT_NODE_HYBRID,
 )
-from .threedigrid_ogr import threedigrid_to_ogr
+from .threedigrid_to_ogr import threedigrid_to_ogr
 
 warnings.filterwarnings("ignore")
 ogr.UseExceptions()
@@ -1037,6 +1037,7 @@ def select_from_2d_array_where_col_x_in(array_2d, col_nr, values):
 
 def aggregate_threedi_results(
     gridadmin: str,
+    gridadmin_gpkg: str,
     results_3di: str,
     demanded_aggregations: List[Aggregation],
     bbox=None,
@@ -1055,6 +1056,7 @@ def aggregate_threedi_results(
     :param resolution:
     :param interpolation_method:
     :param gridadmin: path to gridadmin.h5
+    :param gridadmin_gpkg: path to gridadmin.gpkg
     :param results_3di: path to results_3di.nc
     :param demanded_aggregations: list of dicts containing variable, method, [threshold]
     :param bbox: bounding box [min_x, min_y, max_x, max_y]
@@ -1066,10 +1068,12 @@ def aggregate_threedi_results(
     :rtype: ogr.DataSource
     """
 
-    # make output datasource and layers
-    tgt_drv = ogr.GetDriverByName("MEMORY")
-    tgt_ds = tgt_drv.CreateDataSource("")
+    # Open the target data source and create the output layers
+    tgt_ds = ogr.Open(gridadmin_gpkg, 1)
     out_rasters = {}
+
+    if tgt_ds is None:
+        raise FileNotFoundError(f"{gridadmin_gpkg} not found.")
 
     if not (
         output_flowlines or output_nodes or output_cells or output_rasters
@@ -1206,19 +1210,15 @@ def aggregate_threedi_results(
             node_attr_data_types = attr_data_types
             node_attr_data_types["exchange_level_1d2d"] = ogr.OFTReal
             threedigrid_to_ogr(
-                threedigrid_src=nodes,
                 tgt_ds=tgt_ds,
                 attributes=node_attributes,
                 attr_data_types=attr_data_types,
-                include_all_threedigrid_attributes=True,
             )
         if output_cells or output_rasters or resample_point_layer:
             threedigrid_to_ogr(
-                threedigrid_src=cells,
                 tgt_ds=tgt_ds,
                 attributes=attributes,
                 attr_data_types=attr_data_types,
-                include_all_threedigrid_attributes=True,
             )
 
         # rasters
@@ -1298,11 +1298,9 @@ def aggregate_threedi_results(
             except KeyError:
                 attr_data_types[attr] = ogr.OFTString
         threedigrid_to_ogr(
-            threedigrid_src=lines,
             tgt_ds=tgt_ds,
             attributes=attributes,
             attr_data_types=attr_data_types,
-            include_all_threedigrid_attributes=True,
         )
 
     if not output_rasters:
