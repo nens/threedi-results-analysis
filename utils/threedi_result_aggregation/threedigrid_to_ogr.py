@@ -17,11 +17,24 @@ def threedigrid_to_ogr(
     print("Starting threedigrid_to_ogr", tgt_ds)
     # Iterate over layers in the target data source
     for index in range(tgt_ds.GetLayerCount()):
-        print("Layer", index)
         layer = tgt_ds.GetLayer(index)
-        print("Layer feature counts", layer.GetFeatureCount())
-        # feature_defn = layer.GetLayerDefn()
-        # feature = ogr.Feature(feature_defn)
+        layer_name = layer.GetName()
+        layer_defn = layer.GetLayerDefn()
+
+        geom_type = layer.GetGeomType()
+        if layer_name == "node":
+            geom_type = ogr.wkbPoint
+        elif layer_name == "cell":
+            geom_type = ogr.wkbPolygon
+        elif layer_name == "flowline":
+            geom_type = ogr.wkbLineString
+        else:
+            print(f"Unknown layer name: {layer_name}")
+            # tgt_ds.DeleteLayer(index)
+            continue
+
+        # Update layer geometry type
+        layer_defn.SetGeomType(geom_type)
 
         # Add additional attributes to the layer
         for attr_name, attr_values in attributes.items():
@@ -33,7 +46,7 @@ def threedigrid_to_ogr(
                 layer.CreateField(field_defn)
 
             # Set the additional attribute value for each feature
-            for i in range(layer.GetFeatureCount()):
+            for i in range(min(1000, layer.GetFeatureCount())):
                 if i >= len(attr_values):
                     break
                 val = attr_values[i]
