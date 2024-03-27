@@ -1068,12 +1068,15 @@ def aggregate_threedi_results(
     :rtype: ogr.DataSource
     """
 
-    # Open the target data source and create the output layers
-    tgt_ds = ogr.Open(gridadmin_gpkg, 1)
-    out_rasters = {}
-
-    if tgt_ds is None:
+    # open gridadmin.gpkg as input datasource
+    src_ds = ogr.Open(gridadmin_gpkg, 1)
+    if src_ds is None:
         raise FileNotFoundError(f"{gridadmin_gpkg} not found.")
+
+    # make output datasource and layers
+    tgt_drv = ogr.GetDriverByName("MEMORY")
+    tgt_ds = tgt_drv.CreateDataSource("")
+    out_rasters = {}
 
     if not (
         output_flowlines or output_nodes or output_cells or output_rasters
@@ -1210,12 +1213,14 @@ def aggregate_threedi_results(
             node_attr_data_types = attr_data_types
             node_attr_data_types["exchange_level_1d2d"] = ogr.OFTReal
             threedigrid_to_ogr(
+                src_ds=src_ds,
                 tgt_ds=tgt_ds,
                 attributes=node_attributes,
                 attr_data_types=attr_data_types,
             )
         if output_cells or output_rasters or resample_point_layer:
             threedigrid_to_ogr(
+                src_ds=src_ds,
                 tgt_ds=tgt_ds,
                 attributes=attributes,
                 attr_data_types=attr_data_types,
@@ -1298,6 +1303,7 @@ def aggregate_threedi_results(
             except KeyError:
                 attr_data_types[attr] = ogr.OFTString
         threedigrid_to_ogr(
+            src_ds=src_ds,
             tgt_ds=tgt_ds,
             attributes=attributes,
             attr_data_types=attr_data_types,

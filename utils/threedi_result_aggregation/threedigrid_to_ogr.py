@@ -2,6 +2,7 @@ from osgeo import ogr
 from numpy import isnan
 
 def threedigrid_to_ogr(
+    src_ds: ogr.DataSource,
     tgt_ds: ogr.DataSource,
     attributes: dict,
     attr_data_types: dict,
@@ -9,36 +10,37 @@ def threedigrid_to_ogr(
     """
     Create an ogr target_node_layer from the ogr Datasource with custom attributes
 
-    :param tgt_ds: ogr Datasource
+    :param src_ds: source ogr Datasource
+    :param tgt_ds: target ogr Datasource
     :param attributes: {attribute name: list of values}
     :param attr_data_types: {attribute name: ogr data type}
     :return: modified ogr Datasource
     """
-    print("Starting threedigrid_to_ogr", tgt_ds)
+    # Iterate through the layers in the GeoPackage and copy them to the target datasource
+    for i in range(src_ds.GetLayerCount()):
+        layer = src_ds.GetLayer(i)
+        name = layer.GetName()
+        if name in ["node", "cell", "flowline"]:
+            tgt_ds.CopyLayer(layer, name)
+
     # Iterate over layers in the target data source
     for index in range(tgt_ds.GetLayerCount()):
         layer = tgt_ds.GetLayer(index)
         layer_name = layer.GetName()
         layer_defn = layer.GetLayerDefn()
 
-        geom_type = layer.GetGeomType()
+        # Set geometry type
+        # the initial geometry type of the layer is unknown or none
+        # thus we need to set it manually
         if layer_name == "node":
-            geom_type = ogr.wkbPoint
+            layer_defn.SetGeomType(ogr.wkbPoint)
         elif layer_name == "cell":
-            geom_type = ogr.wkbPolygon
+            layer_defn.SetGeomType(ogr.wkbPolygon)
         elif layer_name == "flowline":
-            geom_type = ogr.wkbLineString
-        else:
-            print(f"Unknown layer name: {layer_name}")
-            # tgt_ds.DeleteLayer(index)
-            continue
-
-        # Update layer geometry type
-        layer_defn.SetGeomType(geom_type)
+            layer_defn.SetGeomType(ogr.wkbLineString)
 
         # Add additional attributes to the layer
         for attr_name, attr_values in attributes.items():
-            print("Attribute", attr_name)
             # Check if the attribute already exists
             if layer.GetLayerDefn().GetFieldIndex(attr_name) == -1:
                 # Add the attribute to the layer
@@ -57,17 +59,10 @@ def threedigrid_to_ogr(
                 elif attr_data_types[attr_name] in [ogr.OFTString]:
                     val = val.decode("utf-8") if isinstance(val, bytes) else str(val)
 
-                print("Value", f"index-{i}", val)
                 feature = layer.GetFeature(i)
                 if feature is None:
-                    print(f"Failed to retrieve feature for index-{i}")
                     continue
                 feature[attr_name] = val
                 layer.SetFeature(feature)
 
-            # create the actual feature
-            # layer.SetFeature(feature)
-
-    print("Finished threedigrid_to_ogr")
-    # Return the modified OGR DataSource
-    return tgt_ds
+    return
