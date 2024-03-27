@@ -4,6 +4,7 @@ from numpy import isnan
 def threedigrid_to_ogr(
     src_ds: ogr.DataSource,
     tgt_ds: ogr.DataSource,
+    layer_type: str,
     attributes: dict,
     attr_data_types: dict,
 ):
@@ -12,6 +13,7 @@ def threedigrid_to_ogr(
 
     :param src_ds: source ogr Datasource
     :param tgt_ds: target ogr Datasource
+    :param layer_type: layer type to add to the target datasource (node, cell, flowline)
     :param attributes: {attribute name: list of values}
     :param attr_data_types: {attribute name: ogr data type}
     :return: modified ogr Datasource
@@ -20,7 +22,7 @@ def threedigrid_to_ogr(
     for i in range(src_ds.GetLayerCount()):
         layer = src_ds.GetLayer(i)
         name = layer.GetName()
-        if name in ["node", "cell", "flowline"]:
+        if name == layer_type:
             tgt_ds.CopyLayer(layer, name)
 
     # Iterate over layers in the target data source
@@ -48,7 +50,7 @@ def threedigrid_to_ogr(
                 layer.CreateField(field_defn)
 
             # Set the additional attribute value for each feature
-            for i in range(min(1000, layer.GetFeatureCount())):
+            for i in range(layer.GetFeatureCount()):
                 if i >= len(attr_values):
                     break
                 val = attr_values[i]
@@ -64,5 +66,6 @@ def threedigrid_to_ogr(
                     continue
                 feature[attr_name] = val
                 layer.SetFeature(feature)
+                feature = None
 
     return

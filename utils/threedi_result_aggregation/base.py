@@ -1215,13 +1215,15 @@ def aggregate_threedi_results(
             threedigrid_to_ogr(
                 src_ds=src_ds,
                 tgt_ds=tgt_ds,
+                layer_type="node",
                 attributes=node_attributes,
-                attr_data_types=attr_data_types,
+                attr_data_types=node_attr_data_types,
             )
         if output_cells or output_rasters or resample_point_layer:
             threedigrid_to_ogr(
                 src_ds=src_ds,
                 tgt_ds=tgt_ds,
+                layer_type="cell",
                 attributes=attributes,
                 attr_data_types=attr_data_types,
             )
@@ -1305,6 +1307,7 @@ def aggregate_threedi_results(
         threedigrid_to_ogr(
             src_ds=src_ds,
             tgt_ds=tgt_ds,
+            layer_type="flowline",
             attributes=attributes,
             attr_data_types=attr_data_types,
         )
