@@ -1067,12 +1067,6 @@ def aggregate_threedi_results(
     :return: an ogr Memory DataSource with one or more Layers: node (point), cell (polygon) or flowline (linestring) with the aggregation results
     :rtype: ogr.DataSource
     """
-
-    # open gridadmin.gpkg as input datasource
-    src_ds = ogr.Open(gridadmin_gpkg, 1)
-    if src_ds is None:
-        raise FileNotFoundError(f"{gridadmin_gpkg} not found.")
-
     # make output datasource and layers
     tgt_drv = ogr.GetDriverByName("MEMORY")
     tgt_ds = tgt_drv.CreateDataSource("")
@@ -1213,17 +1207,17 @@ def aggregate_threedi_results(
             node_attr_data_types = attr_data_types
             node_attr_data_types["exchange_level_1d2d"] = ogr.OFTReal
             threedigrid_to_ogr(
-                src_ds=src_ds,
                 tgt_ds=tgt_ds,
                 layer_type="node",
+                gridadmin_gpkg=gridadmin_gpkg,
                 attributes=node_attributes,
                 attr_data_types=node_attr_data_types,
             )
         if output_cells or output_rasters or resample_point_layer:
             threedigrid_to_ogr(
-                src_ds=src_ds,
                 tgt_ds=tgt_ds,
                 layer_type="cell",
+                gridadmin_gpkg=gridadmin_gpkg,
                 attributes=attributes,
                 attr_data_types=attr_data_types,
             )
@@ -1305,9 +1299,9 @@ def aggregate_threedi_results(
             except KeyError:
                 attr_data_types[attr] = ogr.OFTString
         threedigrid_to_ogr(
-            src_ds=src_ds,
             tgt_ds=tgt_ds,
             layer_type="flowline",
+            gridadmin_gpkg=gridadmin_gpkg,
             attributes=attributes,
             attr_data_types=attr_data_types,
         )

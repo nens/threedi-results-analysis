@@ -3,36 +3,42 @@ from numpy import isnan
 
 
 def threedigrid_to_ogr(
-    src_ds: ogr.DataSource,
     tgt_ds: ogr.DataSource,
     layer_type: str,
+    gridadmin_gpkg: str,
     attributes: dict,
     attr_data_types: dict,
 ):
     """
     Create an ogr target_node_layer from the ogr Datasource with custom attributes
 
-    :param src_ds: source ogr Datasource
     :param tgt_ds: target ogr Datasource
     :param layer_type: layer type to add to the target datasource (node, cell, flowline)
+    :param gridadmin_gpkg: path to gridadmin.gpkg
     :param attributes: {attribute name: list of values}
     :param attr_data_types: {attribute name: ogr data type}
     :return: modified ogr Datasource
     """
-    # Iterate through the layers in the GeoPackage and copy them to the target datasource
+
+    # open gridadmin.gpkg as input datasource
+    src_ds = ogr.Open(gridadmin_gpkg, 1)
+    if src_ds is None:
+        raise FileNotFoundError(f"{gridadmin_gpkg} not found.")
+
+    # iterate through the layers in the GeoPackage and copy them to the target datasource
     for i in range(src_ds.GetLayerCount()):
         layer = src_ds.GetLayer(i)
         name = layer.GetName()
         if name == layer_type:
             tgt_ds.CopyLayer(layer, name)
 
-    # Iterate over layers in the target data source
+    # iterate over layers in the target data source
     for index in range(tgt_ds.GetLayerCount()):
         layer = tgt_ds.GetLayer(index)
         layer_name = layer.GetName()
         layer_defn = layer.GetLayerDefn()
 
-        # Set geometry type
+        # set geometry type
         # the initial geometry type of the layer is unknown or none
         # thus we need to set it manually
         if layer_name == "node":
@@ -42,15 +48,13 @@ def threedigrid_to_ogr(
         elif layer_name == "flowline":
             layer_defn.SetGeomType(ogr.wkbLineString)
 
-        # Add additional attributes to the layer
+        # add additional attributes to the layer
         for attr_name, attr_values in attributes.items():
-            # Check if the attribute already exists
             if layer.GetLayerDefn().GetFieldIndex(attr_name) == -1:
-                # Add the attribute to the layer
                 field_defn = ogr.FieldDefn(attr_name, attr_data_types[attr_name])
                 layer.CreateField(field_defn)
 
-            # Set the additional attribute value for each feature
+            # set the additional attribute value for each feature
             for i in range(layer.GetFeatureCount()):
                 if i >= len(attr_values):
                     break
