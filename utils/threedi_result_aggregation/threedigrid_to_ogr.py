@@ -4,16 +4,16 @@ from numpy import isnan
 
 def threedigrid_to_ogr(
     tgt_ds: ogr.DataSource,
-    layer_type: str,
+    layer_name: str,
     gridadmin_gpkg: str,
     attributes: dict,
     attr_data_types: dict,
 ):
     """
-    Create an ogr target_node_layer from the ogr Datasource with custom attributes
+    Modify the target ogr Datasource with custom attributes
 
     :param tgt_ds: target ogr Datasource
-    :param layer_type: layer type to add to the target datasource (node, cell, flowline)
+    :param layer_name: name of the layer to be copied to target ogr Datasource
     :param gridadmin_gpkg: path to gridadmin.gpkg
     :param attributes: {attribute name: list of values}
     :param attr_data_types: {attribute name: ogr data type}
@@ -25,22 +25,17 @@ def threedigrid_to_ogr(
     if src_ds is None:
         raise FileNotFoundError(f"{gridadmin_gpkg} not found.")
 
-    # iterate through the layers in the GeoPackage and copy them to the target datasource
-    for i in range(src_ds.GetLayerCount()):
-        layer = src_ds.GetLayer(i)
-        name = layer.GetName()
-        if name == layer_type:
-            tgt_ds.CopyLayer(layer, name)
+    # copy the layer with the specified layer type to the target datasource
+    layer = src_ds.GetLayerByName(layer_name)
+    tgt_ds.CopyLayer(layer, layer_name)
 
     # iterate over layers in the target data source
     for index in range(tgt_ds.GetLayerCount()):
         layer = tgt_ds.GetLayer(index)
-        layer_name = layer.GetName()
         layer_defn = layer.GetLayerDefn()
 
-        # set geometry type
         # the initial geometry type of the layer is unknown or none
-        # thus we need to set it manually
+        # thus we need to set geometry type manually
         if layer_name == "node":
             layer_defn.SetGeomType(ogr.wkbPoint)
         elif layer_name == "cell":

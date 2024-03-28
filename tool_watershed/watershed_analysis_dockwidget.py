@@ -42,7 +42,7 @@ from qgis.gui import QgsMapToolIdentify, QgsVertexMarker
 from osgeo import ogr, osr
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from .watershed_analysis_networkx import Graph3Di
-from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import threedigrid_to_ogr
+from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_to_ogr import threedigrid_to_ogr
 from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
 from .smoothing import polygon_gaussian_smooth
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
@@ -107,7 +107,7 @@ class Graph3DiQgsConnector:
         self._filter = None
         self.parent_dock = parent_dock
         self.iface = parent_dock.iface
-        self.graph_3di = Graph3Di(subset=None)
+        self.graph_3di = Graph3Di(subset=None, result_item=result_item, model=model)
         self._sqlite = None
 
         self.model = model
@@ -396,8 +396,14 @@ class Graph3DiQgsConnector:
         }
 
         ds = MEMORY_DRIVER.CreateDataSource("")
+        result = self.model.get_result(self.result_id)
+        gridadmin_gpkg = result.parent().path.with_suffix('.gpkg')
         threedigrid_to_ogr(
-            threedigrid_src=cells, tgt_ds=ds, attributes=attributes, attr_data_types=self.result_cell_attr_types, include_all_threedigrid_attributes=True,
+            tgt_ds=ds,
+            layer_name="cell",
+            gridadmin_gpkg=gridadmin_gpkg,
+            attributes=attributes,
+            attr_data_types=self.result_cell_attr_types,
         )
         layer = ds.GetLayerByName("cell")
         if self.result_cell_layer:

@@ -1208,7 +1208,7 @@ def aggregate_threedi_results(
             node_attr_data_types["exchange_level_1d2d"] = ogr.OFTReal
             threedigrid_to_ogr(
                 tgt_ds=tgt_ds,
-                layer_type="node",
+                layer_name="node",
                 gridadmin_gpkg=gridadmin_gpkg,
                 attributes=node_attributes,
                 attr_data_types=node_attr_data_types,
@@ -1216,7 +1216,7 @@ def aggregate_threedi_results(
         if output_cells or output_rasters or resample_point_layer:
             threedigrid_to_ogr(
                 tgt_ds=tgt_ds,
-                layer_type="cell",
+                layer_name="cell",
                 gridadmin_gpkg=gridadmin_gpkg,
                 attributes=attributes,
                 attr_data_types=attr_data_types,
@@ -1300,7 +1300,7 @@ def aggregate_threedi_results(
                 attr_data_types[attr] = ogr.OFTString
         threedigrid_to_ogr(
             tgt_ds=tgt_ds,
-            layer_type="flowline",
+            layer_name="flowline",
             gridadmin_gpkg=gridadmin_gpkg,
             attributes=attributes,
             attr_data_types=attr_data_types,

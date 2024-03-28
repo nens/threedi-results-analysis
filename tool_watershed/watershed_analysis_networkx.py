@@ -5,7 +5,8 @@ from osgeo import ogr
 from threedi_results_analysis.utils.threedi_result_aggregation.base import time_aggregate
 from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_classes import Aggregation
 from threedi_results_analysis.utils.threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS, AggregationSign
-from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import threedigrid_to_ogr
+from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_to_ogr import threedigrid_to_ogr
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 
 
@@ -21,7 +22,9 @@ ogr.UseExceptions()
 class Graph3Di:
     def __init__(
         self,
+        model,
         gr: GridH5ResultAdmin = None,
+        result_item: ThreeDiResultItem = None,
         subset: str = None,
         start_time: int = None,
         end_time: int = None,
@@ -36,6 +39,10 @@ class Graph3Di:
         self._threshold = threshold
         self._aggregate = None
         self._graph = None
+        self.model = model
+        self.result_id = None  # Id of result_item refering to netcdf/gridadmin
+        if result_item:
+            self.result_id = result_item.id
         self.calculate_aggregate()
         self.update_graph()
 
@@ -238,7 +245,15 @@ class Graph3Di:
         upstream_cells = self._gr.cells.filter(id__in=list(cell_ids))
         cell_drv = ogr.GetDriverByName("MEMORY")
         cell_ds = cell_drv.CreateDataSource("")
-        threedigrid_to_ogr(threedigrid_src=upstream_cells, tgt_ds=cell_ds, attributes={}, attr_data_types={})
+        result = self.model.get_result(self.result_id)
+        gridadmin_gpkg = result.parent().path.with_suffix('.gpkg')
+        threedigrid_to_ogr(
+            tgt_ds=cell_ds,
+            layer_name="cell",
+            gridadmin_gpkg=gridadmin_gpkg,
+            attributes={},
+            attr_data_types={}
+        )
         cell_layer = cell_ds.GetLayerByName("cell")
         cells_multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
         for cell in cell_layer:
