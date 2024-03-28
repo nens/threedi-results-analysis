@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from typing import List, Tuple, Union
 
@@ -231,12 +232,18 @@ def left_to_right_discharge_ogr(
         "gauge_line_id": ogr.OFTInteger,
         "q_net_sum": ogr.OFTReal,
     }
+
+    # gridadmin.gpkg is in the same directory as the gridadmin.h5 file
+    gridadmin = gr.grid_file
+    gridadmin_parent = os.path.dirname(gridadmin)
+    gridadmin_gpkg = os.path.join(gridadmin_parent, "gridadmin.gpkg")
+
     threedigrid_to_ogr(
-        threedigrid_src=intersecting_lines,
         tgt_ds=tgt_ds,
+        layer_name="flowline",
+        gridadmin_gpkg=gridadmin_gpkg,
         attributes=attributes,
         attr_data_types=attr_data_types,
-        include_all_threedigrid_attributes=True
     )
     ogr_lyr = tgt_ds.GetLayerByName("flowline")
     for i, feature in enumerate(ogr_lyr):

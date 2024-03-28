@@ -42,7 +42,7 @@ from qgis.gui import QgsMapToolIdentify, QgsVertexMarker
 from osgeo import ogr, osr
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from .watershed_analysis_networkx import Graph3Di
-from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_to_ogr import threedigrid_to_ogr
+from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import threedigrid_to_ogr
 from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
 from .smoothing import polygon_gaussian_smooth
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem

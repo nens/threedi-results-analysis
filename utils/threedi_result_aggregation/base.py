@@ -35,7 +35,7 @@ from .aggregation_classes import (
     VT_NODE,
     VT_NODE_HYBRID,
 )
-from .threedigrid_to_ogr import threedigrid_to_ogr
+from .threedigrid_ogr import threedigrid_to_ogr
 
 warnings.filterwarnings("ignore")
 ogr.UseExceptions()
