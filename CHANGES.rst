@@ -4,7 +4,7 @@
 3.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Refactor threedigrid_to_ogr to copy features from gridadmin.gpkg (#997)
 
 
 3.6 (2024-03-14)
