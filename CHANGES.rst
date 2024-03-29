@@ -5,6 +5,7 @@
 ----------------
 
 - Refactor threedigrid_to_ogr to copy features from gridadmin.gpkg (#997)
+- Bump threedidepth to 0.6.3.
 
 
 3.6 (2024-03-14)
