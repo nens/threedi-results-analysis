@@ -25,47 +25,45 @@ def threedigrid_to_ogr(
     if src_ds is None:
         raise FileNotFoundError(f"{gridadmin_gpkg} not found.")
 
-    # copy the layer with the specified layer type to the target datasource
-    layer = src_ds.GetLayerByName(layer_name)
-    tgt_ds.CopyLayer(layer, layer_name)
+    # copy the source layer with the specified layer name to the target datasource
+    src_layer = src_ds.GetLayerByName(layer_name)
+    tgt_ds.CopyLayer(src_layer, layer_name)
 
-    # iterate over layers in the target data source
-    for index in range(tgt_ds.GetLayerCount()):
-        layer = tgt_ds.GetLayer(index)
-        layer_defn = layer.GetLayerDefn()
+    layer = tgt_ds.GetLayerByName(layer_name)
+    layer_defn = layer.GetLayerDefn()
 
-        # the initial geometry type of the layer is unknown or none
-        # thus we need to set geometry type manually
-        if layer_name == "node":
-            layer_defn.SetGeomType(ogr.wkbPoint)
-        elif layer_name == "cell":
-            layer_defn.SetGeomType(ogr.wkbPolygon)
-        elif layer_name == "flowline":
-            layer_defn.SetGeomType(ogr.wkbLineString)
+    # the initial geometry type of the layer is unknown or none
+    # thus we need to set geometry type manually
+    if layer_name == "node":
+        layer_defn.SetGeomType(ogr.wkbPoint)
+    elif layer_name == "cell":
+        layer_defn.SetGeomType(ogr.wkbPolygon)
+    elif layer_name == "flowline":
+        layer_defn.SetGeomType(ogr.wkbLineString)
 
-        # add additional attributes to the layer
-        for attr_name, attr_values in attributes.items():
-            if layer.GetLayerDefn().GetFieldIndex(attr_name) == -1:
-                field_defn = ogr.FieldDefn(attr_name, attr_data_types[attr_name])
-                layer.CreateField(field_defn)
+    # add additional attributes to the layer
+    for attr_name, attr_values in attributes.items():
+        if layer_defn.GetFieldIndex(attr_name) == -1:
+            field_defn = ogr.FieldDefn(attr_name, attr_data_types[attr_name])
+            layer.CreateField(field_defn)
 
-            # set the additional attribute value for each feature
-            for i in range(layer.GetFeatureCount()):
-                if i >= len(attr_values):
-                    break
-                val = attr_values[i]
-                if val is None or isnan(val):
-                    continue
-                if attr_data_types[attr_name] in [ogr.OFTInteger]:
-                    val = int(val)
-                elif attr_data_types[attr_name] in [ogr.OFTString]:
-                    val = val.decode("utf-8") if isinstance(val, bytes) else str(val)
+        # set the additional attribute value for each feature
+        for i in range(layer.GetFeatureCount()):
+            if i >= len(attr_values):
+                break
+            val = attr_values[i]
+            if val is None or isnan(val):
+                continue
+            if attr_data_types[attr_name] in [ogr.OFTInteger]:
+                val = int(val)
+            elif attr_data_types[attr_name] in [ogr.OFTString]:
+                val = val.decode("utf-8") if isinstance(val, bytes) else str(val)
 
-                feature = layer.GetFeature(i)
-                if feature is None:
-                    continue
-                feature[attr_name] = val
-                layer.SetFeature(feature)
-                feature = None
+            feature = layer.GetFeature(i)
+            if feature is None:
+                continue
+            feature[attr_name] = val
+            layer.SetFeature(feature)
+            feature = None
 
     return
