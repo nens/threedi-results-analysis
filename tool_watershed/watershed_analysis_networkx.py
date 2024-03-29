@@ -242,7 +242,7 @@ class Graph3Di:
 
         WARNING! May result in memory error if somehwat large set of cells is given as input
         """
-        upstream_cells = self._gr.cells.filter(id__in=list(cell_ids))
+        # upstream_cells = self._gr.cells.filter(id__in=list(cell_ids))
         cell_drv = ogr.GetDriverByName("MEMORY")
         cell_ds = cell_drv.CreateDataSource("")
         result = self.model.get_result(self.result_id)
