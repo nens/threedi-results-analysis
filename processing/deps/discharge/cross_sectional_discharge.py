@@ -190,6 +190,7 @@ def left_to_right_discharge(
 
 def left_to_right_discharge_ogr(
     gr: GridH5ResultAdmin,
+    gridadmin_gpkg: str,
     gauge_line: LineString,
     tgt_ds: ogr.DataSource,
     start_time: float = None,
@@ -232,11 +233,6 @@ def left_to_right_discharge_ogr(
         "gauge_line_id": ogr.OFTInteger,
         "q_net_sum": ogr.OFTReal,
     }
-
-    # gridadmin.gpkg is in the same directory as the gridadmin.h5 file
-    gridadmin = gr.grid_file
-    gridadmin_parent = os.path.dirname(gridadmin)
-    gridadmin_gpkg = os.path.join(gridadmin_parent, "gridadmin.gpkg")
 
     threedigrid_to_ogr(
         tgt_ds=tgt_ds,
