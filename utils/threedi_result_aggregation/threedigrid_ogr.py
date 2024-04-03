@@ -49,22 +49,20 @@ def threedigrid_to_ogr(
             layer.CreateField(field_defn)
 
         # set the additional attribute value for each feature
-        for i in range(layer.GetFeatureCount()):
+        for feature in layer:
+            i = feature.GetFID()
             if ids is not None and i not in ids:
                 continue
             if i >= len(attr_values):
                 break
             val = attr_values[i]
-            if val is None or isnan(val):
+            if feature is None or val is None or isnan(val):
                 continue
             if attr_data_types[attr_name] in [ogr.OFTInteger]:
                 val = int(val)
             elif attr_data_types[attr_name] in [ogr.OFTString]:
                 val = val.decode("utf-8") if isinstance(val, bytes) else str(val)
 
-            feature = layer.GetFeature(i)
-            if feature is None:
-                continue
             feature[attr_name] = val
             layer.SetFeature(feature)
             feature = None
