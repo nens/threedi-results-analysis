@@ -1212,6 +1212,7 @@ def aggregate_threedi_results(
                 gridadmin_gpkg=gridadmin_gpkg,
                 attributes=node_attributes,
                 attr_data_types=node_attr_data_types,
+                ids=nodes.id,
             )
         if output_cells or output_rasters or resample_point_layer:
             threedigrid_to_ogr(
@@ -1220,6 +1221,7 @@ def aggregate_threedi_results(
                 gridadmin_gpkg=gridadmin_gpkg,
                 attributes=attributes,
                 attr_data_types=attr_data_types,
+                ids=cells.id,
             )
 
         # rasters
@@ -1304,6 +1306,7 @@ def aggregate_threedi_results(
             gridadmin_gpkg=gridadmin_gpkg,
             attributes=attributes,
             attr_data_types=attr_data_types,
+            ids=lines.id,
         )
 
     if not output_rasters:

@@ -107,7 +107,8 @@ class Graph3DiQgsConnector:
         self._filter = None
         self.parent_dock = parent_dock
         self.iface = parent_dock.iface
-        self.graph_3di = Graph3Di(subset=None, result_item=result_item, model=model)
+        self.gridadmin_gpkg = result_item.parent().path.with_suffix('.gpkg')
+        self.graph_3di = Graph3Di(subset=None, gridadmin_gpkg=self.gridadmin_gpkg)
         self._sqlite = None
 
         self.model = model
@@ -396,14 +397,13 @@ class Graph3DiQgsConnector:
         }
 
         ds = MEMORY_DRIVER.CreateDataSource("")
-        result = self.model.get_result(self.result_id)
-        gridadmin_gpkg = result.parent().path.with_suffix('.gpkg')
         threedigrid_to_ogr(
             tgt_ds=ds,
             layer_name="cell",
-            gridadmin_gpkg=gridadmin_gpkg,
+            gridadmin_gpkg=self.gridadmin_gpkg,
             attributes=attributes,
             attr_data_types=self.result_cell_attr_types,
+            ids=cell_ids,
         )
         layer = ds.GetLayerByName("cell")
         if self.result_cell_layer:
@@ -457,7 +457,12 @@ class Graph3DiQgsConnector:
 
         ds = MEMORY_DRIVER.CreateDataSource("")
         threedigrid_to_ogr(
-            threedigrid_src=flowlines, tgt_ds=ds, attributes=attributes, attr_data_types=self.result_flowline_attr_types, include_all_threedigrid_attributes=True
+            tgt_ds=ds,
+            layer_name="flowline",
+            gridadmin_gpkg=self.gridadmin_gpkg,
+            attributes=attributes,
+            attr_data_types=self.result_flowline_attr_types,
+            ids=flowline_ids,
         )
         layer = ds.GetLayerByName("flowline")
         if self.result_flowline_layer:
