@@ -1,5 +1,6 @@
 from osgeo import ogr
 from numpy import isnan
+from typing import Sequence
 
 
 def threedigrid_to_ogr(
@@ -8,6 +9,7 @@ def threedigrid_to_ogr(
     gridadmin_gpkg: str,
     attributes: dict,
     attr_data_types: dict,
+    ids: Sequence[int] = None,
 ):
     """
     Modify the target ogr Datasource with custom attributes
@@ -17,19 +19,18 @@ def threedigrid_to_ogr(
     :param gridadmin_gpkg: path to gridadmin.gpkg
     :param attributes: {attribute name: list of values}
     :param attr_data_types: {attribute name: ogr data type}
+    :param ids: list of ids to request a subset of nodes/cells/flowlines
     :return: modified ogr Datasource
     """
 
     # open gridadmin.gpkg as input datasource
-    src_ds = ogr.Open(gridadmin_gpkg, 1)
+    src_ds = ogr.Open(gridadmin_gpkg, 0)
     if src_ds is None:
         raise FileNotFoundError(f"{gridadmin_gpkg} not found.")
 
     # copy the source layer with the specified layer name to the target datasource
     src_layer = src_ds.GetLayerByName(layer_name)
-    tgt_ds.CopyLayer(src_layer, layer_name)
-
-    layer = tgt_ds.GetLayerByName(layer_name)
+    layer = tgt_ds.CopyLayer(src_layer, layer_name)
     layer_defn = layer.GetLayerDefn()
 
     # the initial geometry type of the layer is unknown or none
@@ -49,6 +50,8 @@ def threedigrid_to_ogr(
 
         # set the additional attribute value for each feature
         for i in range(layer.GetFeatureCount()):
+            if ids is not None and i not in ids:
+                continue
             if i >= len(attr_values):
                 break
             val = attr_values[i]
