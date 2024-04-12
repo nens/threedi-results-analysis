@@ -4,7 +4,7 @@
 3.5.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Another release.
 
 
 3.5.3 (2024-04-12)
