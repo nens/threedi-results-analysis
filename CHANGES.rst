@@ -1,25 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.8 (unreleased)
-----------------
-
-- Nothing changed yet.
-
-
-3.7 (2024-04-12)
-----------------
-
-- Nothing changed yet.
-
-
-3.5.2 (2024-04-12)
-------------------
-
-- Re-release 3.5.1 as tag already existed.
-
-
-3.5.1 (2024-04-12)
+3.5.3 (unreleased)
 ------------------
 
 - Bump threedidepth to 0.6.3.
