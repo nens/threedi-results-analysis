@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.5.2 (unreleased)
+3.5.2 (2024-04-12)
 ------------------
 
 - Re-release 3.5.1 as tag already existed.
