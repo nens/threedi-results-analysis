@@ -4,7 +4,7 @@
 3.5.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Re-release 3.5.1 as tag already existed.
 
 
 3.5.1 (2024-04-12)
