@@ -1,8 +1,8 @@
 3Di Results Analysis changelog
 ========================
 
-3.8 (unreleased)
-------------------
+3.8 (2024-04-12)
+----------------
 
 - Update new tag.
 
