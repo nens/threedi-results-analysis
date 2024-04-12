@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.5.3 (unreleased)
+3.5.3 (2024-04-12)
 ------------------
 
 - Bump threedidepth to 0.6.3.
