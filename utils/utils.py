@@ -7,6 +7,7 @@ from threedi_results_analysis.datasource.result_constants import CUMULATIVE_AGGR
 from threedi_results_analysis.datasource.result_constants import H_TYPES
 from threedi_results_analysis.datasource.result_constants import Q_TYPES
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
+from threedi_results_analysis.datasource.result_constants import WATER_QUALITY_VARIABLES
 
 import logging
 import os
@@ -96,7 +97,7 @@ def parse_aggvarname(aggvarname):
     return varname, agg_method
 
 
-def generate_parameter_config(subgrid_map_vars, agg_vars):
+def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars):
     """Dynamically create the parameter config
 
     :param subgrid_map_vars: available vars from subgrid_map.nc
@@ -111,6 +112,10 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
     agg_vars_mapping = {
         var: (lbl, unit)
         for (var, lbl, unit, negative_possible) in AGGREGATION_VARIABLES
+    }
+    water_quality_vars_mapping = {
+        var: (lbl, unit)
+        for (var, lbl, unit, negative_possible) in WATER_QUALITY_VARIABLES
     }
     config = {"q": [], "h": []}
 
@@ -135,6 +140,18 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
         if varname in Q_TYPES:
             config["q"].append(d)
         elif varname in H_TYPES:
+            config["h"].append(d)
+
+    for wqvarname in wq_vars:
+        varinfo = water_quality_vars_mapping[wqvarname]
+        d = {
+            "name": varinfo[0].capitalize(),
+            "unit": varinfo[1],
+            "parameters": wqvarname,
+        }
+        if wqvarname in Q_TYPES:
+            config["q"].append(d)
+        elif wqvarname in H_TYPES:
             config["h"].append(d)
 
     for aggvarname in agg_vars:

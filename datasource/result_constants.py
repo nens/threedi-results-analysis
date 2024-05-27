@@ -22,6 +22,7 @@ WET_CROSS_SECTION_AREA = NcVar("au", "wet cross-sectional area", "m2", False)
 LEAKAGE_RATE = NcVar("leak", "leakage rate", "m3/s", True)
 INTERCEPTION = NcVar("intercepted_volume", "intercepted volume", "m3", False)
 SOURCES_AND_SINKS = NcVar("q_sss", "sources and sinks", "m3/s", True)
+SUBSTANCE = NcVar("substance1", "substance", "-", True)
 
 # TODO: rename Line_types
 _Q_TYPES = [
@@ -44,6 +45,7 @@ _H_TYPES = [
     LEAKAGE_RATE,
     INTERCEPTION,
     SOURCES_AND_SINKS,
+    SUBSTANCE,
 ]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
@@ -53,6 +55,8 @@ H_TYPES = [v.name for v in _H_TYPES]
 SUBGRID_MAP_VARIABLES = _Q_TYPES + _H_TYPES  # just take all variables..
 
 NEGATIVE_POSSIBLE = dict([(v.name, v.negative_possible) for v in SUBGRID_MAP_VARIABLES])
+
+WATER_QUALITY_VARIABLES = [SUBSTANCE]
 
 AGGREGATION_VARIABLES = [
     DISCHARGE,
@@ -71,6 +75,7 @@ AGGREGATION_VARIABLES = [
     LEAKAGE_RATE,
     INTERCEPTION,
     SOURCES_AND_SINKS,
+    SUBSTANCE,
 ]
 
 AGGREGATION_OPTIONS = {
