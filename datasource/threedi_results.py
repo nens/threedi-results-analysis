@@ -146,12 +146,11 @@ class ThreediResult():
         # TODO: the property self.timestamps is cached but this method is not.
         #  This might cause performance issues. Check if these timestamps are
         #  often queried and cause performance issues.
-        if (
-            parameter is None or
-            parameter in [v[0] for v in SUBGRID_MAP_VARIABLES] or
-            parameter in [v[0] for v in WATER_QUALITY_VARIABLES]
-        ):
+        if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.result_admin.nodes.timestamps
+        elif parameter in [v[0] for v in WATER_QUALITY_VARIABLES]:
+            ga = self.get_gridadmin(variable=parameter)
+            return ga.get_model_instance_by_field_name(parameter).timestamps
         else:
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).get_timestamps(

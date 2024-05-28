@@ -149,10 +149,8 @@ def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars):
             "unit": varinfo[1],
             "parameters": wqvarname,
         }
-        if wqvarname in Q_TYPES:
-            config["q"].append(d)
-        elif wqvarname in H_TYPES:
-            config["h"].append(d)
+        # always node variables
+        config["h"].append(d)
 
     for aggvarname in agg_vars:
         _varname, _agg_method = parse_aggvarname(aggvarname)
