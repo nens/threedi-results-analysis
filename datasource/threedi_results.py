@@ -374,6 +374,7 @@ def find_aggregation_netcdf(netcdf_file_path):
         "'aggregate_results_3di.nc' file not found relative to %s" % result_dir
     )
 
+
 def find_water_quality_netcdf(netcdf_file_path):
     """An ad-hoc way to find the water quality netcdf file
 
