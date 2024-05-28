@@ -19,16 +19,26 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(method, "cum_negative")
 
     def test_generate_parameter_config(self):
+        concentration_var = {
+            "name": "Substance",
+            "unit": "mg/l",
+            "parameters": ["concentration"],
+        }
+
         param_config = generate_parameter_config(["q"], ["q_max"], [])
         self.assertEqual(len(param_config["h"]), 0)
         self.assertEqual(len(param_config["q"]), 2)
 
-        param_config = generate_parameter_config(["q"], ["q_max"], ["concentration"])
+        param_config = generate_parameter_config([], [], [concentration_var])
+        self.assertEqual(len(param_config["h"]), 1)
+        self.assertEqual(len(param_config["q"]), 0)
+
+        param_config = generate_parameter_config(["q"], ["q_max"], [concentration_var])
         self.assertEqual(len(param_config["h"]), 1)
         self.assertEqual(len(param_config["q"]), 2)
 
-        param_config = generate_parameter_config(["q", "u1"], ["s1_max"], [])
-        self.assertEqual(len(param_config["h"]), 1)
+        param_config = generate_parameter_config(["q", "u1"], ["s1_max"], [concentration_var])
+        self.assertEqual(len(param_config["h"]), 2)
         self.assertEqual(len(param_config["q"]), 2)
 
         param_config = generate_parameter_config(["s1"], [], [])
