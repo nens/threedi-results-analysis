@@ -7,7 +7,6 @@ from threedi_results_analysis.datasource.result_constants import CUMULATIVE_AGGR
 from threedi_results_analysis.datasource.result_constants import H_TYPES
 from threedi_results_analysis.datasource.result_constants import Q_TYPES
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
-from threedi_results_analysis.datasource.result_constants import WATER_QUALITY_VARIABLES
 
 import logging
 import os
@@ -113,10 +112,6 @@ def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars):
         var: (lbl, unit)
         for (var, lbl, unit, negative_possible) in AGGREGATION_VARIABLES
     }
-    water_quality_vars_mapping = {
-        var: (lbl, unit)
-        for (var, lbl, unit, negative_possible) in WATER_QUALITY_VARIABLES
-    }
     config = {"q": [], "h": []}
 
     verbose_agg_method = {
@@ -142,12 +137,11 @@ def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars):
         elif varname in H_TYPES:
             config["h"].append(d)
 
-    for wqvarname in wq_vars:
-        varinfo = water_quality_vars_mapping[wqvarname]
+    for wqvar in wq_vars:
         d = {
-            "name": varinfo[0].capitalize(),
-            "unit": varinfo[1],
-            "parameters": wqvarname,
+            "name": wqvar["name"].capitalize(),
+            "unit": wqvar["unit"],
+            "parameters": wqvar["parameters"],
         }
         # always node variables
         config["h"].append(d)

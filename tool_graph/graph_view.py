@@ -458,8 +458,6 @@ class GraphWidget(QWidget):
             self.parameter_combo_box.clear()
 
     def set_parameter_list(self, parameter_config):
-        logger.debug("Setting parameter list", parameter_config)
-
         self.parameter_combo_box.clear()
 
         if not parameter_config:

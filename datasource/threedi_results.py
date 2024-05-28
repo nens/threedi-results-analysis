@@ -2,7 +2,6 @@ from functools import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
 from threedi_results_analysis.datasource.result_constants import LAYER_OBJECT_TYPE_MAPPING
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
-from threedi_results_analysis.datasource.result_constants import WATER_QUALITY_VARIABLES
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
@@ -99,11 +98,22 @@ class ThreediResult():
     @cached_property
     def available_water_quality_vars(self):
         """Return a list of available variables from 'water_quality_results_3di.nc'."""
-        known_wq_map_vars = set([v.name for v in WATER_QUALITY_VARIABLES])
         ga = self.water_quality_result_admin
         if not ga:
             return []
-        return list(known_wq_map_vars)
+        # concentration variable in water quality results
+        concentration_parameter = "concentration"
+        model_instance = ga.get_model_instance_by_field_name(concentration_parameter)
+        if not model_instance:
+            return []
+        substance_name = model_instance.name
+        substance_unit = model_instance.units
+        substance = {
+            "name": substance_name,
+            "unit": substance_unit,
+            "parameters": concentration_parameter,
+        }
+        return [substance]
 
     @property
     def available_vars(self):
@@ -138,6 +148,7 @@ class ThreediResult():
         All variables in the result_netcdf share the same timestamps.
         Variables of the result_aggregation_netcdf can have varying number of
         timestamps and their step size can differ.
+        Variables of the water_quality_netcdf share the same timestamps.
 
         If no parameter is given, returns the timestamps of the result-netcdf.
 
@@ -148,7 +159,7 @@ class ThreediResult():
         #  often queried and cause performance issues.
         if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.result_admin.nodes.timestamps
-        elif parameter in [v[0] for v in WATER_QUALITY_VARIABLES]:
+        elif parameter in [v["parameters"] for v in self.available_water_quality_vars]:
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).timestamps
         else:
@@ -175,7 +186,7 @@ class ThreediResult():
             return self.result_admin
         elif variable in self.available_aggregation_vars:
             return self.aggregate_result_admin
-        elif variable in self.available_water_quality_vars:
+        elif variable in [v["parameters"] for v in self.available_water_quality_vars]:
             return self.water_quality_result_admin
         else:
             raise AttributeError(f"Unknown subgrid or aggregate or water quality variable: {variable}")
