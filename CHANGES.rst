@@ -4,7 +4,7 @@
 3.9 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix processing algorithm Detect leaking obstacles in DEM by moving add_features_to_sink to Base class
 
 
 3.8 (2024-04-12)
