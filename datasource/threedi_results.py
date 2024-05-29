@@ -101,19 +101,18 @@ class ThreediResult():
         ga = self.water_quality_result_admin
         if not ga:
             return []
-        # concentration variable in water quality results
-        concentration_parameter = "concentration"
-        model_instance = ga.get_model_instance_by_field_name(concentration_parameter)
-        if not model_instance:
-            return []
-        substance_name = model_instance.name
-        substance_unit = model_instance.units
-        substance = {
-            "name": substance_name,
-            "unit": substance_unit,
-            "parameters": concentration_parameter,
-        }
-        return [substance]
+        available_vars = []
+        substances = ga.substances
+        for substance_id in substances:
+            substance = ga.get_model_instance_by_field_name(substance_id)
+            if substance:
+                var = {
+                    "name": substance.name,
+                    "unit": substance.units or "",
+                    "parameters": substance_id,
+                }
+                available_vars.append(var)
+        return available_vars
 
     @property
     def available_vars(self):
@@ -220,7 +219,11 @@ class ThreediResult():
         elif content_pk:
             filtered_result = filtered_result.filter(content_pk=content_pk)
 
-        values = filtered_result.get_filtered_field_value(nc_variable)
+        if nc_variable in [v["parameters"] for v in self.available_water_quality_vars]:
+            # use "concentration" field for water quality variables
+            values = filtered_result.get_filtered_field_value("concentration")
+        else:
+            values = filtered_result.get_filtered_field_value(nc_variable)
 
         if fill_value is not None:
             values[values == NO_DATA_VALUE] = fill_value
