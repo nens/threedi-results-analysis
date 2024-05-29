@@ -4,7 +4,7 @@
 3.9 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix flowline result styling in QGIS 3.34 (#1005)
 
 
 3.8 (2024-04-12)
