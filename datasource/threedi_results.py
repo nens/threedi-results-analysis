@@ -145,10 +145,10 @@ class ThreediResult():
 
         The timestamps are in seconds after the start of the simulation.
 
-        All variables in the result_netcdf share the same timestamps.
+        All variables in the result_netcdf and water_quality_netcdf share the
+        same timestamps.
         Variables of the result_aggregation_netcdf can have varying number of
         timestamps and their step size can differ.
-        Variables of the water_quality_netcdf share the same timestamps.
 
         If no parameter is given, returns the timestamps of the result-netcdf.
 
@@ -307,6 +307,8 @@ class ThreediResult():
         # TODO: there's no FileNotFound try/except here like for
         # aggregates. Richard says that a missing regular result file is just
         # as likely.
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
         file_like_object_h5 = open(h5, 'rb')
         file_like_object_h5.startswith = lambda x: ''
         file_like_object_nc = open(self.file_path, 'rb')
@@ -321,6 +323,8 @@ class ThreediResult():
         except FileNotFoundError:
             logger.exception("Aggregate result not found")
             return None
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
         file_like_object_h5 = open(h5, 'rb')
         file_like_object_h5.startswith = lambda x: False
         file_like_object_nc = open(agg_path, 'rb')
@@ -335,6 +339,8 @@ class ThreediResult():
         except FileNotFoundError:
             logger.exception("Water quality result not found")
             return None
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
         file_like_object_h5 = open(h5, 'rb')
         file_like_object_h5.startswith = lambda x: False
         file_like_object_nc = open(wq_path, 'rb')
