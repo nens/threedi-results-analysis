@@ -107,14 +107,12 @@ class Graph3DiQgsConnector:
         self._filter = None
         self.parent_dock = parent_dock
         self.iface = parent_dock.iface
-        self.gridadmin_gpkg = result_item.parent().path.with_suffix('.gpkg')
+        self.gridadmin_gpkg = result_item.parent().path.with_suffix('.gpkg') if result_item else None
         self.graph_3di = Graph3Di(subset=None, gridadmin_gpkg=self.gridadmin_gpkg)
         self._sqlite = None
 
         self.model = model
-        self.result_id = None  # Id of result_item refering to netcdf/gridadmin
-        if result_item:
-            self.result_id = result_item.id
+        self.result_id = result_item.id if result_item else None  # Id of result_item referring to netcdf/gridadmin
 
         self.result_group = None
         self.target_node_layer = None
@@ -221,10 +219,13 @@ class Graph3DiQgsConnector:
             subset_string = "catchment_id IN ({})".format(filtered_ids_str)
         # filter to leave subset_string out if empty
         flowline_subset_string = " AND ".join(filter(None, [subset_string, "kcu != 100"]))
-        self.result_catchment_layer.setSubsetString(subset_string)
-        self.result_cell_layer.setSubsetString(subset_string)
-        self.result_flowline_layer.setSubsetString(flowline_subset_string)
-        if self.impervious_surface_layer is not None:
+        if self.result_catchment_layer:
+            self.result_catchment_layer.setSubsetString(subset_string)
+        if self.result_cell_layer:
+            self.result_cell_layer.setSubsetString(subset_string)
+        if self.result_flowline_layer:
+            self.result_flowline_layer.setSubsetString(flowline_subset_string)
+        if self.impervious_surface_layer:
             self.impervious_surface_layer.setSubsetString(subset_string)
 
     def new_result_set_id(self):
@@ -376,7 +377,9 @@ class Graph3DiQgsConnector:
         self.update_layer_filters()
 
     def append_result_cells(self, cell_ids, upstream: bool, result_set: int):
-        cells = self.gr.cells.filter(id__in=list(cell_ids))
+        cells = self.gr.cells.filter(node_type__in=[1, 2]).filter(id__in=list(cell_ids))
+        if cells.count == 0:
+            return
 
         nw_ids = list(cells.id)
 
@@ -420,7 +423,7 @@ class Graph3DiQgsConnector:
 
     def clear_result_cell_layer(self):
         """Remove all features from layer that contains the upstream and/or downstream cells"""
-        if self.result_cell_layer is not None:
+        if self.result_cell_layer:
             self.result_cell_layer.dataProvider().truncate()
 
     def prepare_result_flowline_layer(self):
@@ -519,6 +522,8 @@ class Graph3DiQgsConnector:
 
     def dissolve_cells(self):
         """Dissolve cells in self.result_cells_layer of all not yet dissolved result sets"""
+        if self.result_cell_layer is None:
+            return
         saved_subsetstring = self.result_cell_layer.subsetString()
         non_dissolved_ids = set(self.result_sets) - set(self.dissolved_result_sets)
         non_dissolved_ids_str = ",".join(map(str, non_dissolved_ids))
@@ -752,9 +757,11 @@ class Graph3DiQgsConnector:
             progress.setValue(current_progress)
             print(f"{current_progress}/{max_progress}: catchments smoothed")
 
-        self.result_cell_layer.triggerRepaint()
-        self.result_flowline_layer.triggerRepaint()
-        if self.impervious_surface_layer is not None:
+        if self.result_cell_layer:
+            self.result_cell_layer.triggerRepaint()
+        if self.result_flowline_layer:
+            self.result_flowline_layer.triggerRepaint()
+        if self.impervious_surface_layer:
             self.impervious_surface_layer.triggerRepaint()
         self.update_analyzed_target_cells(target_node_ids, result_set)
         current_progress += 1
@@ -785,7 +792,7 @@ class Graph3DiQgsConnector:
                 transformed_bbox = transform.transformBoundingBox(nodes_bbox)
 
         # cells
-        if self.result_cell_layer is not None:
+        if self.result_cell_layer:
             features = self.result_cell_layer.getFeatures()
             cells_bbox = bbox_of_features(features=features)
             if cells_bbox is not None:

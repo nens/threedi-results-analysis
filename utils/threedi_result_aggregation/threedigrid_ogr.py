@@ -1,5 +1,5 @@
 from osgeo import ogr
-from numpy import isnan
+from numpy import nan
 from typing import Sequence
 
 
@@ -43,8 +43,7 @@ def threedigrid_to_ogr(
     # copy the source layer with the specified layer name to the target datasource
     src_layer = src_ds.GetLayerByName(layer_name)
     if ids is not None:
-        attribute_filter = f"id in {tuple(ids)}"
-        src_layer.SetAttributeFilter(attribute_filter)
+        src_layer.SetAttributeFilter(f"id in {tuple(ids)}")
     layer = tgt_ds.CopyLayer(src_layer, layer_name)
     layer_defn = layer.GetLayerDefn()
 
@@ -57,7 +56,7 @@ def threedigrid_to_ogr(
         if len(attr_values) != layer.GetFeatureCount():
             raise ValueError(
                 f"The number of attribute values ({len(attr_values)}) supplied for attribute {attr_name} differs from "
-                f"the number of {layer_name} features to be copied"
+                f"the number of {layer_name} features to be copied ({layer.GetFeatureCount()})"
             )
         if layer_defn.GetFieldIndex(attr_name) == -1:
             field_defn = ogr.FieldDefn(attr_name, attr_data_types[attr_name])
@@ -66,7 +65,7 @@ def threedigrid_to_ogr(
         # set the additional attribute value for each feature
         for i, feature in enumerate(layer):
             val = attr_values[i]
-            if feature is None or val is None or isnan(val):
+            if feature is None or val is None or val is nan:
                 continue
             if attr_data_types[attr_name] in [ogr.OFTInteger]:
                 val = int(val)

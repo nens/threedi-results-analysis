@@ -39,7 +39,7 @@ class Graph3Di:
         self._threshold = threshold
         self._aggregate = None
         self._graph = None
-        self.gridadmin_gpkg = str(gridadmin_gpkg)
+        self.gridadmin_gpkg = str(gridadmin_gpkg) if gridadmin_gpkg else None
         self.calculate_aggregate()
         self.update_graph()
 
