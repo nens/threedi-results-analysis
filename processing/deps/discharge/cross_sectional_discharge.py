@@ -239,7 +239,7 @@ def left_to_right_discharge_ogr(
         gridadmin_gpkg=gridadmin_gpkg,
         attributes=attributes,
         attr_data_types=attr_data_types,
-        ids=gauge_line_ids,
+        ids=list(intersecting_lines.id),
     )
     ogr_lyr = tgt_ds.GetLayerByName("flowline")
     for i, feature in enumerate(ogr_lyr):
