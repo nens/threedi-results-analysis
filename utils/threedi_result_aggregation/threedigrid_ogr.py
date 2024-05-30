@@ -3,6 +3,16 @@ from numpy import isnan
 from typing import Sequence
 
 
+ogr.UseExceptions()
+
+
+GEOMETRY_TYPE_MAP = {
+    "node": ogr.wkbPoint,
+    "cell": ogr.wkbPolygon,
+    "flowline": ogr.wkbLineString
+}
+
+
 def threedigrid_to_ogr(
     tgt_ds: ogr.DataSource,
     layer_name: str,
@@ -15,13 +25,15 @@ def threedigrid_to_ogr(
     Modify the target ogr Datasource with custom attributes
 
     :param tgt_ds: target ogr Datasource
-    :param layer_name: name of the layer to be copied to target ogr Datasource
+    :param layer_name: name of the layer to be copied to target ogr Datasource. One of 'node', 'cell', 'flowline'
     :param gridadmin_gpkg: path to gridadmin.gpkg
     :param attributes: {attribute name: list of values}
     :param attr_data_types: {attribute name: ogr data type}
     :param ids: list of ids to request a subset of nodes/cells/flowlines
     :return: modified ogr Datasource
     """
+    if layer_name not in list(GEOMETRY_TYPE_MAP.keys()):
+        raise ValueError(f"Argument layer_name must be one of {list(GEOMETRY_TYPE_MAP.keys())}")
 
     # open gridadmin.gpkg as input datasource
     src_ds = ogr.Open(gridadmin_gpkg, 0)
@@ -30,31 +42,29 @@ def threedigrid_to_ogr(
 
     # copy the source layer with the specified layer name to the target datasource
     src_layer = src_ds.GetLayerByName(layer_name)
+    if ids is not None:
+        attribute_filter = f"id in {tuple(ids)}"
+        src_layer.SetAttributeFilter(attribute_filter)
     layer = tgt_ds.CopyLayer(src_layer, layer_name)
     layer_defn = layer.GetLayerDefn()
 
     # the initial geometry type of the layer is unknown or none
     # thus we need to set geometry type manually
-    if layer_name == "node":
-        layer_defn.SetGeomType(ogr.wkbPoint)
-    elif layer_name == "cell":
-        layer_defn.SetGeomType(ogr.wkbPolygon)
-    elif layer_name == "flowline":
-        layer_defn.SetGeomType(ogr.wkbLineString)
+    layer_defn.SetGeomType(GEOMETRY_TYPE_MAP[layer_name])
 
     # add additional attributes to the layer
     for attr_name, attr_values in attributes.items():
+        if len(attr_values) != layer.GetFeatureCount():
+            raise ValueError(
+                f"The number of attribute values ({len(attr_values)}) supplied for attribute {attr_name} differs from "
+                f"the number of {layer_name} features to be copied"
+            )
         if layer_defn.GetFieldIndex(attr_name) == -1:
             field_defn = ogr.FieldDefn(attr_name, attr_data_types[attr_name])
             layer.CreateField(field_defn)
 
         # set the additional attribute value for each feature
-        for feature in layer:
-            i = feature.GetFID()
-            if ids is not None and i not in ids:
-                continue
-            if i >= len(attr_values):
-                break
+        for i, feature in enumerate(layer):
             val = attr_values[i]
             if feature is None or val is None or isnan(val):
                 continue
