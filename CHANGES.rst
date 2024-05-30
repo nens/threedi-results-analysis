@@ -4,6 +4,7 @@
 3.9 (unreleased)
 ----------------
 
+- Add substance concentrations to timeseries plotter (#1001)
 - Fix processing algorithm Detect leaking obstacles in DEM by moving add_features_to_sink to Base class (#1004)
 - Fix flowline result styling in QGIS 3.34 (#1005)
 
