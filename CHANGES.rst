@@ -4,8 +4,8 @@
 3.9 (unreleased)
 ----------------
 
+- Fix processing algorithm Detect leaking obstacles in DEM by moving add_features_to_sink to Base class (#1004)
 - Fix flowline result styling in QGIS 3.34 (#1005)
-
 
 3.8 (2024-04-12)
 ----------------
