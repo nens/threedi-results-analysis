@@ -218,7 +218,7 @@ class Graph3DiQgsConnector:
         else:
             subset_string = "catchment_id IN ({})".format(filtered_ids_str)
         # filter to leave subset_string out if empty
-        flowline_subset_string = " AND ".join(filter(None, [subset_string, "kcu != 100"]))
+        flowline_subset_string = " AND ".join(filter(None, [subset_string, "line_type != 100"]))
         if self.result_catchment_layer:
             self.result_catchment_layer.setSubsetString(subset_string)
         if self.result_cell_layer:
@@ -442,20 +442,16 @@ class Graph3DiQgsConnector:
 
     def append_result_flowlines(self, flowline_ids, upstream: bool, result_set: int):
         flowlines = self.gr.lines.filter(id__in=list(flowline_ids))
-        nw_ids = list(flowlines.id)
         nw_catchment_ids = [result_set] * flowlines.count
         if upstream:
             location = ["upstream"] * flowlines.count
         else:
             location = ["downstream"] * flowlines.count
         from_polygon = [0] * flowlines.count
-        content_type = [''] * flowlines.count
         attributes = {
-            "id": nw_ids,
             "location": location,
             "catchment_id": nw_catchment_ids,
             "from_polygon": from_polygon,
-            "content_type": content_type,
         }
 
         ds = MEMORY_DRIVER.CreateDataSource("")
@@ -473,7 +469,7 @@ class Graph3DiQgsConnector:
         else:
             self.result_flowline_layer = as_qgis_memory_layer(layer, "Result flowlines (1D)")
             self.add_to_layer_tree_group(self.result_flowline_layer)
-            self.result_flowline_layer.setSubsetString("kcu != 100")
+            self.result_flowline_layer.setSubsetString("line_type != 100")
             self.result_flowline_layer.loadNamedStyle(os.path.join(STYLE_DIR, "result_flowlines.qml"))
             set_read_only(self.result_flowline_layer, True)
             # cache

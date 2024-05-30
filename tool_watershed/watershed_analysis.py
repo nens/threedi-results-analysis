@@ -178,7 +178,8 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         if result_item.id in self.preloaded_layers:
             layer_dict = self.preloaded_layers[result_item.id]
             for table_name in required_layer_names:
-                QgsProject.instance().removeMapLayer(layer_dict[table_name])
+                if table_name in layer_dict:
+                    QgsProject.instance().removeMapLayer(layer_dict[table_name])
             for table_name in optional_layer_names:
                 if table_name in layer_dict:
                     QgsProject.instance().removeMapLayer(layer_dict[table_name])
