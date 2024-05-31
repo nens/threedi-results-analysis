@@ -116,24 +116,20 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         """Remove the read-only / non-removable flag from all generated layers"""
         for _, loaded_layer_dict in self.preloaded_layers.items():
             for layer_name in all_possible_layer_names:
-                if layer_name in optional_layer_names:
-                    if layer_name not in loaded_layer_dict:
-                        continue
-                layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
-                if layer is not None:
-                    set_read_only(layer, False)
+                if layer_name in loaded_layer_dict:
+                    layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
+                    if layer:
+                        set_read_only(layer, False)
 
     def update_preloaded_layers(self) -> None:
         """Check the list of preloaded layers, in case one if removed, it will be removed from cache"""
         for result_id, loaded_layer_dict in self.preloaded_layers.items():
             for layer_name in all_possible_layer_names:
-                if layer_name in optional_layer_names:
-                    if layer_name not in loaded_layer_dict:
-                        continue
-                layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
-                if not layer:
-                    logger.info(f"Watershed: {layer_name} layer already removed, removed from cache.")
-                    del loaded_layer_dict[layer_name]
+                if layer_name in loaded_layer_dict:
+                    layer = QgsProject.instance().mapLayer(loaded_layer_dict[layer_name])
+                    if not layer:
+                        logger.info(f"Watershed: {layer_name} layer already removed, removed from cache.")
+                        del loaded_layer_dict[layer_name]
 
             # Check whether the results group already exist for this result, if so, add to cache
             result = self.model.get_result(result_id)

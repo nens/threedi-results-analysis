@@ -432,7 +432,12 @@ class Graph3DiQgsConnector:
             logger.info("Retrieving result flowline layer from cache")
             layer_id = self.preloaded_layers[self.result_id]["flowline"]
             self.result_flowline_layer = QgsProject.instance().mapLayer(layer_id)
-            set_read_only(self.result_flowline_layer, True)
+            if self.result_flowline_layer:
+                if self.result_flowline_layer.receivers(QgsVectorLayer.featureAdded) == 0:
+                    self.result_flowline_layer.featureAdded.connect(self.parent_dock.result_sets_count_changed)
+                if self.result_flowline_layer.receivers(QgsVectorLayer.featureAdded) == 0:
+                    self.result_flowline_layer.featuresDeleted.connect(self.parent_dock.result_sets_count_changed)
+                set_read_only(self.result_flowline_layer, True)
 
     def find_flowlines(self, node_ids: List, upstream: bool, result_set: int):
         """Find flowlines that connect the input nodes \
@@ -466,12 +471,16 @@ class Graph3DiQgsConnector:
         layer = ds.GetLayerByName("flowline")
         if self.result_flowline_layer:
             append_to_qgs_vector_layer(ogr_layer=layer, qgs_vector_layer=self.result_flowline_layer)
+            self.parent_dock.result_sets_count_changed()
         else:
             self.result_flowline_layer = as_qgis_memory_layer(layer, "Result flowlines (1D)")
+            set_read_only(self.result_flowline_layer, True)
             self.add_to_layer_tree_group(self.result_flowline_layer)
+            self.parent_dock.result_sets_count_changed()
+            self.result_flowline_layer.featureAdded.connect(self.parent_dock.result_sets_count_changed)
+            self.result_flowline_layer.featuresDeleted.connect(self.parent_dock.result_sets_count_changed)
             self.result_flowline_layer.setSubsetString("line_type != 100")
             self.result_flowline_layer.loadNamedStyle(os.path.join(STYLE_DIR, "result_flowlines.qml"))
-            set_read_only(self.result_flowline_layer, True)
             # cache
             self.preloaded_layers[self.result_id]["flowline"] = self.result_flowline_layer.id()
 
@@ -988,9 +997,13 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def disconnect_gq(self):
         if not self.gq:
             return
-
+        if self.gq.result_catchment_layer:
+            self.gq.result_catchment_layer.featureAdded.disconnect(self.result_sets_count_changed)
+            self.gq.result_catchment_layer.featuresDeleted.disconnect(self.result_sets_count_changed)
+        if self.gq.result_flowline_layer:
+            self.gq.result_flowline_layer.featureAdded.disconnect(self.result_sets_count_changed)
+            self.gq.result_flowline_layer.featuresDeleted.disconnect(self.result_sets_count_changed)
         self.unset_map_tool()
-        self.gq.clear_all()
         self.gq = None
 
     def sqlite_selected(self):
@@ -1221,9 +1234,9 @@ class UpdateGridAdminTask(QgsTask):
 
             if self.parent.gq.result_catchment_layer.receivers(QgsVectorLayer.featureAdded) == 0:
                 self.parent.gq.result_catchment_layer.featureAdded.connect(self.parent.result_sets_count_changed)
-
             if self.parent.gq.result_catchment_layer.receivers(QgsVectorLayer.featuresDeleted) == 0:
                 self.parent.gq.result_catchment_layer.featuresDeleted.connect(self.parent.result_sets_count_changed)
+
             self.parent.setEnabled(True)
             QgsMessageLog.logMessage("Finished pre-processing simulation results", MESSAGE_CATEGORY, level=Qgis.Success)
 
