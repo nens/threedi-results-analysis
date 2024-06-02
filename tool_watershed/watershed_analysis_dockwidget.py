@@ -601,9 +601,9 @@ class Graph3DiQgsConnector:
         self.result_cell_layer.setSubsetString(saved_subsetstring)
         self.result_catchment_layer.featureAdded.emit(self.result_catchment_layer.featureCount())
 
-    def smooth_catchment_layer(self):
+    def smooth_catchment_layer(self, result_set):
         saved_subsetstring = self.result_catchment_layer.subsetString()
-        self.result_catchment_layer.setSubsetString("")
+        self.result_catchment_layer.setSubsetString(f"catchment_id = {result_set}")
         self.result_catchment_layer.setReadOnly(False)
         self.result_catchment_layer.startEditing()
         for feature in self.result_catchment_layer.getFeatures():
@@ -787,7 +787,7 @@ class Graph3DiQgsConnector:
         print(f"{current_progress}/{max_progress}: cells dissolved")
 
         if smoothing:
-            self.smooth_catchment_layer()
+            self.smooth_catchment_layer(result_set=result_set)
             current_progress += 1
             progress.setValue(current_progress)
             print(f"{current_progress}/{max_progress}: catchments smoothed")
@@ -1156,7 +1156,6 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.catchment_map_tool.downstream = self.checkBoxDownstream.isChecked()
 
     def checkbox_smoothing_state_changed(self, state):
-        self.pushbutton_clear_results_clicked()
         # Reset catchment tool is required, because this uses this checkbox info
         if self.catchment_map_tool is not None and self.iface.mapCanvas().mapTool() is self.catchment_map_tool:
             logger.info("Resetting catchment map tool")
