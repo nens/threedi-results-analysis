@@ -116,7 +116,6 @@ class Graph3DiQgsConnector:
 
         self.result_group = None
         self.target_node_layer = None
-        self.result_markers = []
 
         self.preloaded_layers = preloaded_layers
 
@@ -128,7 +127,7 @@ class Graph3DiQgsConnector:
         self.result_sets = []
         self.dissolved_result_sets = []
         self.smooth_result_catchments = []
-        self._result_markers = []
+        self._result_markers = dict()
 
     @property
     def gr(self):
@@ -195,6 +194,7 @@ class Graph3DiQgsConnector:
         else:
             raise TypeError("Filter must be set to None or list of int")
         self.update_layer_filters()
+        self.update_marker_visibility()
 
     def average_cell_size(self, result_set_id):
         request = QgsFeatureRequest()
@@ -227,6 +227,19 @@ class Graph3DiQgsConnector:
             self.result_flowline_layer.setSubsetString(flowline_subset_string)
         if self.impervious_surface_layer:
             self.impervious_surface_layer.setSubsetString(subset_string)
+
+    def update_marker_visibility(self):
+        # remove all markers from scene
+        for marker in self._result_markers.values():
+            self.iface.mapCanvas().scene().removeItem(marker)
+
+        # add markers to scene that are within filter
+        for result_set, marker in self._result_markers.items():
+            if self.filter:
+                if result_set not in self.filter:
+                    continue
+            self.iface.mapCanvas().scene().addItem(marker)
+
 
     def new_result_set_id(self):
         if len(self.result_sets) == 0:
@@ -353,7 +366,7 @@ class Graph3DiQgsConnector:
             self.target_node_layer.triggerRepaint()
 
     def clear_markers(self):
-        for marker in self._result_markers:
+        for marker in self._result_markers.values():
             self.iface.mapCanvas().scene().removeItem(marker)
         self._result_markers.clear()
 
@@ -386,7 +399,7 @@ class Graph3DiQgsConnector:
             result_marker.setFillColor(Qt.black)
             result_marker.setPenWidth(3)
             result_marker.setCenter(feat.geometry().asPoint())
-            self._result_markers.append(result_marker)
+            self._result_markers[result_set] = result_marker
 
         self.target_node_layer.triggerRepaint()
         self.update_layer_filters()
