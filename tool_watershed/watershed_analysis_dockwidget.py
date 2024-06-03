@@ -240,7 +240,6 @@ class Graph3DiQgsConnector:
                     continue
             self.iface.mapCanvas().scene().addItem(marker)
 
-
     def new_result_set_id(self):
         if len(self.result_sets) == 0:
             self.result_sets.append(1)  # 1-based index because this is common in GIS id fields
