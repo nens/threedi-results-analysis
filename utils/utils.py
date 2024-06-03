@@ -96,7 +96,7 @@ def parse_aggvarname(aggvarname):
     return varname, agg_method
 
 
-def generate_parameter_config(subgrid_map_vars, agg_vars):
+def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars):
     """Dynamically create the parameter config
 
     :param subgrid_map_vars: available vars from subgrid_map.nc
@@ -136,6 +136,15 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
             config["q"].append(d)
         elif varname in H_TYPES:
             config["h"].append(d)
+
+    for wqvar in wq_vars:
+        d = {
+            "name": wqvar["name"].capitalize(),
+            "unit": wqvar["unit"],
+            "parameters": wqvar["parameters"],
+        }
+        # always node variables
+        config["h"].append(d)
 
     for aggvarname in agg_vars:
         _varname, _agg_method = parse_aggvarname(aggvarname)

@@ -1,16 +1,30 @@
 3Di Results Analysis changelog
 ========================
 
-3.7 (unreleased)
+3.9 (unreleased)
 ----------------
 
 - Refactor threedigrid_to_ogr to copy features from gridadmin.gpkg (#997)
-- Bump threedidepth to 0.6.3.
+- Add substance concentrations to timeseries plotter (#1001)
+- Fix processing algorithm Detect leaking obstacles in DEM by moving add_features_to_sink to Base class (#1004)
+- Fix flowline result styling in QGIS 3.34 (#1005)
 
-
-3.6 (2024-03-14)
+3.8 (2024-04-12)
 ----------------
 
+- Update new tag.
+
+
+3.5.4 (2024-04-12)
+------------------
+
+- Another release.
+
+
+3.5.3 (2024-04-12)
+------------------
+
+- Bump threedidepth to 0.6.3.
 - Bump threedidepth to 0.6.2.
 
 
