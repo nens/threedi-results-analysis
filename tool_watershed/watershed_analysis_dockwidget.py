@@ -107,18 +107,15 @@ class Graph3DiQgsConnector:
         self._filter = None
         self.parent_dock = parent_dock
         self.iface = parent_dock.iface
-        self.gridadmin_gpkg = result_item.parent().path.with_suffix('.gpkg')
+        self.gridadmin_gpkg = result_item.parent().path.with_suffix('.gpkg') if result_item else None
         self.graph_3di = Graph3Di(subset=None, gridadmin_gpkg=self.gridadmin_gpkg)
         self._sqlite = None
 
         self.model = model
-        self.result_id = None  # Id of result_item refering to netcdf/gridadmin
-        if result_item:
-            self.result_id = result_item.id
+        self.result_id = result_item.id if result_item else None  # Id of result_item referring to netcdf/gridadmin
 
         self.result_group = None
         self.target_node_layer = None
-        self.result_markers = []
 
         self.preloaded_layers = preloaded_layers
 
@@ -130,7 +127,7 @@ class Graph3DiQgsConnector:
         self.result_sets = []
         self.dissolved_result_sets = []
         self.smooth_result_catchments = []
-        self._result_markers = []
+        self._result_markers = dict()
 
     @property
     def gr(self):
@@ -197,6 +194,7 @@ class Graph3DiQgsConnector:
         else:
             raise TypeError("Filter must be set to None or list of int")
         self.update_layer_filters()
+        self.update_marker_visibility()
 
     def average_cell_size(self, result_set_id):
         request = QgsFeatureRequest()
@@ -220,12 +218,27 @@ class Graph3DiQgsConnector:
         else:
             subset_string = "catchment_id IN ({})".format(filtered_ids_str)
         # filter to leave subset_string out if empty
-        flowline_subset_string = " AND ".join(filter(None, [subset_string, "kcu != 100"]))
-        self.result_catchment_layer.setSubsetString(subset_string)
-        self.result_cell_layer.setSubsetString(subset_string)
-        self.result_flowline_layer.setSubsetString(flowline_subset_string)
-        if self.impervious_surface_layer is not None:
+        flowline_subset_string = " AND ".join(filter(None, [subset_string, "line_type != 100"]))
+        if self.result_catchment_layer:
+            self.result_catchment_layer.setSubsetString(subset_string)
+        if self.result_cell_layer:
+            self.result_cell_layer.setSubsetString(subset_string)
+        if self.result_flowline_layer:
+            self.result_flowline_layer.setSubsetString(flowline_subset_string)
+        if self.impervious_surface_layer:
             self.impervious_surface_layer.setSubsetString(subset_string)
+
+    def update_marker_visibility(self):
+        # remove all markers from scene
+        for marker in self._result_markers.values():
+            self.iface.mapCanvas().scene().removeItem(marker)
+
+        # add markers to scene that are within filter
+        for result_set, marker in self._result_markers.items():
+            if self.filter:
+                if result_set not in self.filter:
+                    continue
+            self.iface.mapCanvas().scene().addItem(marker)
 
     def new_result_set_id(self):
         if len(self.result_sets) == 0:
@@ -233,6 +246,19 @@ class Graph3DiQgsConnector:
         else:
             self.result_sets.append(max(self.result_sets) + 1)
         return max(self.result_sets)
+
+    def update_result_sets_from_layer(self, layer: QgsVectorLayer):
+        """Reads the unique values in the catchment_id column of ``layer`` and updates self.result_sets with these
+        values"""
+        field_index = layer.fields().indexOf("catchment_id")
+        if field_index == -1:
+            raise ValueError(f"Field 'catchment_id' not found in layer {layer.name()}")
+        else:
+            unique_result_sets_from_layer = layer.uniqueValues(field_index)
+        logger.info(f"Retrieved unique result sets {unique_result_sets_from_layer} from layer {layer.name()}")
+        self.result_sets = list(set(self.result_sets) | unique_result_sets_from_layer)
+        self.result_sets.sort()
+        self.parent_dock.result_sets_count_changed()
 
     def gr_updated(self):
         """Executed when a new 3Di result is selected (self.gr is changed)"""
@@ -335,11 +361,13 @@ class Graph3DiQgsConnector:
             if not self.target_node_layer.dataProvider().changeAttributeValues(update_dict):
                 logger.error("Unable to set default values in 'result_set' attribute for clearing.")
 
-            for marker in self._result_markers:
-                self.iface.mapCanvas().scene().removeItem(marker)
-            self._result_markers.clear()
-
+            self.clear_markers()
             self.target_node_layer.triggerRepaint()
+
+    def clear_markers(self):
+        for marker in self._result_markers.values():
+            self.iface.mapCanvas().scene().removeItem(marker)
+        self._result_markers.clear()
 
     def prepare_result_cell_layer(self):
         # Check whether this layer is cached.
@@ -370,13 +398,15 @@ class Graph3DiQgsConnector:
             result_marker.setFillColor(Qt.black)
             result_marker.setPenWidth(3)
             result_marker.setCenter(feat.geometry().asPoint())
-            self._result_markers.append(result_marker)
+            self._result_markers[result_set] = result_marker
 
         self.target_node_layer.triggerRepaint()
         self.update_layer_filters()
 
     def append_result_cells(self, cell_ids, upstream: bool, result_set: int):
-        cells = self.gr.cells.filter(id__in=list(cell_ids))
+        cells = self.gr.cells.filter(node_type__in=[1, 2]).filter(id__in=list(cell_ids))
+        if cells.count == 0:
+            return
 
         nw_ids = list(cells.id)
 
@@ -420,7 +450,7 @@ class Graph3DiQgsConnector:
 
     def clear_result_cell_layer(self):
         """Remove all features from layer that contains the upstream and/or downstream cells"""
-        if self.result_cell_layer is not None:
+        if self.result_cell_layer:
             self.result_cell_layer.dataProvider().truncate()
 
     def prepare_result_flowline_layer(self):
@@ -429,7 +459,13 @@ class Graph3DiQgsConnector:
             logger.info("Retrieving result flowline layer from cache")
             layer_id = self.preloaded_layers[self.result_id]["flowline"]
             self.result_flowline_layer = QgsProject.instance().mapLayer(layer_id)
-            set_read_only(self.result_flowline_layer, True)
+            if self.result_flowline_layer:
+                if self.result_flowline_layer.receivers(QgsVectorLayer.featureAdded) == 0:
+                    self.result_flowline_layer.featureAdded.connect(self.parent_dock.result_sets_count_changed)
+                if self.result_flowline_layer.receivers(QgsVectorLayer.featureAdded) == 0:
+                    self.result_flowline_layer.featuresDeleted.connect(self.parent_dock.result_sets_count_changed)
+                set_read_only(self.result_flowline_layer, True)
+                self.update_result_sets_from_layer(self.result_flowline_layer)
 
     def find_flowlines(self, node_ids: List, upstream: bool, result_set: int):
         """Find flowlines that connect the input nodes \
@@ -439,20 +475,16 @@ class Graph3DiQgsConnector:
 
     def append_result_flowlines(self, flowline_ids, upstream: bool, result_set: int):
         flowlines = self.gr.lines.filter(id__in=list(flowline_ids))
-        nw_ids = list(flowlines.id)
         nw_catchment_ids = [result_set] * flowlines.count
         if upstream:
             location = ["upstream"] * flowlines.count
         else:
             location = ["downstream"] * flowlines.count
         from_polygon = [0] * flowlines.count
-        content_type = [''] * flowlines.count
         attributes = {
-            "id": nw_ids,
             "location": location,
             "catchment_id": nw_catchment_ids,
             "from_polygon": from_polygon,
-            "content_type": content_type,
         }
 
         ds = MEMORY_DRIVER.CreateDataSource("")
@@ -467,12 +499,16 @@ class Graph3DiQgsConnector:
         layer = ds.GetLayerByName("flowline")
         if self.result_flowline_layer:
             append_to_qgs_vector_layer(ogr_layer=layer, qgs_vector_layer=self.result_flowline_layer)
+            self.parent_dock.result_sets_count_changed()
         else:
             self.result_flowline_layer = as_qgis_memory_layer(layer, "Result flowlines (1D)")
-            self.add_to_layer_tree_group(self.result_flowline_layer)
-            self.result_flowline_layer.setSubsetString("kcu != 100")
-            self.result_flowline_layer.loadNamedStyle(os.path.join(STYLE_DIR, "result_flowlines.qml"))
             set_read_only(self.result_flowline_layer, True)
+            self.add_to_layer_tree_group(self.result_flowline_layer)
+            self.parent_dock.result_sets_count_changed()
+            self.result_flowline_layer.featureAdded.connect(self.parent_dock.result_sets_count_changed)
+            self.result_flowline_layer.featuresDeleted.connect(self.parent_dock.result_sets_count_changed)
+            self.result_flowline_layer.setSubsetString("line_type != 100")
+            self.result_flowline_layer.loadNamedStyle(os.path.join(STYLE_DIR, "result_flowlines.qml"))
             # cache
             self.preloaded_layers[self.result_id]["flowline"] = self.result_flowline_layer.id()
 
@@ -487,6 +523,7 @@ class Graph3DiQgsConnector:
             logger.info("Retrieving result catchment layer from cache")
             layer_id = self.preloaded_layers[self.result_id]["catchment"]
             self.result_catchment_layer = QgsProject.instance().mapLayer(layer_id)
+            self.update_result_sets_from_layer(self.result_catchment_layer)
         else:
             logger.info("Watershed: creating new catchment result layer.")
             ogr_driver = ogr.GetDriverByName("Memory")
@@ -519,6 +556,8 @@ class Graph3DiQgsConnector:
 
     def dissolve_cells(self):
         """Dissolve cells in self.result_cells_layer of all not yet dissolved result sets"""
+        if self.result_cell_layer is None:
+            return
         saved_subsetstring = self.result_cell_layer.subsetString()
         non_dissolved_ids = set(self.result_sets) - set(self.dissolved_result_sets)
         non_dissolved_ids_str = ",".join(map(str, non_dissolved_ids))
@@ -561,9 +600,9 @@ class Graph3DiQgsConnector:
         self.result_cell_layer.setSubsetString(saved_subsetstring)
         self.result_catchment_layer.featureAdded.emit(self.result_catchment_layer.featureCount())
 
-    def smooth_catchment_layer(self):
+    def smooth_catchment_layer(self, result_set):
         saved_subsetstring = self.result_catchment_layer.subsetString()
-        self.result_catchment_layer.setSubsetString("")
+        self.result_catchment_layer.setSubsetString(f"catchment_id = {result_set}")
         self.result_catchment_layer.setReadOnly(False)
         self.result_catchment_layer.startEditing()
         for feature in self.result_catchment_layer.getFeatures():
@@ -594,7 +633,7 @@ class Graph3DiQgsConnector:
         )
 
         if "surface" in self.preloaded_layers[self.result_id]:
-            logger.info("Retrieving impervious layer layer from cache")
+            logger.info("Retrieving impervious surface layer from cache")
             layer_id = self.preloaded_layers[self.result_id]["surface"]
             self.impervious_surface_layer = QgsProject.instance().mapLayer(layer_id)
 
@@ -747,14 +786,16 @@ class Graph3DiQgsConnector:
         print(f"{current_progress}/{max_progress}: cells dissolved")
 
         if smoothing:
-            self.smooth_catchment_layer()
+            self.smooth_catchment_layer(result_set=result_set)
             current_progress += 1
             progress.setValue(current_progress)
             print(f"{current_progress}/{max_progress}: catchments smoothed")
 
-        self.result_cell_layer.triggerRepaint()
-        self.result_flowline_layer.triggerRepaint()
-        if self.impervious_surface_layer is not None:
+        if self.result_cell_layer:
+            self.result_cell_layer.triggerRepaint()
+        if self.result_flowline_layer:
+            self.result_flowline_layer.triggerRepaint()
+        if self.impervious_surface_layer:
             self.impervious_surface_layer.triggerRepaint()
         self.update_analyzed_target_cells(target_node_ids, result_set)
         current_progress += 1
@@ -785,7 +826,7 @@ class Graph3DiQgsConnector:
                 transformed_bbox = transform.transformBoundingBox(nodes_bbox)
 
         # cells
-        if self.result_cell_layer is not None:
+        if self.result_cell_layer:
             features = self.result_cell_layer.getFeatures()
             cells_bbox = bbox_of_features(features=features)
             if cells_bbox is not None:
@@ -985,9 +1026,19 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def disconnect_gq(self):
         if not self.gq:
             return
-
+        if self.gq.result_catchment_layer:
+            if self.gq.result_catchment_layer.receivers(QgsVectorLayer.featureAdded) > 0:
+                self.gq.result_catchment_layer.featureAdded.disconnect(self.result_sets_count_changed)
+            if self.gq.result_catchment_layer.receivers(QgsVectorLayer.featuresDeleted) > 0:
+                self.gq.result_catchment_layer.featuresDeleted.disconnect(self.result_sets_count_changed)
+        if self.gq.result_flowline_layer:
+            if self.gq.result_flowline_layer.receivers(QgsVectorLayer.featureAdded) > 0:
+                self.gq.result_flowline_layer.featureAdded.disconnect(self.result_sets_count_changed)
+            if self.gq.result_flowline_layer.receivers(QgsVectorLayer.featuresDeleted) > 0:
+                self.gq.result_flowline_layer.featuresDeleted.disconnect(self.result_sets_count_changed)
+        self.gq.clear_markers()
+        self.gq.filter = None
         self.unset_map_tool()
-        self.gq.clear_all()
         self.gq = None
 
     def sqlite_selected(self):
@@ -1104,7 +1155,6 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.catchment_map_tool.downstream = self.checkBoxDownstream.isChecked()
 
     def checkbox_smoothing_state_changed(self, state):
-        self.pushbutton_clear_results_clicked()
         # Reset catchment tool is required, because this uses this checkbox info
         if self.catchment_map_tool is not None and self.iface.mapCanvas().mapTool() is self.catchment_map_tool:
             logger.info("Resetting catchment map tool")
@@ -1218,9 +1268,9 @@ class UpdateGridAdminTask(QgsTask):
 
             if self.parent.gq.result_catchment_layer.receivers(QgsVectorLayer.featureAdded) == 0:
                 self.parent.gq.result_catchment_layer.featureAdded.connect(self.parent.result_sets_count_changed)
-
             if self.parent.gq.result_catchment_layer.receivers(QgsVectorLayer.featuresDeleted) == 0:
                 self.parent.gq.result_catchment_layer.featuresDeleted.connect(self.parent.result_sets_count_changed)
+
             self.parent.setEnabled(True)
             QgsMessageLog.logMessage("Finished pre-processing simulation results", MESSAGE_CATEGORY, level=Qgis.Success)
 
