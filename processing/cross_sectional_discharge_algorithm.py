@@ -105,6 +105,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
     # calling from the QGIS console.
 
     GRIDADMIN_INPUT = "GRIDADMIN_INPUT"
+    GRIDADMIN_GPKG = "GRIDADMIN_GPKG"
     RESULTS_3DI_INPUT = "RESULTS_3DI_INPUT"
     CROSS_SECTION_LINES_INPUT = "CROSS_SECTION_LINES_INPUT"
     START_TIME = "START_TIME"
@@ -138,6 +139,11 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFile(
                 self.GRIDADMIN_INPUT, self.tr("Gridadmin file"), extension="h5"
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.GRIDADMIN_GPKG, self.tr("Gridadmin geopackage file"), extension="gpkg"
             )
         )
         self.addParameter(
@@ -221,6 +227,9 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
         """
         gridadmin_fn = self.parameterAsFile(
             parameters, self.GRIDADMIN_INPUT, context
+        )
+        gridadmin_gpkg = self.parameterAsFile(
+            parameters, self.GRIDADMIN_GPKG, context
         )
         results_3di_fn = self.parameterAsFile(
             parameters, self.RESULTS_3DI_INPUT, context
@@ -321,6 +330,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             tgt_ds = MEMORY_DRIVER.CreateDataSource("")
             ts_gauge_line, total_discharge = left_to_right_discharge_ogr(
                 gr=gr,
+                gridadmin_gpkg=gridadmin_gpkg,
                 gauge_line=shapely_linestring,
                 tgt_ds=tgt_ds,
                 gauge_line_id=gauge_line.id(),
@@ -453,6 +463,8 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             <h3>Parameters</h3>
             <h4>Gridadmin file</h4>
             <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
+            <h4>Gridadmin geopackage file</h4>
+            <p>GeoPackage file (*.gpkg) containing the spatial data associated with the computational grid of a 3Di model</p>
             <h4>Results 3Di file</h4>
             <p>NetCDF (*.nc) containing the results of a 3Di simulation</p>
             <h4>Cross-section lines</h4>

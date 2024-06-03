@@ -4,7 +4,14 @@
 3.9 (unreleased)
 ----------------
 
-- Add substance concentrations to timeseries plotter (#1001)
+- Refactor threedigrid_to_ogr to copy features from gridadmin.gpkg (#997)
+- Watershed tool: Retrieve result sets from flowline & watersheds layers' catchment_id field when loading those layers from cache 
+- Watershed tool: Empty "Analysed nodes" layer closing the tool or switching to a different simulation result
+- Watershed tool: Do not empty the result layers when closing the tool (and remove the result sets filter when closing the tool)
+- Watershed tool: Do not empty the result layers when toggling "Smooth result watersheds"
+- Watershed tool: Only show the relevant target node marker when browsing result sets
+- Watershed tool: Do not smooth result watersheds of previous result sets; "smooth result watersheds" now only affects new result sets.
+- Add substance concentrations to time series plotter (#1001)
 - Fix processing algorithm Detect leaking obstacles in DEM by moving add_features_to_sink to Base class (#1004)
 - Fix flowline result styling in QGIS 3.34 (#1005)
 
