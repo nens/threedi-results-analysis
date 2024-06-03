@@ -383,9 +383,10 @@ class MapAnimator(QGroupBox):
             if "q_pump" in available_subgrid_vars:
                 available_subgrid_vars.remove("q_pump")
             agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
+            available_wq_vars = threedi_result.available_water_quality_vars[:]  # a copy
 
             parameter_config = generate_parameter_config(
-                available_subgrid_vars, agg_vars=agg_vars
+                available_subgrid_vars, agg_vars=agg_vars, wq_vars=available_wq_vars
             )
 
             def _intersection(a: List, b: List):

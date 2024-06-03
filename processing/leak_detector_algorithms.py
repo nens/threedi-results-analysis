@@ -156,6 +156,20 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
             {"name": "crest_level", "type": QVariant.Double}
         ]
 
+    def add_features_to_sink(self, feedback, sink: QgsFeatureSink, features_data: Iterator):
+        for i, feature_data in enumerate(features_data):
+            if feedback.isCanceled():
+                return {}
+            feature = QgsFeature()
+            feature.setFields(self.sink_fields)
+            for i, field in enumerate(self.sink_field_data()):
+                convert = QVARIANT_PYTHON_TYPES[field["type"]]
+                feature.setAttribute(i, convert(feature_data[field["name"]]))
+            geometry = QgsGeometry()
+            geometry.fromWkb(feature_data["geometry"].wkb)
+            feature.setGeometry(geometry)
+            sink.addFeature(feature, QgsFeatureSink.FastInsert)
+
     def read_parameters(self, parameters, context, feedback):
         self.gridadmin_fn = self.parameterAsFile(parameters, self.INPUT_GRIDADMIN, context)
         self.gridadmin = GridH5Admin(self.gridadmin_fn)
@@ -366,20 +380,6 @@ class DetectLeakingObstaclesWithDischargeThresholdAlgorithm(DetectLeakingObstacl
             feedback=feedback
         )
         return leak_detector
-
-    def add_features_to_sink(self, feedback, sink: QgsFeatureSink, features_data: Iterator):
-        for i, feature_data in enumerate(features_data):
-            if feedback.isCanceled():
-                return {}
-            feature = QgsFeature()
-            feature.setFields(self.sink_fields)
-            for i, field in enumerate(self.sink_field_data()):
-                convert = QVARIANT_PYTHON_TYPES[field["type"]]
-                feature.setAttribute(i, convert(feature_data[field["name"]]))
-            geometry = QgsGeometry()
-            geometry.fromWkb(feature_data["geometry"].wkb)
-            feature.setGeometry(geometry)
-            sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
     def name(self):
         """
