@@ -189,6 +189,7 @@ def left_to_right_discharge(
 
 def left_to_right_discharge_ogr(
     gr: GridH5ResultAdmin,
+    gridadmin_gpkg: str,
     gauge_line: LineString,
     tgt_ds: ogr.DataSource,
     start_time: float = None,
@@ -231,12 +232,14 @@ def left_to_right_discharge_ogr(
         "gauge_line_id": ogr.OFTInteger,
         "q_net_sum": ogr.OFTReal,
     }
+
     threedigrid_to_ogr(
-        threedigrid_src=intersecting_lines,
         tgt_ds=tgt_ds,
+        layer_name="flowline",
+        gridadmin_gpkg=gridadmin_gpkg,
         attributes=attributes,
         attr_data_types=attr_data_types,
-        include_all_threedigrid_attributes=True
+        ids=list(intersecting_lines.id),
     )
     ogr_lyr = tgt_ds.GetLayerByName("flowline")
     for i, feature in enumerate(ogr_lyr):

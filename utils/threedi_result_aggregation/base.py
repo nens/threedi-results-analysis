@@ -5,10 +5,10 @@
 
 import argparse
 import warnings
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
 
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-from threedigrid.admin.nodes.models import Nodes
+from threedigrid.admin.nodes.models import Nodes, Cells
 from threedigrid.admin.lines.models import Lines
 
 from osgeo import gdal
@@ -759,9 +759,9 @@ def flowline_angle_x(lines):
 
 
 def rasterize_cell_layer(
-    cell_layer,
-    column_name,
-    pixel_size,
+    cell_layer: ogr.Layer,
+    column_name: str,
+    pixel_size: float,
     interpolation_method=None,
     pre_resample_method=PRM_NONE,
 ):
@@ -794,10 +794,7 @@ def rasterize_cell_layer(
         out_layer_defn = tmp_lyr.GetLayerDefn()
 
         # Add features to the output Layer
-        for i in range(0, cell_layer.GetFeatureCount()):
-            # Get the input Feature
-            in_feature = cell_layer.GetFeature(i)
-
+        for in_feature in cell_layer:
             # Create output Feature
             out_feature = ogr.Feature(out_layer_defn)
 
@@ -1035,8 +1032,17 @@ def select_from_2d_array_where_col_x_in(array_2d, col_nr, values):
     return array_2d[np.in1d(array_2d[:, col_nr], values), :]
 
 
+def cell_results_from_node_results(node_results: Dict[str, np.array], nodes: Nodes, cells: Cells):
+    cell_results = dict()
+    mask = np.in1d(nodes.id, cells.id)
+    for column_name, values in node_results.items():
+        cell_results[column_name] = values[mask]
+    return cell_results
+
+
 def aggregate_threedi_results(
     gridadmin: str,
+    gridadmin_gpkg: str,
     results_3di: str,
     demanded_aggregations: List[Aggregation],
     bbox=None,
@@ -1055,6 +1061,7 @@ def aggregate_threedi_results(
     :param resolution:
     :param interpolation_method:
     :param gridadmin: path to gridadmin.h5
+    :param gridadmin_gpkg: path to gridadmin.gpkg
     :param results_3di: path to results_3di.nc
     :param demanded_aggregations: list of dicts containing variable, method, [threshold]
     :param bbox: bounding box [min_x, min_y, max_x, max_y]
@@ -1065,7 +1072,6 @@ def aggregate_threedi_results(
     :return: an ogr Memory DataSource with one or more Layers: node (point), cell (polygon) or flowline (linestring) with the aggregation results
     :rtype: ogr.DataSource
     """
-
     # make output datasource and layers
     tgt_drv = ogr.GetDriverByName("MEMORY")
     tgt_ds = tgt_drv.CreateDataSource("")
@@ -1082,10 +1088,8 @@ def aggregate_threedi_results(
     # perform demanded aggregations
     node_results = dict()
     line_results = dict()
-    first_pass_nodes = True
-    first_pass_flowlines = True
     for da in demanded_aggregations:
-        # It would seem more sensical to keep the instantiatian of gr, the subsetting and filtering outside the loop...
+        # It would seem more sensical to keep the instantiation of gr, the subsetting and filtering outside the loop...
         # ... but for some strange reason that leads to an error if more than 2 flowline aggregations are demanded
         gr = GridH5ResultAdmin(gridadmin, results_3di)
 
@@ -1093,9 +1097,9 @@ def aggregate_threedi_results(
 
         # Spatial filtering
         if bbox is None:
-            lines = gr.lines
-            nodes = gr.nodes
-            cells = gr.cells
+            lines = gr.lines.filter(id__ne=0)
+            nodes = gr.nodes.filter(id__ne=0)
+            cells = gr.cells.filter(id__ne=0).filter(node_type__in=[1, 2])  # 1 = 2D surface water, 2 = 2D groundwater
         else:
             if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
                 raise Exception("Invalid bounding box.")
@@ -1103,7 +1107,7 @@ def aggregate_threedi_results(
             if lines.count == 0:
                 raise Exception("No flowlines found within bounding box.")
             nodes = gr.nodes.filter(coordinates__in_bbox=bbox)
-            cells = gr.cells.filter(
+            cells = gr.cells.filter(node_type__in=[1, 2]).filter(
                 coordinates__in_bbox=bbox
             )  # filter on cell center coordinates to have the same results for cells as for nodes
             if nodes.count == 0:
@@ -1121,8 +1125,6 @@ def aggregate_threedi_results(
             var_types=[VT_FLOW, VT_FLOW_HYBRID]
         ):
             if output_flowlines:
-                if first_pass_flowlines:
-                    first_pass_flowlines = False
                 try:
                     if (
                         da.variable.short_name
@@ -1154,8 +1156,6 @@ def aggregate_threedi_results(
             var_types=[VT_NODE, VT_NODE_HYBRID]
         ):
             if output_nodes or output_cells or output_rasters:
-                if first_pass_nodes:
-                    first_pass_nodes = False
                 try:
                     if (
                         da.variable.short_name
@@ -1186,16 +1186,21 @@ def aggregate_threedi_results(
     # translate results to GIS layers
     # node and cell layers
     if len(node_results) > 0:
-        attributes = node_results
         attr_data_types = {}
         for attr, vals in node_results.items():
             try:
                 attr_data_types[attr] = NP_OGR_DTYPES[vals.dtype]
             except KeyError:
                 attr_data_types[attr] = ogr.OFTString
+
+        cell_results = cell_results_from_node_results(
+            node_results=node_results,
+            nodes=nodes,
+            cells=cells
+        )
+
         if output_nodes:
-            node_attributes = attributes
-            node_attributes["exchange_level_1d2d"] = get_exchange_level(
+            node_results["exchange_level_1d2d"] = get_exchange_level(
                 nodes,
                 filter_lines_by_node_ids(
                     lines=gr.lines.subset("1D2D"),
@@ -1206,19 +1211,21 @@ def aggregate_threedi_results(
             node_attr_data_types = attr_data_types
             node_attr_data_types["exchange_level_1d2d"] = ogr.OFTReal
             threedigrid_to_ogr(
-                threedigrid_src=nodes,
                 tgt_ds=tgt_ds,
-                attributes=node_attributes,
-                attr_data_types=attr_data_types,
-                include_all_threedigrid_attributes=True,
+                layer_name="node",
+                gridadmin_gpkg=gridadmin_gpkg,
+                attributes=node_results,
+                attr_data_types=node_attr_data_types,
+                ids=nodes.id,
             )
         if output_cells or output_rasters or resample_point_layer:
             threedigrid_to_ogr(
-                threedigrid_src=cells,
                 tgt_ds=tgt_ds,
-                attributes=attributes,
+                layer_name="cell",
+                gridadmin_gpkg=gridadmin_gpkg,
+                attributes=cell_results,
                 attr_data_types=attr_data_types,
-                include_all_threedigrid_attributes=True,
+                ids=cells.id,
             )
 
         # rasters
@@ -1290,7 +1297,6 @@ def aggregate_threedi_results(
 
     # flowline target_node_layer
     if len(line_results) > 0 and output_flowlines:
-        attributes = line_results
         attr_data_types = {}
         for attr, vals in line_results.items():
             try:
@@ -1298,11 +1304,12 @@ def aggregate_threedi_results(
             except KeyError:
                 attr_data_types[attr] = ogr.OFTString
         threedigrid_to_ogr(
-            threedigrid_src=lines,
             tgt_ds=tgt_ds,
-            attributes=attributes,
+            layer_name="flowline",
+            gridadmin_gpkg=gridadmin_gpkg,
+            attributes=line_results,
             attr_data_types=attr_data_types,
-            include_all_threedigrid_attributes=True,
+            ids=lines.id,
         )
 
     if not output_rasters:

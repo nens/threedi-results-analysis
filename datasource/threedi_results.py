@@ -5,6 +5,7 @@ from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VAR
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
 
 import glob
 import logging
@@ -32,8 +33,9 @@ class ThreediResult():
 
     This class allows access to the results via threedigrid:
 
-    -  GridH5ResultAdmin
+    - GridH5ResultAdmin
     - GridH5AggregateResultAdmin
+    - GridH5WaterQualityResultAdmin
 
     For more information about threedigrid see
     https://threedigrid.readthedocs.io/en/latest/
@@ -93,10 +95,29 @@ class ThreediResult():
         available_aggregation_vars = available_vars & whitelist_vars
         return list(available_aggregation_vars)
 
+    @cached_property
+    def available_water_quality_vars(self):
+        """Return a list of available variables from 'water_quality_results_3di.nc'."""
+        ga = self.water_quality_result_admin
+        if not ga:
+            return []
+        available_vars = []
+        substances = ga.substances
+        for substance_id in substances:
+            substance = ga.get_model_instance_by_field_name(substance_id)
+            if substance:
+                var = {
+                    "name": substance.name,
+                    "unit": substance.units or "",
+                    "parameters": substance_id,
+                }
+                available_vars.append(var)
+        return available_vars
+
     @property
     def available_vars(self):
         """Return a list of all available variables"""
-        return self.available_subgrid_map_vars + self.available_aggregation_vars
+        return self.available_subgrid_map_vars + self.available_aggregation_vars + self.available_water_quality_vars
 
     @cached_property
     def timestamps(self):
@@ -123,7 +144,8 @@ class ThreediResult():
 
         The timestamps are in seconds after the start of the simulation.
 
-        All variables in the result_netcdf share the same timestamps.
+        All variables in the result_netcdf and water_quality_netcdf share the
+        same timestamps.
         Variables of the result_aggregation_netcdf can have varying number of
         timestamps and their step size can differ.
 
@@ -136,6 +158,9 @@ class ThreediResult():
         #  often queried and cause performance issues.
         if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.result_admin.nodes.timestamps
+        elif parameter in [v["parameters"] for v in self.available_water_quality_vars]:
+            ga = self.get_gridadmin(variable=parameter)
+            return ga.get_model_instance_by_field_name(parameter).timestamps
         else:
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).get_timestamps(
@@ -146,12 +171,13 @@ class ThreediResult():
         """Return the gridadmin where the variable is stored. If no variable is
         given, a gridadmin without results is returned.
 
-        Results are either stored in the 'results_3di.nc' or the
-        'aggregate_results_3di.nc'. These make use of the GridH5ResultAdmin and
-        GridH5AggregateResultAdmin to query the data respectively.
+        Results are either stored in the 'results_3di.nc', 'aggregate_results_3di.nc'
+        or 'water_quality_results_3di.nc'. These make use of the GridH5ResultAdmin,
+        GridH5AggregateResultAdmin or GridH5WaterQualityResultAdmin to query the data
+        respectively.
 
         :param variable: str of the variable name, e.g. 's1', 'q_pump'
-        :return: handle to GridAdminResult or AggregateGridAdminResult
+        :return: handle to GridAdminResult, AggregateGridAdminResult or GridH5WaterQualityResultAdmin
         """
         if variable is None:
             return self.gridadmin
@@ -159,8 +185,10 @@ class ThreediResult():
             return self.result_admin
         elif variable in self.available_aggregation_vars:
             return self.aggregate_result_admin
+        elif variable in [v["parameters"] for v in self.available_water_quality_vars]:
+            return self.water_quality_result_admin
         else:
-            raise AttributeError(f"Unknown subgrid or aggregate variable: {variable}")
+            raise AttributeError(f"Unknown subgrid or aggregate or water quality variable: {variable}")
 
     def get_timeseries(
         self, nc_variable, node_id=None, content_pk=None, fill_value=None
@@ -191,7 +219,11 @@ class ThreediResult():
         elif content_pk:
             filtered_result = filtered_result.filter(content_pk=content_pk)
 
-        values = filtered_result.get_filtered_field_value(nc_variable)
+        if nc_variable in [v["parameters"] for v in self.available_water_quality_vars]:
+            # use "concentration" field for water quality variables
+            values = filtered_result.get_filtered_field_value("concentration")
+        else:
+            values = filtered_result.get_filtered_field_value(nc_variable)
 
         if fill_value is not None:
             values[values == NO_DATA_VALUE] = fill_value
@@ -278,6 +310,8 @@ class ThreediResult():
         # TODO: there's no FileNotFound try/except here like for
         # aggregates. Richard says that a missing regular result file is just
         # as likely.
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
         file_like_object_h5 = open(h5, 'rb')
         file_like_object_h5.startswith = lambda x: ''
         file_like_object_nc = open(self.file_path, 'rb')
@@ -292,10 +326,28 @@ class ThreediResult():
         except FileNotFoundError:
             logger.exception("Aggregate result not found")
             return None
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
         file_like_object_h5 = open(h5, 'rb')
         file_like_object_h5.startswith = lambda x: False
         file_like_object_nc = open(agg_path, 'rb')
         return GridH5AggregateResultAdmin(file_like_object_h5, file_like_object_nc)
+
+    @cached_property
+    def water_quality_result_admin(self):
+        try:
+            # Note: both of these might raise the FileNotFoundError
+            wq_path = find_water_quality_netcdf(self.file_path)
+            h5 = self.h5_path
+        except FileNotFoundError:
+            logger.exception("Water quality result not found")
+            return None
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
+        file_like_object_h5 = open(h5, 'rb')
+        file_like_object_h5.startswith = lambda x: False
+        file_like_object_nc = open(wq_path, 'rb')
+        return GridH5WaterQualityResultAdmin(file_like_object_h5, file_like_object_nc)
 
     @property
     def short_model_slug(self):
@@ -329,4 +381,26 @@ def find_aggregation_netcdf(netcdf_file_path):
         return aggregate_result_files[0]
     raise FileNotFoundError(
         "'aggregate_results_3di.nc' file not found relative to %s" % result_dir
+    )
+
+
+def find_water_quality_netcdf(netcdf_file_path):
+    """An ad-hoc way to find the water quality netcdf file
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the water quality netcdf path
+
+    Raises:
+        FileNotFoundError if nothing is found
+    """
+    pattern = "water_quality_results_3di.nc"
+    result_dir = os.path.dirname(netcdf_file_path)
+    water_quality_result_files = glob.glob(os.path.join(result_dir, pattern))
+    if water_quality_result_files:
+        return water_quality_result_files[0]
+    raise FileNotFoundError(
+        "'water_quality_results_3di.nc' file not found relative to %s" % result_dir
     )

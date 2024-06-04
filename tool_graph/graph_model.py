@@ -142,7 +142,8 @@ class LocationTimeseriesModel(BaseModel):
             threedi_result = self.result.value.threedi_result
 
             if (parameters not in threedi_result.available_subgrid_map_vars and
-                    parameters not in threedi_result.available_aggregation_vars):
+                    parameters not in threedi_result.available_aggregation_vars and
+                    parameters not in [v["parameters"] for v in threedi_result.available_water_quality_vars]):
                 logger.warning(f"Parameter {parameters} not available in result {self.result.value.text()}")
                 return EMPTY_TIMESERIES
 
