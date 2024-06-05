@@ -4,6 +4,10 @@
 3.9 (unreleased)
 ----------------
 
+- Bump threedi-modelchecker to 2.6.*
+- Bump threedi-schema to 0.219.*
+- Bump threedigrid-builder to 1.13.*
+- Bump hydxlib to 1.5.2
 - Refactor threedigrid_to_ogr to copy features from gridadmin.gpkg (#997)
 - Watershed tool: Retrieve result sets from flowline & watersheds layers' catchment_id field when loading those layers from cache 
 - Watershed tool: Empty "Analysed nodes" layer closing the tool or switching to a different simulation result
