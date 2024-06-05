@@ -1,8 +1,8 @@
 3Di Results Analysis changelog
 ========================
 
-3.9 (unreleased)
-----------------
+3.8.1 (2024-06-05)
+------------------
 
 - Bump threedi-modelchecker to 2.6.*
 - Bump threedi-schema to 0.219.*
