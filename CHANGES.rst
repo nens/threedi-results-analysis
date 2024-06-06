@@ -4,7 +4,7 @@
 3.8.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix sorting of simulation results using revision number.
 
 
 3.8.1 (2024-06-05)
