@@ -210,7 +210,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))
-                    revision_item.setData(revision_number, Qt.UserRole)
+                    revision_item.setData(revision_number, Qt.DisplayRole)
                     revision_item.setEditable(False)
                     # We'll store the grid folder with the revision item for fast retrieval
                     revision_item.setData(local_revision.grid_dir)
@@ -225,14 +225,14 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))
-                    revision_item.setData(revision_number, Qt.UserRole)
+                    revision_item.setData(revision_number, Qt.DisplayRole)
                     revision_item.setEditable(False)
                     # We'll store the grid folder with the revision item for fast retrieval
                     revision_item.setData(local_revision.grid_dir)
                     rows.append([schema_item, revision_item])
 
-        # Sort table rows by revision number using the UserRole
-        rows.sort(key=lambda x: x[1].data(Qt.UserRole))
+        # Sort table rows by revision number using the DisplayRole
+        rows.sort(key=lambda x: x[1].data(Qt.DisplayRole))
         for row in rows:
             self.model.appendRow(row)
 
