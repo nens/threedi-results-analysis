@@ -67,22 +67,44 @@ def rasters_have_same_dimensions(datasets: List[gdal.Dataset]):
     return True
 
 
+def rasters_have_same_nodatavalue(datasets: List[gdal.Dataset]):
+    if not datasets:
+        raise ValueError("The filepaths list is empty.")
+
+    base_ndv = datasets[0].GetRasterBand(1).GetNoDataValue()
+
+    for dataset in datasets[1:]:
+        current_ndv = dataset.GetRasterBand(1).GetNoDataValue()
+        if base_ndv != current_ndv:
+            return False
+    return True
+
+
 def rasters_to_netcdf(
         rasters: List[Union[str, Path]],
         start_time: datetime,
         interval: int,
-        output_path: Union[str, Path]
-):
+        units: str,
+        output_path: Union[str, Path],
+        time_units: str = 'seconds since 1970-01-01 00:00:00.0 +0000',
+        calendar: str = 'standard',
+        offset: int = 0
+) -> None:
     """
     :param interval: interval in seconds
-    Assumption:
-        - all asc files have the same extent and pixel size
-        - rainfall values are in mm per interval
+    :param units: one of 'mm', 'm/s', 'mm/h', 'mm/hr'. Note: in case of `mm` the rate is determined by looking at the
+       next `time` value.
+    :param offset: offset in seconds
     """
     datasets = get_datasets(rasters)
     assert rasters_have_same_srs(datasets), "Not all input rasters have the same Spatial Reference System"
     assert rasters_have_same_geotransform(datasets), "Not all input rasters have the same origin, pixel size, and skew"
     assert rasters_have_same_dimensions(datasets), "Not all input rasters have the same width and height"
+    assert rasters_have_same_nodatavalue(datasets), "Not all input rasters have the same nodatavalue"
+
+    srs = get_srs(datasets[0])
+    crs = CRS.from_wkt(srs.ExportToWkt())
+    geotransform = datasets[0].GetGeoTransform()
 
     # create netcdf
     output_dataset = netCDF4.Dataset(
@@ -91,19 +113,20 @@ def rasters_to_netcdf(
         format="NETCDF4"
     )
 
+    # dataset attributes
+    output_dataset.setncattr(name='OFFSET', value=0)
+    crs_var = output_dataset.createVariable(varname='crs', datatype='int')
+    crs_var.setncatts(crs.to_cf())
+    # crs_var.setncattr_string(name="spatial_ref", value=crs.to_wkt())  # this works for QGIS
+    crs_var.setncattr_string(name="spatial_ref", value=f"EPSG:{crs.to_epsg()}")  # this works for 3Di (NOT)
+    crs_var.setncattr_string(name="GeoTransform", value=" ".join([str(i) for i in geotransform]))
+
     # set dimensions
     output_dataset.createDimension(dimname='lon', size=datasets[0].RasterXSize)
     output_dataset.createDimension(dimname='lat', size=datasets[0].RasterYSize)
     output_dataset.createDimension(dimname='time', size=len(filepaths))
 
-    # myvar = output_dataset.createVariable('myvar', 'float32', ('time', 'lat', 'lon'))
-    # myvar.setncattr('units', 'mm')
-    # myvar[:] = dataout
-
     # x and y or lon and lat
-    srs = get_srs(datasets[0])
-    crs = CRS.from_wkt(srs.ExportToWkt())
-    geotransform = datasets[0].GetGeoTransform()
     x_attrs, y_attrs = crs.cs_to_cf()
 
     max_x_ordinate = geotransform[0] + datasets[0].RasterXSize * geotransform[1]
@@ -112,10 +135,9 @@ def rasters_to_netcdf(
         stop=max_x_ordinate - 0.5 * geotransform[1],  # to prevent unexpected behaviour due to rounding differences
         step=geotransform[1]
     )
-    lon_var = output_dataset.createVariable(varname='lon', datatype='float32', dimensions=tuple('lon'))
+    lon_var = output_dataset.createVariable(varname='lon', datatype='float32', dimensions=('lon',))
     lon_var[:] = x_ordinates
-    for attr_name, attr_value in x_attrs.items():
-        lon_var.setncattr(attr_name, attr_value)
+    lon_var.setncatts(x_attrs)
 
     max_y_ordinate = geotransform[3] + datasets[0].RasterYSize * geotransform[5]
     y_ordinates = np.arange(
@@ -123,87 +145,39 @@ def rasters_to_netcdf(
         stop=max_y_ordinate - 0.5 * geotransform[5],  # to prevent unexpected behaviour due to rounding differences
         step=geotransform[5]
     )
-    lat_var = output_dataset.createVariable(varname='lat', datatype='float32', dimensions=tuple('lat'))
+    lat_var = output_dataset.createVariable(varname='lat', datatype='float32', dimensions=('lat',))
     lat_var[:] = y_ordinates
-    for attr_name, attr_value in y_attrs.items():
-        lat_var.setncattr(attr_name, attr_value)
+    lat_var.setncatts(y_attrs)
 
     # time
-    units = 'seconds since 1970-01-01 00:00:00.0 +0000'
-    calendar = 'standard'
-    time_var = output_dataset.createVariable(varname='time', datatype='float64', dimensions=tuple('time'))
+    time_var = output_dataset.createVariable(varname='time', datatype='float64', dimensions=('time',))
     time_attrs = {
         'standard_name': 'time',
         'long_name': 'Time',
-        'units': units,
+        'units': time_units,
         'calendar': calendar,
         'axis': 'T'
     }
-    for attr_name, attr_value in time_attrs.items():
-        time_var.setncattr(attr_name, attr_value)
-
+    time_var.setncatts(time_attrs)
     time_delta = timedelta(seconds=interval)
     end_time = start_time + len(filepaths) * time_delta
     time_steps_numpy = np.arange(start_time, end_time, time_delta, dtype='datetime64[s]')
     time_steps_datetime = [datetime.utcfromtimestamp(dt.astype('int')) for dt in time_steps_numpy]
-    time_steps_float = netCDF4.date2num(time_steps_datetime, units=units, calendar=calendar)
+    time_var[:] = netCDF4.date2num(time_steps_datetime, units=time_units, calendar=calendar)
 
-    time_var[:] = time_steps_float
+    # rain data
+    rain_var = output_dataset.createVariable(varname='values', datatype='float', dimensions=('time', 'lat', 'lon'))
+    rain_attrs = {
+        'long_name': 'rain',
+        'grid_mapping': 'crs',
+        '_FillValue': datasets[0].GetRasterBand(1).GetNoDataValue(),
+        'missing_value': datasets[0].GetRasterBand(1).GetNoDataValue(),
+        'units': units
+    }
+    rain_var.setncatts(rain_attrs)
+    rain = np.stack([dataset.GetRasterBand(1).ReadAsArray() for dataset in datasets])
+    rain_var[:] = rain
 
-
-#     rainfall_data = np.zeros((len(time_steps), len(y_var_values), len(x_var_values)), dtype=np.float32)
-#
-#     for i, asc_file in enumerate(asc_files):
-#         asc_grid = np.loadtxt(asc_file, skiprows=nr_header_lines)
-#         interval_hr = interval / 60 / 60
-#         asc_grid_intensity = asc_grid / interval_hr
-#         rainfall_data[i] = asc_grid_intensity
-#
-#     # 创建空的 Dataset
-#     ds = xr.Dataset()
-#
-#     # 添加时间变量并设置属性
-#     time_var = xr.DataArray(time_steps_seconds, dims='time', attrs={
-#         'standard_name': 'time',
-#         'long_name': 'Time',
-#         'units': 'seconds since 1970-01-01 00:00:00.0 +0000',
-#         'calendar': 'standard',
-#         'axis': 'T'
-#     })
-#     ds['time'] = time_var.astype('double')  # 指定数据类型为 float64
-#
-#
-#     # 添加数据变量并设置属性
-#     values_var = xr.DataArray(rainfall_data, dims=('time', y_dim_name, x_dim_name), attrs={
-#         'long_name': 'rain',
-#         'grid_mapping': 'crs',
-#         '_FillValue': asc_meta["NODATA_value"],  # 你自己定义的 fill_value
-#         'missing_value': asc_meta["NODATA_value"],  # 只有 FillValue 被考虑
-#         'units': 'mm/h'  # 'mm', 'm/s', 'mm/h', 'mm/hr' 中的一个，如果是 'mm'，速率由下一个 `time` 值确定
-#     })
-#     ds['values'] = values_var.astype('double')  # 指定数据类型为 float32
-#
-#     ulx_reprojected, uly_reprojected = transformer.transform(asc_meta["xllcorner"], max_latitude)
-#
-#     asc_meta.pop("NODATA_value")
-#     if target_crs.is_projected:
-#         cell_size_x, cell_size_y = estimate_cell_size(**asc_meta)
-#     else:
-#         cell_size_x = asc_meta["cellsize"]
-#         cell_size_y = asc_meta["cellsize"]
-#
-#     ds['crs'] = 1
-#     ds['crs'].attrs = target_crs.to_cf()
-#     ds['crs'].attrs['spatial_ref'] = f"EPSG:{target_crs.to_epsg()}"
-#     ds['crs'].attrs['GeoTransform'] = f"{ulx_reprojected} {cell_size_x} 0 {uly_reprojected} 0 -{cell_size_y}"
-#
-#     # 添加全局属性
-#     ds.attrs = {
-#         'OFFSET': 0  # 可选地覆盖模拟内的偏移量（以秒为单位）
-#     }
-#
-#     # 保存为NetCDF文件
-#     ds.to_netcdf(output_path, format='NETCDF4')
 
 datadir = Path(r"C:\Users\leendert.vanwolfswin\Documents\OZ 3Di AI\asc to netcdf")
 filepaths = [
@@ -220,7 +194,8 @@ rasters_to_netcdf(
     rasters=filepaths,
     start_time=datetime.strptime('2020-01-01T12:00:00', "%Y-%m-%dT%H:%M:%S"),
     interval=3600,
-    output_path=datadir / "output.nc"
+    units="mm",
+    output_path=datadir / "output3.nc"
 )
 
 
