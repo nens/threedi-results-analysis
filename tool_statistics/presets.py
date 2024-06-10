@@ -37,6 +37,7 @@ class Preset:
         flowlines_layer_name: str = None,
         cells_layer_name: str = None,
         nodes_layer_name: str = None,
+        pumps_layer_name: str = None,
         raster_layer_name: str = None,
         only_manholes: bool = False,
     ):
@@ -55,6 +56,7 @@ class Preset:
         self.flowlines_layer_name = flowlines_layer_name
         self.cells_layer_name = cells_layer_name
         self.nodes_layer_name = nodes_layer_name
+        self.pumps_layer_name = pumps_layer_name
         self.raster_layer_name = raster_layer_name
         self.only_manholes = only_manholes
 

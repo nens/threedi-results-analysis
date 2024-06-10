@@ -51,6 +51,7 @@ from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_class
     VT_FLOW_HYBRID,
     VT_NODE,
     VT_NODE_HYBRID,
+    VT_PUMP,
     VR_INTERFLOW,
     VR_SIMPLE_INFILTRATION,
     VR_INTERCEPTION,
@@ -394,16 +395,13 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 units_widget.addItem(units_str, multiplier)
 
     def get_styling_parameters(self, output_type):
-        if output_type == "node":
-            params_widget = self.tableWidgetNodesStyleParams
-        elif output_type == "flowline":
-            params_widget = self.tableWidgetFlowlinesStyleParams
-        elif output_type == "cell":
-            params_widget = self.tableWidgetCellsStyleParams
-        else:
-            raise ValueError(
-                "Invalid output type. Choose one of [node, flowline, cell]."
-            )
+        params_widgets = {
+            "node": self.tableWidgetNodesStyleParams,
+            "flowline": self.tableWidgetFlowlinesStyleParams,
+            "cell": self.tableWidgetCellsStyleParams,
+            "pump": self.tableWidgetPumpsStyleParams,
+        }
+        params_widget = params_widgets[output_type]
         result = {}
         for row in range(params_widget.rowCount()):
             result[
@@ -412,14 +410,14 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         return result
 
     def init_styling_tab(self):
+        type_widgets = {
+            "flowline": self.comboBoxFlowlinesStyleType,
+            "node": self.comboBoxNodesStyleType,
+            "cell": self.comboBoxCellsStyleType,
+            "pump": self.comboBoxPumpsStyleType,
+        }
         for style in STYLES:
-            if style.output_type == "flowline":
-                type_widget = self.comboBoxFlowlinesStyleType
-            elif style.output_type == "node":
-                type_widget = self.comboBoxNodesStyleType
-            elif style.output_type == "cell":
-                type_widget = self.comboBoxCellsStyleType
-
+            type_widget = type_widgets[style.output_type]
             row = type_widget.count()
             type_widget.addItem(style.name)
             type_widget.setItemData(row, style)
@@ -432,6 +430,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         )
         self.comboBoxCellsStyleType.currentIndexChanged.connect(
             self.cell_styling_type_changed
+        )
+        self.comboBoxPumpsStyleType.currentIndexChanged.connect(
+            self.pump_styling_type_changed
         )
         self.doubleSpinBoxResolution.valueChanged.connect(
             self.raster_resolution_changed
@@ -450,12 +451,15 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         flowlines_style: Style = None,
         nodes_style: Style = None,
         cells_style: Style = None,
+        pumps_style: Style = None,
         flowlines_style_param_values: dict = None,
         cells_style_param_values: dict = None,
         nodes_style_param_values: dict = None,
+        pumps_style_param_values: dict = None,
         uncheck_flowlines_groupbox: bool = False,
         uncheck_nodes_groupbox: bool = False,
-        uncheck_cells_groupbox: bool = False
+        uncheck_cells_groupbox: bool = False,
+        uncheck_pumps_groupbox: bool = False,
     ):
         """
         Styles can be set (e.g. when a preset is used) or be None so the default for the first variable is used
@@ -540,6 +544,26 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.groupBoxCells.setChecked(False)
             self.groupBoxRasters.setChecked(False)
 
+        # Pumps
+        filtered_das = filter_demanded_aggregations(self.demanded_aggregations, [VT_PUMP])
+        if len(filtered_das) > 0:
+            if pumps_style is None:
+                pumps_style_name = DEFAULT_STYLES[filtered_das[0].variable.short_name]["pump"].name
+            else:
+                pumps_style_name = pumps_style.name
+            idx = self.comboBoxPumpsStyleType.findText(pumps_style_name)
+            if idx > -1:
+                self.comboBoxPumpsStyleType.setCurrentIndex(idx)
+            self.groupBoxPumps.setChecked(True)
+            self.groupBoxPumps.setEnabled(True)
+            self.pump_styling_type_changed(param_values=pumps_style_param_values)
+        else:
+            self.groupBoxPumps.setEnabled(False)
+            self.groupBoxPumps.setChecked(False)
+        if uncheck_pumps_groupbox:
+            self.groupBoxPumps.setChecked(False)
+
+
     def styling_type_changed(
         self, output_type: str, param_values: dict = None
     ):
@@ -555,6 +579,11 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             params_widget = self.tableWidgetCellsStyleParams
             type_widget = self.comboBoxCellsStyleType
             aggregation_variable_types = [VT_NODE, VT_NODE_HYBRID]
+        elif output_type == "pump":
+            params_widget = self.tableWidgetPumpsStyleParams
+            type_widget = self.comboBoxPumpsStyleType
+            aggregation_variable_types = [VT_PUMP]
+
         else:
             raise ValueError(
                 "Invalid output type. Choose one of [node, flowline, cell]."
@@ -610,6 +639,14 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.styling_type_changed(
             output_type="flowline", param_values=param_values
         )
+
+    def pump_styling_type_changed(
+        self, signal: int = 1, param_values: dict = None
+    ):
+        self.styling_type_changed(
+            output_type="pump", param_values=param_values
+        )
+
 
     def raster_resolution_changed(self):
         self.doubleSpinBoxNodesLayerResolution.setValue(
@@ -732,6 +769,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if not self.lineEditOutputNodeLayer.isModified():
             self.lineEditOutputNodeLayer.setText(preset.nodes_layer_name if preset.nodes_layer_name else "")
 
+        if not self.lineEditOutputPumpsLayer.isModified():
+            self.lineEditOutputPumpsLayer.setText(preset.pumps_layer_name if preset.pumps_layer_name else "")
+
         if not self.lineEditOutputRasterLayer.isModified():
             self.lineEditOutputRasterLayer.setText(preset.raster_layer_name if preset.raster_layer_name else "")
 
@@ -769,6 +809,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         suggested_flow_output_layer_name = "flowlines: "
         suggested_cell_output_layer_name = "cells: "
         suggested_node_output_layer_name = "nodes: "
+        suggested_pump_output_layer_name = "pumps: "
         suggested_raster_output_layer_name = "raster: "
 
         postfix = ""
@@ -793,6 +834,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         if not self.lineEditOutputNodeLayer.isModified():
             self.lineEditOutputNodeLayer.setText(suggested_node_output_layer_name + postfix)
+
+        if not self.lineEditOutputPumpsLayer.isModified():
+            self.lineEditOutputPumpsLayer.setText(suggested_pump_output_layer_name + postfix)
 
         if not self.lineEditOutputRasterLayer.isModified():
             self.lineEditOutputRasterLayer.setText(suggested_raster_output_layer_name + postfix)

@@ -24,7 +24,7 @@ class Style:
         styling_method,
     ):
         self.name = name
-        assert output_type in ("flowline", "node", "cell", "raster")
+        assert output_type in ("flowline", "node", "cell", "pump", "pump_linestring", "raster")
         self.output_type = output_type
         self.params = params
         if os.path.isabs(qml):
@@ -407,6 +407,23 @@ STYLE_BALANCE = Style(
     styling_method=style_balance,
 )
 
+STYLE_SINGLE_COLUMN_GRADUATED_PUMP = Style(
+    name="Single column graduated",
+    output_type="pump",
+    params={"column": "column"},
+    qml="node.qml",
+    styling_method=style_on_single_column,
+)
+
+STYLE_SINGLE_COLUMN_GRADUATED_PUMP_LINESTRING = Style(
+    name="Single column graduated",
+    output_type="pump_linestring",
+    params={"column": "column"},
+    qml="flowline.qml",
+    styling_method=style_on_single_column,
+)
+
+
 STYLES = [
     STYLE_FLOW_DIRECTION,
     STYLE_GRADIENT,
@@ -421,8 +438,11 @@ STYLES = [
     STYLE_MANHOLE_WATER_DEPTH_0D1D_NODE,
     STYLE_MANHOLE_WATER_DEPTH_1D2D_NODE,
     STYLE_MANHOLE_MIN_FREEBOARD_0D1D,
-    STYLE_MANHOLE_MIN_FREEBOARD_1D2D
+    STYLE_MANHOLE_MIN_FREEBOARD_1D2D,
+    STYLE_SINGLE_COLUMN_GRADUATED_PUMP,
+    # STYLE_SINGLE_COLUMN_GRADUATED_PUMP_LINESTRING,
 ]
+
 
 DEFAULT_STYLES = {
     # Flowlines
@@ -435,6 +455,12 @@ DEFAULT_STYLES = {
     "grad": {"flowline": STYLE_GRADIENT},
     "bed_grad": {"flowline": STYLE_GRADIENT},
     "wl_at_xsec": {"flowline": STYLE_SINGLE_COLUMN_GRADUATED_FLOWLINE},
+
+    # Pumps
+    "q_pump": {
+        "pump": STYLE_SINGLE_COLUMN_GRADUATED_PUMP,
+        "pump_linestring": STYLE_SINGLE_COLUMN_GRADUATED_PUMP_LINESTRING,
+    },
 
     # Nodes
     "s1": {
