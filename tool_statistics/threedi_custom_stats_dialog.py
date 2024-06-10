@@ -54,6 +54,7 @@ from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_class
     VR_INTERFLOW,
     VR_SIMPLE_INFILTRATION,
     VR_INTERCEPTION,
+    VR_PUMP,
     VR_NAMES,
 )
 from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
@@ -807,6 +808,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 containing_information.append(VR_INTERFLOW)
             if self.gr.has_interception:
                 containing_information.append(VR_INTERCEPTION)
+            if self.gr.has_pumpstations:
+                containing_information.append(VR_PUMP)
 
         return containing_information
 
