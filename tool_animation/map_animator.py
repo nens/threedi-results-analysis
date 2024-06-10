@@ -16,7 +16,7 @@ from threedi_results_analysis.datasource.result_constants import AGGREGATION_OPT
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
-from threedi_results_analysis.utils.utils import generate_parameter_config
+from threedi_results_analysis.utils.utils import generate_parameter_config, is_substance_variable
 from threedi_results_analysis.utils.timing import timing
 from typing import List
 
@@ -77,7 +77,9 @@ def threedi_result_percentiles(
 
     stripped_variable = strip_agg_options(variable)
     gr = threedi_result.get_gridadmin(variable)
-    if stripped_variable in Q_TYPES:
+    if is_substance_variable(variable):
+        nodes_or_lines = gr.get_model_instance_by_field_name(variable)
+    elif stripped_variable in Q_TYPES:
         if groundwater:
             nodes_or_lines = gr.lines.filter(kcu__in=[-150, 150])
         else:
@@ -106,7 +108,10 @@ def threedi_result_percentiles(
     else:
         ts = nodes_or_lines.timeseries(indexes=slice(None))
 
-    values = getattr(ts, variable)
+    if is_substance_variable(variable):
+        values = ts.get_filtered_field_value("concentration")
+    else:
+        values = ts.get_filtered_field_value(variable)
     values[values == NO_DATA_VALUE] = np.nan
 
     if variable == WATERLEVEL.name:
@@ -289,7 +294,9 @@ class MapAnimator(QGroupBox):
     def _get_class_bounds_node(self, threedi_result, node_variable):
         base_nc_name = strip_agg_options(node_variable)
         if (
-            NEGATIVE_POSSIBLE[base_nc_name] or self.difference_checkbox.isChecked()
+            is_substance_variable(base_nc_name)
+            or NEGATIVE_POSSIBLE[base_nc_name]
+            or self.difference_checkbox.isChecked()
         ):
             lower_threshold = float("-Inf")
         else:
