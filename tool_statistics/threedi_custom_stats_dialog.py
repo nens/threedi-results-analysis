@@ -760,7 +760,6 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             output_type="pump_linestring", param_values=param_values
         )
 
-
     def raster_resolution_changed(self):
         self.doubleSpinBoxNodesLayerResolution.setValue(
             self.doubleSpinBoxResolution.value()

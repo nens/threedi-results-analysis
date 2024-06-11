@@ -1053,14 +1053,13 @@ def cell_results_from_node_results(node_results: Dict[str, np.array], nodes: Nod
 def pump_linestring_results_from_pump_results(
         pump_results: Dict[str, np.array],
         pumps: Pumps
-    ):
+):
     pumps_linestring = pumps.filter(node2_id__ne=-9999)
     pump_linestring_results = dict()
     mask = np.in1d(pumps.id, pumps_linestring.id)
     for column_name, values in pump_results.items():
         pump_linestring_results[column_name] = values[mask]
     return pump_linestring_results
-
 
 
 def aggregate_threedi_results(
@@ -1230,7 +1229,6 @@ def aggregate_threedi_results(
                         fill_value=None,
                         dtype=np.float,
                     )
-
 
     # translate results to GIS layers
     # node and cell layers
