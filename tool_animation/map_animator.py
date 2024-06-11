@@ -294,8 +294,7 @@ class MapAnimator(QGroupBox):
     def _get_class_bounds_node(self, threedi_result, node_variable):
         base_nc_name = strip_agg_options(node_variable)
         if (
-            is_substance_variable(base_nc_name)
-            or NEGATIVE_POSSIBLE[base_nc_name]
+            base_nc_name in NEGATIVE_POSSIBLE and NEGATIVE_POSSIBLE[base_nc_name]
             or self.difference_checkbox.isChecked()
         ):
             lower_threshold = float("-Inf")
