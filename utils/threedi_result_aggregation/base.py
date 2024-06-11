@@ -1079,6 +1079,7 @@ def aggregate_threedi_results(
     output_nodes: bool = True,
     output_cells: bool = True,
     output_pumps: bool = True,
+    output_pumps_linestring: bool = True,
     output_rasters: bool = True,
 ):
     """
@@ -1101,7 +1102,7 @@ def aggregate_threedi_results(
     out_rasters = {}
 
     if not (
-        output_flowlines or output_nodes or output_cells or output_pumps or output_rasters
+        output_flowlines or output_nodes or output_cells or output_pumps or output_pumps_linestring or output_rasters
     ):
         return tgt_ds, out_rasters
 
@@ -1211,7 +1212,7 @@ def aggregate_threedi_results(
         elif da.variable.short_name in AGGREGATION_VARIABLES.short_names(
             var_types=[VT_PUMP]
         ):
-            if output_pumps:
+            if output_pumps or output_pumps_linestring:
                 try:
                     pump_results[new_column_name] = time_aggregate(
                         threedigrid_object=pumps,
@@ -1361,33 +1362,35 @@ def aggregate_threedi_results(
         )
 
     # pump layers
-    if len(pump_results) > 0 and output_pumps:
+    if len(pump_results) > 0:
         attr_data_types = {}
         for attr, vals in pump_results.items():
             try:
                 attr_data_types[attr] = NP_OGR_DTYPES[vals.dtype]
             except KeyError:
                 attr_data_types[attr] = ogr.OFTString
-        threedigrid_to_ogr(
-            tgt_ds=tgt_ds,
-            layer_name="pump",
-            gridadmin_gpkg=gridadmin_gpkg,
-            attributes=pump_results,
-            attr_data_types=attr_data_types,
-            ids=pumps.id,
-        )
-        pump_linestring_results = pump_linestring_results_from_pump_results(
-            pump_results=pump_results,
-            pumps=pumps
-        )
-        threedigrid_to_ogr(
-            tgt_ds=tgt_ds,
-            layer_name="pump_linestring",
-            gridadmin_gpkg=gridadmin_gpkg,
-            attributes=pump_linestring_results,
-            attr_data_types=attr_data_types,
-            ids=pumps.id,
-        )
+        if output_pumps:
+            threedigrid_to_ogr(
+                tgt_ds=tgt_ds,
+                layer_name="pump",
+                gridadmin_gpkg=gridadmin_gpkg,
+                attributes=pump_results,
+                attr_data_types=attr_data_types,
+                ids=pumps.id,
+            )
+        if output_pumps_linestring:
+            pump_linestring_results = pump_linestring_results_from_pump_results(
+                pump_results=pump_results,
+                pumps=pumps
+            )
+            threedigrid_to_ogr(
+                tgt_ds=tgt_ds,
+                layer_name="pump_linestring",
+                gridadmin_gpkg=gridadmin_gpkg,
+                attributes=pump_linestring_results,
+                attr_data_types=attr_data_types,
+                ids=pumps.id,
+            )
 
     if not output_rasters:
         out_rasters = {}
