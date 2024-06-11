@@ -4,7 +4,7 @@
 3.8.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add pump support to Result Aggregation tool
 
 
 3.8.1 (2024-06-05)
