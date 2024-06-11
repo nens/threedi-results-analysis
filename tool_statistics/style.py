@@ -48,6 +48,13 @@ def style_on_single_column(layer, qml: str, column: str, update_classes: bool = 
             mode=layer.renderer().mode(),
             nclasses=len(layer.renderer().ranges()),
         )
+
+        # Add a class for 0 if the lowest value is 0
+        range_0 = layer.renderer().ranges()[0]
+        if range_0.lowerValue() == 0 and range_0.upperValue() > 0.000001:
+            layer.renderer().addBreak(breakValue=0.000001, updateSymbols=True)
+            layer.renderer().updateRangeLabel(rangeIndex=0, label="0")
+
     layer.triggerRepaint()
     utils.iface.layerTreeView().refreshLayerSymbology(layer.id())
 
