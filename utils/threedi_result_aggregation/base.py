@@ -7,6 +7,7 @@ import argparse
 import warnings
 from typing import List, Tuple, Union, Dict
 
+from threedigrid.admin.gridadmin import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from threedigrid.admin.nodes.models import Nodes, Cells
 from threedigrid.admin.lines.models import Lines
@@ -42,6 +43,35 @@ from .threedigrid_ogr import threedigrid_to_ogr
 
 warnings.filterwarnings("ignore")
 ogr.UseExceptions()
+
+
+def get_threshold_attributes(gridadmin: GridH5Admin | GridH5ResultAdmin, var_type: int) -> List[tuple]:
+    """
+    Get a list of attributes that can be used as threshold.
+
+    Only returns fields of that are 1D arrays of float64 values that are included in GPKG_DEFAULT_FIELD_MAP
+
+    :returns: List of (field_name, display_name) tuples
+    """
+    var_type_dict = {
+        VT_NODE: "nodes",
+        VT_NODE_HYBRID: "nodes",
+        VT_FLOW: "lines",
+        VT_FLOW_HYBRID: "lines",
+        VT_PUMP: "pumps"
+    }
+    threedigrid_object = (
+        getattr(gridadmin, var_type_dict[var_type]).filter(id__eq=-8888)  # id__eq=-8888: do not fetch any data
+    )
+    gpkg_default_field_map = threedigrid_object.GPKG_DEFAULT_FIELD_MAP
+    result = []
+    for key, value in threedigrid_object.data.items():
+        if value.dtype == np.float64 and value.ndim == 1:
+            if key in gpkg_default_field_map:
+                display_name = gpkg_default_field_map[key]
+                result.append((key, display_name))
+    result.sort()
+    return result
 
 
 def time_intervals(

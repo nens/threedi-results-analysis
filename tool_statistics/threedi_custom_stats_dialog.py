@@ -39,12 +39,16 @@ from threedi_results_analysis.utils.user_messages import pop_up_critical
 
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 from .presets import PRESETS, Preset, NO_PRESET
+from threedi_results_analysis.utils.threedi_result_aggregation.base import get_threshold_attributes
 from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_classes import (
     Aggregation,
+    AggregationMethod,
     AggregationSign,
+    AggregationVariable,
     filter_demanded_aggregations,
     VT_NAMES,
     VT_FLOW,
@@ -64,6 +68,7 @@ from threedi_results_analysis.utils.threedi_result_aggregation.constants import 
     AGGREGATION_SIGNS,
     NA_TEXT,
 )
+
 from .style import (
     DEFAULT_STYLES,
     STYLES,
@@ -82,6 +87,13 @@ DEFAULT_AGGREGATION = Aggregation(
     sign=AggregationSign(short_name="net", long_name="Net"),
     method=AGGREGATION_METHODS.get_by_short_name("sum"),
 )
+
+COLUMN_VARIABLE = 0
+COLUMN_DIRECTION = 1
+COLUMN_METHOD = 2
+COLUMN_THRESHOLD_ATTRIBUTE = 3
+COLUMN_THRESHOLD_VALUE = 4
+COLUMN_UNITS = 5
 
 FLOWLINES_TAB = 0
 NODES_CELLS_TAB = 1
@@ -135,18 +147,16 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.remove_aggregation
         )
         self.add_aggregation()
-        self.tableWidgetAggregations.horizontalHeader().setSectionResizeMode(
-            0, QtWidgets.QHeaderView.Stretch
-        )
-        self.tableWidgetAggregations.horizontalHeader().setSectionResizeMode(
-            1, QtWidgets.QHeaderView.Stretch
-        )
-        self.tableWidgetAggregations.horizontalHeader().setSectionResizeMode(
-            2, QtWidgets.QHeaderView.Stretch
-        )
-        self.tableWidgetAggregations.horizontalHeader().setSectionResizeMode(
-            3, QtWidgets.QHeaderView.Stretch
-        )
+        for column_index in [
+            COLUMN_VARIABLE,
+            COLUMN_DIRECTION,
+            COLUMN_METHOD,
+            COLUMN_THRESHOLD_ATTRIBUTE,
+            COLUMN_THRESHOLD_VALUE,
+        ]:
+            self.tableWidgetAggregations.horizontalHeader().setSectionResizeMode(
+                column_index, QtWidgets.QHeaderView.Stretch
+            )
 
         # Populate the combobox with the results
 
@@ -194,7 +204,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.variable_combobox_text_changed
         )
         self.tableWidgetAggregations.setCellWidget(
-            current_row, 0, variable_combobox
+            current_row, COLUMN_VARIABLE, variable_combobox
         )
 
         # sign column
@@ -206,7 +216,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             counter += 1
         direction_combobox.setCurrentText(aggregation.sign.long_name)
         self.tableWidgetAggregations.setCellWidget(
-            current_row, 1, direction_combobox
+            current_row, COLUMN_DIRECTION, direction_combobox
         )
         direction_combobox.currentTextChanged.connect(
             self.direction_combobox_text_changed
@@ -223,7 +233,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if aggregation.method:
             method_combobox.setCurrentText(aggregation.method.long_name)
         self.tableWidgetAggregations.setCellWidget(
-            current_row, 2, method_combobox
+            current_row, COLUMN_METHOD, method_combobox
         )
         method_combobox.currentTextChanged.connect(
             self.method_combobox_text_changed
@@ -231,12 +241,14 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # threshold column
         method = method_combobox.currentData()
-        self.set_threshold_widget(row=current_row, method=method)
+        variable = variable_combobox.currentData()
+        self.set_threshold_attribute_widget(row=current_row, variable=variable, method=method)
+        self.set_threshold_value_widget(row=current_row, method=method)
 
         # units column
         units_combobox = QtWidgets.QComboBox()
         self.tableWidgetAggregations.setCellWidget(
-            current_row, 4, units_combobox
+            current_row, COLUMN_UNITS, units_combobox
         )
         self.set_units_widget(
             row=current_row,
@@ -248,7 +260,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # set the threshold _after_ the units widget is in place
         if aggregation.threshold is not None:
-            threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, 3)
+            threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, COLUMN_THRESHOLD_VALUE)
             if method.threshold_sources:
                 threshold_widget.setCurrentIndex(
                     threshold_widget.findText(aggregation.threshold),
@@ -286,7 +298,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def variable_combobox_text_changed(self):
         row = self.tableWidgetAggregations.currentRow()
-        variable_widget = self.tableWidgetAggregations.cellWidget(row, 0)
+        variable_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_VARIABLE)
         variable = variable_widget.itemData(variable_widget.currentIndex())
         self.set_method_widget(row, variable)
         self.set_direction_widget(row, variable)
@@ -297,11 +309,11 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def method_combobox_text_changed(self):
         row = self.tableWidgetAggregations.currentRow()
-        variable_widget = self.tableWidgetAggregations.cellWidget(row, 0)
+        variable_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_VARIABLE)
         variable = variable_widget.itemData(variable_widget.currentIndex())
-        method_widget = self.tableWidgetAggregations.cellWidget(row, 2)
+        method_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD)
         method = method_widget.itemData(method_widget.currentIndex())
-        self.set_threshold_widget(row=row, method=method)
+        self.set_threshold_value_widget(row=row, method=method)
         self.set_units_widget(row=row, variable=variable, method=method)
         self.update_demanded_aggregations()
         self._update_output_layer_fields_based_on_aggregations()
@@ -318,32 +330,32 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self._update_output_layer_fields_based_on_aggregations()
 
     def set_direction_widget(self, row, variable):
-        na_index = self.tableWidgetAggregations.cellWidget(row, 1).findText(
+        na_index = self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION).findText(
             NA_TEXT
         )
         if variable.signed:
             if na_index != -1:
-                self.tableWidgetAggregations.cellWidget(row, 1).removeItem(
+                self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION).removeItem(
                     na_index
                 )
-            self.tableWidgetAggregations.cellWidget(row, 1).setCurrentIndex(0)
+            self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION).setCurrentIndex(0)
         else:
             if na_index == -1:
-                self.tableWidgetAggregations.cellWidget(row, 1).addItem(
+                self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION).addItem(
                     NA_TEXT
                 )
                 na_index = self.tableWidgetAggregations.cellWidget(
                     row, 1
                 ).findText(NA_TEXT)
-            self.tableWidgetAggregations.cellWidget(row, 1).setCurrentIndex(
+            self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION).setCurrentIndex(
                 na_index
             )
-        self.tableWidgetAggregations.cellWidget(row, 1).setEnabled(
+        self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION).setEnabled(
             variable.signed
         )
 
     def set_method_widget(self, row, variable):
-        method_widget = self.tableWidgetAggregations.cellWidget(row, 2)
+        method_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD)
         method_widget.blockSignals(True)
         method_widget.setEnabled(False)
         method_widget.clear()
@@ -354,26 +366,32 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 method_widget.setEnabled(True)
         method_widget.blockSignals(False)
         method = method_widget.itemData(method_widget.currentIndex())
-        self.set_threshold_widget(row=row, method=method)
+        self.set_threshold_value_widget(row=row, method=method)
 
-    def set_threshold_widget(self, row, method):
-        if method is not None and method.threshold_sources:
-            threshold_widget = QtWidgets.QComboBox()
-            signal = threshold_widget.currentIndexChanged
-            for threshold_source in method.threshold_sources:
-                threshold_widget.addItem(threshold_source)
-        else:
-            threshold_widget = QtWidgets.QDoubleSpinBox()
-            threshold_widget.setRange(sys.float_info.min, sys.float_info.max)
-            signal = threshold_widget.valueChanged
+    def set_threshold_attribute_widget(self, row: int, variable: AggregationVariable, method: AggregationMethod):
+        threshold_attribute_widget = QtWidgets.QComboBox()
+        if method and variable:
+            threshold_attributes = get_threshold_attributes(gridadmin=self.gr, var_type=variable.var_type)
+            threshold_attribute_widget.addItem("constant")
+            threshold_attribute_widget.setItemData(0, None)
+            for i, (field_name, display_name) in enumerate(threshold_attributes):
+                threshold_attribute_widget.addItem(display_name)
+                threshold_attribute_widget.setItemData(i, variable)
 
-        threshold_widget.setEnabled(method is not None and method.has_threshold)
-        self.tableWidgetAggregations.setCellWidget(row, 3, threshold_widget)
-        signal.connect(self.threshold_value_changed)
+        threshold_attribute_widget.setEnabled(method is not None and method.has_threshold)
+        self.tableWidgetAggregations.setCellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE, threshold_attribute_widget)
+        threshold_attribute_widget.currentIndexChanged.connect(self.threshold_value_changed)
+
+    def set_threshold_value_widget(self, row, method):
+        threshold_value_widget = QtWidgets.QDoubleSpinBox()
+        threshold_value_widget.setRange(sys.float_info.min, sys.float_info.max)
+        threshold_value_widget.setEnabled(method is not None and method.has_threshold)
+        self.tableWidgetAggregations.setCellWidget(row, COLUMN_THRESHOLD_VALUE, threshold_value_widget)
+        threshold_value_widget.valueChanged.connect(self.threshold_value_changed)
 
     def set_units_widget(self, row, variable, method):
         """Called when variable or method changes"""
-        units_widget = self.tableWidgetAggregations.cellWidget(row, 4)
+        units_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_UNITS)
         units_widget.clear()
 
         if not method:
@@ -982,7 +1000,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         row_count = self.tableWidgetAggregations.rowCount()
         for row in range(row_count):
-            variable_widget = self.tableWidgetAggregations.cellWidget(row, 0)
+            variable_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_VARIABLE)
             #  Iterate over the variables in the combobox
             for item_idx in range(variable_widget.count()):
                 variable = variable_widget.itemData(item_idx)
@@ -1003,26 +1021,26 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         row_count = self.tableWidgetAggregations.rowCount()
         for row in range(row_count):
             # Variable
-            variable_widget = self.tableWidgetAggregations.cellWidget(row, 0)
+            variable_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_VARIABLE)
             variable = variable_widget.itemData(variable_widget.currentIndex())
 
             # Direction
-            direction_widget = self.tableWidgetAggregations.cellWidget(row, 1)
+            direction_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION)
             sign = direction_widget.itemData(direction_widget.currentIndex())
 
             # Method
-            method_widget = self.tableWidgetAggregations.cellWidget(row, 2)
+            method_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD)
             method = method_widget.itemData(method_widget.currentIndex())
 
             # Threshold
-            threshold_widget = self.tableWidgetAggregations.cellWidget(row, 3)
+            threshold_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_VALUE)
             if method is not None and method.threshold_sources:
                 threshold = threshold_widget.currentText()
             else:
                 threshold = threshold_widget.value()
 
             # Multiplier (unit conversion)
-            units_widget = self.tableWidgetAggregations.cellWidget(row, 4)
+            units_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_UNITS)
             multiplier = units_widget.itemData(units_widget.currentIndex())
 
             da = Aggregation(

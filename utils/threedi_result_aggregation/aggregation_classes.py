@@ -125,10 +125,7 @@ class AggregationMethod:
         self.is_duration = is_duration
         self.var_type = None
 
-        if threshold_sources is not None:
-            self.threshold_sources = threshold_sources
-        else:
-            self.threshold_sources = []
+        self.threshold_sources = threshold_sources or []
 
 
 NA_TEXT = "[Not applicable]"
