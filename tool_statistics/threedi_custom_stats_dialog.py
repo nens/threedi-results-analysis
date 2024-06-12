@@ -718,9 +718,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 params_widget.setCellWidget(row, 1, param_input_widget)
         if param_values is not None:
             for param, value in param_values.items():
-                row = params_widget.findItems(param, Qt.MatchFixedString)[
-                    0
-                ].row()
+                row = params_widget.findItems(param, Qt.MatchFixedString)[0].row()
                 params_input_widget = params_widget.cellWidget(row, 1)
                 idx = params_input_widget.findText(value)
                 params_input_widget.setCurrentIndex(idx)

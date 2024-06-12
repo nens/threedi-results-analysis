@@ -18,6 +18,8 @@ from .style import (
     STYLE_MANHOLE_WATER_DEPTH_1D2D_NODE,
     STYLE_MANHOLE_MIN_FREEBOARD_0D1D,
     STYLE_MANHOLE_MIN_FREEBOARD_1D2D,
+    STYLE_SINGLE_COLUMN_GRADUATED_PUMP,
+    STYLE_SINGLE_COLUMN_GRADUATED_PUMP_LINESTRING,
 )
 
 
@@ -413,6 +415,28 @@ MIN_FREEBOARD_1D2D_PRESETS = Preset(
     only_manholes=True
 )
 
+# Pump: Total pumped volume
+total_pumped_volume_aggregations = [
+    Aggregation(
+        variable=AGGREGATION_VARIABLES.get_by_short_name("q_pump"),
+        method=AGGREGATION_METHODS.get_by_short_name("sum")
+    ),
+]
+
+TOTAL_PUMPED_VOLUME_PRESETS = Preset(
+    name="Pump: Total pumped volume",
+    description="Total volume pumped by each pump in the selected time period.",
+    aggregations=total_pumped_volume_aggregations,
+
+    pumps_style=STYLE_SINGLE_COLUMN_GRADUATED_PUMP,
+    pumps_style_param_values={"column": "q_pump_sum"},
+    pumps_layer_name="Pump (point): Total pumped volume",
+
+    pumps_linestring_style=STYLE_SINGLE_COLUMN_GRADUATED_PUMP_LINESTRING,
+    pumps_linestring_style_param_values={"column": "q_pump_sum"},
+    pumps_linestring_layer_name="Pump (line): Total pumped volume",
+)
+
 
 PRESETS = [
     NO_PRESET,
@@ -427,4 +451,5 @@ PRESETS = [
     MIN_FREEBOARD_1D2D_PRESETS,
     WATER_ON_STREET_DURATION_0D1D_PRESET,
     WATER_ON_STREET_DURATION_1D2D_PRESET,
+    TOTAL_PUMPED_VOLUME_PRESETS,
 ]
