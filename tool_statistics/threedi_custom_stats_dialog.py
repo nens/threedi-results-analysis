@@ -260,13 +260,15 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # set the threshold _after_ the units widget is in place
         if aggregation.threshold is not None:
-            threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, COLUMN_THRESHOLD_VALUE)
-            if method.threshold_sources:
+            if isinstance(aggregation.threshold, float):
+                threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, COLUMN_THRESHOLD_VALUE)
+                threshold_widget.setValue(aggregation.threshold)
+                threshold_widget.setCurrentIndex(0)  # contains the text "constant"
+            elif isinstance(aggregation.threshold, str):
+                threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, COLUMN_THRESHOLD_ATTRIBUTE)
                 threshold_widget.setCurrentIndex(
                     threshold_widget.findText(aggregation.threshold),
                 )
-            else:
-                threshold_widget.setValue(aggregation.threshold)
 
         # TODO: dit is nu lastig te setten obv aggregation, omdat die wel een attribuut multiplier heeft,
         #  maar niet een attribuut units. laat ik nu even voor wat het is
@@ -313,6 +315,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         variable = variable_widget.itemData(variable_widget.currentIndex())
         method_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD)
         method = method_widget.itemData(method_widget.currentIndex())
+        self.set_threshold_attribute_widget(row=row, variable=variable, method=method)
         self.set_threshold_value_widget(row=row, method=method)
         self.set_units_widget(row=row, variable=variable, method=method)
         self.update_demanded_aggregations()
@@ -321,6 +324,16 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
     def direction_combobox_text_changed(self):
         self.update_demanded_aggregations()
         self._update_output_layer_fields_based_on_aggregations()
+
+    def threshold_attribute_changed(self):
+        row = self.tableWidgetAggregations.currentRow()
+        method = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD).currentData()
+        item_data = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE).currentData()
+        logger.info(
+            f"Threshold attribute itemData: {item_data or 'None'}"
+        )
+        self.set_threshold_value_widget(row=row, method=method)
+        self.update_demanded_aggregations()
 
     def threshold_value_changed(self):
         self.update_demanded_aggregations()
@@ -366,26 +379,34 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 method_widget.setEnabled(True)
         method_widget.blockSignals(False)
         method = method_widget.itemData(method_widget.currentIndex())
+        self.set_threshold_attribute_widget(row=row, variable=variable, method=method)
         self.set_threshold_value_widget(row=row, method=method)
 
     def set_threshold_attribute_widget(self, row: int, variable: AggregationVariable, method: AggregationMethod):
         threshold_attribute_widget = QtWidgets.QComboBox()
-        if method and variable:
+        if method and variable and self.gr:
             threshold_attributes = get_threshold_attributes(gridadmin=self.gr, var_type=variable.var_type)
             threshold_attribute_widget.addItem("constant")
             threshold_attribute_widget.setItemData(0, None)
-            for i, (field_name, display_name) in enumerate(threshold_attributes):
+            for field_name, display_name in threshold_attributes:
+                idx = threshold_attribute_widget.count()
                 threshold_attribute_widget.addItem(display_name)
-                threshold_attribute_widget.setItemData(i, variable)
+                threshold_attribute_widget.setItemData(idx, field_name)
 
         threshold_attribute_widget.setEnabled(method is not None and method.has_threshold)
         self.tableWidgetAggregations.setCellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE, threshold_attribute_widget)
-        threshold_attribute_widget.currentIndexChanged.connect(self.threshold_value_changed)
+        threshold_attribute_widget.currentIndexChanged.connect(self.threshold_attribute_changed)
 
     def set_threshold_value_widget(self, row, method):
+        threshold_attribute_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE)
         threshold_value_widget = QtWidgets.QDoubleSpinBox()
         threshold_value_widget.setRange(sys.float_info.min, sys.float_info.max)
-        threshold_value_widget.setEnabled(method is not None and method.has_threshold)
+        threshold_value_widget.setEnabled(
+            method is not None and
+            method.has_threshold and
+            threshold_attribute_widget and
+            threshold_attribute_widget.currentData() is None
+        )
         self.tableWidgetAggregations.setCellWidget(row, COLUMN_THRESHOLD_VALUE, threshold_value_widget)
         threshold_value_widget.valueChanged.connect(self.threshold_value_changed)
 
@@ -1033,11 +1054,12 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             method = method_widget.itemData(method_widget.currentIndex())
 
             # Threshold
-            threshold_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_VALUE)
-            if method is not None and method.threshold_sources:
-                threshold = threshold_widget.currentText()
-            else:
-                threshold = threshold_widget.value()
+            threshold_attribute = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE).currentData()
+            threshold = (
+                    threshold_attribute
+                    or
+                    self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_VALUE).value()
+            )
 
             # Multiplier (unit conversion)
             units_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_UNITS)

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 
 # Pre resample methods
 PRM_NONE = 0  # no processing before resampling (e.g. for water levels, velocities); divide by 1
@@ -138,7 +138,7 @@ class Aggregation:
         variable: AggregationVariable,
         method: Optional[AggregationMethod] = None,
         sign: Optional[AggregationSign] = AGGREGATION_SIGN_NA,
-        threshold=None,
+        threshold: Optional[Union[str, float]] = None,
         multiplier: float = 1,
     ):
         self.variable = variable
@@ -153,11 +153,9 @@ class Aggregation:
             column_name_list.append(self.sign.short_name)
         try:
             column_name_list.append(self.method.short_name)
-            if self.method.short_name in ["above_thres", "below_thres"]:
-                thres_parsed = str(self.threshold).replace(".", "_")
-                column_name_list.append(thres_parsed)
-            elif self.method.short_name == "time_above_threshold":
-                column_name_list.extend(self.threshold.split())
+            if self.method.has_threshold:
+                threshold_parsed = str(self.threshold).replace(".", "_")
+                column_name_list.append(threshold_parsed)
         except AttributeError:  # allow aggregation to have no method
             pass
         return "_".join(column_name_list).lower()

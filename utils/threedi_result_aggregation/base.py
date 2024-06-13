@@ -45,7 +45,7 @@ warnings.filterwarnings("ignore")
 ogr.UseExceptions()
 
 
-def get_threshold_attributes(gridadmin: GridH5Admin | GridH5ResultAdmin, var_type: int) -> List[tuple]:
+def get_threshold_attributes(gridadmin: Union[GridH5Admin, GridH5ResultAdmin], var_type: int) -> List[tuple]:
     """
     Get a list of attributes that can be used as threshold.
 
@@ -320,6 +320,7 @@ def get_exchange_level(nodes: Nodes, lines: Lines, no_data: float) -> np.array:
 
 
 def do_threshold_timeseries(gr, nodes, timeseries, aggregation):
+    # TODO aanpassen
     if aggregation.threshold == THRESHOLD_DRAIN_LEVEL:
         threshold = nodes.drain_level
     elif aggregation.threshold == THRESHOLD_EXCHANGE_LEVEL:
@@ -363,7 +364,7 @@ def aggregate_prepared_timeseries(
         )
     elif aggregation.method.short_name == "above_thres":
         raw_values_above_threshold = np.greater(
-            timeseries, aggregation.threshold
+            timeseries, aggregation.threshold  # TODO: aanpassen
         )
         time_above_threshold = np.sum(
             np.multiply(raw_values_above_threshold.T, tintervals).T, axis=0
@@ -371,7 +372,7 @@ def aggregate_prepared_timeseries(
         total_time = np.sum(tintervals)
         result = np.multiply(np.divide(time_above_threshold, total_time), 100.0)
     elif aggregation.method.short_name == "below_thres":
-        raw_values_below_threshold = np.less(timeseries, aggregation.threshold)
+        raw_values_below_threshold = np.less(timeseries, aggregation.threshold)  # TODO aanpassen
         time_below_threshold = np.sum(
             np.multiply(raw_values_below_threshold.T, tintervals).T, axis=0
         )

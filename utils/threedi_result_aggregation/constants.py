@@ -78,7 +78,7 @@ agg_method_list = [
         "long_name": "Time above threshold",
         "has_threshold": True,
         "is_duration": True,
-        "threshold_sources": [THRESHOLD_EXCHANGE_LEVEL, THRESHOLD_DRAIN_LEVEL],
+        "threshold_sources": [THRESHOLD_EXCHANGE_LEVEL, THRESHOLD_DRAIN_LEVEL],  # TODO dit eruit slopen
     },
 ]
 
