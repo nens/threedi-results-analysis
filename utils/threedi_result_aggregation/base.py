@@ -1155,7 +1155,7 @@ def aggregate_threedi_results(
             lines = gr.lines.filter(id__ne=0)
             nodes = gr.nodes.filter(id__ne=0)
             cells = gr.cells.filter(id__ne=0).filter(node_type__in=[1, 2])  # 1 = 2D surface water, 2 = 2D groundwater
-            pumps = gr.pumps.filter(id__ne=0)
+            pumps = gr.pumps.filter(id__ne=0) if gr.has_pumpstations else None
         else:
             if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
                 raise Exception("Invalid bounding box.")
@@ -1168,7 +1168,7 @@ def aggregate_threedi_results(
             )  # filter on cell center coordinates to have the same results for cells as for nodes
             if nodes.count == 0:
                 raise Exception("No nodes found within bounding box.")
-            pumps = gr.pumps.filter(coordinates__in_bbox=bbox)
+            pumps = gr.pumps.filter(coordinates__in_bbox=bbox) if gr.has_pumpstations else None
 
         if only_manholes:
             nodes = nodes.manholes
