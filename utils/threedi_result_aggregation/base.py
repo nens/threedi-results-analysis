@@ -321,17 +321,6 @@ def get_exchange_level(nodes: Nodes, lines: Lines, no_data: float) -> np.array:
     return threshold
 
 
-def do_threshold_timeseries(gr, nodes, timeseries, aggregation):
-    # TODO aanpassen / verwijderen
-    if aggregation.threshold == THRESHOLD_DRAIN_LEVEL:
-        threshold = nodes.drain_level
-    elif aggregation.threshold == THRESHOLD_EXCHANGE_LEVEL:
-        threshold = get_exchange_level(nodes, gr.lines, no_data=np.inf)
-
-    timeseries[np.isnan(timeseries)] = -np.inf
-    return np.greater(timeseries, threshold[np.newaxis])
-
-
 def aggregate_prepared_timeseries(
     timeseries, tintervals, start_time, aggregation: Aggregation, threshold_values: Union[float, np.array] = None
 ) -> np.array:
