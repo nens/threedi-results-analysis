@@ -86,7 +86,7 @@ def parse_aggvarname(aggvarname):
     # Aggregation methods unfortunately can contain underscores; for now only
     # these two cases are known.
     # TODO: improve this, e.g., make more generic, because extra cases will
-    # need to be added later
+    #  need to be added later
     if aggvarname.endswith("cum_positive") or aggvarname.endswith("cum_negative"):
         varname, agg_method, sign = aggvarname.rsplit("_", 2)
         return varname, "_".join([agg_method, sign])

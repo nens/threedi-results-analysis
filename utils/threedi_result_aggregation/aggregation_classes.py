@@ -115,7 +115,6 @@ class AggregationMethod:
         integrates_over_time: bool = False,
         is_percentage: bool = False,
         is_duration: bool = False,
-        threshold_sources=None
     ):
         self.short_name = short_name
         self.long_name = long_name
@@ -124,8 +123,6 @@ class AggregationMethod:
         self.is_percentage = is_percentage
         self.is_duration = is_duration
         self.var_type = None
-
-        self.threshold_sources = threshold_sources or []
 
 
 NA_TEXT = "[Not applicable]"
@@ -151,13 +148,10 @@ class Aggregation:
         column_name_list = [self.variable.short_name]
         if self.variable.signed:
             column_name_list.append(self.sign.short_name)
-        try:
-            column_name_list.append(self.method.short_name)
-            if self.method.has_threshold:
-                threshold_parsed = str(self.threshold).replace(".", "_")
-                column_name_list.append(threshold_parsed)
-        except AttributeError:  # allow aggregation to have no method
-            pass
+        column_name_list.append(self.method.short_name)
+        if self.method.has_threshold:
+            threshold_parsed = str(self.threshold).replace(".", "_")
+            column_name_list.append(threshold_parsed)
         return "_".join(column_name_list).lower()
 
     def is_valid(self) -> bool:

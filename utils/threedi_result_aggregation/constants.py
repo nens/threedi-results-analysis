@@ -43,9 +43,9 @@ NP_OGR_DTYPES = {
     np.dtype("int64"): ogr.OFTInteger64,
 }
 
-# Thresholds for time above threshold aggregation method
-THRESHOLD_EXCHANGE_LEVEL = "Exchange level"
-THRESHOLD_DRAIN_LEVEL = "Drain level"
+# Magic threshold attribute for nodes.
+# Nodes do not have this attribute, but will be derived from flowlines connected to the node
+EXCHANGE_LEVEL_1D2D = "exchange_level_1d2d"
 
 # Aggregation methods
 AGGREGATION_METHODS = AggregationVariableList()
@@ -78,7 +78,6 @@ agg_method_list = [
         "long_name": "Time above threshold",
         "has_threshold": True,
         "is_duration": True,
-        "threshold_sources": [THRESHOLD_EXCHANGE_LEVEL, THRESHOLD_DRAIN_LEVEL],  # TODO dit eruit slopen
     },
 ]
 

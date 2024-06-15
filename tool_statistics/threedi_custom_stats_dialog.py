@@ -39,7 +39,6 @@ from threedi_results_analysis.utils.user_messages import pop_up_critical
 
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 from .presets import PRESETS, Preset, NO_PRESET
@@ -66,6 +65,7 @@ from threedi_results_analysis.utils.threedi_result_aggregation.constants import 
     AGGREGATION_VARIABLES,
     AGGREGATION_METHODS,
     AGGREGATION_SIGNS,
+    EXCHANGE_LEVEL_1D2D,
     NA_TEXT,
 )
 
@@ -239,11 +239,20 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.method_combobox_text_changed
         )
 
-        # threshold column
+        # threshold attribute and value columns
         method = method_combobox.currentData()
         variable = variable_combobox.currentData()
         self.set_threshold_attribute_widget(row=current_row, variable=variable, method=method)
+        if method.has_threshold:
+            threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, COLUMN_THRESHOLD_ATTRIBUTE)
+            if isinstance(aggregation.threshold, str):
+                threshold_widget.setCurrentIndex(threshold_widget.findData(aggregation.threshold))
+            elif isinstance(aggregation.threshold, float):
+                threshold_widget.setCurrentIndex(threshold_widget.findText("Constant"))
         self.set_threshold_value_widget(row=current_row, method=method)
+        if isinstance(aggregation.threshold, float):
+            threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, COLUMN_THRESHOLD_VALUE)
+            threshold_widget.setValue(aggregation.threshold)
 
         # units column
         units_combobox = QtWidgets.QComboBox()
@@ -257,18 +266,6 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             ),
             method=method,
         )
-
-        # set the threshold _after_ the units widget is in place
-        if aggregation.threshold is not None:
-            if isinstance(aggregation.threshold, float):
-                threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, COLUMN_THRESHOLD_VALUE)
-                threshold_widget.setValue(aggregation.threshold)
-                threshold_widget.setCurrentIndex(0)  # contains the text "constant"
-            elif isinstance(aggregation.threshold, str):
-                threshold_widget = self.tableWidgetAggregations.cellWidget(current_row, COLUMN_THRESHOLD_ATTRIBUTE)
-                threshold_widget.setCurrentIndex(
-                    threshold_widget.findText(aggregation.threshold),
-                )
 
         # TODO: dit is nu lastig te setten obv aggregation, omdat die wel een attribuut multiplier heeft,
         #  maar niet een attribuut units. laat ik nu even voor wat het is
@@ -327,11 +324,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def threshold_attribute_changed(self):
         row = self.tableWidgetAggregations.currentRow()
-        method = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD).currentData()
-        item_data = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE).currentData()
-        logger.info(
-            f"Threshold attribute itemData: {item_data or 'None'}"
-        )
+        method_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD)
+        method = method_widget.currentData() if method_widget else None
         self.set_threshold_value_widget(row=row, method=method)
         self.update_demanded_aggregations()
 
@@ -384,12 +378,14 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def set_threshold_attribute_widget(self, row: int, variable: AggregationVariable, method: AggregationMethod):
         threshold_attribute_widget = QtWidgets.QComboBox()
-        if method and variable and self.gr:
-            threshold_attributes = get_threshold_attributes(gridadmin=self.gr, var_type=variable.var_type)
-            threshold_attribute_widget.addItem("constant")
-            threshold_attribute_widget.setItemData(0, None)
+        if method and method.has_threshold and variable and self.gr:
+            threshold_attributes = [(None, "constant")]
+            threshold_attributes.extend(get_threshold_attributes(gridadmin=self.gr, var_type=variable.var_type))
+            if variable.var_type in [VT_NODE, VT_NODE_HYBRID]:
+                threshold_attributes.append((EXCHANGE_LEVEL_1D2D, EXCHANGE_LEVEL_1D2D))
             for field_name, display_name in threshold_attributes:
                 idx = threshold_attribute_widget.count()
+                display_name = display_name.replace("_", " ").capitalize()
                 threshold_attribute_widget.addItem(display_name)
                 threshold_attribute_widget.setItemData(idx, field_name)
 
@@ -1043,27 +1039,54 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         for row in range(row_count):
             # Variable
             variable_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_VARIABLE)
+            if not variable_widget:
+                continue
             variable = variable_widget.itemData(variable_widget.currentIndex())
+            if not variable:
+                continue
 
             # Direction
-            direction_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION)
-            sign = direction_widget.itemData(direction_widget.currentIndex())
+            if variable.signed:
+                direction_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION)
+                if not direction_widget:
+                    continue
+                sign = direction_widget.itemData(direction_widget.currentIndex())
+                if not sign:
+                    continue
+            else:
+                sign = None
 
             # Method
             method_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD)
+            if not method_widget:
+                continue
             method = method_widget.itemData(method_widget.currentIndex())
+            if not method:
+                continue
 
             # Threshold
-            threshold_attribute = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE).currentData()
-            threshold = (
-                    threshold_attribute
-                    or
-                    self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_VALUE).value()
-            )
+            if method.has_threshold:
+                threshold_attribute_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE)
+                if not threshold_attribute_widget:
+                    continue
+                threshold_attribute = threshold_attribute_widget.currentData()
+                threshold = (
+                        threshold_attribute
+                        or
+                        self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_VALUE).value()
+                )
+                if not threshold:
+                    continue
+            else:
+                threshold = None
 
             # Multiplier (unit conversion)
             units_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_UNITS)
+            if not units_widget:
+                continue
             multiplier = units_widget.itemData(units_widget.currentIndex())
+            if not multiplier:
+                continue
 
             da = Aggregation(
                 variable=variable,
