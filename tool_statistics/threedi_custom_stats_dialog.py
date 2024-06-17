@@ -27,22 +27,33 @@ import sys
 from types import MethodType
 from typing import List
 
+from osgeo.gdal import GetDriverByName
+
 from qgis.PyQt import QtWidgets
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QPersistentModelIndex
 from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsProject, QgsCoordinateReferenceSystem
+from qgis.core import (
+    Qgis,
+    QgsApplication,
+    QgsCoordinateReferenceSystem,
+    QgsProject,
+    QgsRasterLayer,
+    QgsTask,
+)
 from qgis.gui import QgsFileWidget
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
-from threedi_results_analysis.utils.user_messages import pop_up_critical
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-from .presets import PRESETS, Preset, NO_PRESET
-from threedi_results_analysis.utils.threedi_result_aggregation.base import get_threshold_attributes
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer
+from threedi_results_analysis.utils.threedi_result_aggregation.base import (
+    aggregate_threedi_results,
+    get_threshold_attributes,
+)
 from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_classes import (
     Aggregation,
     AggregationMethod,
@@ -68,12 +79,15 @@ from threedi_results_analysis.utils.threedi_result_aggregation.constants import 
     EXCHANGE_LEVEL_1D2D,
     NA_TEXT,
 )
+from threedi_results_analysis.utils.user_messages import pop_up_critical
 
+from .presets import PRESETS, Preset, NO_PRESET
 from .style import (
     DEFAULT_STYLES,
     STYLES,
     Style
 )
+
 
 # This loads the .ui file so that PyQt can populate the plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(
@@ -122,12 +136,15 @@ def update_column_widget(
 
 
 class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, iface, model, parent=None):
+    def __init__(self, iface, model, owner, parent=None):
         """Constructor."""
         super(ThreeDiCustomStatsDialog, self).__init__(parent)
         self.setupUi(self)
         self.iface = iface
         self.model = model
+        self.owner = owner
+
+        self.tm = QgsApplication.taskManager()
 
         self.gr = None
         self.result_id = None
@@ -174,6 +191,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.dialogButtonBoxOKCancel.button(
             QtWidgets.QDialogButtonBox.Ok
         ).setEnabled(False)
+        self.dialogButtonBoxOKCancel.button(
+            QtWidgets.QDialogButtonBox.Ok
+        ).clicked.connect(self.run)
 
     def _populate_results(self) -> None:
         self.resultComboBox.clear()
@@ -876,7 +896,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
     def preset_combobox_changed(self, index):
         preset = self.comboBoxPreset.itemData(index)
 
-        # Check whether the currently selected model support the preset's aggregations
+        # Check whether the currently selected model supports the preset's aggregations
         if self.gr:
             containing_information = self._retrieve_model_info()
             for agg_var in preset.aggregations():
@@ -1007,11 +1027,11 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 containing_information.append(VR_INTERCEPTION)
             if self.gr.has_pumpstations:
                 containing_information.append(VR_PUMP)
-
+        logger.info(f"Model contains the following variable requirements: {containing_information}")
         return containing_information
 
     def _update_variable_list(self):
-        # Tterate over the rows and check the items in the variable combobox: disable variable when currently loaded
+        # Iterate over the rows and check the items in the variable combobox: disable variable when currently loaded
         # model is not supporting this variable
         containing_information = self._retrieve_model_info()
 
@@ -1026,7 +1046,10 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                     missing_info = [item for item in variable.requirements if item not in containing_information]
                     if missing_info:
                         if item_idx == variable_widget.currentIndex():
-                            pop_up_critical(f"The currently selected model does not contain all required info for aggregation '{variable.long_name}': {[VR_NAMES[item] for item in missing_info]}")
+                            pop_up_critical(
+                                f"The currently selected model does not contain all required info for aggregation "
+                                f"'{variable.long_name}': {[VR_NAMES[item] for item in missing_info]}"
+                            )
                         variable_widget.model().item(item_idx).setEnabled(False)
                     else:
                         variable_widget.model().item(item_idx).setEnabled(True)
@@ -1158,3 +1181,286 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.dialogButtonBoxOKCancel.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(valid)
 
         return valid
+
+    def run(self):
+        # 3Di results
+        result = self.model.get_result(self.result_id)
+
+        # Filtering parameters
+        start_time = self.doubleSpinBoxStartTime.value()
+        end_time = self.doubleSpinBoxEndTime.value()
+        bbox_qgs_rectangle = (
+            self.mExtentGroupBox.outputExtent()
+        )  # bbox is now a https://qgis.org/pyqgis/master/core/QgsRectangle.html#qgis.core.QgsRectangle
+
+        bbox = None
+        if bbox_qgs_rectangle is not None:
+            if not bbox_qgs_rectangle.isEmpty():
+                bbox = [
+                    bbox_qgs_rectangle.xMinimum(),
+                    bbox_qgs_rectangle.yMinimum(),
+                    bbox_qgs_rectangle.xMaximum(),
+                    bbox_qgs_rectangle.yMaximum(),
+                ]
+        only_manholes = self.onlyManholeCheckBox.isChecked()
+
+        # Resolution
+        resolution = self.doubleSpinBoxResolution.value()
+
+        # Outputs
+        output_flowlines = self.checkBoxFlowlines.isChecked()
+        output_nodes = self.checkBoxNodes.isChecked()
+        output_cells = self.checkBoxCells.isChecked()
+        output_pumps = self.checkBoxPumps.isChecked()
+        output_pumps_linestring = self.checkBoxPumpsLinestring.isChecked()
+        output_rasters = self.checkBoxRasters.isChecked()
+
+        # Resample point layer
+        resample_point_layer = self.checkBoxResample.isChecked()
+        if resample_point_layer:
+            interpolation_method = "linear"
+        else:
+            interpolation_method = None
+
+        aggregate_threedi_results_task = Aggregate3DiResults(
+            description="Aggregate 3Di Results",
+            parent=self,
+            layer_groups=self.owner.layer_groups,
+            result=result,
+            demanded_aggregations=self.demanded_aggregations,
+            bbox=bbox,
+            start_time=start_time,
+            end_time=end_time,
+            only_manholes=only_manholes,
+            interpolation_method=interpolation_method,
+            resample_point_layer=resample_point_layer,
+            resolution=resolution,
+            output_flowlines=output_flowlines,
+            output_cells=output_cells,
+            output_nodes=output_nodes,
+            output_pumps=output_pumps,
+            output_pumps_linestring=output_pumps_linestring,
+            output_rasters=output_rasters,
+            group_name=self.owner.group_name
+        )
+        self.tm.addTask(aggregate_threedi_results_task)
+
+
+class Aggregate3DiResults(QgsTask):
+    def __init__(
+        self,
+        description: str,
+        parent: ThreeDiCustomStatsDialog,
+        layer_groups,
+        result: ThreeDiResultItem,
+        demanded_aggregations: List,
+        bbox,
+        start_time: int,
+        end_time: int,
+        only_manholes: bool,
+        interpolation_method,
+        resample_point_layer: bool,
+        resolution,
+        output_flowlines: bool,
+        output_cells: bool,
+        output_nodes: bool,
+        output_pumps: bool,
+        output_pumps_linestring: bool,
+        output_rasters: bool,
+        group_name: str,
+    ):
+        super().__init__(description, QgsTask.CanCancel)
+        self.exception = None
+        self.parent = parent
+        self.parent.setEnabled(False)
+        self.result = result
+        self.layer_groups = layer_groups
+        self.demanded_aggregations = demanded_aggregations
+        self.bbox = bbox
+        self.start_time = start_time
+        self.end_time = end_time
+        self.only_manholes = only_manholes
+        self.interpolation_method = interpolation_method
+        self.resample_point_layer = resample_point_layer
+        self.resolution = resolution
+        self.output_flowlines = output_flowlines
+        self.output_cells = output_cells
+        self.output_nodes = output_nodes
+        self.output_pumps = output_pumps
+        self.output_pumps_linestring = output_pumps_linestring
+        self.output_rasters = output_rasters
+        self.group_name = group_name
+
+        self.parent.iface.messageBar().pushMessage(
+            "3Di Statistics",
+            "Started aggregating 3Di results",
+            level=Qgis.Info,
+            duration=3,
+        )
+        self.parent.iface.mainWindow().repaint()  # to show the message before the task starts
+
+    def run(self):
+        grid_admin = str(self.result.parent().path.with_suffix('.h5'))
+        grid_admin_gpkg = str(self.result.parent().path.with_suffix('.gpkg'))
+        results_3di = str(self.result.path)
+
+        try:
+            self.ogr_ds, self.mem_rasts = aggregate_threedi_results(
+                gridadmin=grid_admin,
+                gridadmin_gpkg=grid_admin_gpkg,
+                results_3di=results_3di,
+                demanded_aggregations=self.demanded_aggregations,
+                bbox=self.bbox,
+                start_time=self.start_time,
+                end_time=self.end_time,
+                only_manholes=self.only_manholes,
+                interpolation_method=self.interpolation_method,
+                resample_point_layer=self.resample_point_layer,
+                resolution=self.resolution,
+                output_flowlines=self.output_flowlines,
+                output_cells=self.output_cells,
+                output_nodes=self.output_nodes,
+                output_pumps=self.output_pumps,
+                output_pumps_linestring=self.output_pumps_linestring,
+                output_rasters=self.output_rasters,
+            )
+
+            return True
+
+        except Exception as e:
+            self.exception = e
+
+        return False
+
+    def _get_or_create_result_group(self, result: ThreeDiResultItem, group_name: str):
+        # We'll place the result layers in a dedicated result group
+        grid_item = result.parent()
+        assert grid_item
+        tool_group = grid_item.layer_group.findGroup(group_name)
+        if not tool_group:
+            tool_group = grid_item.layer_group.insertGroup(0, group_name)
+            tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
+
+        # Add result group
+        result_group = tool_group.findGroup(result.text())
+        if not result_group:
+            result_group = tool_group.addGroup(result.text())
+            self.layer_groups[result.id] = result_group
+            # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
+            # infinite signal loop because the model only emits the result_changed when the text has actually
+            # changed.
+            result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+
+        return result_group
+
+    def _group_removed(self, n, idxFrom, idxTo):
+        for result_id in list(self.layer_groups):
+            group = self.layer_groups[result_id]
+            for i in range(idxFrom, idxTo+1):
+                if n.children()[i] is group:
+                    del self.layer_groups[result_id]
+
+    def finished(self, result):
+        if self.exception is not None:
+            self.parent.setEnabled(True)
+            self.parent.repaint()
+            raise self.exception
+        if result:
+            # Add layers to layer tree
+            # They are added in order so the raster is below the polygon is below the line is below the point layer
+
+            # raster layer
+            if len(self.mem_rasts) > 0:
+                for rastname, rast in self.mem_rasts.items():
+                    raster_output_dir = (
+                        self.parent.mQgsFileWidgetRasterFolder.filePath()
+                    )
+                    raster_output_fn = os.path.join(
+                        raster_output_dir, rastname + ".tif"
+                    )
+                    drv = GetDriverByName("GTiff")
+                    drv.CreateCopy(
+                        utf8_path=raster_output_fn, src=rast
+                    )
+                    layer_name = self.parent.lineEditOutputRasterLayer.text() + f": {rastname}"
+                    raster_layer = QgsRasterLayer(
+                        raster_output_fn,
+                        layer_name or f"Aggregation results: raster {rastname}")
+                    result_group = self._get_or_create_result_group(self.result, self.group_name)
+                    QgsProject.instance().addMapLayer(raster_layer, addToLegend=False)
+                    result_group.insertLayer(0, raster_layer)
+
+            # vector layers
+            for output_layer_name, layer_name_widget, style_type_widget in [
+                (
+                        "cell",
+                        self.parent.lineEditOutputCellLayer,
+                        self.parent.comboBoxCellsStyleType
+                ),
+                (
+                        "flowline",
+                        self.parent.lineEditOutputFlowLayer,
+                        self.parent.comboBoxFlowlinesStyleType
+                ),
+                (
+                        "pump",
+                        self.parent.lineEditOutputPumpsLayer,
+                        self.parent.comboBoxPumpsStyleType
+                ),
+                (
+                        "pump_linestring",
+                        self.parent.lineEditOutputPumpsLinestringLayer,
+                        self.parent.comboBoxPumpsLinestringStyleType
+                ),
+                (
+                        "node",
+                        self.parent.lineEditOutputNodeLayer,
+                        self.parent.comboBoxNodesStyleType
+                ),
+                (
+                        "node_resampled",
+                        self.parent.lineEditOutputNodeLayer,
+                        self.parent.comboBoxNodesStyleType
+                ),
+            ]:
+                ogr_lyr = self.ogr_ds.GetLayerByName(output_layer_name)
+                if ogr_lyr is not None:
+                    if ogr_lyr.GetFeatureCount() > 0:
+                        layer_name = layer_name_widget.text()
+                        qgs_lyr = as_qgis_memory_layer(
+                            ogr_lyr,
+                            layer_name or f"Aggregation results: {output_layer_name}"
+                        )
+                        result_group = self._get_or_create_result_group(self.result, self.group_name)
+                        QgsProject.instance().addMapLayer(qgs_lyr, addToLegend=False)
+                        result_group.insertLayer(0, qgs_lyr)
+                        style = (style_type_widget.currentData())
+                        style_kwargs = self.parent.get_styling_parameters(output_type=style.output_type)
+                        style.apply(qgis_layer=qgs_lyr, style_kwargs=style_kwargs)
+
+            self.parent.setEnabled(True)
+            self.parent.iface.messageBar().pushMessage(
+                "3Di Result aggregation",
+                "Finished custom aggregation",
+                level=Qgis.Success,
+                duration=3,
+            )
+
+        else:
+            self.parent.setEnabled(True)
+            self.parent.iface.messageBar().pushMessage(
+                "3Di Result aggregation",
+                "Aggregating 3Di results returned no results",
+                level=Qgis.Warning,
+                duration=3,
+            )
+
+    def cancel(self):
+        self.parent.iface.messageBar().pushMessage(
+            "3Di Result aggregation",
+            "Pre-processing simulation results cancelled by user",
+            level=Qgis.Info,
+            duration=3,
+        )
+        super().cancel()
+
