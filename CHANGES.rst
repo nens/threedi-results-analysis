@@ -6,7 +6,7 @@
 
 - Add pump support to Result Aggregation tool
 - Add preset "Total pumped volume" to Result Aggregation tool
-
+- Cross-sectional discharge algorithm: allow cross-section lines to have different crs than 3Di results, automatically reproject
 
 3.8.1 (2024-06-05)
 ------------------

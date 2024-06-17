@@ -417,11 +417,9 @@ def time_aggregate(
     aggregation: Aggregation,
     cfl_strictness=1,
     gr: Union[GridH5Admin, GridH5ResultAdmin] = None,
-):
+) -> np.ndarray:
     """
     Aggregate the variable with method using threshold within time frame
-
-    :rtype: np.ndarray
 
     This method implicitly assumes that the discharge at a specific timestamp remains the same until the next
     timestamp, i.e. if there are timestamps at every 300 s, and the user inputs '450' as end_time, the discharge at
