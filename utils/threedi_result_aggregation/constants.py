@@ -14,6 +14,7 @@ from .aggregation_classes import (
     VR_INTERFLOW,
     VR_SIMPLE_INFILTRATION,
     VR_INTERCEPTION,
+    VR_PUMP,
     VT_NODE,
     VT_NODE_HYBRID,
     VT_FLOW,
@@ -192,7 +193,8 @@ agg_var_list = [
         'var_type': VT_PUMP,
         'units': {('m3', 's'): (1, 1), ('m3', 'h'): (1, 3600), ('L', 's'): (1000, 1)},
         'can_resample': False,
-        'pre_resample_method': PRM_NONE
+        'pre_resample_method': PRM_NONE,
+        "requirements": [VR_PUMP]
     },
     # Node variables
     {

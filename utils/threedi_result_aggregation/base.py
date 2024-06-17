@@ -355,7 +355,8 @@ def aggregate_prepared_timeseries(
         )
     elif aggregation.method.short_name == "above_thres":
         raw_values_above_threshold = np.greater(
-            timeseries, threshold_values[np.newaxis]
+            timeseries,
+            threshold_values if isinstance(threshold_values, float) else threshold_values[np.newaxis]
         )
         time_above_threshold = np.sum(
             np.multiply(raw_values_above_threshold.T, tintervals).T, axis=0
@@ -363,16 +364,21 @@ def aggregate_prepared_timeseries(
         total_time = np.sum(tintervals)
         result = np.multiply(np.divide(time_above_threshold, total_time), 100.0)
     elif aggregation.method.short_name == "below_thres":
-        raw_values_below_threshold = np.less(timeseries, threshold_values[np.newaxis])
+        raw_values_below_threshold = np.less(
+            timeseries,
+            threshold_values if isinstance(threshold_values, float) else threshold_values[np.newaxis]
+        )
         time_below_threshold = np.sum(
             np.multiply(raw_values_below_threshold.T, tintervals).T, axis=0
         )
         total_time = np.sum(tintervals)
         result = np.multiply(np.divide(time_below_threshold, total_time), 100.0)
     elif aggregation.method.short_name == "time_above_threshold":
-
         timeseries[np.isnan(timeseries)] = -np.inf
-        raw_values_above_threshold = np.greater(timeseries, threshold_values[np.newaxis])
+        raw_values_above_threshold = np.greater(
+            timeseries,
+            threshold_values if isinstance(threshold_values, float) else threshold_values[np.newaxis]
+        )
         result = (tintervals[:, np.newaxis] * raw_values_above_threshold).sum(0)
     else:
         raise ValueError(
@@ -461,7 +467,7 @@ def hybrid_time_aggregate(
     start_time: float,
     end_time: float,
     aggregation: Aggregation,
-    cfl_strictness: float = 1, # to make signature interchangeable with time_aggregate
+    cfl_strictness: float = 1,  # to make signature interchangeable with time_aggregate
     gr: Union[GridH5Admin, GridH5ResultAdmin] = None,
 ):
     """
