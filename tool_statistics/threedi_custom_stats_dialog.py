@@ -1463,4 +1463,3 @@ class Aggregate3DiResults(QgsTask):
             duration=3,
         )
         super().cancel()
-
