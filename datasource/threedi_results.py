@@ -8,6 +8,7 @@ from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
 
 import glob
+import h5py
 import logging
 import numpy as np
 import os
@@ -106,9 +107,10 @@ class ThreediResult():
         for substance_id in substances:
             substance = ga.get_model_instance_by_field_name(substance_id)
             if substance:
+                units = substance.units
                 var = {
                     "name": substance.name,
-                    "unit": substance.units or "",
+                    "unit": "-" if not units or isinstance(units, h5py.Empty) else units,
                     "parameters": substance_id,
                 }
                 available_vars.append(var)
