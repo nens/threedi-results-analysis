@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 
+from qgis.core import QgsFeatureRequest
 from qgis.core import QgsMarkerSymbol
 from qgis.core import QgsProperty
 from qgis.core import QgsSymbolLayer
@@ -106,6 +107,15 @@ def style_animation_flowline_current(
     renderer.calculateLabelPrecision(updateRanges=False)
     renderer.updateRangeLabel(rangeIndex=0, label=f"< {class_bounds[1]}")
     renderer.updateRangeLabel(rangeIndex=nr_classes-1, label=f"> {class_bounds[-2]}")
+
+    # Rendering order
+    order_by_clause = QgsFeatureRequest.OrderByClause(
+        expression=class_attribute_str,
+        ascending=True
+    )
+    order_by = QgsFeatureRequest.OrderBy([order_by_clause])
+    renderer.setOrderBy(order_by)
+    renderer.setOrderByEnabled(True)
 
     # Symbol size
     renderer.setSymbolSizes(max_symbol_size / 3, max_symbol_size)
