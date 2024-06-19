@@ -45,7 +45,7 @@ def strip_agg_options(param: str) -> str:
 
 
 @lru_cache(maxsize=None)
-def threedi_result_percentiles(
+def threedi_result_legend_class_bounds(
     threedi_result: ThreediResult,
     groundwater: bool,
     variable: str,
@@ -55,7 +55,7 @@ def threedi_result_percentiles(
     upper_cutoff_percentile: float,
     relative_to_t0: bool,
     simple=False,
-    method: str = "percentile",
+    method: str = "pretty",
     nr_classes: int = styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES
 ) -> List[float]:
     """
@@ -351,11 +351,11 @@ class MapAnimator(QGroupBox):
             method="pretty",
         )
         with timing('percentiles1'):
-            surfacewater_bounds = threedi_result_percentiles(
+            surfacewater_bounds = threedi_result_legend_class_bounds(
                 groundwater=False, **kwargs,
             )
         with timing('percentiles2'):
-            groundwater_bounds = threedi_result_percentiles(
+            groundwater_bounds = threedi_result_legend_class_bounds(
                 groundwater=True, **kwargs,
             )
         return surfacewater_bounds, groundwater_bounds
@@ -372,11 +372,11 @@ class MapAnimator(QGroupBox):
             method="pretty",
         )
         with timing('percentiles3'):
-            surfacewater_bounds = threedi_result_percentiles(
+            surfacewater_bounds = threedi_result_legend_class_bounds(
                 groundwater=False, **kwargs,
             )
         with timing('percentiles4'):
-            groundwater_bounds = threedi_result_percentiles(
+            groundwater_bounds = threedi_result_legend_class_bounds(
                 groundwater=True, **kwargs,
             )
         return surfacewater_bounds, groundwater_bounds
