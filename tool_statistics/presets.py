@@ -2,8 +2,6 @@ from threedi_results_analysis.utils.threedi_result_aggregation.base import Aggre
 from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
     AGGREGATION_VARIABLES,
     AGGREGATION_METHODS,
-    THRESHOLD_DRAIN_LEVEL,
-    THRESHOLD_EXCHANGE_LEVEL,
 )
 from .style import (
     Style,
@@ -282,7 +280,7 @@ water_on_street_aggregations_0d1d = [
     Aggregation(
         variable=AGGREGATION_VARIABLES.get_by_short_name("s1"),
         method=AGGREGATION_METHODS.get_by_short_name("time_above_threshold"),
-        threshold=THRESHOLD_DRAIN_LEVEL,
+        threshold="drain_level",
     ),
 ]
 
@@ -290,7 +288,7 @@ water_on_street_aggregations_1d2d = [
     Aggregation(
         variable=AGGREGATION_VARIABLES.get_by_short_name("s1"),
         method=AGGREGATION_METHODS.get_by_short_name("time_above_threshold"),
-        threshold=THRESHOLD_EXCHANGE_LEVEL,
+        threshold="exchange_level_1d2d",
     ),
 ]
 
@@ -323,7 +321,7 @@ WATER_ON_STREET_DURATION_1D2D_PRESET = Preset(
                 "connection to the 2D domain, so the 'water on street duration' will be 0 for all manholes.",
     aggregations=water_on_street_aggregations_1d2d,
     nodes_style=STYLE_WATER_ON_STREET_DURATION_NODE,
-    nodes_style_param_values={"column": "s1_time_above_threshold_exchange_level"},
+    nodes_style_param_values={"column": "s1_time_above_threshold_exchange_level_1d2d"},
     nodes_layer_name="Manhole: Water on street duration (1D2D)",
     only_manholes=True,
 )

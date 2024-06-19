@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 
 # Pre resample methods
 PRM_NONE = 0  # no processing before resampling (e.g. for water levels, velocities); divide by 1
@@ -115,7 +115,6 @@ class AggregationMethod:
         integrates_over_time: bool = False,
         is_percentage: bool = False,
         is_duration: bool = False,
-        threshold_sources=None
     ):
         self.short_name = short_name
         self.long_name = long_name
@@ -124,11 +123,6 @@ class AggregationMethod:
         self.is_percentage = is_percentage
         self.is_duration = is_duration
         self.var_type = None
-
-        if threshold_sources is not None:
-            self.threshold_sources = threshold_sources
-        else:
-            self.threshold_sources = []
 
 
 NA_TEXT = "[Not applicable]"
@@ -141,7 +135,7 @@ class Aggregation:
         variable: AggregationVariable,
         method: Optional[AggregationMethod] = None,
         sign: Optional[AggregationSign] = AGGREGATION_SIGN_NA,
-        threshold=None,
+        threshold: Optional[Union[str, float]] = None,
         multiplier: float = 1,
     ):
         self.variable = variable
@@ -154,15 +148,10 @@ class Aggregation:
         column_name_list = [self.variable.short_name]
         if self.variable.signed:
             column_name_list.append(self.sign.short_name)
-        try:
-            column_name_list.append(self.method.short_name)
-            if self.method.short_name in ["above_thres", "below_thres"]:
-                thres_parsed = str(self.threshold).replace(".", "_")
-                column_name_list.append(thres_parsed)
-            elif self.method.short_name == "time_above_threshold":
-                column_name_list.extend(self.threshold.split())
-        except AttributeError:  # allow aggregation to have no method
-            pass
+        column_name_list.append(self.method.short_name)
+        if self.method.has_threshold:
+            threshold_parsed = str(self.threshold).replace(".", "_")
+            column_name_list.append(threshold_parsed)
         return "_".join(column_name_list).lower()
 
     def is_valid(self) -> bool:
