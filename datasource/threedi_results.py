@@ -141,6 +141,13 @@ class ThreediResult():
         """
         return self.result_admin.nodes.dt_timestamps  # after bug fix
 
+    def get_timeseries_values(self, ts, variable):
+        if variable in [v["parameters"] for v in self.available_water_quality_vars]:
+            # use "concentration" field for water quality variables
+            return ts.get_filtered_field_value("concentration")
+        else:
+            return ts.get_filtered_field_value(variable)
+
     def get_timestamps(self, parameter=None):
         """Return an array of timestamps for the given parameter
 
@@ -221,12 +228,7 @@ class ThreediResult():
         elif content_pk:
             filtered_result = filtered_result.filter(content_pk=content_pk)
 
-        if nc_variable in [v["parameters"] for v in self.available_water_quality_vars]:
-            # use "concentration" field for water quality variables
-            values = filtered_result.get_filtered_field_value("concentration")
-        else:
-            values = filtered_result.get_filtered_field_value(nc_variable)
-
+        values = self.get_timeseries_values(filtered_result, nc_variable)
         if fill_value is not None:
             values[values == NO_DATA_VALUE] = fill_value
 
@@ -292,7 +294,7 @@ class ThreediResult():
             ga = self.get_gridadmin(variable)
             model_instance = ga.get_model_instance_by_field_name(variable)
             unfiltered_timeseries = model_instance.timeseries(indexes=slice(None))
-            values = unfiltered_timeseries.get_filtered_field_value(variable)
+            values = self.get_timeseries_values(unfiltered_timeseries, variable)
             logger.debug(
                 "Caching additional {:.3f} MB of data".format(
                     values.nbytes / 1000 / 1000

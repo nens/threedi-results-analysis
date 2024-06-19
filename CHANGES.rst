@@ -4,7 +4,7 @@
 3.8.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Visualize substance concentrations on the map (#1013)
 
 
 3.8.1 (2024-06-05)

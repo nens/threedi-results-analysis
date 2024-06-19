@@ -96,6 +96,11 @@ def parse_aggvarname(aggvarname):
     return varname, agg_method
 
 
+def is_substance_variable(variable: str) -> bool:
+    """Check if a variable is a substance variable."""
+    return variable.startswith("substance")
+
+
 def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars):
     """Dynamically create the parameter config
 
