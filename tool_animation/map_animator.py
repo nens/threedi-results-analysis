@@ -16,7 +16,7 @@ from threedi_results_analysis.datasource.result_constants import AGGREGATION_OPT
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
-from threedi_results_analysis.utils.utils import generate_parameter_config, is_substance_variable
+from threedi_results_analysis.utils.utils import generate_parameter_config, is_substance_variable, pretty
 from threedi_results_analysis.utils.timing import timing
 from typing import List
 
@@ -51,8 +51,11 @@ def threedi_result_percentiles(
     variable: str,
     absolute: bool,
     lower_threshold: float,
+    lower_cutoff_percentile: float,
+    upper_cutoff_percentile: float,
     relative_to_t0: bool,
     simple=False,
+    method: str = "percentile"
 ) -> List[float]:
     """
     Calculate percentile values given variable in a 3Di results netcdf
@@ -61,16 +64,16 @@ def threedi_result_percentiles(
     nodatavalues in the water level timeseries (i.e., dry nodes)
     will be replaced by the node's bottom level (z-coordinate)
 
-
     :param gr: GridH5ResultAdmin
     :param groundwater: calculate percentiles for groundwater (True) or anything but groundwater (False)
     :param variable: one of threedi_results_analysis.datasource.result_constants.SUBGRID_MAP_VARIABLES,
-    with the exception of q_pump
+      except q_pump
     :param percentile: Percentile or sequence of class_bounds to compute, which must be between 0 and 100 inclusive.
     :param absolute: calculate percentiles on absolute values
     :param lower_threshold: ignore values below this threshold
     :param relative_to_t0: calculate percentiles on difference w/ initial values (applied before absolute)
     :param nodatavalue: ignore these values
+    :param method: 'pretty' (pretty breaks) or 'percentile' (equal count)
     """
     if groundwater and not threedi_result.result_admin.has_groundwater:
         return MapAnimator.CLASS_BOUNDS_EMPTY
@@ -114,6 +117,7 @@ def threedi_result_percentiles(
         values = ts.get_filtered_field_value(variable)
     values[values == NO_DATA_VALUE] = np.nan
 
+    # TODO: this should move inside "if relative to t0" once the styling supports "all other values"
     if variable == WATERLEVEL.name:
         # replace NaN with dmax a.k.a. bottom_level
         mask = np.isnan(values)
@@ -129,13 +133,46 @@ def threedi_result_percentiles(
     if np.isnan(values_above_threshold).all():
         return MapAnimator.CLASS_BOUNDS_EMPTY
 
-    result = np.nanpercentile(
-        values_above_threshold, MapAnimator.CLASS_BOUNDS_PERCENTILES
-    ).tolist()
-    result[-1] = np.nanmax(values).item()
+    if lower_cutoff_percentile is not None:
+        lower_cutoff_value = np.nanpercentile(values_above_threshold, lower_cutoff_percentile)
+    elif upper_cutoff_percentile is not None:
+        lower_cutoff_value = np.nanmin(values_above_threshold)
 
-    if lower_threshold == 0:
-        result[0] = lower_threshold
+    if upper_cutoff_percentile is not None:
+        upper_cutoff_value = np.nanpercentile(values_above_threshold, upper_cutoff_percentile)
+    elif lower_cutoff_percentile is not None:
+        upper_cutoff_value = np.nanmax(values_above_threshold)
+
+    if upper_cutoff_percentile is not None or lower_cutoff_percentile is not None:
+        values_cutoff = values_above_threshold[
+            np.logical_and(
+                values_above_threshold > lower_cutoff_value,
+                values_above_threshold < upper_cutoff_value
+            )
+        ]
+
+    if method == "pretty":
+        try:
+            result = pretty(values_cutoff, n=styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES)
+        except ValueError:  # All values are the same
+            result = MapAnimator.CLASS_BOUNDS_EMPTY
+    elif method == "percentile":
+        result = np.nanpercentile(
+            values_cutoff, MapAnimator.CLASS_BOUNDS_PERCENTILES
+        ).tolist()
+    else:
+        raise ValueError("'method' must be one of 'pretty', 'percentile'")
+
+    real_min = 0 if absolute else np.nanmin(values).item()
+    real_max = np.nanmax(values).item()
+    if result[0] == real_min:
+        if lower_threshold > real_min:
+            result = np.insert(result, 1, lower_threshold)  # create a class for all values that can be regarded as 0
+    else:
+        result = np.insert(result, 0, real_min)
+    if result[-1] != real_max:
+        result = np.insert(result, len(result), real_max)
+
     return result
 
 
@@ -299,14 +336,17 @@ class MapAnimator(QGroupBox):
         ):
             lower_threshold = float("-Inf")
         else:
-            lower_threshold = 0
+            lower_threshold = styler.DEFAULT_LOWER_THRESHOLD
 
         kwargs = dict(
             threedi_result=threedi_result,
             variable=node_variable,
             absolute=False,
             lower_threshold=lower_threshold,
+            lower_cutoff_percentile=2,
+            upper_cutoff_percentile=98,
             relative_to_t0=self.difference_checkbox.isChecked(),
+            method="pretty",
         )
         with timing('percentiles1'):
             surfacewater_bounds = threedi_result_percentiles(
@@ -323,8 +363,11 @@ class MapAnimator(QGroupBox):
             threedi_result=threedi_result,
             variable=line_variable,
             absolute=True,
-            lower_threshold=float(0),
+            lower_threshold=styler.DEFAULT_LOWER_THRESHOLD,
+            lower_cutoff_percentile=2,
+            upper_cutoff_percentile=98,
             relative_to_t0=self.difference_checkbox.isChecked(),
+            method="pretty",
         )
         with timing('percentiles3'):
             surfacewater_bounds = threedi_result_percentiles(

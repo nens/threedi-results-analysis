@@ -19,9 +19,12 @@ from threedi_results_analysis.utils.color import color_ramp_from_data
 STYLES_ROOT = Path(__file__).parent / "layer_styles"
 ANIMATION_LAYERS_NR_LEGEND_CLASSES = 24
 assert ANIMATION_LAYERS_NR_LEGEND_CLASSES % 2 == 0
+DEFAULT_LOWER_THRESHOLD = 1e-6
 
 logger = logging.getLogger(__name__)
 
+# TODO: Set symbol drawing order (highest values on top)
+# TODO: Label lowest class as "< upper_bound" and highest kclass as "> lower_bound"
 
 def style_animation_flowline_current(
     lyr: QgsVectorLayer, class_bounds: List[float], variable, field_postfix=""
