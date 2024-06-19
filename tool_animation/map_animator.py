@@ -55,7 +55,8 @@ def threedi_result_percentiles(
     upper_cutoff_percentile: float,
     relative_to_t0: bool,
     simple=False,
-    method: str = "percentile"
+    method: str = "percentile",
+    nr_classes: int = styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES
 ) -> List[float]:
     """
     Calculate percentile values given variable in a 3Di results netcdf
@@ -75,8 +76,14 @@ def threedi_result_percentiles(
     :param nodatavalue: ignore these values
     :param method: 'pretty' (pretty breaks) or 'percentile' (equal count)
     """
+
+    class_bounds_empty = [0] * nr_classes
+    class_bounds_percentiles = np.linspace(
+        0, 100, nr_classes, dtype=int
+    ).tolist()
+
     if groundwater and not threedi_result.result_admin.has_groundwater:
-        return MapAnimator.CLASS_BOUNDS_EMPTY
+        return class_bounds_empty
 
     stripped_variable = strip_agg_options(variable)
     gr = threedi_result.get_gridadmin(variable)
@@ -131,7 +138,7 @@ def threedi_result_percentiles(
 
     values_above_threshold = values[values > lower_threshold]
     if np.isnan(values_above_threshold).all():
-        return MapAnimator.CLASS_BOUNDS_EMPTY
+        return class_bounds_empty
 
     if lower_cutoff_percentile is not None:
         lower_cutoff_value = np.nanpercentile(values_above_threshold, lower_cutoff_percentile)
@@ -153,12 +160,12 @@ def threedi_result_percentiles(
 
     if method == "pretty":
         try:
-            result = pretty(values_cutoff, n=styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES)
+            result = pretty(values_cutoff, n=nr_classes)
         except ValueError:  # All values are the same
-            result = MapAnimator.CLASS_BOUNDS_EMPTY
+            result = class_bounds_empty
     elif method == "percentile":
         result = np.nanpercentile(
-            values_cutoff, MapAnimator.CLASS_BOUNDS_PERCENTILES
+            values_cutoff, class_bounds_percentiles
         ).tolist()
     else:
         raise ValueError("'method' must be one of 'pretty', 'percentile'")
@@ -178,11 +185,6 @@ def threedi_result_percentiles(
 
 class MapAnimator(QGroupBox):
     """ """
-
-    CLASS_BOUNDS_EMPTY = [0] * (styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES)
-    CLASS_BOUNDS_PERCENTILES = np.linspace(
-        0, 100, styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES, dtype=int
-    ).tolist()
 
     def __init__(self, parent, model):
 
