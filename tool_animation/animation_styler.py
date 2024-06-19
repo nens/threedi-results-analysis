@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 # TODO: Set symbol drawing order (highest values on top)
 # TODO: Label lowest class as "< upper_bound" and highest kclass as "> lower_bound"
 
+
 def style_animation_flowline_current(
     lyr: QgsVectorLayer, class_bounds: List[float], variable, field_postfix=""
 ):
@@ -58,7 +59,7 @@ def style_animation_flowline_current(
         rotation_expression = f"""(
     CASE WHEN "result{field_postfix}" < 0 THEN 180 ELSE 0 END
     +
-    CASE WHEN ("line_type" >= 51 AND "line_type" <= 58) THEN 180 ELSE 0 END
+    CASE WHEN ("line_type" >= 51 AND "line_type" <= 54) THEN 180 ELSE 0 END
     + degrees(
         azimuth(
             start_point(
@@ -101,6 +102,11 @@ def style_animation_flowline_current(
         key = renderer.legendKeyForValue(class_middle)
         renderer.setLegendSymbolItem(key, symbol)
 
+    # Labels
+    renderer.calculateLabelPrecision(updateRanges=False)
+    renderer.updateRangeLabel(rangeIndex=0, label=f"< {class_bounds[1]}")
+    renderer.updateRangeLabel(rangeIndex=nr_classes-1, label=f"> {class_bounds[-2]}")
+
     # Symbol size
     renderer.setSymbolSizes(max_symbol_size / 3, max_symbol_size)
 
@@ -109,7 +115,7 @@ def style_animation_flowline_current(
 
 
 def style_animation_node_current(
-    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool, field_postfix=""
+    lyr: QgsVectorLayer, class_bounds: List[float], variable: str, cells: bool, field_postfix=""
 ):
     """Applies styling to Animation Toolbar node layer in 'current' mode"""
 
@@ -125,18 +131,23 @@ def style_animation_node_current(
     # Set classes
     if variable == "s1":
         class_attribute_str = f'coalesce("result{field_postfix}", bottom_level)'
-        percentiles[0] = float(
+        class_bounds[0] = float(
             -9999
         )  # to make nodes / cells also visible when dry and bottom_level < percentile[0]
     else:
         class_attribute_str = f'"result{field_postfix}"'
     renderer.setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
-    nr_classes = len(percentiles) - 1
+    nr_classes = len(class_bounds) - 1
     for i in range(nr_classes):
-        renderer.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
+        renderer.addClassLowerUpper(lower=class_bounds[i], upper=class_bounds[i + 1])
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)
     renderer.updateColorRamp(color_ramp)
+
+    # Labels
+    renderer.calculateLabelPrecision(updateRanges=False)
+    renderer.updateRangeLabel(rangeIndex=0, label=f"< {class_bounds[1]}")
+    renderer.updateRangeLabel(rangeIndex=nr_classes-1, label=f"> {class_bounds[-2]}")
 
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
@@ -192,6 +203,11 @@ def style_animation_node_difference(
 
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_CURL)
     renderer.updateColorRamp(color_ramp)
+
+    # Labels
+    renderer.calculateLabelPrecision(updateRanges=False)
+    renderer.updateRangeLabel(rangeIndex=0, label=f"< {class_bounds[1]}")
+    renderer.updateRangeLabel(rangeIndex=len(class_bounds) - 2, label=f"> {class_bounds[-2]}")
 
     lyr.triggerRepaint()
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
