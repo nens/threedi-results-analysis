@@ -5,6 +5,7 @@
 ------------------
 
 - Support sorting of simulation results by clicking table headers (#1010)
+- Visualize substance concentrations on the map (#1013)
 
 
 3.8.1 (2024-06-05)
