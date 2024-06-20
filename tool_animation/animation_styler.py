@@ -159,6 +159,16 @@ def style_animation_node_current(
     renderer.updateRangeLabel(rangeIndex=0, label=f"< {class_bounds[1]}")
     renderer.updateRangeLabel(rangeIndex=nr_classes-1, label=f"> {class_bounds[-2]}")
 
+    # Rendering order
+    if not cells:  # rendering order is irrelevant for cells, because they dont overlap
+        order_by_clause = QgsFeatureRequest.OrderByClause(
+            expression=class_attribute_str,
+            ascending=True
+        )
+        order_by = QgsFeatureRequest.OrderBy([order_by_clause])
+        renderer.setOrderBy(order_by)
+        renderer.setOrderByEnabled(True)
+
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
 
