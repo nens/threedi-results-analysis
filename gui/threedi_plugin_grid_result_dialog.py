@@ -5,7 +5,7 @@ import os
 
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from qgis.PyQt import QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QSortFilterProxyModel
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
@@ -52,11 +52,18 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.tabWidget.currentChanged.connect(self._tabChanged)
         self.model = QStandardItemModel()
-        self.tableView.setModel(self.model)
+        self.current_sort_order = Qt.AscendingOrder
+        self.proxy_model = QSortFilterProxyModel(self)
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setSortRole(Qt.DisplayRole)
+        self.tableView.setModel(self.proxy_model)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.setSelectionMode(QAbstractItemView.SingleSelection)
         self.header_labels = ["Schematisation", "Revision", "Simulation"]
         self.tableView.horizontalHeader().setStretchLastSection(True)
+        self.tableView.horizontalHeader().setSortIndicatorShown(True)
+        self.tableView.horizontalHeader().setSectionsClickable(True)
+        self.tableView.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
         self.tableView.clicked.connect(self._item_selected)
         self.tableView.doubleClicked.connect(self._item_double_clicked)
 
@@ -64,6 +71,14 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.loadGridPushButton.clicked.connect(self._add_grid_from_table)
 
         self.refresh()
+
+    @pyqtSlot(int)
+    def on_header_clicked(self, logicalIndex):
+        if self.proxy_model.sortColumn() == logicalIndex:
+            self.current_sort_order = Qt.DescendingOrder if self.current_sort_order == Qt.AscendingOrder else Qt.AscendingOrder
+        else:
+            self.current_sort_order = Qt.AscendingOrder
+        self.proxy_model.sort(logicalIndex, self.current_sort_order)
 
     @pyqtSlot(str)
     def _select_grid(self, input_gridadmin_h5_or_gpkg: str) -> None:
@@ -231,8 +246,9 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     revision_item.setData(local_revision.grid_dir)
                     rows.append([schema_item, revision_item])
 
-        # Sort table rows by revision number using the DisplayRole
-        rows.sort(key=lambda x: x[1].data(Qt.DisplayRole))
+        # Sort table rows by schematisation name and
+        # then by revision number using the DisplayRole
+        rows.sort(key=lambda x: (x[0].text(), x[1].data(Qt.DisplayRole)))
         for row in rows:
             self.model.appendRow(row)
 
