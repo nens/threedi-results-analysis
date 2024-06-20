@@ -5,7 +5,7 @@
 ------------------
 
 - Visualize substance concentrations on the map (#1013)
-
+- Improvements in styling of results visualised on the map (#1021)
 
 3.8.1 (2024-06-05)
 ------------------
