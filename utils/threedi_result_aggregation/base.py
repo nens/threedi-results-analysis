@@ -327,10 +327,10 @@ def aggregate_prepared_timeseries(
     """Return an array with one value for each node or line"""
     threshold_compare_methods = {
         "below_thres": np.less,
-        "on_thres": np.equal,
+        "on_thres": np.isclose,
         "above_thres": np.greater,
         "time_below_threshold": np.less,
-        "time_on_threshold": np.equal,
+        "time_on_threshold": np.isclose,
         "time_above_threshold": np.greater,
     }
 
@@ -369,7 +369,7 @@ def aggregate_prepared_timeseries(
             threshold_values if isinstance(threshold_values, float) else threshold_values[np.newaxis]
         )
         time_criterion_is_met = (tintervals[:, np.newaxis] * raw_values_compared_to_threshold).sum(0)
-        if aggregation.method.short_name in ["time_below_threshold", "time_on_threshold", "time_above_threshold"]:
+        if aggregation.method.short_name in ["below_thres", "on_thres", "above_thres"]:
             total_time = np.sum(tintervals)
             result = np.multiply(np.divide(time_criterion_is_met, total_time), 100.0)
         else:
