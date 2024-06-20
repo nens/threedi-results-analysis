@@ -4,6 +4,7 @@
 3.8.2 (unreleased)
 ------------------
 
+- Support sorting of simulation results by clicking table headers (#1010)
 - Visualize substance concentrations on the map (#1013)
 - Improvements in styling of results visualised on the map (#1021)
 
