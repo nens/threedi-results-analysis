@@ -70,7 +70,6 @@ from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_class
     VR_SIMPLE_INFILTRATION,
     VR_INTERCEPTION,
     VR_PUMP,
-    VR_NAMES,
 )
 from threedi_results_analysis.utils.threedi_result_aggregation.constants import (
     AGGREGATION_VARIABLES,
@@ -900,9 +899,14 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.gr:
             containing_information = self._retrieve_model_info()
             for agg_var in preset.aggregations():
-                missing_info = [item for item in agg_var.variable.requirements if item not in containing_information]
+                missing_info = [
+                    requirement for requirement in agg_var.variable.requirements
+                    if requirement not in containing_information
+                ]
                 if missing_info:
-                    pop_up_critical(f"The currently selected 3Di model does not contain all required info for aggregation '{agg_var.variable.long_name}': {[VR_NAMES[item] for item in missing_info]}")
+                    pop_up_critical(
+                        f"The currently selected 3Di model does not contain all required info for aggregation "
+                        f"'{agg_var.variable.long_name}': {missing_info}")
                     no_preset_idx = self.comboBoxPreset.findText(NO_PRESET.name)
                     self.comboBoxPreset.setCurrentIndex(no_preset_idx)  # reset to no preset
                     return
@@ -1043,12 +1047,15 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 variable = variable_widget.itemData(item_idx)
 
                 if self.gr:
-                    missing_info = [item for item in variable.requirements if item not in containing_information]
+                    missing_info = [
+                        requirement for requirement in variable.requirements
+                        if requirement not in containing_information
+                    ]
                     if missing_info:
                         if item_idx == variable_widget.currentIndex():
                             pop_up_critical(
                                 f"The currently selected model does not contain all required info for aggregation "
-                                f"'{variable.long_name}': {[VR_NAMES[item] for item in missing_info]}"
+                                f"'{variable.long_name}': {missing_info}"
                             )
                         variable_widget.model().item(item_idx).setEnabled(False)
                     else:
@@ -1063,18 +1070,22 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             # Variable
             variable_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_VARIABLE)
             if not variable_widget:
+                logger.info("update_demanded_aggregations: 'not variable_widget'")
                 continue
             variable = variable_widget.itemData(variable_widget.currentIndex())
             if not variable:
+                logger.info("update_demanded_aggregations: 'not variable'")
                 continue
 
             # Direction
             if variable.signed:
                 direction_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_DIRECTION)
                 if not direction_widget:
+                    logger.info("update_demanded_aggregations: 'not direction_widget'")
                     continue
                 sign = direction_widget.itemData(direction_widget.currentIndex())
                 if not sign:
+                    logger.info("update_demanded_aggregations: 'not sign'")
                     continue
             else:
                 sign = None
@@ -1082,15 +1093,18 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             # Method
             method_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_METHOD)
             if not method_widget:
+                logger.info("update_demanded_aggregations: 'not method_widget'")
                 continue
             method = method_widget.itemData(method_widget.currentIndex())
             if not method:
+                logger.info("update_demanded_aggregations: 'not method'")
                 continue
 
             # Threshold
             if method.has_threshold:
                 threshold_attribute_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_ATTRIBUTE)
                 if not threshold_attribute_widget:
+                    logger.info("update_demanded_aggregations: 'not threshold_attribute_widget'")
                     continue
                 threshold_attribute = threshold_attribute_widget.currentData()
                 threshold = (
@@ -1098,7 +1112,8 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                         or
                         self.tableWidgetAggregations.cellWidget(row, COLUMN_THRESHOLD_VALUE).value()
                 )
-                if not threshold:
+                if threshold is None:
+                    logger.info("update_demanded_aggregations: 'not threshold'")
                     continue
             else:
                 threshold = None
@@ -1106,9 +1121,11 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             # Multiplier (unit conversion)
             units_widget = self.tableWidgetAggregations.cellWidget(row, COLUMN_UNITS)
             if not units_widget:
+                logger.info("update_demanded_aggregations: 'not units_widget'")
                 continue
             multiplier = units_widget.itemData(units_widget.currentIndex())
             if not multiplier:
+                logger.info("update_demanded_aggregations: 'not multiplier'")
                 continue
 
             da = Aggregation(
@@ -1121,8 +1138,9 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
             # For visualisation-purposes we also (redundantly) attach the unit text
             da.unit_str = units_widget.currentText()
+            da_is_valid, invalid_reason = da.is_valid()
 
-            if da.is_valid():
+            if da_is_valid:
                 self.demanded_aggregations.append(da)
 
             else:
@@ -1131,9 +1149,17 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 # valid Aggregation instance. We just continue, but self.demanded_aggregations_are_valid() will now
                 # return False until update_demanded_aggregations() will be called again with valid contents in the
                 # aggregations table
+                if hasattr(da.variable, "long_name"):
+                    logger.info(
+                        f"Demanded aggregation not valid. Aggregation variable name: {da.variable.long_name}. "
+                        f"Invalid reason: {invalid_reason}."
+                    )
+                else:
+                    logger.info("Demanded aggregation variable has no long_name")
                 return
 
         self.set_styling_tab()
+        self.validate()
 
     def demanded_aggregations_are_valid(self) -> bool:
         """
@@ -1142,15 +1168,30 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.tableWidgetAggregations.rowCount() != len(
             self.demanded_aggregations
         ):
+            logger.info(
+                f"self.tableWidgetAggregations.rowCount() [{self.tableWidgetAggregations.rowCount()}] "
+                f"!= len(self.demanded_aggregations) [{len(self.demanded_aggregations)}]")
             return False
-        if not all([da.is_valid() for da in self.demanded_aggregations]):
-            return False
+        for da in self.demanded_aggregations:
+            da_is_valid, invalid_reason = da.is_valid()
+            if not da_is_valid:
+                if hasattr(da.variable, "long_name"):
+                    logger.info(
+                        f"Demanded aggregation not valid. Aggregation variable name: {da.variable.long_name}. "
+                        f"Invalid reason: {invalid_reason}."
+                    )
+                else:
+                    logger.info("Demanded aggregation variable has no long_name")
+                return False
         return True
 
     def validate(self) -> bool:
         valid = True
-
-        logger.info([agg.variable.long_name for agg in self.demanded_aggregations])
+        logger.info("Validating result aggregation inputs...")
+        logger.info(
+            f"Demanded aggregations agg.variable.long_name: "
+            f"{[agg.variable.long_name for agg in self.demanded_aggregations]}"
+        )
         if not isinstance(self.gr, GridH5ResultAdmin):
             logger.warning("Invalid or no result file selected")
             valid = False
@@ -1172,11 +1213,16 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             containing_information = self._retrieve_model_info()
 
             for agg in self.demanded_aggregations:
-                missing_info = [item not in containing_information for item in agg.variable.requirements]
+                missing_info = [
+                    requirement for requirement in agg.variable.requirements
+                    if requirement not in containing_information
+                ]
                 if missing_info:
-                    logger.warning(f"Model does not contain all info for demanded aggregations: {[VR_NAMES[item] for item in missing_info]}")
+                    logger.warning(f"Model does not contain all info for demanded aggregations: {missing_info}")
                     valid = False
                     break
+
+        logger.info(f"Validated result aggregation inputs. Valid: {valid}")
 
         self.dialogButtonBoxOKCancel.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(valid)
 

@@ -325,6 +325,15 @@ def aggregate_prepared_timeseries(
     timeseries, tintervals, start_time, aggregation: Aggregation, threshold_values: Union[float, np.array] = None
 ) -> np.array:
     """Return an array with one value for each node or line"""
+    threshold_compare_methods = {
+        "below_thres": np.less,
+        "on_thres": np.equal,
+        "above_thres": np.greater,
+        "time_below_threshold": np.less,
+        "time_on_threshold": np.equal,
+        "time_above_threshold": np.greater,
+    }
+
     if aggregation.method.short_name == "sum":
         raw_values_per_time_interval = np.multiply(timeseries.T, tintervals).T
         result = np.sum(raw_values_per_time_interval, axis=0)
@@ -353,33 +362,18 @@ def aggregate_prepared_timeseries(
         result = np.array(
             [find_finite_1d(col, index=-1) for col in timeseries.T]
         )
-    elif aggregation.method.short_name == "above_thres":
-        raw_values_above_threshold = np.greater(
+    elif aggregation.method.short_name in list(threshold_compare_methods.keys()):
+        compare_method = threshold_compare_methods[aggregation.method.short_name]
+        raw_values_compared_to_threshold = compare_method(
             timeseries,
             threshold_values if isinstance(threshold_values, float) else threshold_values[np.newaxis]
         )
-        time_above_threshold = np.sum(
-            np.multiply(raw_values_above_threshold.T, tintervals).T, axis=0
-        )
-        total_time = np.sum(tintervals)
-        result = np.multiply(np.divide(time_above_threshold, total_time), 100.0)
-    elif aggregation.method.short_name == "below_thres":
-        raw_values_below_threshold = np.less(
-            timeseries,
-            threshold_values if isinstance(threshold_values, float) else threshold_values[np.newaxis]
-        )
-        time_below_threshold = np.sum(
-            np.multiply(raw_values_below_threshold.T, tintervals).T, axis=0
-        )
-        total_time = np.sum(tintervals)
-        result = np.multiply(np.divide(time_below_threshold, total_time), 100.0)
-    elif aggregation.method.short_name == "time_above_threshold":
-        timeseries[np.isnan(timeseries)] = -np.inf
-        raw_values_above_threshold = np.greater(
-            timeseries,
-            threshold_values if isinstance(threshold_values, float) else threshold_values[np.newaxis]
-        )
-        result = (tintervals[:, np.newaxis] * raw_values_above_threshold).sum(0)
+        time_criterion_is_met = (tintervals[:, np.newaxis] * raw_values_compared_to_threshold).sum(0)
+        if aggregation.method.short_name in ["time_below_threshold", "time_on_threshold", "time_above_threshold"]:
+            total_time = np.sum(tintervals)
+            result = np.multiply(np.divide(time_criterion_is_met, total_time), 100.0)
+        else:
+            result = time_criterion_is_met
     else:
         raise ValueError(
             'Unknown aggregation method "{}".'.format(

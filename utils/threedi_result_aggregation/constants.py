@@ -63,10 +63,22 @@ agg_method_list = [
     {"short_name": "last", "long_name": "Last"},
     {"short_name": "last_non_empty", "long_name": "Last non-empty"},
     {
-        "short_name": "above_thres",
-        "long_name": "% of time above threshold",
+        "short_name": "time_below_threshold",
+        "long_name": "Time below threshold",
         "has_threshold": True,
-        "is_percentage": True,
+        "is_duration": True,
+    },
+    {
+        "short_name": "time_on_threshold",
+        "long_name": "Time on threshold",
+        "has_threshold": True,
+        "is_duration": True,
+    },
+    {
+        "short_name": "time_above_threshold",
+        "long_name": "Time above threshold",
+        "has_threshold": True,
+        "is_duration": True,
     },
     {
         "short_name": "below_thres",
@@ -75,10 +87,16 @@ agg_method_list = [
         "is_percentage": True,
     },
     {
-        "short_name": "time_above_threshold",
-        "long_name": "Time above threshold",
+        "short_name": "on_thres",
+        "long_name": "% of time on threshold",
         "has_threshold": True,
-        "is_duration": True,
+        "is_percentage": True,
+    },
+    {
+        "short_name": "above_thres",
+        "long_name": "% of time above threshold",
+        "has_threshold": True,
+        "is_percentage": True,
     },
 ]
 

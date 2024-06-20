@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple
 
 # Pre resample methods
 PRM_NONE = 0  # no processing before resampling (e.g. for water levels, velocities); divide by 1
@@ -21,16 +21,10 @@ VT_NAMES = {
 }
 
 # Indicates what a variable requires from an input file
-VR_INTERFLOW = 0
-VR_SIMPLE_INFILTRATION = 1
-VR_INTERCEPTION = 2
-VR_PUMP = 3
-VR_NAMES = {
-    VR_INTERFLOW: "interflow",
-    VR_SIMPLE_INFILTRATION: "simple_infiltration",
-    VR_INTERCEPTION: "interception",
-    VR_PUMP: "pump"
-}
+VR_INTERFLOW = "interflow"
+VR_SIMPLE_INFILTRATION = "simple_infiltration"
+VR_INTERCEPTION = "interception"
+VR_PUMP = "pump"
 
 
 class AggregationVariableList(list):
@@ -154,12 +148,12 @@ class Aggregation:
             column_name_list.append(threshold_parsed)
         return "_".join(column_name_list).lower()
 
-    def is_valid(self) -> bool:
+    def is_valid(self) -> Tuple[bool, str]:
         try:
             self.as_column_name()
-            return True
-        except AttributeError:
-            return False
+            return True, ""
+        except AttributeError as e:
+            return False, str(e)
 
 
 def filter_demanded_aggregations(das: List[Aggregation], variable_types):
