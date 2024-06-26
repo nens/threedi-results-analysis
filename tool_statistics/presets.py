@@ -439,24 +439,24 @@ TOTAL_PUMPED_VOLUME_PRESETS = Preset(
 pump_time_at_max_capacity_aggregations = [
     Aggregation(
         variable=AGGREGATION_VARIABLES.get_by_short_name("q_pump"),
-        method=AGGREGATION_METHODS.get_by_short_name("time_on_threshold"),
+        method=AGGREGATION_METHODS.get_by_short_name("on_thres"),
         threshold="capacity"
     ),
 ]
 
 PUMP_TIME_AT_MAX_CAPACITY_PRESETS = Preset(
-    name="Pump: Time at max capacity",
-    description="Total time that each pump is pumping at its maximum capacity in the selected time period.\n\n"
+    name="Pump: % of time at max capacity",
+    description="Percentage of time that each pump is pumping at its maximum capacity in the selected time period.\n\n"
                 "Note that both the pump implicit factor and the output time step will affect the result.",
     aggregations=pump_time_at_max_capacity_aggregations,
 
     pumps_style=STYLE_SINGLE_COLUMN_GRADUATED_PUMP,
-    pumps_style_param_values={"column": "q_pump_time_on_threshold_capacity"},
-    pumps_layer_name="Pump (point): Time at max capacity [s]",
+    pumps_style_param_values={"column": "q_pump_on_thres_capacity"},
+    pumps_layer_name="Pump (point): % of time at max capacity",
 
     pumps_linestring_style=STYLE_SINGLE_COLUMN_GRADUATED_PUMP_LINESTRING,
-    pumps_linestring_style_param_values={"column": "q_pump_time_on_threshold_capacity"},
-    pumps_linestring_layer_name="Pump (line): Time at max capacity [s]",
+    pumps_linestring_style_param_values={"column": "q_pump_on_thres_capacity"},
+    pumps_linestring_layer_name="Pump (line): % of time at max capacity",
 )
 
 PRESETS = [
