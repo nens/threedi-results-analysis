@@ -117,14 +117,13 @@ def rasters_to_netcdf(
     output_dataset.setncattr(name='OFFSET', value=0)
     crs_var = output_dataset.createVariable(varname='crs', datatype='int')
     crs_var.setncatts(crs.to_cf())
-    # crs_var.setncattr_string(name="spatial_ref", value=crs.to_wkt())  # this works for QGIS
-    crs_var.setncattr_string(name="spatial_ref", value=f"EPSG:{crs.to_epsg()}")  # this works for 3Di (NOT)
+    crs_var.setncattr_string(name="spatial_ref", value=crs.to_wkt())
     crs_var.setncattr_string(name="GeoTransform", value=" ".join([str(i) for i in geotransform]))
 
     # set dimensions
     output_dataset.createDimension(dimname='lon', size=datasets[0].RasterXSize)
     output_dataset.createDimension(dimname='lat', size=datasets[0].RasterYSize)
-    output_dataset.createDimension(dimname='time', size=len(filepaths))
+    output_dataset.createDimension(dimname='time', size=len(rasters))
 
     # x and y or lon and lat
     x_attrs, y_attrs = crs.cs_to_cf()
@@ -160,7 +159,7 @@ def rasters_to_netcdf(
     }
     time_var.setncatts(time_attrs)
     time_delta = timedelta(seconds=interval)
-    end_time = start_time + len(filepaths) * time_delta
+    end_time = start_time + len(rasters) * time_delta
     time_steps_numpy = np.arange(start_time, end_time, time_delta, dtype='datetime64[s]')
     time_steps_datetime = [datetime.utcfromtimestamp(dt.astype('int')) for dt in time_steps_numpy]
     time_var[:] = netCDF4.date2num(time_steps_datetime, units=time_units, calendar=calendar)
@@ -178,25 +177,6 @@ def rasters_to_netcdf(
     rain = np.stack([dataset.GetRasterBand(1).ReadAsArray() for dataset in datasets])
     rain_var[:] = rain
 
-
-datadir = Path(r"C:\Users\leendert.vanwolfswin\Documents\OZ 3Di AI\asc to netcdf")
-filepaths = [
-    datadir / "reprojected.tif",
-    datadir / "reprojected.tif",
-    datadir / "reprojected.tif"
-]
-
-datasets = get_datasets(filepaths=filepaths)
-print(rasters_have_same_srs(datasets))
-print(rasters_have_same_dimensions(datasets))
-
-rasters_to_netcdf(
-    rasters=filepaths,
-    start_time=datetime.strptime('2020-01-01T12:00:00', "%Y-%m-%dT%H:%M:%S"),
-    interval=3600,
-    units="mm",
-    output_path=datadir / "output3.nc"
-)
 
 
 
