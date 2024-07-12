@@ -4,7 +4,7 @@
 3.9.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Bump threedigrid-builder to 1.14.4
 
 
 3.9.0 (2024-06-21)
