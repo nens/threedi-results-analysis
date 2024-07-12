@@ -3,6 +3,7 @@ import importlib.util
 from subprocess import CalledProcessError, run
 from pkg_resources import get_distribution, DistributionNotFound, RequirementParseError
 
+
 def install_package(package_name, version=None):
     package_to_install = package_name if not version else f"{package_name}{version}"
     try:
@@ -11,17 +12,20 @@ def install_package(package_name, version=None):
         print(f"Error installing {package_name}: {e}")
         sys.exit(1)
 
+
 def read_dependencies_file(file_path):
     spec = importlib.util.spec_from_file_location("dependencies", file_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module.DEPENDENCIES
 
+
 def install_dependencies_from_file(file_path):
     dependencies = read_dependencies_file(file_path)
     for dep in dependencies:
         if dep.name in ['threedi-modelchecker', 'threedigrid-builder']:
             install_package(dep.package, dep.constraint)
+
 
 def get_dependency_version(package_name, dependency_name):
     try:
@@ -34,6 +38,7 @@ def get_dependency_version(package_name, dependency_name):
         print(f"Error getting {dependency_name} version for {package_name}: {e}")
         sys.exit(1)
     return None
+
 
 def check_dependency_conflicts():
     dependencies_file_path = 'dependencies.py'
@@ -59,8 +64,10 @@ def check_dependency_conflicts():
     print("No version conflicts detected.")
     sys.exit(0)
 
+
 def main():
     check_dependency_conflicts()
+
 
 if __name__ == "__main__":
     main()
