@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Union
@@ -114,7 +115,7 @@ def rasters_to_netcdf(
     )
 
     # dataset attributes
-    output_dataset.setncattr(name='OFFSET', value=0)
+    output_dataset.setncattr(name='OFFSET', value=offset)
     crs_var = output_dataset.createVariable(varname='crs', datatype='int')
     crs_var.setncatts(crs.to_cf())
     crs_var.setncattr_string(name="spatial_ref", value=crs.to_wkt())
@@ -174,9 +175,24 @@ def rasters_to_netcdf(
         'units': units
     }
     rain_var.setncatts(rain_attrs)
-    rain = np.stack([dataset.GetRasterBand(1).ReadAsArray() for dataset in datasets])
-    rain_var[:] = rain
+    # rain = np.stack([dataset.GetRasterBand(1).ReadAsArray() for dataset in datasets])
+    # rain_var[:] = rain
+    for i, dataset in enumerate(datasets):
+        rain_var[i] = dataset.GetRasterBand(1).ReadAsArray()
+        print(sys.getsizeof(rain_var))
+        output_dataset.sync()
+
+    print("Finished, press any key to continue")
+    a = input()
 
 
+datadir = Path(r"C:\Users\leendert.vanwolfswin\Documents\OZ 3Di AI\asc to netcdf")
+filepaths = [datadir / "reprojected.tif"] * 10000
 
-
+rasters_to_netcdf(
+    rasters=filepaths,
+    start_time=datetime.strptime('2020-01-01T12:00:00', "%Y-%m-%dT%H:%M:%S"),
+    interval=3600,
+    units="mm",
+    output_path=datadir / "output6.nc"
+)
