@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.9.1 (unreleased)
+3.9.1 (2024-07-17)
 ------------------
 
 - Bump threedigrid-builder to 1.14.4
