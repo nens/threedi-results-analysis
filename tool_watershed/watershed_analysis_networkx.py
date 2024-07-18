@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import networkx as nx
+from typing import Union
+from pathlib import Path
 from osgeo import ogr
-from .result_aggregation.base import time_aggregate
-from .result_aggregation.aggregation_classes import Aggregation
-from .result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS, AggregationSign
-from .result_aggregation.threedigrid_ogr import threedigrid_to_ogr
+from threedi_results_analysis.utils.threedi_result_aggregation.base import time_aggregate
+from threedi_results_analysis.utils.threedi_result_aggregation.aggregation_classes import Aggregation
+from threedi_results_analysis.utils.threedi_result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS, AggregationSign
+from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import threedigrid_to_ogr
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 
 
@@ -21,6 +23,7 @@ ogr.UseExceptions()
 class Graph3Di:
     def __init__(
         self,
+        gridadmin_gpkg: Union[str, Path],
         gr: GridH5ResultAdmin = None,
         subset: str = None,
         start_time: int = None,
@@ -36,6 +39,7 @@ class Graph3Di:
         self._threshold = threshold
         self._aggregate = None
         self._graph = None
+        self.gridadmin_gpkg = str(gridadmin_gpkg) if gridadmin_gpkg else None
         self.calculate_aggregate()
         self.update_graph()
 
@@ -235,10 +239,17 @@ class Graph3Di:
 
         WARNING! May result in memory error if somehwat large set of cells is given as input
         """
-        upstream_cells = self._gr.cells.filter(id__in=list(cell_ids))
+        upstream_cell_ids = list(cell_ids)
         cell_drv = ogr.GetDriverByName("MEMORY")
         cell_ds = cell_drv.CreateDataSource("")
-        threedigrid_to_ogr(threedigrid_src=upstream_cells, tgt_ds=cell_ds, attributes={}, attr_data_types={})
+        threedigrid_to_ogr(
+            tgt_ds=cell_ds,
+            layer_name="cell",
+            gridadmin_gpkg=self.gridadmin_gpkg,
+            attributes={},
+            attr_data_types={},
+            ids=upstream_cell_ids,
+        )
         cell_layer = cell_ds.GetLayerByName("cell")
         cells_multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
         for cell in cell_layer:

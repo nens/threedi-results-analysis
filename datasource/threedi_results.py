@@ -1,11 +1,11 @@
 from functools import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
-from ThreeDiToolbox.datasource.base import BaseDataSource
-from ThreeDiToolbox.datasource.result_constants import LAYER_OBJECT_TYPE_MAPPING
-from ThreeDiToolbox.datasource.result_constants import SUBGRID_MAP_VARIABLES
+from threedi_results_analysis.datasource.result_constants import LAYER_OBJECT_TYPE_MAPPING
+from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
 
 import glob
 import h5py
@@ -22,12 +22,10 @@ def normalized_object_type(current_layer_name):
     if current_layer_name in LAYER_OBJECT_TYPE_MAPPING:
         return LAYER_OBJECT_TYPE_MAPPING[current_layer_name]
     else:
-        msg = "Unsupported layer: %s." % current_layer_name
-        logger.warning(msg)
         return None
 
 
-class ThreediResult(BaseDataSource):
+class ThreediResult():
     """Provides access to result data of a 3Di simulation
 
     Result data of 3di is stored in netcdf4. Two types of result data
@@ -36,8 +34,9 @@ class ThreediResult(BaseDataSource):
 
     This class allows access to the results via threedigrid:
 
-    -  GridH5ResultAdmin
+    - GridH5ResultAdmin
     - GridH5AggregateResultAdmin
+    - GridH5WaterQualityResultAdmin
 
     For more information about threedigrid see
     https://threedigrid.readthedocs.io/en/latest/
@@ -45,13 +44,13 @@ class ThreediResult(BaseDataSource):
     Some helper methods are available query the result data using a variable
     name (example of variable names: 's1', 'q_cum', 'vol', etc)
 
-    This class also provides for direct access to the data files via h5py.
     However, it is recommended to use threedigrid instead.
 
     """
 
-    def __init__(self, file_path=None):
+    def __init__(self, file_path, h5_path):
         self.file_path = file_path
+        self.h5_path = h5_path
         self._cache = {}
 
     @cached_property
@@ -97,10 +96,30 @@ class ThreediResult(BaseDataSource):
         available_aggregation_vars = available_vars & whitelist_vars
         return list(available_aggregation_vars)
 
+    @cached_property
+    def available_water_quality_vars(self):
+        """Return a list of available variables from 'water_quality_results_3di.nc'."""
+        ga = self.water_quality_result_admin
+        if not ga:
+            return []
+        available_vars = []
+        substances = ga.substances
+        for substance_id in substances:
+            substance = ga.get_model_instance_by_field_name(substance_id)
+            if substance:
+                units = substance.units
+                var = {
+                    "name": substance.name,
+                    "unit": "-" if not units or isinstance(units, h5py.Empty) else units,
+                    "parameters": substance_id,
+                }
+                available_vars.append(var)
+        return available_vars
+
     @property
     def available_vars(self):
         """Return a list of all available variables"""
-        return self.available_subgrid_map_vars + self.available_aggregation_vars
+        return self.available_subgrid_map_vars + self.available_aggregation_vars + self.available_water_quality_vars
 
     @cached_property
     def timestamps(self):
@@ -114,12 +133,28 @@ class ThreediResult(BaseDataSource):
         """
         return self.get_timestamps()
 
+    @cached_property
+    def dt_timestamps(self):
+        """Return the datetime timestamps of the 'results_3di.nc'
+
+        :return 1d np.array containing the timestamps in seconds.
+        """
+        return self.result_admin.nodes.dt_timestamps  # after bug fix
+
+    def get_timeseries_values(self, ts, variable):
+        if variable in [v["parameters"] for v in self.available_water_quality_vars]:
+            # use "concentration" field for water quality variables
+            return ts.get_filtered_field_value("concentration")
+        else:
+            return ts.get_filtered_field_value(variable)
+
     def get_timestamps(self, parameter=None):
         """Return an array of timestamps for the given parameter
 
         The timestamps are in seconds after the start of the simulation.
 
-        All variables in the result_netcdf share the same timestamps.
+        All variables in the result_netcdf and water_quality_netcdf share the
+        same timestamps.
         Variables of the result_aggregation_netcdf can have varying number of
         timestamps and their step size can differ.
 
@@ -132,6 +167,9 @@ class ThreediResult(BaseDataSource):
         #  often queried and cause performance issues.
         if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.result_admin.nodes.timestamps
+        elif parameter in [v["parameters"] for v in self.available_water_quality_vars]:
+            ga = self.get_gridadmin(variable=parameter)
+            return ga.get_model_instance_by_field_name(parameter).timestamps
         else:
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).get_timestamps(
@@ -142,12 +180,13 @@ class ThreediResult(BaseDataSource):
         """Return the gridadmin where the variable is stored. If no variable is
         given, a gridadmin without results is returned.
 
-        Results are either stored in the 'results_3di.nc' or the
-        'aggregate_results_3di.nc'. These make use of the GridH5ResultAdmin and
-        GridH5AggregateResultAdmin to query the data respectively.
+        Results are either stored in the 'results_3di.nc', 'aggregate_results_3di.nc'
+        or 'water_quality_results_3di.nc'. These make use of the GridH5ResultAdmin,
+        GridH5AggregateResultAdmin or GridH5WaterQualityResultAdmin to query the data
+        respectively.
 
         :param variable: str of the variable name, e.g. 's1', 'q_pump'
-        :return: handle to GridAdminResult or AggregateGridAdminResult
+        :return: handle to GridAdminResult, AggregateGridAdminResult or GridH5WaterQualityResultAdmin
         """
         if variable is None:
             return self.gridadmin
@@ -155,8 +194,10 @@ class ThreediResult(BaseDataSource):
             return self.result_admin
         elif variable in self.available_aggregation_vars:
             return self.aggregate_result_admin
+        elif variable in [v["parameters"] for v in self.available_water_quality_vars]:
+            return self.water_quality_result_admin
         else:
-            raise AttributeError("Unknown subgrid or aggregate variable: %s")
+            raise AttributeError(f"Unknown subgrid or aggregate or water quality variable: {variable}")
 
     def get_timeseries(
         self, nc_variable, node_id=None, content_pk=None, fill_value=None
@@ -187,8 +228,7 @@ class ThreediResult(BaseDataSource):
         elif content_pk:
             filtered_result = filtered_result.filter(content_pk=content_pk)
 
-        values = filtered_result.get_filtered_field_value(nc_variable)
-
+        values = self.get_timeseries_values(filtered_result, nc_variable)
         if fill_value is not None:
             values[values == NO_DATA_VALUE] = fill_value
 
@@ -196,81 +236,31 @@ class ThreediResult(BaseDataSource):
         timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
         return np.hstack([timestamps, values])
 
-    # This method is similar as get_values_by_timestep_nr but does not cache
-    # values. Moreover, it tries to only query the minimum needed data needed.
-    # def get_values_by_timestep_nr_no_caching(
-    #     self, variable, timestamp_idx, node_ids=None
-    # ):
-    #     """Return an array of values of the given variable on the specified timestamp(s)
-    #
-    #     If an array of timestamps is given, a 2d numpy array is returned.
-    #     If index is specified, only the node_ids specified in the index will
-    #     be returned.
-    #
-    #     :param variable: (str) variable name, e.g. 's1', 'q_pump'
-    #     :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
-    #     :param node_ids: 1d numpy.array of node_ids
-    #     :return: 1d/2d numpy.array
-    #     """
-    #     ga = self.get_gridadmin(variable)
-    #     model = ga.get_model_instance_by_field_name(variable)
-    #
-    #     time_slice = None
-    #     if isinstance(timestamp_idx, int):
-    #         time_slice = slice(timestamp_idx, timestamp_idx+1)
-    #         time_index_filter = 0
-    #     elif isinstance(timestamp_idx, np.ndarray):
-    #         # ga.timeseries unfortunately does not allow for index filter on
-    #         # aggregate results, only a slice filter. Thus we load a bit more
-    #         # in memory and apply the index filter at the end.
-    #         time_slice = slice(min(timestamp_idx), max(timestamp_idx) + 1)
-    #         if len(timestamp_idx) == 1:
-    #             time_index_filter = 0
-    #         else:
-    #             time_index_filter = timestamp_idx - min(timestamp_idx)
-    #     result_filter = model.timeseries(indexes=time_slice)
-    #
-    #     if node_ids is None:
-    #         result_filter = result_filter.filter(id__gt=0)
-    #     result = result_filter.get_filtered_field_value(variable)
-    #
-    #     if node_ids is not None:
-    #         # Unfortunately h5py/threedigrid indexing is not as fancy as
-    #         # numpy, i.e. we can't use duplicate indexes/unsorted indexes.
-    #         # Thus we load a bit more in memory as a numpy array and then apply
-    #         # the final indexing with numpy.
-    #         return result[time_index_filter][node_ids]
-    #     else:
-    #         return result[time_index_filter]
-
-    def get_values_by_timestep_nr(
-        self, variable, timestamp_idx, node_ids=None, use_cache=True
-    ):
-        """Return an array of values of the given variable on the specified timestamp(s)
-
-        If only one timestamp is specified, a 1d np.array is returned.  If an
-        array of multiple timestamp_idx is given, a 2d np.array is returned.
-
-        If node_ids is specified, only the node_ids specified in the nodes will
-        be returned.
+    def get_values_by_timestep_nr(self, variable, timestamp_idx, node_ids):
+        """Return an array of values of the given variable on the specified
+        timestamp(s)
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
         :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
         :param node_ids: 1d numpy.array of node_ids or None in which case all
             nodes are returned.
-        :param use_cache: (bool)
         :return: 1d/2d numpy.array
+
+        If only one timestamp is specified, a 1d np.array is returned.  If an
+        array of multiple timestamp_idx is given, a 2d np.array is returned.
+
+        If node_ids is specified, only the values corresponding to the
+        specified node_ids will be returned.
+
+        A note about the implementation: 3Di ids start at 1. The numpy array
+        from the GridResultAdmin starts with an extra, meaningless element
+        along the node dimension, so that the node_ids can be used as an index.
         """
         values = self._nc_from_mem(variable)
         if isinstance(timestamp_idx, int):
             timestamp_idx = np.array([timestamp_idx])
 
-        if node_ids is None:
-            # The first element is a trash element which we don't want to return
-            filtered_data = values[timestamp_idx, 1:]
-        else:
-            # node_ids should never be 0 thus the trash element gets filtered out.
-            filtered_data = values[timestamp_idx][:, node_ids]
+        filtered_data = values[timestamp_idx][:, node_ids]
 
         if len(timestamp_idx) == 1:
             # if only one timestamp is specified, an 1d array is returned
@@ -293,7 +283,6 @@ class ThreediResult(BaseDataSource):
         https://docs.python.org/3/library/functools.html#functools.lru_cache
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
-        :param use_cache: bool
         :return: 2d numpy array
         """
         if variable in self._cache:
@@ -305,7 +294,7 @@ class ThreediResult(BaseDataSource):
             ga = self.get_gridadmin(variable)
             model_instance = ga.get_model_instance_by_field_name(variable)
             unfiltered_timeseries = model_instance.timeseries(indexes=slice(None))
-            values = unfiltered_timeseries.get_filtered_field_value(variable)
+            values = self.get_timeseries_values(unfiltered_timeseries, variable)
             logger.debug(
                 "Caching additional {:.3f} MB of data".format(
                     values.nbytes / 1000 / 1000
@@ -316,85 +305,65 @@ class ThreediResult(BaseDataSource):
 
     @cached_property
     def gridadmin(self):
-        h5 = find_h5_file(self.file_path)
-        return GridH5Admin(h5)
+        h5 = self.h5_path
+        return GridH5Admin(open(h5, 'rb'))
 
     @cached_property
     def result_admin(self):
-        h5 = find_h5_file(self.file_path)
+        h5 = self.h5_path
         # TODO: there's no FileNotFound try/except here like for
         # aggregates. Richard says that a missing regular result file is just
         # as likely.
-        return GridH5ResultAdmin(h5, self.file_path)
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
+        file_like_object_h5 = open(h5, 'rb')
+        file_like_object_h5.startswith = lambda x: ''
+        file_like_object_nc = open(self.file_path, 'rb')
+        return GridH5ResultAdmin(file_like_object_h5, file_like_object_nc)
 
     @cached_property
     def aggregate_result_admin(self):
         try:
             # Note: both of these might raise the FileNotFoundError
             agg_path = find_aggregation_netcdf(self.file_path)
-            h5 = find_h5_file(self.file_path)
+            h5 = self.h5_path
         except FileNotFoundError:
             logger.exception("Aggregate result not found")
             return None
-        return GridH5AggregateResultAdmin(h5, agg_path)
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
+        file_like_object_h5 = open(h5, 'rb')
+        file_like_object_h5.startswith = lambda x: False
+        file_like_object_nc = open(agg_path, 'rb')
+        return GridH5AggregateResultAdmin(file_like_object_h5, file_like_object_nc)
 
     @cached_property
-    def datasource(self):
+    def water_quality_result_admin(self):
         try:
-            return h5py.File(self.file_path, "r")
-        except IOError:
-            # TODO: a non-existing file raises an OSError, not an IOError!
-            logger.exception("Datasource %s could not be opened", self.file_path)
-            raise
-
-    @cached_property
-    def ds_aggregation(self):
-        """The aggregation netcdf dataset."""
-        # Note: we don't want module level imports of dynamically loaded
-        # libraries because importing them will cause files to be held open
-        # which cause trouble when updating the plugin. Therefore we delay
-        # the import as much as possible.
-
-        # Load aggregation netcdf
-        try:
-            aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
+            # Note: both of these might raise the FileNotFoundError
+            wq_path = find_water_quality_netcdf(self.file_path)
+            h5 = self.h5_path
         except FileNotFoundError:
-            logger.error("Could not find the aggregation netcdf.")
+            logger.exception("Water quality result not found")
             return None
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
+        file_like_object_h5 = open(h5, 'rb')
+        file_like_object_h5.startswith = lambda x: False
+        file_like_object_nc = open(wq_path, 'rb')
+        return GridH5WaterQualityResultAdmin(file_like_object_h5, file_like_object_nc)
 
-        logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
-        return h5py.File(aggregation_netcdf_file, mode="r")
-
-
-def find_h5_file(netcdf_file_path):
-    """An ad-hoc way to get the h5_file.
-
-    We assume the h5_file file is in one of the following locations (note:
-    this order is also the searching order):
-
-    1) . (in the same dir as the netcdf)
-    2) ../preprocessed
-
-    relative to the netcdf file and has extension '.h5'
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        h5_file path
-
-    Raises:
-        FileNotFoundError if no file can be found
-    """
-    pattern = "*.h5"
-    result_dir = os.path.dirname(netcdf_file_path)
-    inpdir = os.path.join(result_dir, os.path.pardir, "preprocessed")
-
-    for directory in [result_dir, inpdir]:
-        h5_files = glob.glob(os.path.join(directory, pattern))
-        if h5_files:
-            return h5_files[0]
-    raise FileNotFoundError("'.h5' file not found relative to %s." % result_dir)
+    @property
+    def short_model_slug(self):
+        model_slug = self.gridadmin.model_slug
+        try:
+            return model_slug.rsplit("-", 1)[0]
+        except Exception:
+            logger.exception(
+                "TODO: overly broad exception while splitting model_slug. "
+                "Using model_name"
+            )
+            return self.gridadmin.model_name
 
 
 def find_aggregation_netcdf(netcdf_file_path):
@@ -416,4 +385,26 @@ def find_aggregation_netcdf(netcdf_file_path):
         return aggregate_result_files[0]
     raise FileNotFoundError(
         "'aggregate_results_3di.nc' file not found relative to %s" % result_dir
+    )
+
+
+def find_water_quality_netcdf(netcdf_file_path):
+    """An ad-hoc way to find the water quality netcdf file
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the water quality netcdf path
+
+    Raises:
+        FileNotFoundError if nothing is found
+    """
+    pattern = "water_quality_results_3di.nc"
+    result_dir = os.path.dirname(netcdf_file_path)
+    water_quality_result_files = glob.glob(os.path.join(result_dir, pattern))
+    if water_quality_result_files:
+        return water_quality_result_files[0]
+    raise FileNotFoundError(
+        "'water_quality_results_3di.nc' file not found relative to %s" % result_dir
     )

@@ -1,5 +1,5 @@
-from ThreeDiToolbox.utils.utils import generate_parameter_config
-from ThreeDiToolbox.utils.utils import parse_aggvarname
+from threedi_results_analysis.utils.utils import generate_parameter_config
+from threedi_results_analysis.utils.utils import parse_aggvarname
 
 import unittest
 
@@ -19,18 +19,32 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(method, "cum_negative")
 
     def test_generate_parameter_config(self):
-        param_config = generate_parameter_config(["q"], ["q_max"])
+        concentration_var = {
+            "name": "Substance",
+            "unit": "mg/l",
+            "parameters": ["concentration"],
+        }
+
+        param_config = generate_parameter_config(["q"], ["q_max"], [])
         self.assertEqual(len(param_config["h"]), 0)
         self.assertEqual(len(param_config["q"]), 2)
 
-        param_config = generate_parameter_config(["q", "u1"], ["s1_max"])
+        param_config = generate_parameter_config([], [], [concentration_var])
+        self.assertEqual(len(param_config["h"]), 1)
+        self.assertEqual(len(param_config["q"]), 0)
+
+        param_config = generate_parameter_config(["q"], ["q_max"], [concentration_var])
         self.assertEqual(len(param_config["h"]), 1)
         self.assertEqual(len(param_config["q"]), 2)
 
-        param_config = generate_parameter_config(["s1"], [])
+        param_config = generate_parameter_config(["q", "u1"], ["s1_max"], [concentration_var])
+        self.assertEqual(len(param_config["h"]), 2)
+        self.assertEqual(len(param_config["q"]), 2)
+
+        param_config = generate_parameter_config(["s1"], [], [])
         self.assertEqual(len(param_config["h"]), 1)
         self.assertEqual(len(param_config["q"]), 0)
 
     def test_generate_parameter_config_unknown_param(self):
         with self.assertRaises(KeyError):
-            generate_parameter_config(["dunno"], [])
+            generate_parameter_config(["dunno"], [], [])
