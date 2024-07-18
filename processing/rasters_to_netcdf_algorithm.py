@@ -5,11 +5,13 @@ from qgis.core import (
     QgsMapLayer,
     QgsProcessing,
     QgsProcessingAlgorithm,
+    QgsProcessingContext,
     QgsProcessingParameterDateTime,
     QgsProcessingParameterEnum,
     QgsProcessingParameterFileDestination,
     QgsProcessingParameterMultipleLayers,
     QgsProcessingParameterNumber,
+    QgsRasterLayer,
 )
 
 
@@ -28,7 +30,6 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def initAlgorithm(self, config):
-
         self.addParameter(
             QgsProcessingParameterMultipleLayers(
                 name=self.INPUT_RASTERS,
@@ -77,64 +78,35 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
             )
         )
 
-        self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.INPUT_OBSTACLES,
-                "Linear obstacles",
-                [QgsProcessing.TypeVectorLine],
-                optional=True
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.INPUT_FLOWLINES,
-                "Flowlines",
-                [QgsProcessing.TypeVectorLine],
-                optional=True
-            )
-        )
-
-        min_obstacle_height_param = QgsProcessingParameterNumber(
-            self.INPUT_MIN_OBSTACLE_HEIGHT,
-            "Minimum obstacle height (m)",
-            type=QgsProcessingParameterNumber.Double
-        )
-        min_obstacle_height_param.setMetadata({"widget_wrapper": {"decimals": 3}})
-        self.addParameter(min_obstacle_height_param)
-
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT_EDGES,
-                "Output: Obstacle on cell edge",
-                type=QgsProcessing.TypeVectorLine
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT_OBSTACLES,
-                "Output: Obstacle in DEM",
-                type=QgsProcessing.TypeVectorLine
-            )
-        )
-
     def processAlgorithm(self, parameters, context, feedback):
         input_raster_layers: List[QgsMapLayer] = self.parameterAsLayerList(parameters, self.INPUT_RASTERS, context)
         rasters = [layer.dataProvider().dataSourceUri() for layer in input_raster_layers]
-        start_datetime = self.parameterAsDateTime(parameters, self.INPUT_START_TIME, context)
+        start_datetime = self.parameterAsDateTime(parameters, self.INPUT_START_TIME, context) \
+            .toPyDateTime() \
+            .replace(second=0, microsecond=0)
         interval = self.parameterAsInt(parameters, self.INPUT_INTERVAL, context)
         offset = self.parameterAsInt(parameters, self.INPUT_OFFSET, context)
         units = self.parameterAsEnumString(parameters, self.INPUT_UNITS, context)
-        output_path = self.parameterAsFile(parameters, self.INPUT_OUTPUT_FILE, context)
+        output_path = self.parameterAsFile(parameters, self.INPUT_OUTPUT_PATH, context)
         rasters_to_netcdf(
             rasters=rasters,
             start_time=start_datetime,
             interval=interval,
             units=units,
             output_path=output_path,
-            time_units=units,
             offset=offset
+        )
+
+        layer = QgsRasterLayer(output_path, "Spatiotemporal NetCDF")
+        context.temporaryLayerStore().addMapLayer(layer)
+        layer_details = QgsProcessingContext.LayerDetails(
+            "Spatiotemporal NetCDF",
+            context.project(),
+            self.OUTPUT
+        )
+        context.addLayerToLoadOnCompletion(
+            layer.id(),
+            layer_details
         )
 
         return {
@@ -178,6 +150,7 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
                 <p>Suggested obstacle to add to the schematisation. In most cases, it is recommended solve any leaking obstacle issues with grid refinement, and only add obstacles if this does not solve the issue.</p>
                 <p>The styling shows the difference between the crest level and the exchange level</p>
             """
+
     def name(self):
         """
         Returns the algorithm name, used for identifying the algorithm

@@ -177,3 +177,4 @@ def rasters_to_netcdf(
     for i, dataset in enumerate(datasets):
         rain_var[i] = dataset.GetRasterBand(1).ReadAsArray()
         output_dataset.sync()
+    output_dataset.close()

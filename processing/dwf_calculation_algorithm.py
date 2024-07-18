@@ -299,7 +299,7 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
 
     def groupId(self):
         return "pre_process_sim_inputs"
-    
+
     def shortHelpString(self):
 
         help_string = """
