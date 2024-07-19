@@ -120,7 +120,23 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
         return "pre_process_sim_inputs"
 
     def shortHelpString(self):
-        return ""
+        return """
+                <p>Create a NetCDF file with data of rain or other forcings that vary in space and time.</p>
+                <p>The algorithm takes a list of GeoTIFFs and stacks them into a NetCDF, one raster for each time step.</p>
+                <h3>Parameters</h3>
+                <h4>Input rasters</h4>
+                <p>A list of GeoTIFFs to be stacked</p>
+                <h4>Start</h4>
+                <p>Date and time of the first time step in the output NetCDF.</p>
+                <h4>Interval</h4>
+                <p>Time in seconds between time steps.</p>
+                <h4>Offset</h4>
+                <p>If greater than 0, the forcing will only be applied after this number of seconds has passed in the simulation.</p>
+                <h4>Units</h4>
+                <p><The units of the forcing's data./p>
+                <h4>Output file</h4>
+                <p>Name and location of the NetCDF output. Must have the .nc extension.</p>
+        """
 
     def name(self):
         """
