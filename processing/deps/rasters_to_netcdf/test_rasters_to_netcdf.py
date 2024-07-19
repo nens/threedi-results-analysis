@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-from threedi_results_analysis.processing.deps.rasters_to_netcdf import rasters_to_netcdf
+from threedi_results_analysis.processing.deps.rasters_to_netcdf.rasters_to_netcdf import rasters_to_netcdf
 from osgeo import gdal
 gdal.UseExceptions()
 

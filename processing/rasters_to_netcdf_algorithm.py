@@ -1,6 +1,6 @@
 from typing import List
 
-from threedi_results_analysis.processing.deps.rasters_to_netcdf import rasters_to_netcdf
+from threedi_results_analysis.processing.deps.rasters_to_netcdf.rasters_to_netcdf import rasters_to_netcdf
 from qgis.core import (
     QgsMapLayer,
     QgsProcessing,
