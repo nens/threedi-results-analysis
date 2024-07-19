@@ -1,10 +1,13 @@
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Dict
 
+from cftime import date2num
 import numpy as np
-import netCDF4
-from osgeo import gdal, osr
+# import netCDF4
+from osgeo import gdal, osr  # IMPORT THIS BEFORE IMPORTING h5netcdf!!!
+import h5netcdf.legacyapi as netCDF4
+from h5netcdf.legacyapi import Variable as h5netcdf_Variable
 from pyproj import CRS
 
 gdal.UseExceptions()
@@ -80,6 +83,12 @@ def rasters_have_same_nodatavalue(datasets: List[gdal.Dataset]):
     return True
 
 
+def setncatts(variable: h5netcdf_Variable, attributes: Dict):
+    """Reproduces the behaviour of netcdf4.Variable.setncatts(), which is not supported in h5netcdf lecagy API"""
+    for key, value in attributes.items():
+        variable.setncattr(key, value)
+
+
 def rasters_to_netcdf(
         rasters: List[Union[str, Path]],
         start_time: datetime,
@@ -108,22 +117,22 @@ def rasters_to_netcdf(
 
     # create netcdf
     output_dataset = netCDF4.Dataset(
-        filename=str(output_path),
+        str(output_path),
         mode='w',
-        format="NETCDF4"
+        # format="NETCDF4"
     )
 
     # dataset attributes
     output_dataset.setncattr(name='OFFSET', value=offset)
     crs_var = output_dataset.createVariable(varname='crs', datatype='int')
-    crs_var.setncatts(crs.to_cf())
-    crs_var.setncattr_string(name="spatial_ref", value=crs.to_wkt())
-    crs_var.setncattr_string(name="GeoTransform", value=" ".join([str(i) for i in geotransform]))
+    setncatts(crs_var, crs.to_cf())
+    crs_var.setncattr(name="spatial_ref", value=crs.to_wkt())
+    crs_var.setncattr(name="GeoTransform", value=" ".join([str(i) for i in geotransform]))
 
     # set dimensions
-    output_dataset.createDimension(dimname='lon', size=datasets[0].RasterXSize)
-    output_dataset.createDimension(dimname='lat', size=datasets[0].RasterYSize)
-    output_dataset.createDimension(dimname='time', size=len(rasters))
+    output_dataset.createDimension('lon', size=datasets[0].RasterXSize)
+    output_dataset.createDimension('lat', size=datasets[0].RasterYSize)
+    output_dataset.createDimension('time', size=len(rasters))
 
     # x and y or lon and lat
     x_attrs, y_attrs = crs.cs_to_cf()
@@ -136,7 +145,7 @@ def rasters_to_netcdf(
     )
     lon_var = output_dataset.createVariable(varname='lon', datatype='float32', dimensions=('lon',))
     lon_var[:] = x_ordinates
-    lon_var.setncatts(x_attrs)
+    setncatts(lon_var, x_attrs)
 
     max_y_ordinate = geotransform[3] + datasets[0].RasterYSize * geotransform[5]
     y_ordinates = np.arange(
@@ -146,7 +155,7 @@ def rasters_to_netcdf(
     )
     lat_var = output_dataset.createVariable(varname='lat', datatype='float32', dimensions=('lat',))
     lat_var[:] = y_ordinates
-    lat_var.setncatts(y_attrs)
+    setncatts(lat_var, y_attrs)
 
     # time
     time_var = output_dataset.createVariable(varname='time', datatype='float64', dimensions=('time',))
@@ -157,12 +166,12 @@ def rasters_to_netcdf(
         'calendar': calendar,
         'axis': 'T'
     }
-    time_var.setncatts(time_attrs)
+    setncatts(time_var, time_attrs)
     time_delta = timedelta(seconds=interval)
     end_time = start_time + len(rasters) * time_delta
     time_steps_numpy = np.arange(start_time, end_time, time_delta, dtype='datetime64[s]')
     time_steps_datetime = [datetime.utcfromtimestamp(dt.astype('int')) for dt in time_steps_numpy]
-    time_var[:] = netCDF4.date2num(time_steps_datetime, units=time_units, calendar=calendar)
+    time_var[:] = date2num(time_steps_datetime, units=time_units, calendar=calendar)
 
     # rain data
     rain_var = output_dataset.createVariable(varname='values', datatype='float', dimensions=('time', 'lat', 'lon'))
@@ -173,8 +182,9 @@ def rasters_to_netcdf(
         'missing_value': datasets[0].GetRasterBand(1).GetNoDataValue(),
         'units': units
     }
-    rain_var.setncatts(rain_attrs)
+    setncatts(rain_var, rain_attrs)
     for i, dataset in enumerate(datasets):
         rain_var[i] = dataset.GetRasterBand(1).ReadAsArray()
         output_dataset.sync()
     output_dataset.close()
+
