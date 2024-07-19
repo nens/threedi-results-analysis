@@ -122,10 +122,10 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
     def shortHelpString(self):
         return """
                 <p>Create a NetCDF file with data of rain or other forcings that vary in space and time.</p>
-                <p>The algorithm takes a list of GeoTIFFs and stacks them into a NetCDF, one raster for each time step.</p>
+                <p>The algorithm takes a list of rasters and stacks them into a NetCDF, one raster for each time step.</p>
                 <h3>Parameters</h3>
                 <h4>Input rasters</h4>
-                <p>A list of GeoTIFFs to be stacked</p>
+                <p>A list of rasters (e.g. GeoTIFF) to be stacked.</p>
                 <h4>Start</h4>
                 <p>Date and time of the first time step in the output NetCDF.</p>
                 <h4>Interval</h4>
