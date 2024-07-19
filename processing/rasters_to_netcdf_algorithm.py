@@ -123,6 +123,7 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
         return """
                 <p>Create a NetCDF file with data of rain or other forcings that vary in space and time.</p>
                 <p>The algorithm takes a list of rasters and stacks them into a NetCDF, one raster for each time step.</p>
+                <p>ⓘ Note that 3Di also offers services that seamlessly integrate historical and forecast rain with 3Di. For example, to set up flood early warning systems or operational water management systems. Get in touch via www.3diwatermanagement.com to learn the possibilities for your area.</p>
                 <h3>Parameters</h3>
                 <h4>Input rasters</h4>
                 <p>A list of rasters (e.g. GeoTIFF) to be stacked.</p>
