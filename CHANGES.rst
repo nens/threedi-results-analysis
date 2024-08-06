@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.9.2 (unreleased)
+3.9.2 (2024-08-06)
 ------------------
 
 - Removed `max_capacity` field from the Sufhyd import tool (#1030).
