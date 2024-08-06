@@ -4,7 +4,7 @@
 3.9.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Removed `max_capacity` field from the Sufhyd import tool (#1030).
 
 
 3.9.1 (2024-07-17)

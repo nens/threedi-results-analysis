@@ -449,7 +449,6 @@ class SufhydReader(object):
             "discharge_coefficient_positive": doorlaat.drl_coe,
             "discharge_coefficient_negative": doorlaat.drl_coe,
             "sewerage": True,
-            "max_capacity": doorlaat.drl_cap,
             "crest_type": Constants.CREST_TYPE_SHARP_CRESTED,
             "crest_level": doorlaat.pro_bok,
         }
