@@ -430,7 +430,7 @@ class Graph3DiQgsConnector:
         threedigrid_to_ogr(
             tgt_ds=ds,
             layer_name="cell",
-            gridadmin_gpkg=self.gridadmin_gpkg,
+            gridadmin_gpkg=str(self.gridadmin_gpkg),
             attributes=attributes,
             attr_data_types=self.result_cell_attr_types,
             ids=cell_ids,
@@ -491,7 +491,7 @@ class Graph3DiQgsConnector:
         threedigrid_to_ogr(
             tgt_ds=ds,
             layer_name="flowline",
-            gridadmin_gpkg=self.gridadmin_gpkg,
+            gridadmin_gpkg=str(self.gridadmin_gpkg),
             attributes=attributes,
             attr_data_types=self.result_flowline_attr_types,
             ids=flowline_ids,
