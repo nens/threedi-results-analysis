@@ -1,10 +1,16 @@
 3Di Results Analysis changelog
 ========================
 
-3.9.3 (unreleased)
+3.9.4 (unreleased)
 ------------------
 
 - Nothing changed yet.
+
+
+3.9.3 (2024-08-14)
+------------------
+
+- Fix watershed tool by changing input paths for threedigrid_to_ogr to string values (#1032).
 
 
 3.9.2 (2024-08-06)
