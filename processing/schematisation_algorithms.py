@@ -17,7 +17,7 @@ import shutil
 
 # from hydxlib.scripts import run_import_export
 # from hydxlib.scripts import write_logging_to_file
-from pathlib import Path
+# from pathlib import Path
 from sqlalchemy.exc import OperationalError, DatabaseError
 # from threedi_results_analysis.processing.deps.sufhyd.import_sufhyd_main import Importer
 # from threedi_results_analysis.processing.deps.guess_indicator import guess_indicators_utils
@@ -32,12 +32,12 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsProject,
     QgsProcessingAlgorithm,
-    QgsProcessingException,
+    # QgsProcessingException,
     QgsProcessingParameterBoolean,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
-    QgsProcessingParameterFolderDestination,
-    QgsProcessingParameterString,
+    # QgsProcessingParameterFolderDestination,
+    # QgsProcessingParameterString,
     QgsVectorLayer,
 )
 
