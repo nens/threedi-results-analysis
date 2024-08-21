@@ -47,7 +47,7 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint", "tar"])
 #: List of expected dependencies.
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6", False),
-    Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*", False),
+    Dependency("GeoAlchemy2", "geoalchemy2", "==0.15.*", False),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2", False),
     Dependency(
         "importlib-resources", "importlib_resources", "", False
