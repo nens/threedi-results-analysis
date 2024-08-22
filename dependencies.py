@@ -29,16 +29,17 @@ from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QProgressDialog
 from qgis.core import Qgis
 
-import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import importlib
 import logging
 import os
 import pkg_resources
 import platform
+import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import shutil
 import subprocess
 import sys
 import tarfile
+
 
 # in case the dependency is a tar, the constraint should be the
 # explicit version (e.g. "==3.8.0")
@@ -72,7 +73,6 @@ DEPENDENCIES = [
     Dependency("condenser", "condenser", ">=0.2.1", False),
     Dependency("Shapely", "shapely", ">=2.0.0", False),
     Dependency("threedigrid-builder", "threedigrid_builder", "==1.17.*", False),
-    Dependency("hydxlib", "hydxlib", "==1.5.2", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
     Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.2", False),

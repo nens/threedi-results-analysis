@@ -67,7 +67,7 @@ wget https://files.pythonhosted.org/packages/cd/84/66072ee12c3e79061f183c09a24be
 # Download windows wheels (cp39, win, amd64)
 
 wget https://files.pythonhosted.org/packages/b2/8e/83d9e3bff5c0ff7a0ec7e850c785916e616ab20d8793943f9e1d2a987fab/shapely-2.0.0-cp39-cp39-win_amd64.whl
-wget https://files.pythonhosted.org/packages/96/63/bc1f271b291be432f4db390dc8bee6854ee1894b72816f142f57801b3f5b/threedigrid_builder-1.17.0-cp311-cp311-win_amd64.whl
+wget https://files.pythonhosted.org/packages/e0/cb/3b8c21f69f807e1436bd467df7d9a99e0ec68ea84b97e8ec5d0ce3a45aef/threedigrid_builder-1.17.0-cp39-cp39-win_amd64.whl#sha256=cf409d5dcd341122bd907210bb02e03d3818ba8f9cc83111bf5b770175c43400
 wget https://files.pythonhosted.org/packages/b3/89/1d3b78577a6b2762cb254f6ce5faec9b7c7b23052d1cdb7237273ff37d10/greenlet-2.0.2-cp39-cp39-win_amd64.whl#sha256=db1a39669102a1d8d12b57de2bb7e2ec9066a6f2b3da35ae511ff93b01b5d564
 wget https://files.pythonhosted.org/packages/5f/d6/5f59a5e5570c4414d94c6da4c97731deab832cbd14eaf23189d54a92d1e1/cftime-1.6.2-cp39-cp39-win_amd64.whl#sha256=86fe550b94525c327578a90b2e13418ca5ba6c636d5efe3edec310e631757eea
 
