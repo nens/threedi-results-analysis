@@ -4,7 +4,7 @@
 3.9.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Watershed tool: 2D flowlines intersecting obstacles are no longer shown as 1D flowlines (#1034)
 
 
 3.9.3 (2024-08-14)
