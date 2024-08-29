@@ -66,7 +66,7 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 name=self.INPUT_UNITS,
                 description="Units",
-                options=["mm", "m/s", "mm/h", "mm/hr"]
+                options=["mm", "m/s", "mm/h"]
             )
         )
 
@@ -74,7 +74,7 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFileDestination(
                 name=self.INPUT_OUTPUT_PATH,
                 description="Output file",
-                fileFilter=".nc"
+                fileFilter="NetCDF (*.nc *.NC)"
             )
         )
 
@@ -134,7 +134,7 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
                 <h4>Offset</h4>
                 <p>If greater than 0, the forcing will only be applied after this number of seconds has passed in the simulation.</p>
                 <h4>Units</h4>
-                <p><The units of the forcing's data./p>
+                <p>The units of the forcing's data. Choose 'mm' to indicate that the values are total amounts per time interval.</p>
                 <h4>Output file</h4>
                 <p>Name and location of the NetCDF output. Must have the .nc extension.</p>
         """
