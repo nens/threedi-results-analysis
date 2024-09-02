@@ -1,15 +1,22 @@
 from functools import wraps
 from pathlib import Path
+from qgis.core import QgsSettings
+from qgis.PyQt import QtWidgets
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import QModelIndex
+from qgis.PyQt.QtCore import QSortFilterProxyModel
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QStandardItem
+from qgis.PyQt.QtGui import QStandardItemModel
+from qgis.PyQt.QtWidgets import QAbstractItemView
+from threedi_mi_utils import list_local_schematisations
+from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
+
 import logging
 import os
 
-from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
-from qgis.PyQt import QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot, QModelIndex, Qt, QSortFilterProxyModel
-from qgis.PyQt.QtWidgets import QAbstractItemView
-from qgis.core import QgsSettings
-from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
-from threedi_mi_utils import list_local_schematisations
 
 logger = logging.getLogger(__name__)
 
@@ -168,14 +175,16 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot()
     @disable_dialog
     def _add_grid_from_table(self) -> None:
-        grid_file = os.path.join(self._retrieve_selected_grid_folder(self.tableView.currentIndex()), "gridadmin.h5")
+        index = self.proxy_model.mapToSource(self.tableView.currentIndex())
+        grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
         self.grid_file_selected.emit(grid_file)
 
     @pyqtSlot()
     @disable_dialog
     def _add_result_from_table(self) -> None:
-        result_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "results_3di.nc")
-        grid_file = os.path.join(self._retrieve_selected_grid_folder(self.tableView.currentIndex()), "gridadmin.h5")
+        index = self.proxy_model.mapToSource(self.tableView.currentIndex())
+        result_file = os.path.join(self._retrieve_selected_result_folder(index), "results_3di.nc")
+        grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
 
         # Also emit corresponding grid file, if existst
         if not os.path.isfile(grid_file):
@@ -184,6 +193,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.result_grid_file_selected.emit(result_file, grid_file)
 
     def _item_selected(self, index: QModelIndex):
+        index = self.proxy_model.mapToSource(index)
         self.loadGridPushButton.setEnabled(True)
         # Only activate result button when revision contain results
         if self.model.item(index.row(), 2):
@@ -193,6 +203,8 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @disable_dialog
     def _item_double_clicked(self, index: QModelIndex):
+        index = self.proxy_model.mapToSource(index)
+
         # The selection contains a result
         if self.model.item(index.row(), 2):
             result_file = os.path.join(self._retrieve_selected_result_folder(index), "results_3di.nc")
