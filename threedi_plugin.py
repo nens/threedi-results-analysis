@@ -1,29 +1,46 @@
+from qgis.core import QgsApplication
+from qgis.core import QgsMapLayer
+from qgis.core import QgsPathResolver
+from qgis.core import QgsProject
+from qgis.core import QgsSettings
 from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
-from qgis.PyQt.QtXml import QDomDocument, QDomElement
+from qgis.PyQt.QtXml import QDomDocument
+from qgis.PyQt.QtXml import QDomElement
 from qgis.utils import iface
-from qgis.core import QgsApplication, QgsProject, QgsPathResolver, QgsSettings, QgsMapLayer
+from threedi_results_analysis.gui.threedi_plugin_dockwidget import (
+    ThreeDiPluginDockWidget,
+)
 from threedi_results_analysis.misc_tools import About
 from threedi_results_analysis.misc_tools import ShowLogfile
 from threedi_results_analysis.misc_tools import ToggleResultsManager
 from threedi_results_analysis.processing.providers import ThreediProvider
-from threedi_results_analysis.gui.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
-from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
-from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
-from threedi_results_analysis.threedi_plugin_model_validation import ThreeDiPluginModelValidator
 from threedi_results_analysis.temporal import TemporalManager
-from threedi_results_analysis.threedi_plugin_model_serialization import ThreeDiPluginModelSerializer
+from threedi_results_analysis.threedi_plugin_layer_manager import (
+    ThreeDiPluginLayerManager,
+)
+from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
+from threedi_results_analysis.threedi_plugin_model_serialization import (
+    ThreeDiPluginModelSerializer,
+)
+from threedi_results_analysis.threedi_plugin_model_validation import (
+    ThreeDiPluginModelValidator,
+)
 from threedi_results_analysis.tool_animation.map_animator import MapAnimator
+from threedi_results_analysis.tool_flow_summary.flow_summary import FlowSummaryTool
 from threedi_results_analysis.tool_graph.graph import ThreeDiGraph
 from threedi_results_analysis.tool_sideview.sideview import ThreeDiSideView
 from threedi_results_analysis.tool_statistics.statistics import StatisticsTool
 from threedi_results_analysis.tool_water_balance import WaterBalanceTool
-from threedi_results_analysis.tool_watershed.watershed_analysis import ThreeDiWatershedAnalyst
+from threedi_results_analysis.tool_watershed.watershed_analysis import (
+    ThreeDiWatershedAnalyst,
+)
 from threedi_results_analysis.utils import color
 from threedi_results_analysis.utils.qprojects import ProjectStateMixin
 
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +82,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.actions = []
         self.menu = "&3Di Results Analysis"
 
+        assert not hasattr(self, "dockwidget")  # Should be destroyed on unload
+        self.dockwidget = ThreeDiPluginDockWidget(None, iface)
+
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar("ThreeDiResultAnalysis")
         self.toolbar.setObjectName("ThreeDiResultAnalysisToolBar")
@@ -79,6 +99,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.model)
         self.logfile_tool = ShowLogfile(iface)
         self.temporal_manager = TemporalManager(self.model)
+        self.flow_summary_tool = FlowSummaryTool(self.dockwidget.get_tools_widget(), iface)
 
         self.tools = [  # second item indicates enabled on startup
             (self.about_tool, True),
@@ -89,6 +110,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.water_balance_tool, False),
             (self.watershed_tool, False),
             (self.logfile_tool, True),
+            (self.flow_summary_tool, False)
         ]
 
         # Styling (TODO: can this be moved to where it is used?)
@@ -96,17 +118,15 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             color.add_color_ramp(color_ramp)
 
         for tool, enabled in self.tools:
-            self._add_action(
-                tool,
-                tool.icon_path,
-                text=tool.menu_text,
-                callback=tool.run,
-                parent=self.iface.mainWindow(),
-                enabled_flag=enabled
-            )
-
-        assert not hasattr(self, "dockwidget")  # Should be destroyed on unload
-        self.dockwidget = ThreeDiPluginDockWidget(None, iface)
+            if tool.icon_path is not None:
+                self._add_action(
+                    tool,
+                    tool.icon_path,
+                    text=tool.menu_text,
+                    callback=tool.run,
+                    parent=self.iface.mainWindow(),
+                    enabled_flag=enabled
+                )
 
         # Connect the signals
 
