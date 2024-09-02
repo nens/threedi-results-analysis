@@ -46,7 +46,7 @@ def threedigrid_to_ogr(
     # copy the source layer with the specified layer name to the target datasource
     src_layer = src_ds.GetLayerByName(layer_name)
     if ids is not None:
-        src_layer.SetAttributeFilter(f"id in {tuple(ids)}")
+        src_layer.SetAttributeFilter(f"id in ({','.join([str(i) for i in ids])})")
     layer = tgt_ds.CopyLayer(src_layer, layer_name)
     layer_defn = layer.GetLayerDefn()
 
