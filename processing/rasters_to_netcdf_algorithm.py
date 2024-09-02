@@ -17,7 +17,7 @@ from qgis.core import (
 
 class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
     """
-    Base algorithm for 'Detect leaking obstacles' algorithms, not to be exposed to users
+    Processing algorithm to create a NetCDF file with data of rain or other forcings that vary in space and time.
     """
 
     INPUT_RASTERS = "INPUT_RASTERS"
@@ -82,8 +82,13 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
         input_raster_layers: List[QgsMapLayer] = self.parameterAsLayerList(parameters, self.INPUT_RASTERS, context)
         rasters = [layer.dataProvider().dataSourceUri() for layer in input_raster_layers]
         start_datetime = self.parameterAsDateTime(parameters, self.INPUT_START_TIME, context) \
-            .toPyDateTime() \
-            .replace(second=0, microsecond=0)
+            .toPyDateTime()
+        if start_datetime.microsecond != 0:
+            feedback.pushInfo("Setting start datetime milliseconds to 0...")
+            start_datetime.replace(microsecond=0)
+        if start_datetime.second != 0:
+            feedback.pushInfo("Setting start datetime seconds to 0...")
+            start_datetime.replace(second=0)
         interval = self.parameterAsInt(parameters, self.INPUT_INTERVAL, context)
         offset = self.parameterAsInt(parameters, self.INPUT_OFFSET, context)
         units = self.parameterAsEnumString(parameters, self.INPUT_UNITS, context)
@@ -128,11 +133,11 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
                 <h4>Input rasters</h4>
                 <p>A list of rasters (e.g. GeoTIFF) to be stacked.</p>
                 <h4>Start</h4>
-                <p>Date and time of the first time step in the output NetCDF.</p>
+                <p>Date and time of the first time step in the output NetCDF. Seconds and milliseconds are ignored (set to 0).</p>
                 <h4>Interval</h4>
                 <p>Time in seconds between time steps.</p>
                 <h4>Offset</h4>
-                <p>If greater than 0, the forcing will only be applied after this number of seconds has passed in the simulation.</p>
+                <p>If greater than 0, the forcing will only be applied after <i>offset</i> seconds have passed in the simulation.</p>
                 <h4>Units</h4>
                 <p>The units of the forcing's data. Choose 'mm' to indicate that the values are total amounts per time interval.</p>
                 <h4>Output file</h4>
