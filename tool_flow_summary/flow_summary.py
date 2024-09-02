@@ -2,7 +2,6 @@
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtWidgets import QGridLayout
 from qgis.PyQt.QtWidgets import QGroupBox
-from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QTableWidget
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
@@ -20,7 +19,11 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.icon_path = None  # No menu button
         self.main_widget = QGroupBox("Flow summary", self.parent())
         self.main_widget.setLayout(QGridLayout())
-        self.table_widget = QTableWidget(3, 3, self.main_widget)
+        self.table_widget = QTableWidget(2, 2, self.main_widget)
+        self.table_widget.setHorizontalHeaderLabels(["Parameter", "result_1"])
+        self.table_widget.resizeColumnsToContents()
+        self.table_widget.horizontalHeader().setStretchLastSection(True)
+        # self.table_widget.setVerticalHeaderLabels(["Initial storage 1D", "Boundaries inflow"])
         self.main_widget.layout().addWidget(self.table_widget)
         self.parent().layout().addWidget(self.main_widget)
         self.main_widget.setEnabled(False)
