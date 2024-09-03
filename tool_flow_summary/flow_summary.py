@@ -33,11 +33,10 @@ class FlowSummaryTool(ThreeDiPluginTool):
     def setup_ui(self) -> None:
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_watershed.png")
         self.menu_text = "Flow summary tool"
-
         self.main_widget = QGroupBox("Flow summary", None)
         self.main_widget.setLayout(QGridLayout())
-        self.table_widget = QTableWidget(0, 2, self.main_widget)
-        self.table_widget.setHorizontalHeaderLabels(["Parameter", "Value"])
+        self.table_widget = QTableWidget(0, 1, self.main_widget)
+        self.table_widget.setHorizontalHeaderLabels(["Parameter"])
         self.table_widget.resizeColumnsToContents()
         self.table_widget.horizontalHeader().setStretchLastSection(True)
         self.table_widget.verticalHeader().hide()
@@ -56,7 +55,6 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
     def show_summary_result(self, item: ThreeDiResultItem) -> None:
         # find and parse the result files
-        logger.error(f"result {item.id}")
         flow_summary_path = item.path.parent / "flow_summary.json"
         if not flow_summary_path.exists():
             logger.warning(f"Flow summary file from Result {item.text()} cannot be found.")
@@ -65,10 +63,15 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
         # TODO: keep track of existing params
 
+        # TODO: keep track of existing results
+
         # retrieve all the entries in this file
         with flow_summary_path.open() as file:
             data = json.load(file)
             interesting_headers = ["volume_balance", "volume_balance_of_0d_model"]
+            self.table_widget.insertColumn(self.table_widget.columnCount())
+            self.table_widget.setHorizontalHeaderItem(self.table_widget.columnCount()-1, QTableWidgetItem(item.text()))
+            
             row_count = 0
             for interesting_header in interesting_headers:
                 if interesting_header in data:
@@ -89,34 +92,13 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.main_widget = None
 
     @pyqtSlot(ThreeDiResultItem)
-    def result_added(self, result_item: ThreeDiResultItem) -> None:
-        # # Assign a line pattern to this result (TODO: consider keeping track of the patterns
-        # # in this plugin instead of storing in model?)
-        # if not result_item._pattern:
-        #     result_item._pattern = ThreeDiGraph.get_line_pattern(result_item=result_item)
-
-        # self.action_icon.setEnabled(self.model.number_of_results() > 0)
-        # for dock_widget in self.dock_widgets:
-        #     dock_widget.result_added(result_item)
-        pass
-
-    @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, result_item: ThreeDiResultItem):
-        # self.action_icon.setEnabled(self.model.number_of_results() > 0)
-        # for dock_widget in self.dock_widgets:
-        #     dock_widget.result_removed(result_item)
+        # Remove column if required
         pass
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem):
-        # for dock_widget in self.dock_widgets:
-        #     dock_widget.result_changed(result_item)
-        pass
-
-    @pyqtSlot(ThreeDiGridItem)
-    def grid_changed(self, grid_item: ThreeDiGridItem):
-        # for dock_widget in self.dock_widgets:
-        #     dock_widget.grid_changed(grid_item)
+        # Change column header if required
         pass
 
     def run(self) -> None:
