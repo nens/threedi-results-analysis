@@ -1,13 +1,34 @@
 3Di Results Analysis changelog
 ========================
 
-3.9.1 (unreleased)
+3.9.4 (unreleased)
 ------------------
 
 - Add pump support to Result Aggregation tool
 - Add preset "Total pumped volume" to Result Aggregation tool
 - Add preset "Pumps: % of time at max capacity" to Result Aggregation tool
 - Cross-sectional discharge algorithm: allow cross-section lines to have different crs than 3Di results, automatically reproject
+- Watershed tool: 2D flowlines intersecting obstacles are no longer shown as 1D flowlines (#1034)
+
+
+3.9.3 (2024-08-14)
+------------------
+
+- Fix watershed tool by changing input paths for threedigrid_to_ogr to string values (#1032).
+
+
+3.9.2 (2024-08-06)
+------------------
+
+- Removed `max_capacity` field from the Sufhyd import tool (#1030).
+- Updated Github action to Docker Compose V2.
+
+
+3.9.1 (2024-07-17)
+------------------
+
+- Bump threedigrid-builder to 1.14.4
+
 
 3.9.0 (2024-06-21)
 ------------------
@@ -272,7 +293,7 @@
 2.5.6 (unreleased)
 ------------------
 
-- Fetch check.column.key when running the modelchecker so checks don't fail on models.Pumpstation.type.
+- Nothing changed yet.
 
 
 2.5.5 (2023-09-21)
