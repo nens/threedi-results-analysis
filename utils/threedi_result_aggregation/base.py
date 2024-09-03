@@ -24,6 +24,7 @@ from .constants import (
     NON_TS_REDUCING_KCU,
     NP_OGR_DTYPES,
     EXCHANGE_LEVEL_1D2D,
+    THRESHOLD_PRECISION,
 )
 from .aggregation_classes import (
     Aggregation,
@@ -325,13 +326,47 @@ def aggregate_prepared_timeseries(
     timeseries, tintervals, start_time, aggregation: Aggregation, threshold_values: Union[float, np.array] = None
 ) -> np.array:
     """Return an array with one value for each node or line"""
+
+    def less(values: np.array, threshold: Union[float, np.array], precision = THRESHOLD_PRECISION) -> np.array:
+        """
+        Check if the values are below the threshold, taking into account given ``precision``
+
+        :returns: boolean array
+        """
+        values_minus_threshold = values - (
+            threshold if isinstance(threshold, float) else threshold[np.newaxis]
+        )
+        return np.less(values_minus_threshold, -precision)
+
+    def greater(values: np.array, threshold: Union[float, np.array], precision=THRESHOLD_PRECISION) -> np.array:
+        """
+        Check if the values are below the threshold, taking into account given ``precision``
+
+        :returns: boolean array
+        """
+        values_minus_threshold = values - (
+            threshold if isinstance(threshold, float) else threshold[np.newaxis]
+        )
+        return np.greater(values_minus_threshold, precision)
+
+    def equal(values: np.array, threshold: Union[float, np.array], precision=THRESHOLD_PRECISION) -> np.array:
+        """
+        Check if the values are below the threshold, taking into account given ``precision``
+
+        :returns: boolean array
+        """
+        values_minus_threshold = values - (
+            threshold if isinstance(threshold, float) else threshold[np.newaxis]
+        )
+        return np.less_equal(np.abs(values_minus_threshold), precision)
+
     threshold_compare_methods = {
-        "below_thres": np.less,
-        "on_thres": np.isclose,
-        "above_thres": np.greater,
-        "time_below_threshold": np.less,
-        "time_on_threshold": np.isclose,
-        "time_above_threshold": np.greater,
+        "below_thres": less,
+        "on_thres": equal,
+        "above_thres": greater,
+        "time_below_threshold": less,
+        "time_on_threshold": equal,  # method is applied to the abs difference (value - threshold)
+        "time_above_threshold": greater,
     }
 
     if aggregation.method.short_name == "sum":
@@ -364,10 +399,7 @@ def aggregate_prepared_timeseries(
         )
     elif aggregation.method.short_name in list(threshold_compare_methods.keys()):
         compare_method = threshold_compare_methods[aggregation.method.short_name]
-        raw_values_compared_to_threshold = compare_method(
-            timeseries,
-            threshold_values if isinstance(threshold_values, float) else threshold_values[np.newaxis]
-        )
+        raw_values_compared_to_threshold = compare_method(timeseries, threshold_values)
         time_criterion_is_met = (tintervals[:, np.newaxis] * raw_values_compared_to_threshold).sum(0)
         if aggregation.method.short_name in ["below_thres", "on_thres", "above_thres"]:
             total_time = np.sum(tintervals)

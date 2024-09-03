@@ -48,6 +48,10 @@ NP_OGR_DTYPES = {
 # Nodes do not have this attribute, but will be derived from flowlines connected to the node
 EXCHANGE_LEVEL_1D2D = "exchange_level_1d2d"
 
+# Number of decimals to round values to before comparing them in below/at/above threshold methods
+THRESHOLD_PRECISION = 1e-6  # If variable is in m3, this is 0.001 L
+
+
 # Aggregation methods
 AGGREGATION_METHODS = AggregationVariableList()
 
