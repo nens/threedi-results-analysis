@@ -1,19 +1,24 @@
 from pathlib import Path
-
-from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
-from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
-from threedi_results_analysis.gui.threedi_plugin_grid_result_dialog import ThreeDiPluginGridResultDialog
-from qgis.PyQt import uic
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QDockWidget
-from qgis.PyQt.QtCore import QModelIndex
-from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.PyQt.QtWidgets import QMenu
-from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsSettings
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import QModelIndex
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QPixmap
+from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QDockWidget
+from qgis.PyQt.QtWidgets import QMenu
 from threedi_results_analysis import PLUGIN_DIR
+from threedi_results_analysis.gui.threedi_plugin_grid_result_dialog import (
+    ThreeDiPluginGridResultDialog,
+)
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
+
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -65,14 +70,51 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         self.dialog.grid_file_selected.connect(self.grid_file_selected)
         self.dialog.result_grid_file_selected.connect(self.result_grid_file_selected)
 
+        self.custom_actions = {}
+
+    def add_custom_actions(self, actions):
+        self.custom_actions |= actions
+
     def customMenuRequested(self, pos):
         index = self.treeView.indexAt(pos)
         menu = QMenu(self)
         action_delete = QAction("Delete", self)
-
         action_delete.triggered.connect(lambda _, sel_index=index: self._remove_current_index_clicked(sel_index))
         menu.addAction(action_delete)
+
+        for custom_action in self.custom_actions:
+            menu.addAction(custom_action)
+            custom_action.triggered.connect(lambda _, sel_index=index: self._current_index_clicked(sel_index))
+
         menu.popup(self.treeView.viewport().mapToGlobal(pos))
+
+    @pyqtSlot(QModelIndex)
+    def _current_index_clicked(self, index=None):
+        # note that index is the "current", not the "selected"
+        if not index:
+            index = self.treeView.selectionModel().currentIndex()
+        if index is not None and index.isValid():
+            item = self.treeView.model().itemFromIndex(index)
+            action = self.sender()
+            if isinstance(item, ThreeDiGridItem):
+                self.custom_actions[action][0](item)
+            elif isinstance(item, ThreeDiResultItem):
+                self.custom_actions[action][1](item)
+            else:
+                raise RuntimeError("Unknown model item type")
+
+    def _remove_current_index_clicked(self, index=None):
+        # note that index is the "current", not the "selected"
+        if not index:
+            index = self.treeView.selectionModel().currentIndex()
+        if index is not None and index.isValid():
+            item = self.treeView.model().itemFromIndex(index)
+            if isinstance(item, ThreeDiGridItem):
+                self.grid_removal_selected.emit(item)
+            elif isinstance(item, ThreeDiResultItem):
+                self.result_removal_selected.emit(item)
+            else:
+                raise RuntimeError("Unknown model item type")
 
     def set_model(self, model):
 
@@ -93,19 +135,6 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
     def _add_clicked(self):
         self.dialog.refresh()
         self.dialog.exec()
-
-    def _remove_current_index_clicked(self, index=None):
-        # note that index is the "current", not the "selected"
-        if not index:
-            index = self.treeView.selectionModel().currentIndex()
-        if index is not None and index.isValid():
-            item = self.treeView.model().itemFromIndex(index)
-            if isinstance(item, ThreeDiGridItem):
-                self.grid_removal_selected.emit(item)
-            elif isinstance(item, ThreeDiResultItem):
-                self.result_removal_selected.emit(item)
-            else:
-                raise RuntimeError("Unknown model item type")
 
     def _align_starts_clicked(self):
         self.align_starts_checked.emit(self.alignStartsCheckBox.isChecked())

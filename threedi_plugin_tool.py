@@ -1,6 +1,9 @@
 from qgis.PyQt.QtCore import QObject
-from qgis.PyQt.QtXml import QDomElement, QDomDocument
+from qgis.PyQt.QtXml import QDomDocument
+from qgis.PyQt.QtXml import QDomElement
+
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,3 +30,20 @@ class ThreeDiPluginTool(QObject):
     def on_unload(self):
         """Called when the plugin is unloaded. Tool can cleanup necessary items"""
         pass
+
+    def get_custom_actions(self):
+        """Called to retrieve the tool specific actions for the context-menu (right-button click) in Result Manager tree.
+         Need to provide an implementation in the tool class for a grid item and for a result item, e.g:
+
+            @pyqtSlot(ThreeDiGridItem)
+            def show_summary_grid(self, item:ThreeDiGridItem):
+                logger.info(f"grid {item.id}")
+
+            @pyqtSlot(ThreeDiResultItem)
+            def show_summary_result(self, item:ThreeDiGridItem):
+                logger.info(f"result {item.id}")
+
+            def get_custom_actions(self):
+                return {QAction("Show flow summary"): (self.show_summary_grid, self.show_summary_result)}
+        """
+        return {}

@@ -203,6 +203,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_changed.connect(self.water_balance_tool.result_changed)
         self.model.grid_changed.connect(self.water_balance_tool.grid_changed)
 
+        # flow summary
+        self.dockwidget.add_custom_actions(self.flow_summary_tool.get_custom_actions())
+
         # Further administrative signals that need to happens last:
         # https://doc.qt.io/qt-5/signalsandslots.html#signals
         # If several slots are connected to one signal, the slots will be executed one after the other,

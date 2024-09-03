@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QGridLayout
 from qgis.PyQt.QtWidgets import QGroupBox
 from qgis.PyQt.QtWidgets import QTableWidget
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
+
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class FlowSummaryTool(ThreeDiPluginTool):
@@ -19,14 +25,25 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.icon_path = None  # No menu button
         self.main_widget = QGroupBox("Flow summary", self.parent())
         self.main_widget.setLayout(QGridLayout())
-        self.table_widget = QTableWidget(2, 2, self.main_widget)
-        self.table_widget.setHorizontalHeaderLabels(["Parameter", "result_1"])
+        self.table_widget = QTableWidget(8, 2, self.main_widget)
+        self.table_widget.setHorizontalHeaderLabels(["Parameter", "regen_T10", "regen_T20"])
         self.table_widget.resizeColumnsToContents()
         self.table_widget.horizontalHeader().setStretchLastSection(True)
-        # self.table_widget.setVerticalHeaderLabels(["Initial storage 1D", "Boundaries inflow"])
+        self.table_widget.verticalHeader().hide()
         self.main_widget.layout().addWidget(self.table_widget)
         self.parent().layout().addWidget(self.main_widget)
         self.main_widget.setEnabled(False)
+ 
+    @pyqtSlot(ThreeDiGridItem)
+    def show_summary_grid(self, item: ThreeDiGridItem):
+        logger.error(f"grid {item.id}")
+
+    @pyqtSlot(ThreeDiResultItem)
+    def show_summary_result(self, item: ThreeDiGridItem):
+        logger.error(f"result {item.id}")
+
+    def get_custom_actions(self):
+        return {QAction("Show flow summary"): (self.show_summary_grid, self.show_summary_result)}
 
     def on_unload(self):
         """
