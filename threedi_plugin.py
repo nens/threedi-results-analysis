@@ -99,7 +99,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.model)
         self.logfile_tool = ShowLogfile(iface)
         self.temporal_manager = TemporalManager(self.model)
-        self.flow_summary_tool = FlowSummaryTool(self.dockwidget.get_tools_widget(), iface)
+        self.flow_summary_tool = FlowSummaryTool(self.dockwidget.get_tools_widget(), iface, self.model)
 
         self.tools = [  # second item indicates enabled on startup
             (self.about_tool, True),
@@ -110,7 +110,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.water_balance_tool, False),
             (self.watershed_tool, False),
             (self.logfile_tool, True),
-            (self.flow_summary_tool, False)
+            (self.flow_summary_tool, True)
         ]
 
         # Styling (TODO: can this be moved to where it is used?)

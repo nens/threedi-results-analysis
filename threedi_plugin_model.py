@@ -1,13 +1,17 @@
-from pathlib import Path
-from typing import List
 from functools import cached_property
-from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.PyQt.QtCore import QModelIndex, Qt
-from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
+from pathlib import Path
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import QModelIndex
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QStandardItem
+from qgis.PyQt.QtGui import QStandardItemModel
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
+from typing import List
 
 import logging
 import uuid
+
 
 logger = logging.getLogger(__name__)
 

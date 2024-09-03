@@ -36,14 +36,14 @@ class ThreeDiPluginTool(QObject):
          Need to provide an implementation in the tool class for a grid item and for a result item, e.g:
 
             @pyqtSlot(ThreeDiGridItem)
-            def show_summary_grid(self, item:ThreeDiGridItem):
+            def show_summary_grid(self, item:ThreeDiGridItem) -> None:
                 logger.info(f"grid {item.id}")
 
             @pyqtSlot(ThreeDiResultItem)
-            def show_summary_result(self, item:ThreeDiGridItem):
+            def show_summary_result(self, item:ThreeDiGridItem) -> None:
                 logger.info(f"result {item.id}")
 
-            def get_custom_actions(self):
+            def get_custom_actions(self) -> Dict[QAction, Tuple[Callable[[ThreeDiGridItem], None], Callable[[ThreeDiResultItem], None]]]:
                 return {QAction("Show flow summary"): (self.show_summary_grid, self.show_summary_result)}
         """
         return {}
