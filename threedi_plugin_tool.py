@@ -1,11 +1,12 @@
 from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.PyQt.QtXml import QDomElement
-
-import logging
-
-
-logger = logging.getLogger(__name__)
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from typing import Callable
+from typing import Dict
+from typing import Tuple
 
 
 class ThreeDiPluginTool(QObject):
@@ -31,7 +32,7 @@ class ThreeDiPluginTool(QObject):
         """Called when the plugin is unloaded. Tool can cleanup necessary items"""
         pass
 
-    def get_custom_actions(self):
+    def get_custom_actions(self) -> Dict[QAction, Tuple[Callable[[ThreeDiGridItem], None], Callable[[ThreeDiResultItem], None]]]:
         """Called to retrieve the tool specific actions for the context-menu (right-button click) in Result Manager tree.
          Need to provide an implementation in the tool class for a grid item and for a result item, e.g:
 

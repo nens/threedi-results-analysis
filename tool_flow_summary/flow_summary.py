@@ -71,7 +71,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
             interesting_headers = ["volume_balance", "volume_balance_of_0d_model"]
             self.table_widget.insertColumn(self.table_widget.columnCount())
             self.table_widget.setHorizontalHeaderItem(self.table_widget.columnCount()-1, QTableWidgetItem(item.text()))
-            
+
             row_count = 0
             for interesting_header in interesting_headers:
                 if interesting_header in data:
