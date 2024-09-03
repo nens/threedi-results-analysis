@@ -3,8 +3,8 @@ from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QGridLayout
-from qgis.PyQt.QtWidgets import QGroupBox
 from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
@@ -33,7 +33,8 @@ class FlowSummaryTool(ThreeDiPluginTool):
     def setup_ui(self) -> None:
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_watershed.png")
         self.menu_text = "Flow summary tool"
-        self.main_widget = QGroupBox("Flow summary", None)
+        self.main_widget = QDialog(None)
+        self.main_widget.setWindowTitle("Flow summary")
         self.main_widget.setLayout(QGridLayout())
         self.table_widget = QTableWidget(0, 1, self.main_widget)
         self.table_widget.setHorizontalHeaderLabels(["Parameter"])
@@ -46,6 +47,8 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.main_widget.setEnabled(True)
         self.main_widget.hide()
         self.main_widget.setWindowFlags(Qt.WindowStaysOnTopHint)
+
+        # TODO: add ok button
 
     def show_summary_grid(self, item: ThreeDiGridItem) -> None:
         results = []
