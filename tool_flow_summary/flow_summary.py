@@ -34,11 +34,9 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.parent().layout().addWidget(self.main_widget)
         self.main_widget.setEnabled(False)
  
-    @pyqtSlot(ThreeDiGridItem)
     def show_summary_grid(self, item: ThreeDiGridItem):
         logger.error(f"grid {item.id}")
 
-    @pyqtSlot(ThreeDiResultItem)
     def show_summary_result(self, item: ThreeDiGridItem):
         logger.error(f"result {item.id}")
 
@@ -46,9 +44,6 @@ class FlowSummaryTool(ThreeDiPluginTool):
         return {QAction("Show flow summary"): (self.show_summary_grid, self.show_summary_result)}
 
     def on_unload(self):
-        """
-        on close of graph plugin
-        """
         # for widget in self.dock_widgets:
         #     widget.close()  # TODO: delete as well?
         pass
