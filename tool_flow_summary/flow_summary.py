@@ -80,7 +80,6 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
         self.table_widget.resizeColumnsToContents()
         self.result_count += 1
-    
 
     def get_custom_actions(self) -> Dict[QAction, Tuple[Callable[[ThreeDiGridItem], None], Callable[[ThreeDiResultItem], None]]]:
         return {QAction("Show flow summary"): (self.show_summary_grid, self.show_summary_result)}
