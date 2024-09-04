@@ -37,7 +37,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.iface = iface
         self.model = model
 
-        # The list of shown results in the summary, idx corresponding to column idx in the table
+        # The list of shown results in the summary, idx+1 corresponding to column idx in the table
         self.result_ids : List[int] = []
         # The list of parameters shown in the summary, idx corresponding to row idx in the table
         self.param_names : List[str] = []
@@ -51,6 +51,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.main_widget.setWindowTitle("Flow summary")
         self.main_widget.setLayout(QGridLayout())
 
+        # TODO: add other tables and move logic
         self.general_info_table = VariableTable(self.main_widget)
 
         self.main_widget.layout().addWidget(self.general_info_table)
@@ -145,6 +146,8 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
         self.result_ids.pop(idx)
         self.general_info_table.removeColumn(idx+1)
+
+        # TODO: if empty: fully clean table?
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem):
