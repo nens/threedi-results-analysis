@@ -5,6 +5,7 @@
 ------------------
 
 - Watershed tool: 2D flowlines intersecting obstacles are no longer shown as 1D flowlines (#1034)
+- Bump threedi-mi-utils to 0.1.4
 
 
 3.9.3 (2024-08-14)
