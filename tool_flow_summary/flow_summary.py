@@ -70,6 +70,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
     def _format_variable(self, param_name: str, param_data: dict) -> Tuple[str, Union[str, int]]:
 
+        # TODO: remove underscores from param names
         if type(param_data) is dict:
             name = f'{param_name} [{param_data["units"]}]'
             value = param_data["value"]
@@ -89,10 +90,10 @@ class FlowSummaryTool(ThreeDiPluginTool):
             logger.warning("Result already added to flow summary, ignoring...")
             return
 
-        self.general_info_table.insertColumn(self.general_info_table.columnCount())
         header_item = QTableWidgetItem(item.text())
-        self.general_info_table.setHorizontalHeaderItem(self.general_info_table.columnCount()-1, header_item)
         self.result_ids.append(item.id)
+        self.general_info_table.insertColumn(len(self.result_ids))
+        self.general_info_table.setHorizontalHeaderItem(self.general_info_table.columnCount()-1, header_item)
 
         # find and parse the result files
         flow_summary_path = item.path.parent / "flow_summary.json"
@@ -111,16 +112,17 @@ class FlowSummaryTool(ThreeDiPluginTool):
                         param_name, param_value = self._format_variable(param, data[interesting_header][param])
 
                         # Check if we've added this parameter before, then use that row idx,
-                        # otherwise append
+                        # otherwise append to bottom of table
                         try:
                             param_index = self.param_names.index(param)
                         except ValueError:
                             param_index = len(self.param_names)
                             self.param_names.append(param)
-                            # TODO perhaps append
+                            # Add a new row and set the parameter name
+                            assert param_index == self.general_info_table.rowCount()
+                            self.general_info_table.insertRow(param_index)
                             self.general_info_table.setItem(param_index, 0, QTableWidgetItem(param_name))
 
-                        # TODO perhaps append
                         self.general_info_table.setItem(param_index, len(self.result_ids), QTableWidgetItem(str(param_value)))
 
         self.general_info_table.resizeColumnsToContents()
@@ -136,12 +138,22 @@ class FlowSummaryTool(ThreeDiPluginTool):
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, result_item: ThreeDiResultItem):
         # Remove column if required, pop from self.result_ids
-        pass
+        try:
+            idx = self.result_ids.index(result_item.id)
+        except ValueError:
+            return  # result not in summary
+
+        self.result_ids.pop(idx)
+        self.general_info_table.removeColumn(idx+1)
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem):
-        # Change column header if required
-        pass
+        try:
+            idx = self.result_ids.index(result_item.id)
+        except ValueError:
+            return  # result not in summary
+
+        self.general_info_table.setHorizontalHeaderItem(idx+1, QTableWidgetItem(result_item.text()))
 
     def run(self) -> None:
         self.main_widget.show()
