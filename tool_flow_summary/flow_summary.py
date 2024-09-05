@@ -43,7 +43,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.setup_ui()
 
     def setup_ui(self) -> None:
-        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_watershed.png")
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_summary.png")
         self.menu_text = "Flow summary tool"
         self.main_widget = QDialog(None)
         self.main_widget.setWindowTitle("Flow summary")
