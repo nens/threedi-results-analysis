@@ -9,44 +9,54 @@
 
 # TODO: auto-Enable/disable buttons in Target Nodes and Outputs sections
 
+from .smoothing import polygon_gaussian_smooth
+from .watershed_analysis_networkx import Graph3Di
+from osgeo import ogr
+from osgeo import osr
+from qgis.core import Qgis
+from qgis.core import QgsApplication
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsDataSourceUri
+from qgis.core import QgsExpression
+from qgis.core import QgsFeature
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsField
+from qgis.core import QgsGeometry
+from qgis.core import QgsMapLayerProxyModel
+from qgis.core import QgsMessageLog
+from qgis.core import QgsProcessingFeedback
+from qgis.core import QgsProject
+from qgis.core import QgsTask
+from qgis.core import QgsVectorLayer
+from qgis.gui import QgsMapToolIdentify
+from qgis.gui import QgsVertexMarker
+from qgis.PyQt import QtGui
+from qgis.PyQt import QtWidgets
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QVariant
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from threedi_results_analysis.utils.ogr2qgis import append_to_qgs_vector_layer
+from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer
+from threedi_results_analysis.utils.qprojects import set_read_only
+from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import (
+    threedigrid_to_ogr,
+)
+from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from typing import Iterable
+from typing import List
+
+import logging
+import numpy as np
 # TODO: add sub-categories to result flowline styling
 # TODO: add discharge (q net sum) attribute to result flowlines
 # TODO: add flow direction styling to result flowlines
 import os
 import pathlib
 import processing
-import numpy as np
-import logging
-from typing import Iterable, List
-from qgis.PyQt import QtGui, QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal, Qt, QVariant
-from qgis.core import (
-    Qgis,
-    QgsApplication,
-    QgsTask,
-    QgsMessageLog,
-    QgsProject,
-    QgsDataSourceUri,
-    QgsFeatureRequest,
-    QgsExpression,
-    QgsFeature,
-    QgsGeometry,
-    QgsProcessingFeedback,
-    QgsMapLayerProxyModel,
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
-    QgsField,
-    QgsVectorLayer,
-)
-from qgis.gui import QgsMapToolIdentify, QgsVertexMarker
-from osgeo import ogr, osr
-from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-from .watershed_analysis_networkx import Graph3Di
-from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import threedigrid_to_ogr
-from threedi_results_analysis.utils.ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
-from .smoothing import polygon_gaussian_smooth
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
-from threedi_results_analysis.utils.qprojects import set_read_only
+
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +228,7 @@ class Graph3DiQgsConnector:
         else:
             subset_string = "catchment_id IN ({})".format(filtered_ids_str)
         # filter to leave subset_string out if empty
-        flowline_subset_string = " AND ".join(filter(None, [subset_string, "line_type != 100"]))
+        flowline_subset_string = " AND ".join(filter(None, [subset_string, "line_type >= 0", "line_type <= 54"]))
         if self.result_catchment_layer:
             self.result_catchment_layer.setSubsetString(subset_string)
         if self.result_cell_layer:
@@ -430,7 +440,7 @@ class Graph3DiQgsConnector:
         threedigrid_to_ogr(
             tgt_ds=ds,
             layer_name="cell",
-            gridadmin_gpkg=self.gridadmin_gpkg,
+            gridadmin_gpkg=str(self.gridadmin_gpkg),
             attributes=attributes,
             attr_data_types=self.result_cell_attr_types,
             ids=cell_ids,
@@ -491,7 +501,7 @@ class Graph3DiQgsConnector:
         threedigrid_to_ogr(
             tgt_ds=ds,
             layer_name="flowline",
-            gridadmin_gpkg=self.gridadmin_gpkg,
+            gridadmin_gpkg=str(self.gridadmin_gpkg),
             attributes=attributes,
             attr_data_types=self.result_flowline_attr_types,
             ids=flowline_ids,

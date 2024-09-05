@@ -2,7 +2,7 @@
 name=3Di Results Analysis
 qgisMinimumVersion=3.22
 description=3Di Results Analysis
-version=3.8.2
+version=3.9.4
 author=3Di Water Management
 email=servicedesk@nelen-schuurmans.nl
 
@@ -24,8 +24,8 @@ about=Analyse 3Di results and visualize computational grids in the 3Di Modeller 
     
     For questions on 3Di or the use of this plugin please contact us via servicedesk@nelen-schuurmans.nl 
 
-tracker=https://github.com/nens/ThreeDiToolbox
-repository=https://github.com/nens/ThreeDiToolbox
+tracker=https://github.com/nens/threedi-results-analysis
+repository=https://github.com/nens/threedi-results-analysis
 
 changelog=https://docs.3di.live/a_releasenotes_3di_mi.html
 
