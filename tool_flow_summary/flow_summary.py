@@ -92,22 +92,21 @@ class FlowSummaryTool(ThreeDiPluginTool):
         flow_summary_path = item.path.parent / "flow_summary.json"
         if not flow_summary_path.exists():
             logger.warning(f"Flow summary file from Result {item.text()} cannot be found.")
-            # TODO: make red, but unclear how to style individual items in header
+            # TODO: ideally make red, but unclear how to style individual items in header
             for group_name in GROUP_NAMES:
-                self.tables[group_name].add_summary_results(item, dict())
-            return
+                self.tables[group_name].add_summary_results(item.text(), dict())
+        else:
+            # retrieve all the entries in this file
+            with flow_summary_path.open() as file:
+                data = json.load(file)
 
-        # retrieve all the entries in this file
-        with flow_summary_path.open() as file:
-            data = json.load(file)
-
-            for group_name in GROUP_NAMES:
-                assert group_name in self.tables
-                if group_name in data:
-                    group_data = data[group_name]
-                else:
-                    group_data = {}
-                self.tables[group_name].add_summary_results(item, group_data)
+                for group_name in GROUP_NAMES:
+                    assert group_name in self.tables
+                    if group_name in data:
+                        group_data = data[group_name]
+                    else:
+                        group_data = {}
+                    self.tables[group_name].add_summary_results(item.text(), group_data)
 
         self.main_widget.show()
 

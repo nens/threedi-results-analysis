@@ -4,7 +4,6 @@ from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QHeaderView
 from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from typing import List
 from typing import Tuple
 from typing import Union
@@ -26,8 +25,8 @@ class VariableTable(QTableWidget):
         # The list of parameters shown in the summary, idx corresponding to row idx in the table
         self.param_names : List[str] = []
 
-    def add_summary_results(self, item: ThreeDiResultItem, group_data):
-        header_item = QTableWidgetItem(item.text())
+    def add_summary_results(self, result_text: str, group_data):
+        header_item = QTableWidgetItem(result_text)
         self.insertColumn(self.columnCount())
         self.setHorizontalHeaderItem(self.columnCount()-1, header_item)
 

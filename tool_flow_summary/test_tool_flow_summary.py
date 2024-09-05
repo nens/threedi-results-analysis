@@ -14,3 +14,6 @@ class TestFlowSummaryTool(unittest.TestCase):
         self.assertEqual(
             self.flow_summary.icon_path, "/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/threedi_results_analysis/icons/icon_summary.png"
         )
+
+    def test_result_addition(self):
+        pass
