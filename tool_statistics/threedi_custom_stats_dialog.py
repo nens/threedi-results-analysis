@@ -347,9 +347,11 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         method = method_widget.currentData() if method_widget else None
         self.set_threshold_value_widget(row=row, method=method)
         self.update_demanded_aggregations()
+        self._update_output_layer_fields_based_on_aggregations()
 
     def threshold_value_changed(self):
         self.update_demanded_aggregations()
+        self._update_output_layer_fields_based_on_aggregations()
 
     def units_combobox_text_changed(self):
         self.update_demanded_aggregations()
@@ -920,26 +922,6 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         Set dialog widgets according to given preset.
         If no styling is given for an output_type, that output type's styling panel checkbox is set to False
         """
-
-        # Set the default output layer names based on preset, if the current layer name value is not modified yet
-        if not self.lineEditOutputFlowLayer.isModified():
-            self.lineEditOutputFlowLayer.setText(preset.flowlines_layer_name or "")
-
-        if not self.lineEditOutputCellLayer.isModified():
-            self.lineEditOutputCellLayer.setText(preset.cells_layer_name or "")
-
-        if not self.lineEditOutputNodeLayer.isModified():
-            self.lineEditOutputNodeLayer.setText(preset.nodes_layer_name or "")
-
-        if not self.lineEditOutputPumpsLayer.isModified():
-            self.lineEditOutputPumpsLayer.setText(preset.pumps_layer_name or "")
-
-        if not self.lineEditOutputPumpsLinestringLayer.isModified():
-            self.lineEditOutputPumpsLinestringLayer.setText(preset.pumps_linestring_layer_name or "")
-
-        if not self.lineEditOutputRasterLayer.isModified():
-            self.lineEditOutputRasterLayer.setText(preset.raster_layer_name or "")
-
         # set manhole filter
         self.onlyManholeCheckBox.setChecked(preset.only_manholes)
 
@@ -974,6 +956,25 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             uncheck_pumps_linestring_checkbox=preset.pumps_linestring_style is None,
         )
 
+        # Set the default output layer names based on preset, if the current layer name value is not modified yet
+        if not self.lineEditOutputFlowLayer.isModified():
+            self.lineEditOutputFlowLayer.setText(preset.flowlines_layer_name or "")
+
+        if not self.lineEditOutputCellLayer.isModified():
+            self.lineEditOutputCellLayer.setText(preset.cells_layer_name or "")
+
+        if not self.lineEditOutputNodeLayer.isModified():
+            self.lineEditOutputNodeLayer.setText(preset.nodes_layer_name or "")
+
+        if not self.lineEditOutputPumpsLayer.isModified():
+            self.lineEditOutputPumpsLayer.setText(preset.pumps_layer_name or "")
+
+        if not self.lineEditOutputPumpsLinestringLayer.isModified():
+            self.lineEditOutputPumpsLinestringLayer.setText(preset.pumps_linestring_layer_name or "")
+
+        if not self.lineEditOutputRasterLayer.isModified():
+            self.lineEditOutputRasterLayer.setText(preset.raster_layer_name or "")
+
     def _update_output_layer_fields_based_on_aggregations(self):
         logger.info("Output layer suggestion based on selected aggregations")
 
@@ -985,7 +986,6 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         suggested_pump_linestring_output_layer_name = "Pumps (lines): "
         suggested_raster_output_layer_name = "Raster: "
 
-        postfix = ""
         if len(self.demanded_aggregations) == 0:
             postfix = "aggregation output layer"
         elif len(self.demanded_aggregations) == 1:
@@ -994,7 +994,13 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             if aggregation.variable.signed:
                 postfix_items.append(aggregation.sign.long_name.lower())
             if aggregation.method:
-                postfix_items.append(aggregation.method.long_name.lower())
+                aggregation_method_string = aggregation.method.long_name.lower()
+                if aggregation.threshold:
+                    threshold_string = aggregation.threshold.replace("_", " ") \
+                        if isinstance(aggregation.threshold, str) \
+                        else str(round(aggregation.threshold, 2))
+                    aggregation_method_string = aggregation_method_string.replace("threshold", threshold_string)
+                postfix_items.append(aggregation_method_string)
             postfix_items.append(f"[{aggregation.unit_str}]")  # attribute attached in update_demanded_aggegrations()
             postfix = " ".join(postfix_items)
         else:
