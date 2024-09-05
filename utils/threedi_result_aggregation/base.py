@@ -327,7 +327,7 @@ def aggregate_prepared_timeseries(
 ) -> np.array:
     """Return an array with one value for each node or line"""
 
-    def less(values: np.array, threshold: Union[float, np.array], precision = THRESHOLD_PRECISION) -> np.array:
+    def less(values: np.array, threshold: Union[float, np.array], precision=THRESHOLD_PRECISION) -> np.array:
         """
         Check if the values are below the threshold, taking into account given ``precision``
 
