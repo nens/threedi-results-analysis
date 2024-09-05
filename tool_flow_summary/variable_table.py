@@ -74,7 +74,7 @@ class VariableTable(QTableWidget):
 
     def _format_variable(self, param_name: str, param_data: dict) -> Tuple[str, Union[str, int]]:
 
-        # TODO: remove underscores from param names
+        param_name = param_name.replace("_", " ")
         if type(param_data) is dict:
             name = f'{param_name} [{param_data["units"]}]'
             value = param_data["value"]
