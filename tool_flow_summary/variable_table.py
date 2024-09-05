@@ -1,6 +1,7 @@
 
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
+from qgis.PyQt.QtWidgets import QHeaderView
 from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
@@ -14,11 +15,14 @@ class VariableTable(QTableWidget):
         super().__init__(0, 1, parent)
         self.group_name = group_name
         self.setHorizontalHeaderLabels([group_name])
-        self.resizeColumnsToContents()
-        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+
         self.verticalHeader().hide()
         self.setSortingEnabled(False)
         self.setSelectionMode(QAbstractItemView.NoSelection)
+
+        # for proper aligning, we always need to reserve space for the scrollbar
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         # The list of parameters shown in the summary, idx corresponding to row idx in the table
         self.param_names : List[str] = []
@@ -49,17 +53,21 @@ class VariableTable(QTableWidget):
             item.setFlags(item.flags() ^ Qt.ItemIsEditable)
             self.setItem(param_index, self.columnCount()-1, item)
 
-        self.resizeColumnsToContents()
+        for idx in range(self.columnCount()):
+            self.horizontalHeader().setSectionResizeMode(idx, QHeaderView.Stretch)
 
     def clean_results(self) -> None:
+        self.clearContents()
         self.setColumnCount(1)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels([self.group_name])
-        self.resizeColumnsToContents()
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.param_names.clear()
 
     def remove_result(self, idx: int) -> None:
         self.removeColumn(idx)
+        for idx in range(self.columnCount()):
+            self.horizontalHeader().setSectionResizeMode(idx, QHeaderView.Stretch)
 
     def change_result(self, idx: int, text: str) -> None:
         self.setHorizontalHeaderItem(idx, QTableWidgetItem(text))

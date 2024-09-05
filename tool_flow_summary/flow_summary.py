@@ -79,14 +79,16 @@ class FlowSummaryTool(ThreeDiPluginTool):
             logger.warning("Result already added to flow summary, ignoring...")
             return
 
+        self.result_ids.append(item.id)
+
         # find and parse the result files
         flow_summary_path = item.path.parent / "flow_summary.json"
         if not flow_summary_path.exists():
             logger.warning(f"Flow summary file from Result {item.text()} cannot be found.")
             # TODO: make red, but unclear how to style individual items in header
+            for group_name in GROUP_NAMES:
+                self.tables[group_name].add_summary_results(item, dict())
             return
-
-        self.result_ids.append(item.id)
 
         # retrieve all the entries in this file
         with flow_summary_path.open() as file:
