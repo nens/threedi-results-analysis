@@ -4,6 +4,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QGridLayout
+from qgis.PyQt.QtWidgets import QGroupBox
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QSizePolicy
@@ -50,8 +51,13 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.main_widget.setLayout(QGridLayout())
 
         for group_name in GROUP_NAMES:
-            self.tables[group_name] = VariableTable(group_name, self.main_widget)
-            self.main_widget.layout().addWidget(self.tables[group_name])
+            variable_group = QGroupBox(group_name.replace("_", " "), self.main_widget)
+            variable_group.setLayout(QGridLayout())
+
+            self.tables[group_name] = VariableTable(variable_group)
+            variable_group.layout().addWidget(self.tables[group_name])
+
+            self.main_widget.layout().addWidget(variable_group)
 
         self.main_widget.setEnabled(True)
         self.main_widget.hide()

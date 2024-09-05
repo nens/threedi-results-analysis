@@ -11,10 +11,9 @@ from typing import Union
 
 
 class VariableTable(QTableWidget):
-    def __init__(self, group_name: str, parent):
+    def __init__(self, parent):
         super().__init__(0, 1, parent)
-        self.group_name = group_name
-        self.setHorizontalHeaderLabels([group_name])
+        self.setHorizontalHeaderLabels([""])
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
 
         self.verticalHeader().hide()
@@ -60,7 +59,7 @@ class VariableTable(QTableWidget):
         self.clearContents()
         self.setColumnCount(1)
         self.setRowCount(0)
-        self.setHorizontalHeaderLabels([self.group_name])
+        self.setHorizontalHeaderLabels([""])
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.param_names.clear()
 
