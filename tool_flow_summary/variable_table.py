@@ -37,10 +37,10 @@ class VariableTable(QTableWidget):
             # Check if we've added this parameter before, then use that row idx,
             # otherwise append to bottom of table
             try:
-                param_index = self.param_names.index(param)
+                param_index = self.param_names.index(param_name)
             except ValueError:
                 param_index = len(self.param_names)
-                self.param_names.append(param)
+                self.param_names.append(param_name)
                 # Add a new row and set the parameter name
                 assert param_index == self.rowCount()
                 self.insertRow(param_index)

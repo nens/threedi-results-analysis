@@ -52,6 +52,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
         for group_name in GROUP_NAMES:
             variable_group = QGroupBox(group_name.replace("_", " "), self.main_widget)
+            variable_group.setStyleSheet("QGroupBox { font-weight: bold; }")
             variable_group.setLayout(QGridLayout())
 
             self.tables[group_name] = VariableTable(variable_group)
