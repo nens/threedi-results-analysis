@@ -84,6 +84,7 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
 
         for custom_action in self.custom_actions:
             menu.addAction(custom_action)
+            custom_action.triggered.disconnect()
             custom_action.triggered.connect(lambda _, sel_index=index: self._current_index_clicked(sel_index))
 
         menu.popup(self.treeView.viewport().mapToGlobal(pos))

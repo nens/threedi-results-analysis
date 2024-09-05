@@ -56,6 +56,7 @@ class VariableTable(QTableWidget):
         self.setRowCount(0)
         self.setHorizontalHeaderLabels([self.group_name])
         self.resizeColumnsToContents()
+        self.param_names.clear()
 
     def remove_result(self, idx: int) -> None:
         self.removeColumn(idx)
