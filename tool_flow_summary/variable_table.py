@@ -26,7 +26,6 @@ class VariableTable(QTableWidget):
 
     def add_summary_results(self, result_text: str, group_data):
         header_item = QTableWidgetItem(result_text)
-        header_item.setTextAlignment(Qt.AlignRight)
         self.insertColumn(self.columnCount())
         self.setHorizontalHeaderItem(self.columnCount()-1, header_item)
 
@@ -89,4 +88,5 @@ class VariableTable(QTableWidget):
         else:
             param_data = str(param_data)
 
+        param_name = param_name[0].capitalize() + param_name[1:]
         return param_name, param_data

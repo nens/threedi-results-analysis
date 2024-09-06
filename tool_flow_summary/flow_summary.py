@@ -51,7 +51,9 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.main_widget.setLayout(QGridLayout())
 
         for group_name in GROUP_NAMES:
-            variable_group = QGroupBox(group_name.replace("_", " "), self.main_widget)
+            group_title = (group_name[0].capitalize() + group_name[1:]).replace("_", " ")
+            group_title = group_title.replace("0d", "0D")
+            variable_group = QGroupBox(group_title, self.main_widget)
             variable_group.setStyleSheet("QGroupBox { font-weight: bold; }")
             variable_group.setLayout(QGridLayout())
 
