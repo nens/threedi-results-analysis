@@ -146,5 +146,9 @@ class FlowSummaryTool(ThreeDiPluginTool):
         for table in self.tables:
             self.tables[table].change_result(idx+1, result_item.text())
 
+    @pyqtSlot(ThreeDiResultItem)
+    def result_added(self, _: ThreeDiResultItem):
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+
     def run(self) -> None:
         self.main_widget.show()

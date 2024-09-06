@@ -104,7 +104,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.tools = [  # second item indicates enabled on startup
             (self.about_tool, True),
             (self.toggle_results_manager, True),
-            (self.flow_summary_tool, True),
+            (self.flow_summary_tool, False),
             (self.graph_tool, False),
             (self.sideview_tool, False),
             (self.stats_tool, False),
@@ -172,6 +172,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # flow summary signals
         self.model.result_removed.connect(self.flow_summary_tool.result_removed)
         self.model.result_changed.connect(self.flow_summary_tool.result_changed)
+        self.model.result_added.connect(self.flow_summary_tool.result_added)
 
         # graph signals
         self.model.result_added.connect(self.graph_tool.result_added)
