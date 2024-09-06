@@ -34,11 +34,11 @@ TEST_DATA = {
 
 TEST_DATA2 = {
         "calculation_node_with_max_volume_error": 13973,
+        "additional": 13973,
         "default_timestep": {
             "units": "s",
-            "value": 5.0146
+            "value": 10000
         },
-        "additional": 13973,
         "additional2": {
             "units": "s",
             "value": 5.0146
@@ -55,6 +55,14 @@ TEST_DATA3 = {
             "units": "s",
             "value": 3.14
         }
+    }
+
+# same param, but different unit
+TEST_DATA4 = {
+        "additional2": {
+            "units": "h",
+            "value": 44444
+        },
     }
 
 
@@ -86,6 +94,22 @@ class TestFlowSummaryTool(unittest.TestCase):
         assert table.columnCount() == 4
         assert table.rowCount() == 14
 
+        assert table.item(1, 2).text() == "10000"
+
+        # same data, but different unit
+        table.add_summary_results("test", TEST_DATA4)
+        assert table.columnCount() == 5
+        assert table.rowCount() == 15
+
+        assert table.item(14, 4).text() == "44444"
+
+        # remove TEST_DATA
         table.remove_result(1)
-        assert table.columnCount() == 3
-        assert table.rowCount() == 14
+        assert table.columnCount() == 4
+        assert table.rowCount() == 15
+
+        assert table.item(14, 3).text() == "44444"
+
+        table.clean_results()
+        assert table.columnCount() == 1
+        assert table.rowCount() == 0

@@ -6,7 +6,6 @@ from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from typing import List
 from typing import Tuple
-from typing import Union
 
 
 class VariableTable(QTableWidget):
@@ -27,6 +26,7 @@ class VariableTable(QTableWidget):
 
     def add_summary_results(self, result_text: str, group_data):
         header_item = QTableWidgetItem(result_text)
+        header_item.setTextAlignment(Qt.AlignRight)
         self.insertColumn(self.columnCount())
         self.setHorizontalHeaderItem(self.columnCount()-1, header_item)
 
@@ -45,9 +45,11 @@ class VariableTable(QTableWidget):
                 self.insertRow(param_index)
                 item = QTableWidgetItem(param_name)
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+                item.setTextAlignment(Qt.AlignRight)
                 self.setItem(param_index, 0, item)
 
-            item = QTableWidgetItem(str(param_value))
+            item = QTableWidgetItem(param_value)
+            item.setTextAlignment(Qt.AlignRight)
             item.setFlags(item.flags() ^ Qt.ItemIsEditable)
             self.setItem(param_index, self.columnCount()-1, item)
 
@@ -70,12 +72,21 @@ class VariableTable(QTableWidget):
     def change_result(self, idx: int, text: str) -> None:
         self.setHorizontalHeaderItem(idx, QTableWidgetItem(text))
 
-    def _format_variable(self, param_name: str, param_data: dict) -> Tuple[str, Union[str, int]]:
+    def _format_variable(self, param_name: str, param_data: dict) -> Tuple[str, str]:
 
         param_name = param_name.replace("_", " ")
         if type(param_data) is dict:
-            name = f'{param_name} [{param_data["units"]}]'
-            value = param_data["value"]
-            return name, value
+            param_name = f'{param_name} [{param_data["units"]}]'
+            param_data = param_data["value"]
+
+        # numbers in 4 decimals, except when in scientific notation
+        if isinstance(param_data, float):
+            string_repr = str(param_data)
+            if "e" in string_repr:
+                param_data = string_repr
+            else:
+                param_data = "{:.4f}".format(param_data)
         else:
-            return param_name, param_data
+            param_data = str(param_data)
+
+        return param_name, param_data
