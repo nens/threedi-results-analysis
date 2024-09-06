@@ -1,11 +1,17 @@
 from pathlib import Path
+from pkg_resources import DistributionNotFound
+from pkg_resources import get_distribution
+from pkg_resources import RequirementParseError
 from threedi_results_analysis import dependencies
 from threedi_results_analysis.dependencies import Dependency
 
+import logging
 import mock
 import os
 import pytest
 
+
+logger = logging.getLogger()
 
 available_dependency = dependencies.Dependency("numpy", "numpy", "", False)
 dependency_with_wrong_version = dependencies.Dependency("numpy", "numpy", "==1972", False)
@@ -125,3 +131,30 @@ def test_ensure_prerequisite_is_installed2():
     with pytest.raises(RuntimeError):
         # "prerequisite=" is there only for easy testing, the default is "pip")
         dependencies._ensure_prerequisite_is_installed(prerequisite="reinout")
+
+
+def _get_dependency_requirement(package_name, dependency_name):
+    try:
+        dist = get_distribution(package_name)
+        requires = dist.requires()
+        for req in requires:
+            if req.name == dependency_name:
+                return req
+    except (DistributionNotFound, RequirementParseError):
+        return None
+    return None
+
+
+def test_check_dependency_conflicts():
+    schema_version = get_distribution('threedi-schema').version
+    modelchecker_schema_requirement = _get_dependency_requirement('threedi-modelchecker', 'threedi-schema')
+    gridbuilder_schema_requirement = _get_dependency_requirement('threedigrid-builder', 'threedi-schema')
+
+    assert modelchecker_schema_requirement is not None
+    assert gridbuilder_schema_requirement is not None
+    assert schema_version is not None
+
+    # __contains__(dist_or_version): Return true if dist_or_version fits the criteria for this requirement.
+    assert "100.100.100" not in modelchecker_schema_requirement
+    assert schema_version in modelchecker_schema_requirement
+    assert schema_version in gridbuilder_schema_requirement
