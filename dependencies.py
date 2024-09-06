@@ -29,16 +29,17 @@ from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QProgressDialog
 from qgis.core import Qgis
 
-import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import importlib
 import logging
 import os
 import pkg_resources
 import platform
+import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import shutil
 import subprocess
 import sys
 import tarfile
+
 
 # in case the dependency is a tar, the constraint should be the
 # explicit version (e.g. "==3.8.0")
@@ -59,7 +60,7 @@ DEPENDENCIES = [
     Dependency("cftime", "cftime", ">=1.5.0", False),  # threedigrid[results]
     Dependency("alembic", "alembic", "==1.8.*", False),
     Dependency("threedigrid", "threedigrid", "==2.2.*", False),
-    Dependency("threedi-schema", "threedi_schema", "==0.219.*", False),
+    Dependency("threedi-schema", "threedi_schema", "==0.214.*", False),
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.6.*", False),
     Dependency("threedidepth", "threedidepth", "==0.6.3", False),
     Dependency("click", "click", ">=8.0", False),
