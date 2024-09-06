@@ -78,12 +78,16 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
     def customMenuRequested(self, pos):
         index = self.treeView.indexAt(pos)
         menu = QMenu(self)
-        action_delete = QAction("Delete", self)
-        action_delete.triggered.connect(lambda _, sel_index=index: self._remove_current_index_clicked(sel_index))
-        menu.addAction(action_delete)
+        action_remove = QAction("Remove", self)
+        action_remove.triggered.connect(lambda _, sel_index=index: self._remove_current_index_clicked(sel_index))
+        menu.addAction(action_remove)
 
         for custom_action in self.custom_actions:
-            menu.addAction(custom_action)
+            if custom_action.isSeparator():
+                menu.addSeparator()
+                continue
+            else:
+                menu.addAction(custom_action)
             custom_action.triggered.disconnect()
             custom_action.triggered.connect(lambda _, sel_index=index: self._current_index_clicked(sel_index))
 

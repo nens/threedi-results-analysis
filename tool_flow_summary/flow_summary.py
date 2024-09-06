@@ -76,13 +76,13 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.main_widget.layout().addWidget(button_widget)
         ok_button.clicked.connect(self.main_widget.hide)
 
-    def show_summary_grid(self, item: ThreeDiGridItem) -> None:
+    def add_summary_grid(self, item: ThreeDiGridItem) -> None:
         results = []
         self.model.get_results_from_item(item=item, checked_only=False, results=results)
         for result in results:
-            self.show_summary_result(result)
+            self.add_summary_result(result)
 
-    def show_summary_result(self, item: ThreeDiResultItem) -> None:
+    def add_summary_result(self, item: ThreeDiResultItem) -> None:
 
         if item.id in self.result_ids:
             logger.warning("Result already added to flow summary, ignoring...")
@@ -112,8 +112,22 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
         self.main_widget.show()
 
+    def remove_summary_grid(self, item: ThreeDiGridItem) -> None:
+        results = []
+        self.model.get_results_from_item(item=item, checked_only=False, results=results)
+        for result in results:
+            self.remove_summary_result(result)
+
+    def remove_summary_result(self, item: ThreeDiResultItem) -> None:
+        self.result_removed(item)
+
     def get_custom_actions(self) -> Dict[QAction, Tuple[Callable[[ThreeDiGridItem], None], Callable[[ThreeDiResultItem], None]]]:
-        return {QAction("Show flow summary"): (self.show_summary_grid, self.show_summary_result)}
+        separator = QAction()
+        separator.setSeparator(True)
+        return {separator: (None, None),
+                QAction("Add to flow summary"): (self.add_summary_grid, self.add_summary_result),
+                QAction("Remove from flow summary"): (self.remove_summary_grid, self.remove_summary_result)
+                }
 
     def on_unload(self) -> None:
         del self.main_widget
