@@ -5,13 +5,10 @@ from pkg_resources import RequirementParseError
 from threedi_results_analysis import dependencies
 from threedi_results_analysis.dependencies import Dependency
 
-import logging
 import mock
 import os
 import pytest
 
-
-logger = logging.getLogger()
 
 available_dependency = dependencies.Dependency("numpy", "numpy", "", False)
 dependency_with_wrong_version = dependencies.Dependency("numpy", "numpy", "==1972", False)
