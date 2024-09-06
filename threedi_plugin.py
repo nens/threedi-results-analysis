@@ -104,13 +104,13 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.tools = [  # second item indicates enabled on startup
             (self.about_tool, True),
             (self.toggle_results_manager, True),
+            (self.flow_summary_tool, True),
             (self.graph_tool, False),
             (self.sideview_tool, False),
             (self.stats_tool, False),
             (self.water_balance_tool, False),
             (self.watershed_tool, False),
-            (self.logfile_tool, True),
-            (self.flow_summary_tool, True)
+            (self.logfile_tool, True)
         ]
 
         # Styling (TODO: can this be moved to where it is used?)
