@@ -4,6 +4,10 @@
 3.9.4 (unreleased)
 ------------------
 
+- Add pump support to Result Aggregation tool
+- Add preset "Total pumped volume" to Result Aggregation tool
+- Add preset "Pumps: % of time at max capacity" to Result Aggregation tool
+- Cross-sectional discharge algorithm: allow cross-section lines to have different crs than 3Di results, automatically reproject
 - Watershed tool: 2D flowlines intersecting obstacles are no longer shown as 1D flowlines (#1034)
 - Model selection dialog: fixed order bug when sorting.
 - Bump threedi-mi-utils to 0.1.4

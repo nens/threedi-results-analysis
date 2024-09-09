@@ -9,7 +9,9 @@ ogr.UseExceptions()
 GEOMETRY_TYPE_MAP = {
     "node": ogr.wkbPoint,
     "cell": ogr.wkbPolygon,
-    "flowline": ogr.wkbLineString
+    "flowline": ogr.wkbLineString,
+    "pump": ogr.wkbPoint,
+    "pump_linestring": ogr.wkbLineString,
 }
 
 
@@ -25,7 +27,8 @@ def threedigrid_to_ogr(
     Modify the target ogr Datasource with custom attributes
 
     :param tgt_ds: target ogr Datasource
-    :param layer_name: name of the layer to be copied to target ogr Datasource. One of 'node', 'cell', 'flowline'
+    :param layer_name: name of the layer to be copied to target ogr Datasource.
+        One of 'node', 'cell', 'flowline', 'pump', 'pump_linestring'
     :param gridadmin_gpkg: path to gridadmin.gpkg
     :param attributes: {attribute name: list of values}
     :param attr_data_types: {attribute name: ogr data type}
@@ -43,7 +46,7 @@ def threedigrid_to_ogr(
     # copy the source layer with the specified layer name to the target datasource
     src_layer = src_ds.GetLayerByName(layer_name)
     if ids is not None:
-        src_layer.SetAttributeFilter(f"id in {tuple(ids)}")
+        src_layer.SetAttributeFilter(f"id in ({','.join([str(i) for i in ids])})")
     layer = tgt_ds.CopyLayer(src_layer, layer_name)
     layer_defn = layer.GetLayerDefn()
 

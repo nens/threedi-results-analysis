@@ -7,21 +7,24 @@ import argparse
 import warnings
 from typing import List, Tuple, Union, Dict
 
+from threedigrid.admin.gridadmin import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from threedigrid.admin.nodes.models import Nodes, Cells
 from threedigrid.admin.lines.models import Lines
+from threedigrid.admin.pumps.models import Pumps
 
 from osgeo import gdal
 import numpy as np
 from osgeo import ogr
 from osgeo import osr
 
+
 from .constants import (
     AGGREGATION_VARIABLES,
     NON_TS_REDUCING_KCU,
     NP_OGR_DTYPES,
-    THRESHOLD_DRAIN_LEVEL,
-    THRESHOLD_EXCHANGE_LEVEL,
+    EXCHANGE_LEVEL_1D2D,
+    THRESHOLD_PRECISION,
 )
 from .aggregation_classes import (
     Aggregation,
@@ -34,6 +37,7 @@ from .aggregation_classes import (
     VT_FLOW_HYBRID,
     VT_NODE,
     VT_NODE_HYBRID,
+    VT_PUMP
 )
 from .threedigrid_ogr import threedigrid_to_ogr
 
@@ -41,13 +45,46 @@ warnings.filterwarnings("ignore")
 ogr.UseExceptions()
 
 
-def time_intervals(nodes_or_lines, start_time, end_time):
+def get_threshold_attributes(gridadmin: Union[GridH5Admin, GridH5ResultAdmin], var_type: int) -> List[tuple]:
+    """
+    Get a list of attributes that can be used as threshold.
+
+    Only returns fields of that are 1D arrays of float64 values that are included in GPKG_DEFAULT_FIELD_MAP
+
+    :returns: List of (field_name, display_name) tuples
+    """
+    var_type_dict = {
+        VT_NODE: "nodes",
+        VT_NODE_HYBRID: "nodes",
+        VT_FLOW: "lines",
+        VT_FLOW_HYBRID: "lines",
+        VT_PUMP: "pumps"
+    }
+    threedigrid_object = (
+        getattr(gridadmin, var_type_dict[var_type]).filter(id__eq=-8888)  # id__eq=-8888: do not fetch any data
+    )
+    gpkg_default_field_map = threedigrid_object.GPKG_DEFAULT_FIELD_MAP
+    result = []
+    gpkg_field_names = (key for key in gpkg_default_field_map.keys() if "__" not in key)
+    for key, value in threedigrid_object.only(*gpkg_field_names).data.items():
+        if value.dtype == np.float64 and value.ndim == 1:
+            display_name = gpkg_default_field_map[key]
+            result.append((key, display_name))
+    result.sort()
+    return result
+
+
+def time_intervals(
+        threedigrid_object: Union[Nodes, Lines, Pumps],
+        start_time: float,
+        end_time: float
+):
     """Get a 1D numpy array of time intervals between timestamps, inclusing 'broken' first and last time intervals
     It also returns the last timestamp before start_time (ts_start_time)
     and the first timestamp after end_time (ts_end_time)
     The length of the time_intervals arrays is guaranteed to be the same as the number of timestamps between
     the returned ts_start_time and ts_end_time"""
-    last_timestamp = nodes_or_lines.timestamps[-1]
+    last_timestamp = threedigrid_object.timestamps[-1]
     if end_time is None or end_time > last_timestamp:
         end_time = last_timestamp
     if start_time is None or start_time < 0:
@@ -55,7 +92,7 @@ def time_intervals(nodes_or_lines, start_time, end_time):
     # Check validity of temporal filtering, part 1 of 2
     assert start_time < end_time
 
-    all_timestamps = np.array(nodes_or_lines.timestamps)
+    all_timestamps = np.array(threedigrid_object.timestamps)
     filtered_timestamps = all_timestamps[
         np.where(all_timestamps >= start_time)
     ]  # filters timestamps for start_time
@@ -133,7 +170,7 @@ def get_lengths(lines: Lines):
 
 
 def prepare_timeseries(
-    nodes_or_lines: Union[Nodes, Lines],
+    threedigrid_object: Union[Nodes, Lines, Pumps],
     aggregation: Aggregation,
     start_time: float = None,
     end_time: float = None,
@@ -155,22 +192,22 @@ def prepare_timeseries(
     :return: tuple of timeseries values, time intervals
     """
     ts_start_time, ts_end_time, tintervals = time_intervals(
-        nodes_or_lines=nodes_or_lines, start_time=start_time, end_time=end_time
+        threedigrid_object=threedigrid_object, start_time=start_time, end_time=end_time
     )
-    ts = nodes_or_lines.timeseries(ts_start_time, ts_end_time)
+    ts = threedigrid_object.timeseries(ts_start_time, ts_end_time)
 
     # Line variables
     if aggregation.variable.short_name in ["q", "u1", "au", "qp", "up1"]:
         raw_values = getattr(ts, aggregation.variable.short_name)
     elif aggregation.variable.short_name == "ts_max":
-        lengths = get_lengths(nodes_or_lines)
+        lengths = get_lengths(threedigrid_object)
 
         ts_u1 = ts.u1
         ts_u1[ts_u1 == -9999] = np.nan
         velocities = np.absolute(ts_u1)
         max_possible_ts = np.divide((lengths * cfl_strictness), velocities)
         raw_values = max_possible_ts
-        kcu_types = nodes_or_lines.kcu
+        kcu_types = threedigrid_object.kcu
 
     # Node variables
     elif aggregation.variable.short_name in [
@@ -189,7 +226,7 @@ def prepare_timeseries(
     elif aggregation.variable.short_name == "rain_depth":
         ts_rain = ts.rain
         ts_rain[ts_rain == -9999] = np.nan
-        raw_values = np.divide(ts_rain, nodes_or_lines.sumax)
+        raw_values = np.divide(ts_rain, threedigrid_object.sumax)
     elif aggregation.variable.short_name == "uc":
         ucx = ts.ucx
         ucx[ucx == -9999] = np.nan
@@ -205,15 +242,18 @@ def prepare_timeseries(
     elif aggregation.variable.short_name == "q_lat_mm":
         ts_q_lat = ts.q_lat
         ts_q_lat[ts_q_lat == -9999] = np.nan
-        raw_values = np.divide(ts_q_lat, nodes_or_lines.sumax)
+        raw_values = np.divide(ts_q_lat, threedigrid_object.sumax)
     elif aggregation.variable.short_name == "intercepted_volume_mm":
         ts_intercepted_volume = ts.intercepted_volume
         ts_intercepted_volume[ts_intercepted_volume == -9999] = np.nan
-        raw_values = np.divide(ts_intercepted_volume, nodes_or_lines.sumax)
+        raw_values = np.divide(ts_intercepted_volume, threedigrid_object.sumax)
     elif aggregation.variable.short_name == "q_sss_mm":
         ts_q_sss = ts.q_sss
         ts_q_sss[ts_q_sss == -9999] = np.nan
-        raw_values = np.divide(ts_q_sss, nodes_or_lines.sumax)
+        raw_values = np.divide(ts_q_sss, threedigrid_object.sumax)
+    # Pump variables
+    elif aggregation.variable.short_name == "q_pump":
+        raw_values = getattr(ts, aggregation.variable.short_name)
     else:
         raise ValueError(
             f"Unknown aggregation variable '{aggregation.variable.long_name}'"
@@ -224,9 +264,9 @@ def prepare_timeseries(
 
     # reverse flow direction in 1d-2d links
     # threedigrid reads these flowlines from the netcdf in reversed order (known inconsistency)
-    if isinstance(nodes_or_lines, Lines):
+    if isinstance(threedigrid_object, Lines):
         kcu_types_1d2d = np.array([51, 52, 53, 54, 54, 55, 56, 57, 58])
-        raw_values[:, np.in1d(nodes_or_lines.kcu, kcu_types_1d2d)] *= -1
+        raw_values[:, np.in1d(threedigrid_object.kcu, kcu_types_1d2d)] *= -1
 
     # if aggregation variable is ts_max, set maximum possible time step (ts_max) to a very high value for line types
     # to which time step reduction is not applied
@@ -260,14 +300,14 @@ def get_exchange_level(nodes: Nodes, lines: Lines, no_data: float) -> np.array:
 
     Returned array has the same length and order as the input nodes
 
-    Returned value for nodes without 1D2D connections is ``no_data``
+    Returned value for that are not 1D nodes or do not have 1D2D connections is ``no_data``
     """
     # find adjacent lines
     lines = filter_lines_by_node_ids(lines, nodes.id).subset("1D2D")
 
     # make array to lookup thresholds by node id
     max_node_id = max(nodes.id.max(), lines.line.max(initial=-1))
-    threshold_by_id = np.full(max_node_id + 1, no_data)
+    threshold_by_id = np.full(shape=max_node_id + 1, fill_value=no_data)
 
     # populate lookup array with lowest dpumax
     dpumax = lines.dpumax
@@ -276,23 +316,59 @@ def get_exchange_level(nodes: Nodes, lines: Lines, no_data: float) -> np.array:
     threshold_by_id[end] = np.fmin(dpumax, threshold_by_id[end])
 
     threshold = threshold_by_id[nodes.id]
+    nodeds_1d_id = nodes.filter(node_type__in=[3, 4]).id
+    mask = np.logical_not(np.in1d(nodes.id, nodeds_1d_id))
+    threshold[mask] = no_data
     return threshold
 
 
-def do_threshold_timeseries(gr, nodes, timeseries, aggregation):
-    if aggregation.threshold == THRESHOLD_DRAIN_LEVEL:
-        threshold = nodes.drain_level
-    elif aggregation.threshold == THRESHOLD_EXCHANGE_LEVEL:
-        threshold = get_exchange_level(nodes, gr.lines, no_data=np.inf)
-
-    timeseries[np.isnan(timeseries)] = -np.inf
-    return np.greater(timeseries, threshold[np.newaxis])
-
-
 def aggregate_prepared_timeseries(
-    timeseries, tintervals, start_time, aggregation: Aggregation
+    timeseries, tintervals, start_time, aggregation: Aggregation, threshold_values: Union[float, np.array] = None
 ) -> np.array:
     """Return an array with one value for each node or line"""
+
+    def less(values: np.array, threshold: Union[float, np.array], precision=THRESHOLD_PRECISION) -> np.array:
+        """
+        Check if the values are below the threshold, taking into account given ``precision``
+
+        :returns: boolean array
+        """
+        values_minus_threshold = values - (
+            threshold if isinstance(threshold, float) else threshold[np.newaxis]
+        )
+        return np.less(values_minus_threshold, -precision)
+
+    def greater(values: np.array, threshold: Union[float, np.array], precision=THRESHOLD_PRECISION) -> np.array:
+        """
+        Check if the values are below the threshold, taking into account given ``precision``
+
+        :returns: boolean array
+        """
+        values_minus_threshold = values - (
+            threshold if isinstance(threshold, float) else threshold[np.newaxis]
+        )
+        return np.greater(values_minus_threshold, precision)
+
+    def equal(values: np.array, threshold: Union[float, np.array], precision=THRESHOLD_PRECISION) -> np.array:
+        """
+        Check if the values are below the threshold, taking into account given ``precision``
+
+        :returns: boolean array
+        """
+        values_minus_threshold = values - (
+            threshold if isinstance(threshold, float) else threshold[np.newaxis]
+        )
+        return np.less_equal(np.abs(values_minus_threshold), precision)
+
+    threshold_compare_methods = {
+        "below_thres": less,
+        "on_thres": equal,
+        "above_thres": greater,
+        "time_below_threshold": less,
+        "time_on_threshold": equal,  # method is applied to the abs difference (value - threshold)
+        "time_above_threshold": greater,
+    }
+
     if aggregation.method.short_name == "sum":
         raw_values_per_time_interval = np.multiply(timeseries.T, tintervals).T
         result = np.sum(raw_values_per_time_interval, axis=0)
@@ -321,25 +397,15 @@ def aggregate_prepared_timeseries(
         result = np.array(
             [find_finite_1d(col, index=-1) for col in timeseries.T]
         )
-    elif aggregation.method.short_name == "above_thres":
-        raw_values_above_threshold = np.greater(
-            timeseries, aggregation.threshold
-        )
-        time_above_threshold = np.sum(
-            np.multiply(raw_values_above_threshold.T, tintervals).T, axis=0
-        )
-        total_time = np.sum(tintervals)
-        result = np.multiply(np.divide(time_above_threshold, total_time), 100.0)
-    elif aggregation.method.short_name == "below_thres":
-        raw_values_below_threshold = np.less(timeseries, aggregation.threshold)
-        time_below_threshold = np.sum(
-            np.multiply(raw_values_below_threshold.T, tintervals).T, axis=0
-        )
-        total_time = np.sum(tintervals)
-        result = np.multiply(np.divide(time_below_threshold, total_time), 100.0)
-    elif aggregation.method.short_name == "time_above_threshold":
-        # the timeseries is already a the result of the thresholding
-        result = (tintervals[:, np.newaxis] * timeseries).sum(0)
+    elif aggregation.method.short_name in list(threshold_compare_methods.keys()):
+        compare_method = threshold_compare_methods[aggregation.method.short_name]
+        raw_values_compared_to_threshold = compare_method(timeseries, threshold_values)
+        time_criterion_is_met = (tintervals[:, np.newaxis] * raw_values_compared_to_threshold).sum(0)
+        if aggregation.method.short_name in ["below_thres", "on_thres", "above_thres"]:
+            total_time = np.sum(tintervals)
+            result = np.multiply(np.divide(time_criterion_is_met, total_time), 100.0)
+        else:
+            result = time_criterion_is_met
     else:
         raise ValueError(
             'Unknown aggregation method "{}".'.format(
@@ -348,23 +414,38 @@ def aggregate_prepared_timeseries(
         )
 
     # multiplier (unit conversion)
-    # TODO should this be moved to curated_timeseries()?
     result *= aggregation.multiplier
     return result
 
 
+def get_threshold_values(
+        threedigrid_object: Union[Nodes, Lines, Pumps],
+        threshold_attribute: str,
+        lines: Lines = None
+) -> np.array:
+    """
+    Return an array of values to be used as tresholds, one value for each node/line/pump
+
+    :param threedigrid_object: Nodes, Lines, or Pumps object to get the threshold values from
+    :param threshold_attribute: field to get the threshold values from
+    :param lines: required only when threshold attribute = "exchange_level_1d2d"
+    """
+    if threshold_attribute == EXCHANGE_LEVEL_1D2D:
+        return get_exchange_level(nodes=threedigrid_object, lines=lines, no_data=np.inf)
+    else:
+        return threedigrid_object.only(threshold_attribute).data[threshold_attribute]
+
+
 def time_aggregate(
-    nodes_or_lines,
+    threedigrid_object: Union[Nodes, Lines, Pumps],
     start_time,
     end_time,
     aggregation: Aggregation,
     cfl_strictness=1,
-    **kwargs,  # to make signature interchangeable with hybrid_time_aggregate
-):
+    gr: Union[GridH5Admin, GridH5ResultAdmin] = None,
+) -> np.ndarray:
     """
     Aggregate the variable with method using threshold within time frame
-
-    :rtype: np.ndarray
 
     This method implicitly assumes that the discharge at a specific timestamp remains the same until the next
     timestamp, i.e. if there are timestamps at every 300 s, and the user inputs '450' as end_time, the discharge at
@@ -372,21 +453,27 @@ def time_aggregate(
     end_time is also required. For that reason, temporal filtering is done within this function, while other types
     of filtering (spatial, typological, id-based) are not.
     """
+
     timeseries, tintervals = prepare_timeseries(
-        nodes_or_lines=nodes_or_lines,
+        threedigrid_object=threedigrid_object,
         start_time=start_time,
         end_time=end_time,
         aggregation=aggregation,
         cfl_strictness=cfl_strictness,
     )
 
-    if aggregation.method.short_name == "time_above_threshold":
-        timeseries = do_threshold_timeseries(
-            gr=kwargs["gr"],
-            nodes=nodes_or_lines,
-            timeseries=timeseries,
-            aggregation=aggregation,
-        )
+    if aggregation.method.has_threshold:
+        lines = gr.lines if aggregation.threshold == EXCHANGE_LEVEL_1D2D else None
+        if isinstance(aggregation.threshold, float):
+            threshold_values = aggregation.threshold
+        else:
+            threshold_values = get_threshold_values(
+                threedigrid_object=threedigrid_object,
+                threshold_attribute=aggregation.threshold,
+                lines=lines
+            )
+    else:
+        threshold_values = None
 
     # Apply aggregation method
     result = aggregate_prepared_timeseries(
@@ -394,25 +481,39 @@ def time_aggregate(
         tintervals=tintervals,
         start_time=start_time,
         aggregation=aggregation,
+        threshold_values=threshold_values
     )
     return result
 
 
 def hybrid_time_aggregate(
-    nodes_or_lines: Union[Nodes, Lines],
+    threedigrid_object: Union[Nodes, Lines],
     start_time: float,
     end_time: float,
     aggregation: Aggregation,
-    gr: GridH5ResultAdmin,
-    **kwargs,  # to make signature interchangeable with time_aggregate
+    cfl_strictness: float = 1,  # to make signature interchangeable with time_aggregate
+    gr: Union[GridH5Admin, GridH5ResultAdmin] = None,
 ):
     """
     Aggregations for which both the node/flowline and the flowlines/nodes it is connected to are required
     """
+    if aggregation.method.has_threshold:
+        lines = gr.lines if aggregation.threshold == EXCHANGE_LEVEL_1D2D else None
+        if isinstance(aggregation.threshold, float):
+            threshold_values = aggregation.threshold
+        else:
+            threshold_values = get_threshold_values(
+                threedigrid_object=threedigrid_object,
+                threshold_attribute=aggregation.threshold,
+                lines=lines
+            )
+    else:
+        threshold_values = None
+
     if "q_" in aggregation.variable.short_name:
         flows = flow_per_node(
             gr=gr,
-            node_ids=nodes_or_lines.id,
+            node_ids=threedigrid_object.id,
             start_time=start_time,
             end_time=end_time,
             out="_out" in aggregation.variable.short_name,
@@ -429,12 +530,12 @@ def hybrid_time_aggregate(
                 )
             )
         if "_mm" in aggregation.variable.short_name:
-            surface_area = gr.nodes.filter(id__in=nodes_or_lines.id).sumax
+            surface_area = gr.nodes.filter(id__in=threedigrid_object.id).sumax
             result = result / surface_area
     elif aggregation.variable.short_name == "grad":
         gradients_per_timestep, tintervals = gradients(
             gr=gr,
-            flowline_ids=nodes_or_lines.id,
+            flowline_ids=threedigrid_object.id,
             gradient_type="water_level",
             start_time=start_time,
             end_time=end_time,
@@ -445,15 +546,16 @@ def hybrid_time_aggregate(
             tintervals=tintervals,
             start_time=start_time,
             aggregation=aggregation,
+            threshold_values=threshold_values,
         )
     elif aggregation.variable.short_name == "bed_grad":
         result, _ = gradients(
-            gr=gr, flowline_ids=nodes_or_lines.id, gradient_type="bed_level"
+            gr=gr, flowline_ids=threedigrid_object.id, gradient_type="bed_level"
         )
     elif aggregation.variable.short_name == "wl_at_xsec":
         water_levels_per_timestep, tintervals = water_levels_at_cross_section(
             gr=gr,
-            flowline_ids=nodes_or_lines.id,
+            flowline_ids=threedigrid_object.id,
             start_time=start_time,
             end_time=end_time,
             aggregation_sign=aggregation.sign,
@@ -463,6 +565,7 @@ def hybrid_time_aggregate(
             tintervals=tintervals,
             start_time=start_time,
             aggregation=aggregation,
+            threshold_values=threshold_values,
         )
     else:
         raise ValueError(
@@ -504,7 +607,7 @@ def flow_per_node(
         sign=AggregationSign(short_name="net", long_name="Net"),
     )
     q_agg = time_aggregate(
-        nodes_or_lines=lines,
+        threedigrid_object=lines,
         start_time=start_time,
         end_time=end_time,
         aggregation=da,
@@ -628,7 +731,7 @@ def node_variable_timeseries_for_flowline(
         sign=aggregation_sign,
     )
     timeseries, time_intervals = prepare_timeseries(
-        nodes_or_lines=nodes,
+        threedigrid_object=nodes,
         start_time=start_time,
         end_time=end_time,
         aggregation=water_level_aggregation,
@@ -1040,6 +1143,18 @@ def cell_results_from_node_results(node_results: Dict[str, np.array], nodes: Nod
     return cell_results
 
 
+def pump_linestring_results_from_pump_results(
+        pump_results: Dict[str, np.array],
+        pumps: Pumps
+):
+    pumps_linestring = pumps.filter(node2_id__ne=-9999)
+    pump_linestring_results = dict()
+    mask = np.in1d(pumps.id, pumps_linestring.id)
+    for column_name, values in pump_results.items():
+        pump_linestring_results[column_name] = values[mask]
+    return pump_linestring_results
+
+
 def aggregate_threedi_results(
     gridadmin: str,
     gridadmin_gpkg: str,
@@ -1055,6 +1170,8 @@ def aggregate_threedi_results(
     output_flowlines: bool = True,
     output_nodes: bool = True,
     output_cells: bool = True,
+    output_pumps: bool = True,
+    output_pumps_linestring: bool = True,
     output_rasters: bool = True,
 ):
     """
@@ -1063,7 +1180,6 @@ def aggregate_threedi_results(
     :param gridadmin: path to gridadmin.h5
     :param gridadmin_gpkg: path to gridadmin.gpkg
     :param results_3di: path to results_3di.nc
-    :param demanded_aggregations: list of dicts containing variable, method, [threshold]
     :param bbox: bounding box [min_x, min_y, max_x, max_y]
     :param start_time: start of time filter (seconds since start of simulation)
     :param end_time: end of time filter (seconds since start of simulation)
@@ -1078,7 +1194,7 @@ def aggregate_threedi_results(
     out_rasters = {}
 
     if not (
-        output_flowlines or output_nodes or output_cells or output_rasters
+        output_flowlines or output_nodes or output_cells or output_pumps or output_pumps_linestring or output_rasters
     ):
         return tgt_ds, out_rasters
 
@@ -1088,6 +1204,7 @@ def aggregate_threedi_results(
     # perform demanded aggregations
     node_results = dict()
     line_results = dict()
+    pump_results = dict()
     for da in demanded_aggregations:
         # It would seem more sensical to keep the instantiation of gr, the subsetting and filtering outside the loop...
         # ... but for some strange reason that leads to an error if more than 2 flowline aggregations are demanded
@@ -1100,6 +1217,7 @@ def aggregate_threedi_results(
             lines = gr.lines.filter(id__ne=0)
             nodes = gr.nodes.filter(id__ne=0)
             cells = gr.cells.filter(id__ne=0).filter(node_type__in=[1, 2])  # 1 = 2D surface water, 2 = 2D groundwater
+            pumps = gr.pumps.filter(id__ne=0) if gr.has_pumpstations else None
         else:
             if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
                 raise Exception("Invalid bounding box.")
@@ -1112,6 +1230,7 @@ def aggregate_threedi_results(
             )  # filter on cell center coordinates to have the same results for cells as for nodes
             if nodes.count == 0:
                 raise Exception("No nodes found within bounding box.")
+            pumps = gr.pumps.filter(coordinates__in_bbox=bbox) if gr.has_pumpstations else None
 
         if only_manholes:
             nodes = nodes.manholes
@@ -1136,7 +1255,7 @@ def aggregate_threedi_results(
                     else:
                         agg_func = hybrid_time_aggregate
                     line_results[new_column_name] = agg_func(
-                        nodes_or_lines=lines,
+                        threedigrid_object=lines,
                         start_time=start_time,
                         end_time=end_time,
                         aggregation=da,
@@ -1167,7 +1286,28 @@ def aggregate_threedi_results(
                     else:
                         agg_func = hybrid_time_aggregate
                     node_results[new_column_name] = agg_func(
-                        nodes_or_lines=nodes,
+                        threedigrid_object=nodes,
+                        start_time=start_time,
+                        end_time=end_time,
+                        aggregation=da,
+                        gr=gr,
+                    )
+                except AttributeError:
+                    warnings.warn(
+                        "Demanded aggregation of variable that is not included in these 3Di results"
+                    )
+                    node_results[new_column_name] = np.full(
+                        len(node_results["id"]),
+                        fill_value=None,
+                        dtype=np.float,
+                    )
+        elif da.variable.short_name in AGGREGATION_VARIABLES.short_names(
+            var_types=[VT_PUMP]
+        ):
+            if output_pumps or output_pumps_linestring:
+                try:
+                    pump_results[new_column_name] = time_aggregate(
+                        threedigrid_object=pumps,
                         start_time=start_time,
                         end_time=end_time,
                         aggregation=da,
@@ -1295,7 +1435,7 @@ def aggregate_threedi_results(
                         points_resampled_lyr.CreateFeature(feat)
                         feat = None
 
-    # flowline target_node_layer
+    # flowline layer
     if len(line_results) > 0 and output_flowlines:
         attr_data_types = {}
         for attr, vals in line_results.items():
@@ -1311,6 +1451,37 @@ def aggregate_threedi_results(
             attr_data_types=attr_data_types,
             ids=lines.id,
         )
+
+    # pump layers
+    if len(pump_results) > 0:
+        attr_data_types = {}
+        for attr, vals in pump_results.items():
+            try:
+                attr_data_types[attr] = NP_OGR_DTYPES[vals.dtype]
+            except KeyError:
+                attr_data_types[attr] = ogr.OFTString
+        if output_pumps:
+            threedigrid_to_ogr(
+                tgt_ds=tgt_ds,
+                layer_name="pump",
+                gridadmin_gpkg=gridadmin_gpkg,
+                attributes=pump_results,
+                attr_data_types=attr_data_types,
+                ids=pumps.id,
+            )
+        if output_pumps_linestring:
+            pump_linestring_results = pump_linestring_results_from_pump_results(
+                pump_results=pump_results,
+                pumps=pumps
+            )
+            threedigrid_to_ogr(
+                tgt_ds=tgt_ds,
+                layer_name="pump_linestring",
+                gridadmin_gpkg=gridadmin_gpkg,
+                attributes=pump_linestring_results,
+                attr_data_types=attr_data_types,
+                ids=pumps.id,
+            )
 
     if not output_rasters:
         out_rasters = {}
