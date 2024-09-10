@@ -53,8 +53,13 @@ class VariableTable(QTableWidget):
             item.setFlags(item.flags() ^ Qt.ItemIsEditable)
             self.setItem(param_index, self.columnCount()-1, item)
 
-        for idx in range(self.columnCount()):
+        for idx in range(0, self.columnCount()):
             self.horizontalHeader().setSectionResizeMode(idx, QHeaderView.Stretch)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.resizeRowsToContents()
+        self.resizeColumnToContents(0)
 
     def clean_results(self) -> None:
         self.clearContents()
