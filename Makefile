@@ -85,10 +85,10 @@ zip: compile
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
 check: compile
-    # Use pip-compile to check whether all dependencies version constraints are met.
+	# Use pip-compile to check whether all dependencies version constraints are met.
 	cp constraints.txt requirements.in
-    pip-compile --dry-run
-    rm requirements.in
+	pip-compile --dry-run
+	rm requirements.in
 
 package: compile
 	# Create a zip package of the plugin named $(PLUGINNAME).zip.
