@@ -1,3 +1,4 @@
+from qgis.PyQt.QtCore import Qt
 from threedi_results_analysis.tool_flow_summary.flow_summary import FlowSummaryTool
 from threedi_results_analysis.tool_flow_summary.flow_summary import VariableTable
 
@@ -78,7 +79,7 @@ class TestFlowSummaryTool(unittest.TestCase):
         )
 
     def test_result_addition_removal(self):
-        table = VariableTable(None)
+        table = VariableTable(Qt.AlignRight, None)
         assert table.columnCount() == 1
         assert table.rowCount() == 0
 

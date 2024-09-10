@@ -26,7 +26,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
-GROUP_NAMES = ["general_information", "volume_balance", "volume_balance_of_0d_model"]
+GROUP_NAMES = [("general_information", Qt.AlignLeft), ("volume_balance", Qt.AlignRight), ("volume_balance_of_0d_model", Qt.AlignRight)]
 
 
 class FlowSummaryTool(ThreeDiPluginTool):
@@ -50,14 +50,14 @@ class FlowSummaryTool(ThreeDiPluginTool):
         self.main_widget.setWindowTitle("Flow summary")
         self.main_widget.setLayout(QGridLayout())
 
-        for group_name in GROUP_NAMES:
+        for group_name, info_alignment in GROUP_NAMES:
             group_title = (group_name[0].capitalize() + group_name[1:]).replace("_", " ")
             group_title = group_title.replace("0d", "0D")
             variable_group = QGroupBox(group_title, self.main_widget)
             variable_group.setStyleSheet("QGroupBox { font-weight: bold; }")
             variable_group.setLayout(QGridLayout())
 
-            self.tables[group_name] = VariableTable(variable_group)
+            self.tables[group_name] = VariableTable(info_alignment, variable_group)
             variable_group.layout().addWidget(self.tables[group_name])
 
             self.main_widget.layout().addWidget(variable_group)
@@ -95,14 +95,14 @@ class FlowSummaryTool(ThreeDiPluginTool):
         if not flow_summary_path.exists():
             logger.warning(f"Flow summary file from Result {item.text()} cannot be found.")
             # TODO: ideally make red, but unclear how to style individual items in header
-            for group_name in GROUP_NAMES:
+            for group_name, _ in GROUP_NAMES:
                 self.tables[group_name].add_summary_results(item.text(), dict())
         else:
             # retrieve all the entries in this file
             with flow_summary_path.open() as file:
                 data = json.load(file)
 
-                for group_name in GROUP_NAMES:
+                for group_name, _ in GROUP_NAMES:
                     assert group_name in self.tables
                     if group_name in data:
                         group_data = data[group_name]

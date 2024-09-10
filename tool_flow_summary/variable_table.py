@@ -9,8 +9,9 @@ from typing import Tuple
 
 
 class VariableTable(QTableWidget):
-    def __init__(self, parent):
+    def __init__(self, variable_alignment, parent):
         super().__init__(0, 1, parent)
+        self.variable_alignment = variable_alignment
         self.setHorizontalHeaderLabels([""])
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
 
@@ -44,11 +45,11 @@ class VariableTable(QTableWidget):
                 self.insertRow(param_index)
                 item = QTableWidgetItem(param_name)
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
-                item.setTextAlignment(Qt.AlignRight)
+                item.setTextAlignment(Qt.AlignLeft)
                 self.setItem(param_index, 0, item)
 
             item = QTableWidgetItem(param_value)
-            item.setTextAlignment(Qt.AlignRight)
+            item.setTextAlignment(self.variable_alignment)
             item.setFlags(item.flags() ^ Qt.ItemIsEditable)
             self.setItem(param_index, self.columnCount()-1, item)
 
