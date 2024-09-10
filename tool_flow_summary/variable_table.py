@@ -1,6 +1,7 @@
 
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
+from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QHeaderView
 from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
@@ -17,7 +18,7 @@ class VariableTable(QTableWidget):
 
         self.verticalHeader().hide()
         self.setSortingEnabled(False)
-        self.setSelectionMode(QAbstractItemView.NoSelection)
+        self.setSelectionMode(QAbstractItemView.ContiguousSelection)
 
         # for proper aligning, we always need to reserve space for the scrollbar
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -60,6 +61,34 @@ class VariableTable(QTableWidget):
         super().resizeEvent(event)
         self.resizeRowsToContents()
         self.resizeColumnToContents(0)
+
+    def keyPressEvent(self, event):
+        # https://stackoverflow.com/questions/1230222/selected-rows-in-qtableview-copy-to-qclipboard/24133289#24133289
+        if event.key() == Qt.Key_C and event.modifiers() & Qt.ControlModifier:
+
+            indexes = self.selectedIndexes()
+            current_text = ""
+            current_row = 0  # To determine when to insert newlines
+
+            indexes = sorted(indexes)  # Necessary, otherwise they are in column order
+
+            for index in indexes:
+                if current_text == "":  # first line
+                    pass
+                elif index.row() != current_row:  # new row
+                    current_text += "\n"
+                else:
+                    current_text += "\t"
+
+                current_row = index.row()
+                current_item = self.item(index.row(), index.column())
+                if current_item:
+                    current_text += str(self.item(index.row(), index.column()).text())
+
+            QApplication.clipboard().setText(current_text)
+            return
+
+        super().keyPressEvent(event)
 
     def clean_results(self) -> None:
         self.clearContents()
