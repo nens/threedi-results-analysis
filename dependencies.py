@@ -29,16 +29,17 @@ from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QProgressDialog
 from qgis.core import Qgis
 
-import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import importlib
 import logging
 import os
 import pkg_resources
 import platform
+import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import shutil
 import subprocess
 import sys
 import tarfile
+
 
 # in case the dependency is a tar, the constraint should be the
 # explicit version (e.g. "==3.8.0")
