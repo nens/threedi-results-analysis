@@ -84,7 +84,7 @@ zip: compile
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
-check: compile
+check: constraints.txt
 	# Use pip-compile to check whether all dependencies version constraints are met.
 	cp constraints.txt requirements.in
 	pip-compile --dry-run
