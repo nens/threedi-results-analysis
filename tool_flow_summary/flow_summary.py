@@ -107,7 +107,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
         for result in results:
             self.add_summary_result(result)
 
-    def add_summary_result(self, item: ThreeDiResultItem) -> None:
+    def add_summary_result(self, item: ThreeDiResultItem, show: bool = True) -> None:
 
         if item.id in self.result_ids:
             logger.warning("Result already added to flow summary, ignoring...")
@@ -136,7 +136,8 @@ class FlowSummaryTool(ThreeDiPluginTool):
                     self.tables[group_name].add_summary_results(item.text(), group_data)
 
         self._reset_column_widths()
-        self.main_widget.show()
+        if show:
+            self.main_widget.show()
 
     def remove_summary_grid(self, item: ThreeDiGridItem) -> None:
         results = []
@@ -189,8 +190,9 @@ class FlowSummaryTool(ThreeDiPluginTool):
             self.tables[table].change_result(idx+1, result_item.text())
 
     @pyqtSlot(ThreeDiResultItem)
-    def result_added(self, _: ThreeDiResultItem):
+    def result_added(self, item: ThreeDiResultItem):
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
+        self.add_summary_result(item, False)
 
     def run(self) -> None:
         self.main_widget.show()
