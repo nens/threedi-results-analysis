@@ -14,7 +14,7 @@ class VariableTable(QTableWidget):
         super().__init__(0, 1, parent)
         self.variable_alignment = variable_alignment
         self.setHorizontalHeaderLabels([""])
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
 
         self.verticalHeader().hide()
         self.setSortingEnabled(False)
@@ -22,6 +22,7 @@ class VariableTable(QTableWidget):
 
         # for proper aligning, we always need to reserve space for the scrollbar
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.horizontalHeader().setStretchLastSection(True)
 
         # The list of parameters shown in the summary, idx corresponding to row idx in the table
         self.param_names : List[str] = []
@@ -55,12 +56,11 @@ class VariableTable(QTableWidget):
             self.setItem(param_index, self.columnCount()-1, item)
 
         for idx in range(0, self.columnCount()):
-            self.horizontalHeader().setSectionResizeMode(idx, QHeaderView.Stretch)
+            self.horizontalHeader().setSectionResizeMode(idx, QHeaderView.Interactive)
 
     def resizeEvent(self, event):
-        super().resizeEvent(event)
         self.resizeRowsToContents()
-        self.resizeColumnToContents(0)
+        super().resizeEvent(event)
 
     def keyPressEvent(self, event):
         # https://stackoverflow.com/questions/1230222/selected-rows-in-qtableview-copy-to-qclipboard/24133289#24133289
@@ -95,13 +95,21 @@ class VariableTable(QTableWidget):
         self.setColumnCount(1)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels([""])
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.param_names.clear()
 
     def remove_result(self, idx: int) -> None:
         self.removeColumn(idx)
-        for idx in range(self.columnCount()):
-            self.horizontalHeader().setSectionResizeMode(idx, QHeaderView.Stretch)
+
+    def get_preferred_variable_column_width(self) -> int:
+        # iterate over the texts and determine the max width when resized to contents
+        self.resizeColumnToContents(0)
+        max_width = 0
+        for r in range(self.rowCount()):
+            width = self.columnWidth(0)
+            if width > max_width:
+                max_width = width
+
+        return max_width
 
     def change_result(self, idx: int, text: str) -> None:
         self.setHorizontalHeaderItem(idx, QTableWidgetItem(text))

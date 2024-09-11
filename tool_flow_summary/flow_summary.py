@@ -69,12 +69,37 @@ class FlowSummaryTool(ThreeDiPluginTool):
         # Add Ok button
         button_widget = QWidget(self.main_widget)
         button_widget.setLayout(QHBoxLayout(button_widget))
+        reset_button = QPushButton("Reset column widths", button_widget)
+        button_widget.layout().addWidget(reset_button)
+        reset_button.clicked.connect(self._reset_column_widths)
         spacer_item = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         button_widget.layout().addItem(spacer_item)
         ok_button = QPushButton("Ok", button_widget)
         button_widget.layout().addWidget(ok_button, alignment=Qt.AlignRight)
         self.main_widget.layout().addWidget(button_widget)
         ok_button.clicked.connect(self.main_widget.hide)
+
+    def _reset_column_widths(self) -> None:
+        for table in self.tables.values():
+            if table.columnCount() == 0:
+                return
+
+        max_width_variables = 0
+        for table in self.tables.values():
+            group_width = table.get_preferred_variable_column_width()
+            if group_width > max_width_variables:
+                max_width_variables = group_width
+
+        for table in self.tables.values():
+            table.setColumnWidth(0, max_width_variables)
+            if table.columnCount() == 1:
+                continue
+            scrollbar_width = table.horizontalScrollBar().geometry().height()
+            # evenly spread remainder of columns
+            column_width = (table.width() - max_width_variables - scrollbar_width) // (table.columnCount() - 1)
+            column_width -= 3  # prevent scrollbar
+            for c in range(1, table.columnCount()):
+                table.setColumnWidth(c, column_width)
 
     def add_summary_grid(self, item: ThreeDiGridItem) -> None:
         results = []
@@ -110,6 +135,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
                         group_data = {}
                     self.tables[group_name].add_summary_results(item.text(), group_data)
 
+        self._reset_column_widths()
         self.main_widget.show()
 
     def remove_summary_grid(self, item: ThreeDiGridItem) -> None:
@@ -149,6 +175,8 @@ class FlowSummaryTool(ThreeDiPluginTool):
         if len(self.result_ids) == 0:
             for table in self.tables:
                 self.tables[table].clean_results()
+
+        self._reset_column_widths()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem):
