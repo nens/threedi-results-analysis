@@ -1,4 +1,5 @@
 
+from qgis.PyQt.QtCore import QLocale
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QApplication
@@ -121,13 +122,16 @@ class VariableTable(QTableWidget):
             param_name = f'{param_name} [{param_data["units"]}]'
             param_data = param_data["value"]
 
+        locale = QLocale()
+
         # numbers in 4 decimals, except when in scientific notation
         if isinstance(param_data, float):
-            string_repr = str(param_data)
-            if "e" in string_repr:
-                param_data = string_repr
-            else:
-                param_data = "{:.4f}".format(param_data)
+            # if "e" in str(param_data):
+            #     param_data = str(param_data)
+            # else:
+            param_data = locale.toString(param_data, "g", 4)
+        elif isinstance(param_data, int):
+            param_data = locale.toString(param_data)
         else:
             param_data = str(param_data)
 
