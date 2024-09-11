@@ -95,21 +95,21 @@ class TestFlowSummaryTool(unittest.TestCase):
         assert table.columnCount() == 4
         assert table.rowCount() == 14
 
-        assert table.item(1, 2).text() == "10000"
+        assert table.item(1, 2).text() == "10,000"
 
         # same data, but different unit
         table.add_summary_results("test", TEST_DATA4)
         assert table.columnCount() == 5
         assert table.rowCount() == 15
 
-        assert table.item(14, 4).text() == "44444"
+        assert table.item(14, 4).text() == "44,444"
 
         # remove TEST_DATA
         table.remove_result(1)
         assert table.columnCount() == 4
         assert table.rowCount() == 15
 
-        assert table.item(14, 3).text() == "44444"
+        assert table.item(14, 3).text() == "44,444"
 
         table.clean_results()
         assert table.columnCount() == 1
