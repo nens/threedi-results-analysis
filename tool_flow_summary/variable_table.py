@@ -124,12 +124,13 @@ class VariableTable(QTableWidget):
 
         locale = QLocale()
 
-        # numbers in 4 decimals, except when in scientific notation
+        # numbers in 4 decimals, except when in scientific notation,
+        # then allow this
         if isinstance(param_data, float):
-            # if "e" in str(param_data):
-            #     param_data = str(param_data)
-            # else:
-            param_data = locale.toString(param_data, "g", 4)
+            if "e" in str(param_data):
+                param_data = locale.toString(param_data, "g", 4)
+            else:
+                param_data = locale.toString(param_data, "f", 4)
         elif isinstance(param_data, int):
             param_data = locale.toString(param_data)
         else:
