@@ -11,6 +11,7 @@
 - Watershed tool: 2D flowlines intersecting obstacles are no longer shown as 1D flowlines (#1034)
 - Model selection dialog: fixed order bug when sorting.
 - Bump threedi-mi-utils to 0.1.4
+- Fixed attribute error when selecting substance in a model that contains pumps (#1044)
 
 
 3.9.3 (2024-08-14)

@@ -1,15 +1,17 @@
 from collections import OrderedDict
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
 from random import randint
 from threedi_results_analysis.models.base import BaseModel
-from threedi_results_analysis.models.base_fields import CheckboxField, CHECKBOX_FIELD
+from threedi_results_analysis.models.base_fields import CHECKBOX_FIELD
+from threedi_results_analysis.models.base_fields import CheckboxField
 from threedi_results_analysis.models.base_fields import ValueField
+from threedi_results_analysis.utils.color import COLOR_LIST
 
 import logging
 import numpy as np
 import pyqtgraph as pg
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QColor
-from threedi_results_analysis.utils.color import COLOR_LIST
+
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +151,13 @@ class LocationTimeseriesModel(BaseModel):
 
             ga = threedi_result.get_gridadmin(parameters)
             if ga.has_pumpstations:
-                pump_fields = set(list(ga.pumps.Meta.composite_fields.keys()))
+                # In some gridadmin types pumps do not have a Meta attribute... In
+                # such cases (e.g. water quality) the attribute does not have a meaning and
+                # the timeserie should be empty.
+                try:
+                    pump_fields = set(list(ga.pumps.Meta.composite_fields.keys()))
+                except AttributeError:
+                    pump_fields = {}
             else:
                 pump_fields = {}
             if self.object_type.value == "pump_linestring" and parameters not in pump_fields:
