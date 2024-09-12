@@ -35,6 +35,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
         super().__init__(parent)
         self.iface = iface
         self.model = model
+        self.first_time = True
 
         # The list of shown results in the summary, idx+1 corresponding to column idx in the table
         self.result_ids : List[int] = []
@@ -74,10 +75,13 @@ class FlowSummaryTool(ThreeDiPluginTool):
         reset_button.clicked.connect(self._reset_column_widths)
         spacer_item = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         button_widget.layout().addItem(spacer_item)
-        ok_button = QPushButton("Ok", button_widget)
+        ok_button = QPushButton("OK", button_widget)
         button_widget.layout().addWidget(ok_button, alignment=Qt.AlignRight)
         self.main_widget.layout().addWidget(button_widget)
         ok_button.clicked.connect(self.main_widget.hide)
+
+        # set comfortable start width
+        self.main_widget.resize(800, self.main_widget.height())
 
     def _reset_column_widths(self) -> None:
         for table in self.tables.values():
@@ -196,3 +200,6 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
     def run(self) -> None:
         self.main_widget.show()
+        if self.first_time:
+            self._reset_column_widths()
+            self.first_time = False
