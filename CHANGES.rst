@@ -1,8 +1,8 @@
 3Di Results Analysis changelog
 ========================
 
-3.9.4 (unreleased)
-------------------
+3.10.0 (2024-09-12)
+-------------------
 
 - Add pump support to Result Aggregation tool
 - Add preset "Total pumped volume" to Result Aggregation tool
