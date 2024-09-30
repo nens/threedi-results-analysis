@@ -1,25 +1,22 @@
 from pathlib import Path
-from typing import List
-import logging
-
-import numpy as np
-
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsMarkerSymbol
 from qgis.core import QgsProperty
 from qgis.core import QgsSymbolLayer
 from qgis.core import QgsVectorLayer
 from qgis.utils import iface
-
 from threedi_results_analysis.datasource.result_constants import WET_CROSS_SECTION_AREA
+from threedi_results_analysis.utils.color import color_ramp_from_data
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_CURL
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_DEEP
 from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_HALINE
-from threedi_results_analysis.utils.color import color_ramp_from_data
+from typing import List
+
+import logging
+import numpy as np
+
 
 STYLES_ROOT = Path(__file__).parent / "layer_styles"
-ANIMATION_LAYERS_NR_LEGEND_CLASSES = 24
-assert ANIMATION_LAYERS_NR_LEGEND_CLASSES % 2 == 0
 DEFAULT_LOWER_THRESHOLD = 1e-6
 
 logger = logging.getLogger(__name__)

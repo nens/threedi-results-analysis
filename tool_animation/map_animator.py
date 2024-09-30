@@ -1,35 +1,148 @@
+from bisect import bisect_left
+from enum import Enum
+from functools import lru_cache
 from qgis.core import NULL
 from qgis.core import QgsProject
-from qgis.PyQt.QtCore import Qt, pyqtSlot
+from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import QSize
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QDoubleValidator
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtGui import QIntValidator
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
-from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
-from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QDialogButtonBox
+from qgis.PyQt.QtWidgets import QGridLayout
 from qgis.PyQt.QtWidgets import QGroupBox
-from threedigrid.admin.constants import NO_DATA_VALUE
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtWidgets import QLineEdit
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QWidget
+from threedi_results_analysis import PLUGIN_DIR
+from threedi_results_analysis.datasource.result_constants import AGGREGATION_OPTIONS
 from threedi_results_analysis.datasource.result_constants import DISCHARGE
 from threedi_results_analysis.datasource.result_constants import H_TYPES
 from threedi_results_analysis.datasource.result_constants import NEGATIVE_POSSIBLE
 from threedi_results_analysis.datasource.result_constants import Q_TYPES
 from threedi_results_analysis.datasource.result_constants import WATERLEVEL
-from threedi_results_analysis.datasource.result_constants import AGGREGATION_OPTIONS
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
-from threedi_results_analysis.utils.user_messages import StatusProgressBar
-from threedi_results_analysis.utils.utils import generate_parameter_config, is_substance_variable, pretty
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.utils.timing import timing
+from threedi_results_analysis.utils.user_messages import pop_up_critical
+from threedi_results_analysis.utils.user_messages import StatusProgressBar
+from threedi_results_analysis.utils.utils import generate_parameter_config
+from threedi_results_analysis.utils.utils import is_substance_variable
+from threedi_results_analysis.utils.utils import pretty
+from threedigrid.admin.constants import NO_DATA_VALUE
 from typing import List
 
-import threedi_results_analysis.tool_animation.animation_styler as styler
 import copy
 import logging
 import math
 import numpy as np
-from bisect import bisect_left
-from functools import lru_cache
+import threedi_results_analysis.tool_animation.animation_styler as styler
 
 
 logger = logging.getLogger(__name__)
+
+
+class MethodEnum(str, Enum):
+    PRETTY = "pretty"
+    PERCENTILE = "precentile"
+
+
+class MapAnimatorSettings(object):
+    lower_cutoff_percentile: float = 2.0
+    upper_cutoff_percentile: float = 98.0
+    method: MethodEnum = MethodEnum.PRETTY
+    nr_classes: int = 24  # Must be EVEN!
+
+    def __str__(self):
+        return f"{self.lower_cutoff_percentile} {self.upper_cutoff_percentile} {self.method.value} {self.nr_classes}"
+
+
+class MapAnimatorSettingsdialog(QDialog):
+    def __init__(self, parent, default_settings: MapAnimatorSettings):
+        super().__init__(parent)
+        self.setWindowTitle("Visualisation settings")
+
+        layout = QVBoxLayout(self)
+        self.setLayout(layout)
+
+        settings_group = QGroupBox(self)
+        settings_group.setLayout(QGridLayout())
+
+        # Set up GUI and populate with settings
+        settings_group.layout().addWidget(QLabel("Lower cutoff percentile:"), 0, 0)
+        self.lower_cutoff_percentile_lineedit = QLineEdit(str(default_settings.lower_cutoff_percentile), settings_group)
+        lower_percentile_validator = QDoubleValidator(0.0, 100.0, 2, self.lower_cutoff_percentile_lineedit)
+        lower_percentile_validator.setNotation(QDoubleValidator.StandardNotation)
+        self.lower_cutoff_percentile_lineedit.setValidator(lower_percentile_validator)
+        settings_group.layout().addWidget(self.lower_cutoff_percentile_lineedit, 0, 1)
+
+        settings_group.layout().addWidget(QLabel("Upper cutoff percentile:"), 1, 0)
+        self.upper_cutoff_percentile_lineedit = QLineEdit(str(default_settings.upper_cutoff_percentile), settings_group)
+        upper_percentile_validator = QDoubleValidator(0.0, 100.0, 2, self.upper_cutoff_percentile_lineedit)
+        upper_percentile_validator.setNotation(QDoubleValidator.StandardNotation)
+        self.upper_cutoff_percentile_lineedit.setValidator(upper_percentile_validator)
+        settings_group.layout().addWidget(self.upper_cutoff_percentile_lineedit, 1, 1)
+
+        settings_group.layout().addWidget(QLabel("Method:"), 2, 0)
+        self.method_combo = QComboBox(settings_group)
+        self.method_combo.addItems([s.value for s in MethodEnum])
+        for c in range(self.method_combo.count()):
+            if default_settings.method.value == self.method_combo.itemText(c):
+                self.method_combo.setCurrentIndex(c)
+                break
+        settings_group.layout().addWidget(self.method_combo, 2, 1)
+
+        settings_group.layout().addWidget(QLabel("Number of classes:"), 3, 0)
+        self.nr_classes_lineedit = QLineEdit(str(default_settings.nr_classes), settings_group)
+        self.nr_classes_lineedit.setValidator(QIntValidator(2, 42, self.nr_classes_lineedit))
+        settings_group.layout().addWidget(self.nr_classes_lineedit, 3, 1)
+
+        layout.addWidget(settings_group)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        layout.addWidget(buttonBox)
+
+    def accept(self) -> None:
+        # Check logic
+        if int(self.nr_classes_lineedit.text()) % 2 != 0:
+            pop_up_critical("Number of classes should be even.")
+            return
+        if int(self.nr_classes_lineedit.text()) <= 0 or int(self.nr_classes_lineedit.text()) > 42:
+            pop_up_critical("Number of classes should be greater than 0 and less then 42.")
+            return
+        upper_cutoff_percentile = float(self.upper_cutoff_percentile_lineedit.text())
+        lower_cutoff_percentile = float(self.lower_cutoff_percentile_lineedit.text())
+        if upper_cutoff_percentile <= 0 or upper_cutoff_percentile >= 100:
+            pop_up_critical("The upper cutoff percentile should be greater than 0 and less than 100.")
+            return
+        if lower_cutoff_percentile <= 0 or lower_cutoff_percentile >= 100:
+            pop_up_critical("The lower cutoff percentile should be greater than 0 and less than 100.")
+            return
+
+        if upper_cutoff_percentile <= lower_cutoff_percentile:
+            pop_up_critical("The upper cutoff percentile should be greater than the lower cutoff percentile.")
+            return
+
+        return super().accept()
+
+    def get_settings(self) -> MapAnimatorSettings:
+        result = MapAnimatorSettings()
+        result.lower_cutoff_percentile = float(self.lower_cutoff_percentile_lineedit.text())
+        result.upper_cutoff_percentile = float(self.upper_cutoff_percentile_lineedit.text())
+        result.nr_classes = int(self.nr_classes_lineedit.text())
+        result.method = MethodEnum(self.method_combo.currentText())
+        return result
 
 
 def get_layer_by_id(layer_id):
@@ -54,9 +167,9 @@ def threedi_result_legend_class_bounds(
     lower_cutoff_percentile: float,
     upper_cutoff_percentile: float,
     relative_to_t0: bool,
+    nr_classes: int,
     simple=False,
     method: str = "pretty",
-    nr_classes: int = styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES
 ) -> List[float]:
     """
     Calculate percentile values given variable in a 3Di results netcdf
@@ -577,7 +690,13 @@ class MapAnimator(QGroupBox):
         self.line_parameter_combo_box = QComboBox(line_group)
         self.line_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.line_parameter_combo_box.setToolTip("Choose flowline variable to display")
-        line_group.layout().addWidget(self.line_parameter_combo_box, 0, 0, Qt.AlignTop)
+        line_group.layout().addWidget(self.line_parameter_combo_box, 0, 0, 1, 2, Qt.AlignTop)
+        equalizer_icon = QIcon(str(PLUGIN_DIR / "icons" / "sliders.svg"))
+
+        setting_button_line = QPushButton(equalizer_icon, "", line_group)
+        setting_button_line.setFixedSize(QSize(26, 26))
+        setting_button_line.clicked.connect(self.showLineSettings)
+        line_group.layout().addWidget(setting_button_line, 1, 1)
 
         self.HLayout.addWidget(line_group)
 
@@ -586,7 +705,7 @@ class MapAnimator(QGroupBox):
         self.node_parameter_combo_box = QComboBox(node_group)
         self.node_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.node_parameter_combo_box.setToolTip("Choose node variable to display")
-        node_group.layout().addWidget(self.node_parameter_combo_box)
+        node_group.layout().addWidget(self.node_parameter_combo_box, 0, 0, 1, 2)
 
         self.difference_checkbox = QCheckBox("Relative", self)
         self.difference_checkbox.setToolTip(
@@ -595,6 +714,11 @@ class MapAnimator(QGroupBox):
 
         node_group.layout().addWidget(self.difference_checkbox, 1, 0)
 
+        setting_button_node = QPushButton(equalizer_icon, "", line_group)
+        setting_button_node.setFixedSize(QSize(26, 26))
+        setting_button_node.clicked.connect(self.showNodeSettings)
+        node_group.layout().addWidget(setting_button_node, 1, 1)
+
         self.HLayout.addWidget(node_group)
 
         self.line_parameter_combo_box.activated.connect(self._restyle_and_update_lines)
@@ -602,6 +726,20 @@ class MapAnimator(QGroupBox):
         self.difference_checkbox.stateChanged.connect(self._restyle_and_update_nodes)
 
         self.setEnabled(False)
+
+    @pyqtSlot(bool)
+    def showNodeSettings(self, _: bool):
+        dialog = MapAnimatorSettingsdialog(self, MapAnimatorSettings())
+        if dialog.exec():
+            logger.error(dialog.get_settings())
+            logger.error("node")
+
+    @pyqtSlot(bool)
+    def showLineSettings(self, _: bool):
+        dialog = MapAnimatorSettingsdialog(self, MapAnimatorSettings())
+        if dialog.exec():
+            logger.error("line")
+            logger.error(dialog.get_settings())
 
     @staticmethod
     def index_to_duration(index, timestamps):
