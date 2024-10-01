@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 
 class MethodEnum(str, Enum):
     PRETTY = "pretty"
-    PERCENTILE = "precentile"
+    PERCENTILE = "percentile"
 
 
 class MapAnimatorSettings(object):
@@ -66,9 +66,9 @@ class MapAnimatorSettings(object):
 
 
 class MapAnimatorSettingsdialog(QDialog):
-    def __init__(self, parent, default_settings: MapAnimatorSettings):
+    def __init__(self, parent, title: str, default_settings: MapAnimatorSettings):
         super().__init__(parent)
-        self.setWindowTitle("Visualisation settings")
+        self.setWindowTitle(f"Visualisation settings for {title}")
 
         layout = QVBoxLayout(self)
         self.setLayout(layout)
@@ -306,6 +306,10 @@ class MapAnimator(QGroupBox):
         self.node_parameters = None
         self.line_parameters = None
 
+        # TODO: remove params when resuls are deleted?
+        self.node_parameter_setting = {}
+        self.line_parameter_setting = {}
+
         self.current_datetime = None
         self.setup_ui(parent)
 
@@ -335,9 +339,10 @@ class MapAnimator(QGroupBox):
         self.node_parameters = {r["name"]: r for r in config["h"]}
 
     def _style_line_layers(self, result_item: ThreeDiResultItem, progress_bar):
+        current_line_settings = self.line_parameter_setting.get(self.current_line_parameter_key, MapAnimatorSettings())
         threedi_result = result_item.threedi_result
         line_parameter_class_bounds, _ = self._get_class_bounds_line(
-            threedi_result, self.current_line_parameter["parameters"]
+            threedi_result, self.current_line_parameter["parameters"], current_line_settings
         )
         grid_item = result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
@@ -356,9 +361,10 @@ class MapAnimator(QGroupBox):
 
     def _style_node_layers(self, result_item: ThreeDiResultItem, progress_bar):
         """ Compute class bounds and apply style to node and cell layers. """
+        current_node_settings = self.node_parameter_setting.get(self.current_node_parameter_key, MapAnimatorSettings())
         threedi_result = result_item.threedi_result
         node_parameter_class_bounds, _ = self._get_class_bounds_node(
-            threedi_result, self.current_node_parameter["parameters"],
+            threedi_result, self.current_node_parameter["parameters"], current_node_settings
         )
 
         # Adjust the styling of the grid layer based on the bounds and result field name
@@ -376,6 +382,7 @@ class MapAnimator(QGroupBox):
                 node_parameter_class_bounds,
                 self.current_node_parameter["parameters"],
                 False,
+                current_node_settings.nr_of_classes,
                 postfix,
             )
         else:
@@ -401,6 +408,7 @@ class MapAnimator(QGroupBox):
                     node_parameter_class_bounds,
                     self.current_node_parameter["parameters"],
                     True,
+                    current_node_settings.nr_of_classes,
                     postfix,
                 )
             else:
@@ -420,6 +428,14 @@ class MapAnimator(QGroupBox):
     @property
     def current_node_parameter(self):
         return self.node_parameters[self.node_parameter_combo_box.currentText()]
+
+    @property
+    def current_node_parameter_key(self):
+        return f"{self.current_node_parameter['name']}-{self.current_node_parameter['unit']}-{self.current_node_parameter['parameters']}"
+
+    @property
+    def current_line_parameter_key(self):
+        return f"{self.current_line_parameter['name']}-{self.current_line_parameter['unit']}-{self.current_line_parameter['parameters']}"
 
     def _restyle(self, lines, nodes):
         result_items = self.model.get_results(checked_only=True)
@@ -443,7 +459,7 @@ class MapAnimator(QGroupBox):
         self._restyle(lines=False, nodes=True)
         self.update_results()
 
-    def _get_class_bounds_node(self, threedi_result, node_variable):
+    def _get_class_bounds_node(self, threedi_result, node_variable, settings: MapAnimatorSettings):
         base_nc_name = strip_agg_options(node_variable)
         if (
             base_nc_name in NEGATIVE_POSSIBLE and NEGATIVE_POSSIBLE[base_nc_name]
@@ -458,10 +474,11 @@ class MapAnimator(QGroupBox):
             variable=node_variable,
             absolute=False,
             lower_threshold=lower_threshold,
-            lower_cutoff_percentile=2,
-            upper_cutoff_percentile=98,
+            lower_cutoff_percentile=settings.lower_cutoff_percentile,
+            upper_cutoff_percentile=settings.upper_cutoff_percentile,
             relative_to_t0=self.difference_checkbox.isChecked(),
-            method="pretty",
+            nr_classes=settings.nr_classes,
+            method=settings.method,
         )
         with timing('percentiles1'):
             surfacewater_bounds = threedi_result_legend_class_bounds(
@@ -473,16 +490,17 @@ class MapAnimator(QGroupBox):
             )
         return surfacewater_bounds, groundwater_bounds
 
-    def _get_class_bounds_line(self, threedi_result, line_variable):
+    def _get_class_bounds_line(self, threedi_result, line_variable, settings: MapAnimatorSettings):
         kwargs = dict(
             threedi_result=threedi_result,
             variable=line_variable,
             absolute=True,
             lower_threshold=styler.DEFAULT_LOWER_THRESHOLD,
-            lower_cutoff_percentile=2,
-            upper_cutoff_percentile=98,
+            lower_cutoff_percentile=settings.lower_cutoff_percentile,
+            upper_cutoff_percentile=settings.upper_cutoff_percentile,
             relative_to_t0=self.difference_checkbox.isChecked(),
-            method="pretty",
+            nr_classes=settings.nr_classes,
+            method=settings.method,
         )
         with timing('percentiles3'):
             surfacewater_bounds = threedi_result_legend_class_bounds(
@@ -695,7 +713,7 @@ class MapAnimator(QGroupBox):
 
         setting_button_line = QPushButton(equalizer_icon, "", line_group)
         setting_button_line.setFixedSize(QSize(26, 26))
-        setting_button_line.clicked.connect(self.showLineSettings)
+        setting_button_line.clicked.connect(self.show_line_settings)
         line_group.layout().addWidget(setting_button_line, 1, 1)
 
         self.HLayout.addWidget(line_group)
@@ -716,7 +734,7 @@ class MapAnimator(QGroupBox):
 
         setting_button_node = QPushButton(equalizer_icon, "", line_group)
         setting_button_node.setFixedSize(QSize(26, 26))
-        setting_button_node.clicked.connect(self.showNodeSettings)
+        setting_button_node.clicked.connect(self.show_node_settings)
         node_group.layout().addWidget(setting_button_node, 1, 1)
 
         self.HLayout.addWidget(node_group)
@@ -728,18 +746,26 @@ class MapAnimator(QGroupBox):
         self.setEnabled(False)
 
     @pyqtSlot(bool)
-    def showNodeSettings(self, _: bool):
-        dialog = MapAnimatorSettingsdialog(self, MapAnimatorSettings())
+    def show_node_settings(self, _: bool):
+        current_node_settings = MapAnimatorSettings()
+        if self.current_node_parameter_key in self.node_parameter_setting:
+            current_node_settings = self.node_parameter_setting[self.current_node_parameter_key]
+
+        dialog = MapAnimatorSettingsdialog(self, self.current_node_parameter['name'], current_node_settings)
         if dialog.exec():
-            logger.error(dialog.get_settings())
-            logger.error("node")
+            self.node_parameter_setting[self.current_node_parameter_key] = dialog.get_settings()
+            self._restyle(lines=False, nodes=True)
 
     @pyqtSlot(bool)
-    def showLineSettings(self, _: bool):
-        dialog = MapAnimatorSettingsdialog(self, MapAnimatorSettings())
+    def show_line_settings(self, _: bool):
+        current_line_settings = MapAnimatorSettings()
+        if self.current_line_parameter_key in self.line_parameter_setting:
+            current_line_settings = self.line_parameter_setting[self.current_line_parameter_key]
+
+        dialog = MapAnimatorSettingsdialog(self, self.current_line_parameter['name'], current_line_settings)
         if dialog.exec():
-            logger.error("line")
-            logger.error(dialog.get_settings())
+            self.line_parameter_setting[self.current_line_parameter_key] = dialog.get_settings()
+            self._restyle(lines=True, nodes=False)
 
     @staticmethod
     def index_to_duration(index, timestamps):

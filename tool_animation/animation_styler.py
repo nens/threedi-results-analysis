@@ -171,7 +171,7 @@ def style_animation_node_current(
 
 
 def style_animation_node_difference(
-    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool, field_postfix=""
+    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool, nr_of_classes, field_postfix=""
 ):
     """Applies styling to Animation Toolbar node layer in 'difference' mode"""
 
@@ -198,7 +198,7 @@ def style_animation_node_difference(
                     stop=abs_high,
                     step=(
                         (abs_high - abs_high * -1)
-                        / (ANIMATION_LAYERS_NR_LEGEND_CLASSES - 2)
+                        / (nr_of_classes - 2)
                     ),
                 )
             )
