@@ -53,8 +53,8 @@ logger = logging.getLogger(__name__)
 
 
 class MethodEnum(str, Enum):
-    PRETTY = "pretty"
-    PERCENTILE = "percentile"
+    PRETTY = "Pretty Breaks"
+    PERCENTILE = "Equal Count (Quantile)"
 
 
 class MapAnimatorSettings(object):
@@ -102,7 +102,7 @@ class MapAnimatorSettingsdialog(QDialog):
                 break
         settings_group.layout().addWidget(self.method_combo, 2, 1)
 
-        settings_group.layout().addWidget(QLabel("Number of classes:"), 3, 0)
+        settings_group.layout().addWidget(QLabel("Preferred number of classes:"), 3, 0)
         self.nr_classes_lineedit = QLineEdit(str(default_settings.nr_classes), settings_group)
         self.nr_classes_lineedit.setValidator(QIntValidator(2, 42, self.nr_classes_lineedit))
         settings_group.layout().addWidget(self.nr_classes_lineedit, 3, 1)
@@ -171,7 +171,7 @@ def threedi_result_legend_class_bounds(
     relative_to_t0: bool,
     nr_classes: int,
     simple=False,
-    method: str = "pretty",
+    method: str = "Pretty Breaks",
 ) -> List[float]:
     """
     Calculate percentile values given variable in a 3Di results netcdf
@@ -189,7 +189,7 @@ def threedi_result_legend_class_bounds(
     :param lower_threshold: ignore values below this threshold
     :param relative_to_t0: calculate percentiles on difference w/ initial values (applied before absolute)
     :param nodatavalue: ignore these values
-    :param method: 'pretty' (pretty breaks) or 'percentile' (equal count)
+    :param method: 'Pretty Breaks' or 'Equal Count (Quantile)'
     """
 
     class_bounds_empty = [0] * nr_classes
@@ -273,17 +273,17 @@ def threedi_result_legend_class_bounds(
             )
         ]
 
-    if method == "pretty":
+    if method == MethodEnum.PRETTY.value:
         try:
             result = pretty(values_cutoff, n=nr_classes)
         except ValueError:  # All values are the same
             result = class_bounds_empty
-    elif method == "percentile":
+    elif method == MethodEnum.PERCENTILE.value:
         result = np.nanpercentile(
             values_cutoff, class_bounds_percentiles
         ).tolist()
     else:
-        raise ValueError("'method' must be one of 'pretty', 'percentile'")
+        raise ValueError(f"'method' must be one of '{MethodEnum.PRETTY.value}', '{MethodEnum.PERCENTILE.value}'")
 
     real_min = 0 if absolute else np.nanmin(values).item()
     real_max = np.nanmax(values).item()
