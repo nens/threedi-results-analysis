@@ -308,7 +308,6 @@ class MapAnimator(QGroupBox):
         self.node_parameters = None
         self.line_parameters = None
 
-        # TODO: remove params when resuls are deleted?
         self.node_parameter_setting = {}
         self.line_parameter_setting = {}
 
@@ -327,6 +326,7 @@ class MapAnimator(QGroupBox):
 
         self._update_parameter_attributes()
         self._update_parameter_combo_boxes()
+        self._update_parameter_settings()
 
         if not active:
             return
@@ -334,6 +334,35 @@ class MapAnimator(QGroupBox):
         self._restyle(lines=True, nodes=True)
         self.update_results()
         # iface.mapCanvas().refresh()
+
+    def _update_parameter_settings(self):
+        # Update cached parameter settings, remove param if no longer present
+        param_settings_to_delete = []
+        for param_key in self.node_parameter_setting:
+            found = False
+            for param in self.node_parameters.values():
+                if param_key == f"{param['name']}-{param['unit']}-{param['parameters']}":
+                    # This parameter is still present in results, so keep it.
+                    found = True
+                    break
+            if not found:
+                param_settings_to_delete.append(param_key)
+        for param_key in param_settings_to_delete:
+            logger.info(f"Removing settings for {param_key} as no longer present in all results")
+            del self.node_parameter_setting[param_key]
+
+        param_settings_to_delete.clear()
+        for param_key in self.line_parameter_setting:
+            found = False
+            for param in self.line_parameters.values():
+                if param_key == f"{param['name']}-{param['unit']}-{param['parameters']}":
+                    found = True
+                    break
+            if not found:
+                param_settings_to_delete.append(param_key)
+        for param_key in param_settings_to_delete:
+            logger.info(f"Removing settings for {param_key} as no longer present in all results")
+            del self.line_parameter_setting[param_key]
 
     def write(self, doc: QDomDocument, xml_elem: QDomElement) -> bool:
         """Called when a QGS project is written, allowing each tool to presist
@@ -828,9 +857,6 @@ class MapAnimator(QGroupBox):
     @pyqtSlot(bool)
     def show_node_settings(self, _: bool):
         current_node_settings = MapAnimatorSettings()
-        logger.error(self.current_node_parameter_key)
-        logger.error("-------")
-        logger.error(self.node_parameter_setting)
         if self.current_node_parameter_key in self.node_parameter_setting:
             current_node_settings = self.node_parameter_setting[self.current_node_parameter_key]
 

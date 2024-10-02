@@ -167,6 +167,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_checked.connect(self.map_animator.results_changed)
         self.model.result_unchecked.connect(self.map_animator.results_changed)
         self.model.result_added.connect(self.map_animator.results_changed)
+        self.model.result_removed.connect(self.map_animator.results_changed)
         self.temporal_manager.updated.connect(self.map_animator.update_results)
 
         # flow summary signals
