@@ -237,6 +237,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             if not tool.write(doc, node):
                 return False
 
+        # Also allow animator to persist settings
+        if not self.map_animator.write(doc, node):
+            return False
+
         return True
 
     def write_map_layer(self, layer: QgsMapLayer, elem: QDomElement, _: QDomDocument):
@@ -262,6 +266,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             if not tool.read(tool_node):
                 self.model.clear()
                 return False
+
+        # Also allow animator to read saved settings
+        if not self.map_animator.read(tool_node):
+            self.model.clear()
+            return False
 
         return True
 

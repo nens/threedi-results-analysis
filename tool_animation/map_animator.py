@@ -21,6 +21,8 @@ from qgis.PyQt.QtWidgets import QLineEdit
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtXml import QDomDocument
+from qgis.PyQt.QtXml import QDomElement
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.datasource.result_constants import AGGREGATION_OPTIONS
 from threedi_results_analysis.datasource.result_constants import DISCHARGE
@@ -333,6 +335,86 @@ class MapAnimator(QGroupBox):
         self.update_results()
         # iface.mapCanvas().refresh()
 
+    def write(self, doc: QDomDocument, xml_elem: QDomElement) -> bool:
+        """Called when a QGS project is written, allowing each tool to presist
+        additional info int the dedicated xml tools node."""
+
+        animator_node = doc.createElement("map_animator")
+        xml_elem.appendChild(animator_node)
+
+        node_parameter_setting_element = doc.createElement("node_parameter_setting")
+        for param_key, settings in self.node_parameter_setting.items():
+            node_parameter_setting_element.appendChild(MapAnimator._setting_to_xml(doc, param_key, settings))
+
+        line_parameter_setting_element = doc.createElement("line_parameter_setting")
+        for param_key, settings in self.line_parameter_setting.items():
+            line_parameter_setting_element.appendChild(MapAnimator._setting_to_xml(doc, param_key, settings))
+
+        animator_node.appendChild(node_parameter_setting_element)
+        animator_node.appendChild(line_parameter_setting_element)
+
+        return True
+
+    @staticmethod
+    def _setting_to_xml(doc: QDomDocument, param_key: str, settings: MapAnimatorSettings) -> QDomElement:
+        settings_element = doc.createElement("ParameterSetting")
+        # We write the parameter key as attribute as it might contain spaces
+        settings_element.setAttribute("parameter", param_key)
+        lower_cutoff_percentile_element = doc.createElement("lower_cutoff_percentile")
+        lower_cutoff_percentile_element.appendChild(doc.createTextNode(str(settings.lower_cutoff_percentile)))
+        upper_cutoff_percentile_element = doc.createElement("upper_cutoff_percentile")
+        upper_cutoff_percentile_element.appendChild(doc.createTextNode(str(settings.upper_cutoff_percentile)))
+        method_element = doc.createElement("method")
+        method_element.appendChild(doc.createTextNode(settings.method.value))
+        nr_classes_element = doc.createElement("nr_classes")
+        nr_classes_element.appendChild(doc.createTextNode(str(settings.nr_classes)))
+        settings_element.appendChild(lower_cutoff_percentile_element)
+        settings_element.appendChild(upper_cutoff_percentile_element)
+        settings_element.appendChild(method_element)
+        settings_element.appendChild(nr_classes_element)
+        return settings_element
+
+    def read(self, xml_elem: QDomElement) -> bool:
+        animator_node = xml_elem.firstChildElement("map_animator")
+        if not animator_node:
+            logger.info("No animation settings in project")
+            return True
+
+        self.node_parameter_setting.clear()
+        nodes_parameter_settings = animator_node.elementsByTagName("node_parameter_setting")
+        assert nodes_parameter_settings.count() == 1
+        nodes_parameter_settings = nodes_parameter_settings.item(0).toElement()
+        param_nodes = nodes_parameter_settings.childNodes()
+        for i in range(param_nodes.count()):
+            param_node = param_nodes.at(i).toElement()
+            param_key = param_node.attribute("parameter")
+            self.node_parameter_setting[param_key] = MapAnimator._setting_from_xml(param_node)
+
+        self.line_parameter_setting.clear()
+        line_parameter_settings = animator_node.elementsByTagName("line_parameter_setting")
+        assert line_parameter_settings.count() == 1
+        line_parameter_settings = line_parameter_settings.item(0).toElement()
+        param_lines = line_parameter_settings.childNodes()
+        for i in range(param_lines.count()):
+            param_line = param_lines.at(i).toElement()
+            param_key = param_line.attribute("parameter")
+            self.line_parameter_setting[param_key] = MapAnimator._setting_from_xml(param_line)
+
+        return True
+
+    @staticmethod
+    def _setting_from_xml(param_node: QDomElement) -> MapAnimatorSettings:
+        setting = MapAnimatorSettings()
+        assert param_node.elementsByTagName("lower_cutoff_percentile").count() == 1
+        setting.lower_cutoff_percentile = float(param_node.elementsByTagName("lower_cutoff_percentile").item(0).toElement().text())
+        assert param_node.elementsByTagName("upper_cutoff_percentile").count() == 1
+        setting.upper_cutoff_percentile = float(param_node.elementsByTagName("upper_cutoff_percentile").item(0).toElement().text())
+        assert param_node.elementsByTagName("method").count() == 1
+        setting.method = MethodEnum(param_node.elementsByTagName("method").item(0).toElement().text())
+        assert param_node.elementsByTagName("nr_classes").count() == 1
+        setting.nr_classes = int(param_node.elementsByTagName("nr_classes").item(0).toElement().text())
+        return setting
+
     def _update_parameter_attributes(self):
         config = self._get_active_parameter_config()
         self.line_parameters = {r["name"]: r for r in config["q"]}
@@ -346,7 +428,6 @@ class MapAnimator(QGroupBox):
         )
         grid_item = result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
-        logger.info("Styling flowline layer")
         layer_id = grid_item.layer_ids["flowline"]
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
@@ -371,7 +452,6 @@ class MapAnimator(QGroupBox):
         grid_item = result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
 
-        logger.info("Styling node layer")
         layer_id = grid_item.layer_ids["node"]
         layer = get_layer_by_id(layer_id)
         virtual_field_name = result_item._result_field_names[layer_id][0]
@@ -748,6 +828,9 @@ class MapAnimator(QGroupBox):
     @pyqtSlot(bool)
     def show_node_settings(self, _: bool):
         current_node_settings = MapAnimatorSettings()
+        logger.error(self.current_node_parameter_key)
+        logger.error("-------")
+        logger.error(self.node_parameter_setting)
         if self.current_node_parameter_key in self.node_parameter_setting:
             current_node_settings = self.node_parameter_setting[self.current_node_parameter_key]
 
