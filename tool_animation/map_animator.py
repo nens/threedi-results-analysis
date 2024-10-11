@@ -102,8 +102,12 @@ class MapAnimatorSettingsdialog(QDialog):
                 break
         settings_group.layout().addWidget(self.method_combo, 2, 1)
 
-        settings_group.layout().addWidget(QLabel("Preferred number of classes:"), 3, 0)
+        explanation_msg = "The number of classes used in the styling may differ slightly from the number of classes set here."
+        class_label = QLabel("Number of classes:  🛈")
+        class_label.setToolTip(explanation_msg)
+        settings_group.layout().addWidget(class_label, 3, 0)
         self.nr_classes_lineedit = QLineEdit(str(default_settings.nr_classes), settings_group)
+        self.nr_classes_lineedit.setToolTip(explanation_msg)
         self.nr_classes_lineedit.setValidator(QIntValidator(2, 42, self.nr_classes_lineedit))
         settings_group.layout().addWidget(self.nr_classes_lineedit, 3, 1)
 
@@ -121,14 +125,14 @@ class MapAnimatorSettingsdialog(QDialog):
             pop_up_critical("Number of classes should be even.")
             return
         if int(self.nr_classes_lineedit.text()) <= 0 or int(self.nr_classes_lineedit.text()) > 42:
-            pop_up_critical("Number of classes should be greater than 0 and less then 42.")
+            pop_up_critical("The maximum number of classes is 42")
             return
         upper_cutoff_percentile = float(self.upper_cutoff_percentile_lineedit.text())
         lower_cutoff_percentile = float(self.lower_cutoff_percentile_lineedit.text())
-        if upper_cutoff_percentile <= 0 or upper_cutoff_percentile >= 100:
+        if upper_cutoff_percentile < 0 or upper_cutoff_percentile > 100:
             pop_up_critical("The upper cutoff percentile should be greater than 0 and less than 100.")
             return
-        if lower_cutoff_percentile <= 0 or lower_cutoff_percentile >= 100:
+        if lower_cutoff_percentile < 0 or lower_cutoff_percentile > 100:
             pop_up_critical("The lower cutoff percentile should be greater than 0 and less than 100.")
             return
 
@@ -303,7 +307,7 @@ class MapAnimator(QGroupBox):
 
     def __init__(self, parent, model):
 
-        super().__init__("Visualization settings", parent)
+        super().__init__("Visualisation settings", parent)
         self.model = model
         self.node_parameters = None
         self.line_parameters = None
