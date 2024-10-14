@@ -294,8 +294,15 @@ def threedi_result_legend_class_bounds(
     if result[0] == real_min:
         if lower_threshold > real_min:
             result = np.insert(result, 1, lower_threshold)  # create a class for all values that can be regarded as 0
-    else:
+    elif real_min < result[0]:
         result = np.insert(result, 0, real_min)
+        if absolute:
+            assert real_min == 0
+            if lower_threshold > result[0] and lower_threshold < result[1]:
+                result = np.insert(result, 1, lower_threshold)  # insert a 0-regarded class
+    else:  # real_min > result[0]:
+        pass
+
     if result[-1] != real_max:
         result = np.insert(result, len(result), real_max)
 
