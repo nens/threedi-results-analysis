@@ -502,7 +502,7 @@ class MapAnimator(QGroupBox):
                 node_parameter_class_bounds,
                 self.current_node_parameter["parameters"],
                 False,
-                current_node_settings.nr_of_classes,
+                current_node_settings.nr_classes,
                 postfix,
             )
         else:
@@ -528,7 +528,7 @@ class MapAnimator(QGroupBox):
                     node_parameter_class_bounds,
                     self.current_node_parameter["parameters"],
                     True,
-                    current_node_settings.nr_of_classes,
+                    current_node_settings.nr_classes,
                     postfix,
                 )
             else:
