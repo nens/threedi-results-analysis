@@ -524,7 +524,7 @@ def _install_dependencies(dependencies, target_dir):
             # sticking around.
 
         if bar:
-            bar.setValue((count / len(dependencies)) * 100)
+            bar.setValue(int((count / len(dependencies)) * 100))
             bar.update()
             QApplication.processEvents()
 
