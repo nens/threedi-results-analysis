@@ -1,8 +1,8 @@
 3Di Results Analysis changelog
 ========================
 
-3.10.1 (unreleased)
--------------------
+3.11 (2024-11-12)
+-----------------
 
 - Allow LinestringZ input by using WKB instead of WKT as conversion format (#1040)
 - Make "Use selected features" behaviour explicit (#1057)
