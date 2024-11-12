@@ -73,7 +73,7 @@ DEPENDENCIES = [
     Dependency("condenser", "condenser", ">=0.2.1", False),
     Dependency("Shapely", "shapely", ">=2.0.0", False),
     Dependency("threedigrid-builder", "threedigrid_builder", "==1.14.*", False),
-    Dependency("hydxlib", "hydxlib", "==1.5.2", False),
+    Dependency("hydxlib", "hydxlib", "==1.5.3", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
     Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.4", False),
