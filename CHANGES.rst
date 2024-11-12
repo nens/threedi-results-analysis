@@ -4,7 +4,8 @@
 3.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Compatibility with Python 3.12 (#1061)
+- Bumped h5py to 3.10.0 and scipy to 1.13.0 for python 3.12 compatibility (#1061)
 
 
 3.11 (2024-11-12)
@@ -13,8 +14,6 @@
 - Allow LinestringZ input by using WKB instead of WKT as conversion format (#1040)
 - Make "Use selected features" behaviour explicit (#1057)
 - Added animation settings (#1046)
-- Compatibility with Python 3.12 (#1061)
-- Bumped h5py to 3.10.0 and scipy to 1.13.0 for python 3.12 compatibility (#1061)
 - Bump hydxlib to 1.5.3
 
 
