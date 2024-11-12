@@ -40,16 +40,16 @@ mkdir build
 cd build
 
 # Download the custom compiled qgis version tar of h5py, create a tar from the distro subfolder
-wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-h5py/python3-h5py-3.8.0-1.tar.bz2
-tar -xvf python3-h5py-3.8.0-1.tar.bz2
-tar -cf h5py-3.8.0.tar -C ./apps/Python39/Lib/site-packages/ .
-cp h5py-3.8.0.tar ..
+wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-h5py/python3-h5py-3.10.0-1.tar.bz2
+tar -xvf python3-h5py-3.10.0-1.tar.bz2
+tar -cf h5py-3.10.0.tar -C ./apps/Python312/Lib/site-packages/ .
+cp h5py-3.10.0.tar ..
 
 # as well as scipy
-wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-scipy/python3-scipy-1.10.1-1.tar.bz2
-tar -xvf python3-scipy-1.10.1-1.tar.bz2
-tar -cf scipy-1.10.1.tar -C ./apps/Python39/Lib/site-packages/ .
-cp scipy-1.10.1.tar ..
+wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-scipy/python3-scipy-1.13.0-1.tar.bz2
+tar -xvf python3-scipy-1.13.0-1.tar.bz2
+tar -cf scipy-1.13.0.tar -C ./apps/Python312/Lib/site-packages/ .
+cp scipy-1.13.0.tar ..
 
 # Back up a level and clean up the build/ directory.
 cd ..

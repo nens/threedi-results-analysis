@@ -8,6 +8,7 @@
 - Make "Use selected features" behaviour explicit (#1057)
 - Added animation settings (#1046)
 - Compatibility with Python 3.12 (#1061)
+- Bumped h5py to 3.10.0 and scipy to 1.13.0 for python 3.12 compatibility (#1061)
 
 
 3.10.0 (2024-09-12)
