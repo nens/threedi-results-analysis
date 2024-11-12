@@ -7,6 +7,7 @@
 - Allow LinestringZ input by using WKB instead of WKT as conversion format (#1040)
 - Make "Use selected features" behaviour explicit (#1057)
 - Added animation settings (#1046)
+- Bump hydxlib to 1.5.3
 
 
 3.10.0 (2024-09-12)
