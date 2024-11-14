@@ -4,7 +4,7 @@
 3.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added Processing Algorithm "Extract structure control actions" (#926)
 
 
 3.11 (2024-11-12)
