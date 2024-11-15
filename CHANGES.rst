@@ -4,7 +4,7 @@
 3.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixed attributeError when loading a QGIS project (#1063)
 
 
 3.11 (2024-11-12)
