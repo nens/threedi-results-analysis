@@ -108,7 +108,6 @@ class LocationTimeseriesModel(BaseModel):
         _plots = {}
 
         def plots(self, parameters, absolute, time_units):
-            logger.error(parameters)
             """
             Get pyqtgraph plot of selected object and timeseries.
 
