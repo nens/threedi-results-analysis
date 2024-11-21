@@ -108,6 +108,7 @@ class LocationTimeseriesModel(BaseModel):
         _plots = {}
 
         def plots(self, parameters, absolute, time_units):
+            logger.error(parameters)
             """
             Get pyqtgraph plot of selected object and timeseries.
 
@@ -145,7 +146,8 @@ class LocationTimeseriesModel(BaseModel):
 
             if (parameters not in threedi_result.available_subgrid_map_vars and
                     parameters not in threedi_result.available_aggregation_vars and
-                    parameters not in [v["parameters"] for v in threedi_result.available_water_quality_vars]):
+                    parameters not in [v["parameters"] for v in threedi_result.available_water_quality_vars] and
+                    parameters not in [v["name"] for v in threedi_result.available_structure_control_actions_vars]):
                 logger.warning(f"Parameter {parameters} not available in result {self.result.value.text()}")
                 return EMPTY_TIMESERIES
 

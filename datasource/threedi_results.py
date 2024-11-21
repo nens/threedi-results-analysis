@@ -1,11 +1,15 @@
 from functools import cached_property
-from threedigrid.admin.constants import NO_DATA_VALUE
-from threedi_results_analysis.datasource.result_constants import LAYER_OBJECT_TYPE_MAPPING
+from threedi_results_analysis.datasource.result_constants import (
+    LAYER_OBJECT_TYPE_MAPPING,
+)
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
+from threedigrid.admin.constants import NO_DATA_VALUE
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from threedigrid.admin.gridresultadmin import GridH5StructureControl
 from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
+from threedigrid.admin.structure_controls.models import StructureControlTypes
 
 import glob
 import h5py
@@ -37,6 +41,7 @@ class ThreediResult():
     - GridH5ResultAdmin
     - GridH5AggregateResultAdmin
     - GridH5WaterQualityResultAdmin
+    - GridH5StructureControl
 
     For more information about threedigrid see
     https://threedigrid.readthedocs.io/en/latest/
@@ -119,7 +124,28 @@ class ThreediResult():
     @property
     def available_vars(self):
         """Return a list of all available variables"""
-        return self.available_subgrid_map_vars + self.available_aggregation_vars + self.available_water_quality_vars
+        return self.available_subgrid_map_vars + self.available_aggregation_vars + self.available_water_quality_vars + self.available_structure_control_actions_vars
+
+    @property
+    def available_structure_control_actions_vars(self):
+        """Return a list of all structure control actions variables"""
+        ga = self.structure_control_actions_result_admin
+        if not ga:
+            return []
+        available_vars = []
+        for control_type in StructureControlTypes.__members__.values():
+            control_type_data = getattr(ga, control_type.name)
+            action_types = np.unique(control_type_data.action_type)
+            for action_type in action_types:
+                var = {
+                    "name": action_type,
+                    "unit": "m",  # todo
+                    "parameters": action_type,
+                }
+                if var not in available_vars:
+                    available_vars.append(var)
+
+        return available_vars
 
     @cached_property
     def timestamps(self):
@@ -180,13 +206,13 @@ class ThreediResult():
         """Return the gridadmin where the variable is stored. If no variable is
         given, a gridadmin without results is returned.
 
-        Results are either stored in the 'results_3di.nc', 'aggregate_results_3di.nc'
-        or 'water_quality_results_3di.nc'. These make use of the GridH5ResultAdmin,
-        GridH5AggregateResultAdmin or GridH5WaterQualityResultAdmin to query the data
+        Results are either stored in the 'results_3di.nc', 'aggregate_results_3di.nc',
+        'water_quality_results_3di.nc' or 'structure_control_actions_3di.nc'. These make use of the GridH5ResultAdmin,
+        GridH5AggregateResultAdmin, GridH5WaterQualityResultAdmin or GridH5StructureControl to query the data
         respectively.
 
         :param variable: str of the variable name, e.g. 's1', 'q_pump'
-        :return: handle to GridAdminResult, AggregateGridAdminResult or GridH5WaterQualityResultAdmin
+        :return: handle to GridAdminResult, AggregateGridAdminResult, GridH5WaterQualityResultAdmin or GridH5StructureControl
         """
         if variable is None:
             return self.gridadmin
@@ -196,17 +222,19 @@ class ThreediResult():
             return self.aggregate_result_admin
         elif variable in [v["parameters"] for v in self.available_water_quality_vars]:
             return self.water_quality_result_admin
+        elif variable in [v["parameters"] for v in self.available_structure_control_actions_vars]:
+            return self.structure_control_actions_result_admin
         else:
             raise AttributeError(f"Unknown subgrid or aggregate or water quality variable: {variable}")
 
     def get_timeseries(
-        self, nc_variable, node_id=None, content_pk=None, fill_value=None
+        self, nc_variable, node_id=None, fill_value=None
     ):
         """Return a time series array of the given variable
 
         A 2d array is given, with first column being the timestamps in seconds.
         The next columns are the values of the nodes of the given variable.
-        You can also filter on a specific node using node_id or content_pk,
+        You can also filter on a specific node using node_id,
         in which case only the timeseries of the given node is returned.
 
         If there is no values of the given variable, only the timestamps are
@@ -214,27 +242,44 @@ class ThreediResult():
 
         :param nc_variable:
         :param node_id:
-        :param content_pk:
         :param fill_value:
         :return: 2D array, first column being the timestamps
         """
         ga = self.get_gridadmin(nc_variable)
 
-        filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
-            indexes=slice(None)
-        )
-        if node_id:
+        if isinstance(ga, GridH5StructureControl):
+            # GridH5StructureControl has a different interface compared to the other GridAdmin structures
+            timestamps = []
+            values = []
+            for control_type in StructureControlTypes.__members__.values():
+                control_type_data = getattr(ga, control_type.name)
+                structure_controls_for_id = control_type_data.group_by_grid_id(node_id)
+                structure_controls = [sc for sc in structure_controls_for_id if sc.action_type == nc_variable]
+                for structure_control in structure_controls:
+                    timestamps += list(structure_control.time)
+                    values += list(structure_control.action_value_1)
+
+            if not values:
+                return np.column_stack(([], []))
+
+            if fill_value is not None:
+                values[values == NO_DATA_VALUE] = fill_value
+
+            return np.column_stack((timestamps, values))
+        else:
+            filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
+                indexes=slice(None)
+            )
             filtered_result = filtered_result.filter(id=node_id)
-        elif content_pk:
-            filtered_result = filtered_result.filter(content_pk=content_pk)
+            values = self.get_timeseries_values(filtered_result, nc_variable)
 
-        values = self.get_timeseries_values(filtered_result, nc_variable)
-        if fill_value is not None:
-            values[values == NO_DATA_VALUE] = fill_value
+            timestamps = self.get_timestamps(nc_variable)
+            timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
 
-        timestamps = self.get_timestamps(nc_variable)
-        timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
-        return np.hstack([timestamps, values])
+            if fill_value is not None:
+                values[values == NO_DATA_VALUE] = fill_value
+
+            return np.hstack([timestamps, values])
 
     def get_values_by_timestep_nr(self, variable, timestamp_idx, node_ids):
         """Return an array of values of the given variable on the specified
@@ -353,6 +398,22 @@ class ThreediResult():
         file_like_object_nc = open(wq_path, 'rb')
         return GridH5WaterQualityResultAdmin(file_like_object_h5, file_like_object_nc)
 
+    @cached_property
+    def structure_control_actions_result_admin(self):
+        try:
+            # Note: both of these might raise the FileNotFoundError
+            sca_path = find_structure_control_actions_netcdf(self.file_path)
+            h5 = self.h5_path
+        except FileNotFoundError:
+            logger.exception("Structure control actions result not found")
+            return None
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
+        file_like_object_h5 = open(h5, 'rb')
+        file_like_object_h5.startswith = lambda x: False
+        file_like_object_nc = open(sca_path, 'rb')
+        return GridH5StructureControl(file_like_object_h5, file_like_object_nc)
+
     @property
     def short_model_slug(self):
         model_slug = self.gridadmin.model_slug
@@ -385,6 +446,28 @@ def find_aggregation_netcdf(netcdf_file_path):
         return aggregate_result_files[0]
     raise FileNotFoundError(
         "'aggregate_results_3di.nc' file not found relative to %s" % result_dir
+    )
+
+
+def find_structure_control_actions_netcdf(netcdf_file_path):
+    """An ad-hoc way to find the structure control actions netcdf file
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the structure control actions netcdf path
+
+    Raises:
+        FileNotFoundError if nothing is found
+    """
+    pattern = "structure_control_actions_3di.nc"
+    result_dir = os.path.dirname(netcdf_file_path)
+    sca_result_files = glob.glob(os.path.join(result_dir, pattern))
+    if sca_result_files:
+        return sca_result_files[0]
+    raise FileNotFoundError(
+        "'structure_control_actions_3di.nc' file not found relative to %s" % result_dir
     )
 
 
