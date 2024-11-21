@@ -249,6 +249,8 @@ class ThreediResult():
 
         if isinstance(ga, GridH5StructureControl):
             # GridH5StructureControl has a different interface compared to the other GridAdmin structures
+            assert nc_variable
+            assert node_id
             timestamps = []
             values = []
             for control_type in StructureControlTypes.__members__.values():
@@ -270,14 +272,14 @@ class ThreediResult():
             filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
                 indexes=slice(None)
             )
-            filtered_result = filtered_result.filter(id=node_id)
+            if node_id:
+                filtered_result = filtered_result.filter(id=node_id)
             values = self.get_timeseries_values(filtered_result, nc_variable)
+            if fill_value is not None:
+                values[values == NO_DATA_VALUE] = fill_value
 
             timestamps = self.get_timestamps(nc_variable)
             timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
-
-            if fill_value is not None:
-                values[values == NO_DATA_VALUE] = fill_value
 
             return np.hstack([timestamps, values])
 
