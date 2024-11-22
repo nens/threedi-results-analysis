@@ -1,5 +1,8 @@
 """Imported in __init__.py"""
 from itertools import tee
+from threedi_results_analysis.datasource.result_constants import (
+    ACTION_TYPE_ATTRIBUTE_MAP,
+)
 from threedi_results_analysis.datasource.result_constants import AGGREGATION_VARIABLES
 from threedi_results_analysis.datasource.result_constants import (
     CUMULATIVE_AGGREGATION_UNITS,
@@ -159,8 +162,10 @@ def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars, sca_vars=None
 
     if sca_vars:
         for scavar in sca_vars:
-            # Always lines or pumps
-            config["q"].append(scavar)
+            if ACTION_TYPE_ATTRIBUTE_MAP[scavar["name"]]["type"] == "q":
+                config["q"].append(scavar)
+            else:
+                raise NotImplementedError("Structure control action plotting not yet implemented for nodes.")
 
     for aggvarname in agg_vars:
         _varname, _agg_method = parse_aggvarname(aggvarname)

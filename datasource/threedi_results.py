@@ -1,5 +1,8 @@
 from functools import cached_property
 from threedi_results_analysis.datasource.result_constants import (
+    ACTION_TYPE_ATTRIBUTE_MAP,
+)
+from threedi_results_analysis.datasource.result_constants import (
     LAYER_OBJECT_TYPE_MAPPING,
 )
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
@@ -137,9 +140,10 @@ class ThreediResult():
             control_type_data = getattr(ga, control_type.name)
             action_types = np.unique(control_type_data.action_type)
             for action_type in action_types:
+                assert action_type in ACTION_TYPE_ATTRIBUTE_MAP
                 var = {
                     "name": action_type,
-                    "unit": "m",  # todo
+                    "unit": ACTION_TYPE_ATTRIBUTE_MAP[action_type]["unit"],
                     "parameters": action_type,
                 }
                 if var not in available_vars:
@@ -260,6 +264,43 @@ class ThreediResult():
                 for structure_control in structure_controls:
                     timestamps += list(structure_control.time)
                     values += list(structure_control.action_value_1)
+
+            # Check if we need to prepend and append the plot with non-controlled values
+            assert nc_variable in ACTION_TYPE_ATTRIBUTE_MAP
+            affected_nc_variable = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["variable"]
+            object_type = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["type"]
+            if object_type == "q":
+                structure = self.gridadmin.lines.filter(id=node_id)
+            else:
+                raise NotImplementedError("Plotting node control actions are not yet implemented")
+
+            # Check whether this object is of the applicable type for this control action
+            applicable_structures = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["applicable_structures"]
+            content_type = structure.content_type[0].decode()
+            if content_type not in applicable_structures:
+                #  This action is not applicable to this object
+                logger.info(f"Parameter {nc_variable} not applicable for type {content_type}")
+                return np.column_stack(([], []))
+
+            if affected_nc_variable:
+                orig_timestamps = self.get_timestamps()
+                orig_value = getattr(structure, affected_nc_variable)[0]
+                if not timestamps:
+                    # No actions at all, take original value to plot
+                    assert not values
+                    values = [orig_value] * len(orig_timestamps)
+                    timestamps = orig_timestamps
+                else:
+                    # find all timestamps before and after structure control timestamps
+                    min_time_stamp_structure = min(timestamps)
+                    max_time_stamp_structure = max(timestamps)
+                    for timestamp in orig_timestamps:
+                        if timestamp < min_time_stamp_structure:
+                            values.insert(0, orig_value)
+                            timestamps.insert(0, timestamps)
+                        if timestamp > max_time_stamp_structure:
+                            values.append(orig_value)
+                            timestamps.append(timestamp)
 
             if not values:
                 return np.column_stack(([], []))
