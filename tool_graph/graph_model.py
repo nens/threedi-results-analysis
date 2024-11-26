@@ -167,7 +167,7 @@ class LocationTimeseriesModel(BaseModel):
                 return EMPTY_TIMESERIES
 
             timeseries = threedi_result.get_timeseries(
-                parameters, node_id=self.object_id.value, fill_value=np.NaN
+                parameters, node_id=self.object_id.value, fill_value=np.NaN, selected_object_type=self.object_type.value
             )
             if timeseries.shape[1] == 1:
                 logger.info("1-element timeserie, plotting empty serie")

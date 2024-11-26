@@ -162,7 +162,9 @@ def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars, sca_vars=None
 
     if sca_vars:
         for scavar in sca_vars:
-            if ACTION_TYPE_ATTRIBUTE_MAP[scavar["name"]]["type"] == "q":
+            if ACTION_TYPE_ATTRIBUTE_MAP[scavar["name"]]["type"] == "line":
+                config["q"].append(scavar)
+            elif ACTION_TYPE_ATTRIBUTE_MAP[scavar["name"]]["type"] == "pump":
                 config["q"].append(scavar)
             else:
                 raise NotImplementedError("Structure control action plotting not yet implemented for nodes.")

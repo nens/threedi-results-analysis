@@ -12,6 +12,7 @@ from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5StructureControl
 from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
+from threedigrid.admin.structure_controls.models import StructureControlSourceTypes
 from threedigrid.admin.structure_controls.models import StructureControlTypes
 
 import glob
@@ -232,7 +233,7 @@ class ThreediResult():
             raise AttributeError(f"Unknown subgrid or aggregate or water quality variable: {variable}")
 
     def get_timeseries(
-        self, nc_variable, node_id=None, fill_value=None
+        self, nc_variable, node_id=None, fill_value=None, selected_object_type=None
     ):
         """Return a time series array of the given variable
 
@@ -247,68 +248,14 @@ class ThreediResult():
         :param nc_variable:
         :param node_id:
         :param fill_value:
+        :param selected_object_type: layer type of selected feature
         :return: 2D array, first column being the timestamps
         """
         ga = self.get_gridadmin(nc_variable)
 
         if isinstance(ga, GridH5StructureControl):
             # GridH5StructureControl has a different interface compared to the other GridAdmin structures
-            assert nc_variable
-            assert node_id
-            timestamps = []
-            values = []
-            for control_type in StructureControlTypes.__members__.values():
-                control_type_data = getattr(ga, control_type.name)
-                structure_controls_for_id = control_type_data.group_by_grid_id(node_id)
-                structure_controls = [sc for sc in structure_controls_for_id if sc.action_type == nc_variable]
-                for structure_control in structure_controls:
-                    timestamps += list(structure_control.time)
-                    values += list(structure_control.action_value_1)
-
-            # Check if we need to prepend and append the plot with non-controlled values
-            assert nc_variable in ACTION_TYPE_ATTRIBUTE_MAP
-            affected_nc_variable = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["variable"]
-            object_type = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["type"]
-            if object_type == "q":
-                structure = self.gridadmin.lines.filter(id=node_id)
-            else:
-                raise NotImplementedError("Plotting node control actions are not yet implemented")
-
-            # Check whether this object is of the applicable type for this control action
-            applicable_structures = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["applicable_structures"]
-            content_type = structure.content_type[0].decode()
-            if content_type not in applicable_structures:
-                #  This action is not applicable to this object
-                logger.info(f"Parameter {nc_variable} not applicable for type {content_type}")
-                return np.column_stack(([], []))
-
-            if affected_nc_variable:
-                orig_timestamps = self.get_timestamps()
-                orig_value = getattr(structure, affected_nc_variable)[0]
-                if not timestamps:
-                    # No actions at all, take original value to plot
-                    assert not values
-                    values = [orig_value] * len(orig_timestamps)
-                    timestamps = orig_timestamps
-                else:
-                    # find all timestamps before and after structure control timestamps
-                    min_time_stamp_structure = min(timestamps)
-                    max_time_stamp_structure = max(timestamps)
-                    for timestamp in orig_timestamps:
-                        if timestamp < min_time_stamp_structure:
-                            values.insert(0, orig_value)
-                            timestamps.insert(0, timestamps)
-                        if timestamp > max_time_stamp_structure:
-                            values.append(orig_value)
-                            timestamps.append(timestamp)
-
-            if not values:
-                return np.column_stack(([], []))
-
-            if fill_value is not None:
-                values[values == NO_DATA_VALUE] = fill_value
-
-            return np.column_stack((timestamps, values))
+            return self.get_structure_control_action_timeseries(ga, nc_variable, node_id, selected_object_type, fill_value)
         else:
             filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
                 indexes=slice(None)
@@ -323,6 +270,78 @@ class ThreediResult():
             timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
 
             return np.hstack([timestamps, values])
+
+    def get_structure_control_action_timeseries(self, ga, nc_variable, node_id, selected_object_type, fill_value):
+        assert nc_variable
+        assert node_id
+        timestamps = []
+        values = []
+        for control_type in StructureControlTypes.__members__.values():
+            control_type_data = getattr(ga, control_type.name)
+            structure_controls_for_id = control_type_data.group_by_grid_id(node_id)
+            structure_controls = [sc for sc in structure_controls_for_id if sc.action_type == nc_variable]
+            for structure_control in structure_controls:
+                #  It could be that the same action is applied on nodes, lines and pumps, we need to find the right one.
+                if selected_object_type == "flowline":
+                    if structure_control.source_type is not StructureControlSourceTypes.LINES:
+                        continue
+                elif selected_object_type == "pump":
+                    if structure_control.source_type is not StructureControlSourceTypes.PUMPS:
+                        continue
+                else:
+                    raise NotImplementedError(f"Plotting control actions for {selected_object_type} is not yet implemented")
+
+                timestamps += list(structure_control.time)
+                values += list(structure_control.action_value_1)
+
+        assert nc_variable in ACTION_TYPE_ATTRIBUTE_MAP
+        affected_nc_variable = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["variable"]
+        object_type = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["type"]
+        if object_type == "line":
+            structure = self.gridadmin.lines.filter(id=node_id)
+        elif object_type == "pump":
+            structure = self.gridadmin.pumps.filter(id=node_id)
+        else:
+            raise NotImplementedError("Plotting node control actions is not yet implemented")
+
+        # Check whether this object is of the applicable type for this control action
+        applicable_structures = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["applicable_structures"]
+        if applicable_structures:
+            content_type = structure.content_type[0].decode()
+            logger.error(str(content_type))
+            if content_type not in applicable_structures:
+                #  This action is not applicable to this object
+                logger.info(f"Parameter {nc_variable} not applicable for type {str(content_type)}")
+                return np.column_stack(([], []))
+
+        if affected_nc_variable:
+            # Check if we need to prepend and append the plot with non-controlled (static) values
+            orig_timestamps = self.get_timestamps()
+            orig_value = getattr(structure, affected_nc_variable)[0]
+            if not timestamps:
+                # No actions at all, take original value to plot
+                assert not values
+                values = [orig_value] * len(orig_timestamps)
+                timestamps = orig_timestamps
+            else:
+                # find all timestamps before and after structure control timestamps
+                min_time_stamp_structure = min(timestamps)
+                max_time_stamp_structure = max(timestamps)
+                for timestamp in orig_timestamps:
+                    if timestamp < min_time_stamp_structure:
+                        values.insert(0, orig_value)
+                        timestamps.insert(0, timestamps)
+                    if timestamp > max_time_stamp_structure:
+                        values.append(orig_value)
+                        timestamps.append(timestamp)
+
+        if not values:
+            return np.column_stack(([], []))
+
+        if fill_value is not None:
+            values[values == NO_DATA_VALUE] = fill_value
+
+        return np.column_stack((timestamps, values))
 
     def get_values_by_timestep_nr(self, variable, timestamp_idx, node_ids):
         """Return an array of values of the given variable on the specified
@@ -405,7 +424,7 @@ class ThreediResult():
         # Note: passing a file-like object due to an issue in threedigrid
         # https://github.com/nens/threedigrid/issues/183
         file_like_object_h5 = open(h5, 'rb')
-        file_like_object_h5.startswith = lambda x: ''
+        file_like_object_h5.startswith = lambda x: False
         file_like_object_nc = open(self.file_path, 'rb')
         return GridH5ResultAdmin(file_like_object_h5, file_like_object_nc)
 
