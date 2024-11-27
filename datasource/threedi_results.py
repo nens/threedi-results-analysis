@@ -280,31 +280,25 @@ class ThreediResult():
             control_type_data = getattr(ga, control_type.name)
             structure_controls_for_id = control_type_data.group_by_grid_id(node_id)
             structure_controls = [sc for sc in structure_controls_for_id if sc.action_type == nc_variable]
-            for structure_control in structure_controls:
-                #  It could be that the same action is applied on nodes, lines and pumps, we need to find the right one.
-                if selected_object_type == "flowline":
-                    if structure_control.source_type is not StructureControlSourceTypes.LINES:
-                        continue
-                elif selected_object_type == "pump":
-                    if structure_control.source_type is not StructureControlSourceTypes.PUMPS:
-                        continue
-                else:
-                    raise NotImplementedError(f"Plotting control actions for {selected_object_type} is not yet implemented")
 
+            #  It could be that the same action is applied on nodes, lines and pumps, we need to find the right one.
+            desired_type = StructureControlSourceTypes.LINES if selected_object_type == "flowline" else StructureControlSourceTypes.PUMPS
+            structure_controls = [sc for sc in structure_controls_for_id if sc.source_type == desired_type]
+
+            for structure_control in structure_controls:
                 timestamps += list(structure_control.time)
                 values += list(structure_control.action_value_1)
 
-        assert nc_variable in ACTION_TYPE_ATTRIBUTE_MAP
+        # Retrieve gridadmin structure
         affected_nc_variable = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["variable"]
-        object_type = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["type"]
-        if object_type == "line":
+        if selected_object_type == "line":
             structure = self.gridadmin.lines.filter(id=node_id)
-        elif object_type == "pump":
+        elif selected_object_type == "pump":
             structure = self.gridadmin.pumps.filter(id=node_id)
         else:
             raise NotImplementedError("Plotting node control actions is not yet implemented")
 
-        # Check whether this object is of the applicable type for this control action
+        # Check whether this object's content type is applicable for this control action
         applicable_structures = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["applicable_structures"]
         if applicable_structures:
             content_type = structure.content_type[0].decode()
