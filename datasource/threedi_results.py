@@ -141,11 +141,12 @@ class ThreediResult():
             control_type_data = getattr(ga, control_type.name)
             action_types = np.unique(control_type_data.action_type)
             for action_type in action_types:
-                assert action_type in ACTION_TYPE_ATTRIBUTE_MAP
+                source_types = [cta.source_type.value for cta in control_type_data.group_by_action_type(action_type)]
                 var = {
                     "name": action_type,
                     "unit": ACTION_TYPE_ATTRIBUTE_MAP[action_type]["unit"],
                     "parameters": action_type,
+                    "types": source_types
                 }
                 if var not in available_vars:
                     available_vars.append(var)
@@ -291,7 +292,7 @@ class ThreediResult():
 
         # Retrieve gridadmin structure
         affected_nc_variable = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["variable"]
-        if selected_object_type == "line":
+        if selected_object_type == "flowline":
             structure = self.gridadmin.lines.filter(id=node_id)
         elif selected_object_type == "pump":
             structure = self.gridadmin.pumps.filter(id=node_id)
@@ -302,7 +303,6 @@ class ThreediResult():
         applicable_structures = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["applicable_structures"]
         if applicable_structures:
             content_type = structure.content_type[0].decode()
-            logger.error(str(content_type))
             if content_type not in applicable_structures:
                 #  This action is not applicable to this object
                 logger.info(f"Parameter {nc_variable} not applicable for type {str(content_type)}")
