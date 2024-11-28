@@ -6,7 +6,7 @@ from osgeo import ogr
 from threedigrid.admin.utils import KCUDescriptor
 
 # local
-from .aggregation_classes import (
+from aggregation_classes import (
     AggregationVariableList,
     AggregationSign,
     AggregationMethod,
