@@ -1,8 +1,5 @@
 """Imported in __init__.py"""
 from itertools import tee
-from threedi_results_analysis.datasource.result_constants import (
-    ACTION_TYPE_ATTRIBUTE_MAP,
-)
 from threedi_results_analysis.datasource.result_constants import AGGREGATION_VARIABLES
 from threedi_results_analysis.datasource.result_constants import (
     CUMULATIVE_AGGREGATION_UNITS,
