@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 
-from .base import hybrid_time_aggregate
-from .aggregation_classes import Aggregation, AggregationSign
-from .constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
+from base import hybrid_time_aggregate
+from aggregation_classes import Aggregation, AggregationSign
+from constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
 
 
 def test_hybrid_time_aggregate_gradient():
