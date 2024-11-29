@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import numpy as np
-import pytest
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 
 from .base import hybrid_time_aggregate
