@@ -262,16 +262,17 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.model.clear()
             return False
 
-        # Allow each tool to read additional info from the dedicated xml node
-        for tool, _ in self.tools:
-            if not tool.read(tool_node):
+        if tool_node:
+            # Allow each tool to read additional info from the dedicated xml node
+            for tool, _ in self.tools:
+                if not tool.read(tool_node):
+                    self.model.clear()
+                    return False
+
+            # Also allow animator to read saved settings
+            if not self.map_animator.read(tool_node):
                 self.model.clear()
                 return False
-
-        # Also allow animator to read saved settings
-        if not self.map_animator.read(tool_node):
-            self.model.clear()
-            return False
 
         return True
 
