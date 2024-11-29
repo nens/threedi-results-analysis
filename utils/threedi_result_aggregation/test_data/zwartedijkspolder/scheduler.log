@@ -1,0 +1,41 @@
+2024-11-29:08:57 INFO  [scheduler.py:1611] Waiting for redis to become available
+2024-11-29:08:57 INFO  [scheduler.py:1613] Redis available, continuing startup sequence
+2024-11-29:08:57 INFO  [scheduler.py:1528] Scheduler ready & listening
+2024-11-29:08:57 INFO  [scheduler.py:1548] 0 exceptions since the scheduler was started 0:00:00.270070 ago
+2024-11-29:08:57 INFO  [scheduler.py:1363] Spinning up queue state processor...
+2024-11-29:08:57 INFO  [scheduler.py:982] Spinning up calccore state queue processor...
+2024-11-29:08:57 INFO  [scheduler.py:1409] Spinning up api control queue processor...
+2024-11-29:08:57 INFO  [states.py:23] Setting paused registry to False due to SchedulerAction SchedulerAction.starting 
+2024-11-29:08:57 INFO  [machine.py:80] Changed state from CoreSimulationState.DISCONNECTED to CoreSimulationState.WAITING_FOR_INIT
+2024-11-29:08:57 WARNING [main_stage.py:387] No mapping from calc core state CoreSimulationState.WAITING_FOR_INIT to API state 
+2024-11-29:08:57 WARNING [main_stage.py:387] No mapping from calc core state CoreSimulationState.WAITING_FOR_INIT to API state 
+2024-11-29:08:57 INFO  [scheduler.py:351] Threedicore release: 3.4.13-3.5.4
+2024-11-29:08:57 INFO  [simulation.py:79] Started process-event-queue-worker-0 for simulation 246540 
+2024-11-29:08:57 INFO  [scheduler.py:321] simulation.initial_state_collection InitialStateCollection(initial_states=[initial waterlevel : None m MSL, initial waterlevel : None m MSL], sim_uid='246540', uid='a0b781023cc7451a90b8eb803c948389') 
+2024-11-29:08:57 INFO  [proxy_models.py:139] Adding initial state collection: InitialStateCollection(initial_states=[initial waterlevel : None m MSL, initial waterlevel : None m MSL], sim_uid='246540', uid='3080bf259a114992841494894ed7838c')
+2024-11-29:08:57 INFO  [scheduler.py:338] Started simulation 246540 for duration_total 21600!!
+2024-11-29:08:57 INFO  [client.py:125] Initializing controls client for 246540 
+2024-11-29:08:57 INFO  [client.py:44] Spinning up message consumer for 246540 
+2024-11-29:08:57 INFO  [scheduler.py:1390] Queuing new action collection for sim 246540. window start : 0.0 window end: 3600.0
+2024-11-29:08:57 INFO  [machine.py:80] Changed state from CoreSimulationState.WAITING_FOR_INIT to CoreSimulationState.INITIALIZED
+2024-11-29:08:57 INFO  [main_stage.py:350] Last API simulation state was starting - updating to initialized
+2024-11-29:08:57 INFO  [scheduler.py:1390] Queuing new action collection for sim 246540. window start : 3600.0 window end: 7200.0
+2024-11-29:08:57 INFO  [scheduler.py:1390] Queuing new action collection for sim 246540. window start : 7200.0 window end: 10800.0
+2024-11-29:08:57 INFO  [scheduler.py:1390] Queuing new action collection for sim 246540. window start : 10800.0 window end: 14400.0
+2024-11-29:08:57 INFO  [scheduler.py:1390] Queuing new action collection for sim 246540. window start : 14400.0 window end: 3153600000.0
+2024-11-29:08:57 INFO  [machine.py:80] Changed state from CoreSimulationState.INITIALIZED to CoreSimulationState.INPUT_NEEDED
+2024-11-29:08:57 WARNING [main_stage.py:387] No mapping from calc core state CoreSimulationState.INPUT_NEEDED to API state 
+2024-11-29:08:57 INFO  [machine.py:80] Changed state from CoreSimulationState.INPUT_NEEDED to CoreSimulationState.RUNNING
+2024-11-29:08:57 INFO  [main_stage.py:333] API status already has been set to initialized False, aborting update request... 
+2024-11-29:08:57 INFO  [machine.py:80] Changed state from CoreSimulationState.RUNNING to CoreSimulationState.FINISHED
+2024-11-29:08:57 INFO  [scheduler.py:611] File aggregate_results_3di.nc doesn't exist on remote calc machine, skipping...
+2024-11-29:08:57 INFO  [scheduler.py:611] File structure_control_actions_3di.nc doesn't exist on remote calc machine, skipping...
+2024-11-29:08:57 INFO  [scheduler.py:611] File water_quality_results_3di.nc doesn't exist on remote calc machine, skipping...
+2024-11-29:08:57 INFO  [scheduler.py:611] File customized_results_3di.nc doesn't exist on remote calc machine, skipping...
+2024-11-29:08:57 INFO  [scheduler.py:611] File customized_water_quality_results_3di.nc doesn't exist on remote calc machine, skipping...
+2024-11-29:08:57 INFO  [main_stage.py:350] Last API simulation state was initialized - updating to postprocessing
+2024-11-29:08:57 INFO  [scheduler.py:635] Handling postprocessing for simulation 246540
+2024-11-29:08:57 INFO  [scheduler.py:700] Handling lizard postprocessing for simulation 246540
+2024-11-29:08:57 INFO  [scheduler.py:655] Requesting upload for result file log files simulation: 246540 for simulation 246540
+2024-11-29:08:57 INFO  [scheduler.py:655] Requesting upload for result file result file results_3di.nc simulation: 246540 for simulation 246540
+2024-11-29:08:57 INFO  [scheduler.py:1072] File upload state for 246540_log_files_sim_246540.zip is FileUploadState.started
