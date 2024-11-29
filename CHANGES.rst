@@ -6,7 +6,6 @@
 
 - Compatibility with Python 3.12 (#1061)
 - Bumped h5py to 3.10.0 and scipy to 1.13.0 for python 3.12 compatibility (#1061)
-
 - Fixed attributeError when loading a QGIS project (#1063)
 - Fix in Rasters to NetCDF algorithm to properly convert the units Enum to string (#1067)
 
