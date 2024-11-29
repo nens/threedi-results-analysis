@@ -19,14 +19,14 @@ from osgeo import ogr
 from osgeo import osr
 
 
-from constants import (
+from .constants import (
     AGGREGATION_VARIABLES,
     NON_TS_REDUCING_KCU,
     NP_OGR_DTYPES,
     EXCHANGE_LEVEL_1D2D,
     THRESHOLD_PRECISION,
 )
-from aggregation_classes import (
+from .aggregation_classes import (
     Aggregation,
     AggregationSign,
     AggregationMethod,
@@ -39,7 +39,7 @@ from aggregation_classes import (
     VT_NODE_HYBRID,
     VT_PUMP
 )
-from threedigrid_ogr import threedigrid_to_ogr
+from .threedigrid_ogr import threedigrid_to_ogr
 
 warnings.filterwarnings("ignore")
 ogr.UseExceptions()
@@ -353,8 +353,7 @@ def aggregate_prepared_timeseries(
         "time_above_threshold": greater,
     }
 
-    if start_time is None:
-        start_time = 0
+    start_time = start_time or 0
 
     if aggregation.method.short_name == "sum":
         raw_values_per_time_interval = np.multiply(timeseries.T, tintervals).T
