@@ -1,5 +1,7 @@
 from typing import Optional, List, Union, Tuple
 
+import numpy as np
+
 # Pre resample methods
 PRM_NONE = 0  # no processing before resampling (e.g. for water levels, velocities); divide by 1
 PRM_SPLIT = 1  # split the original value over the new pixels; divide by (res_old/res_new)*2
@@ -95,9 +97,30 @@ class AggregationVariable:
 
 
 class AggregationSign:
-    def __init__(self, short_name, long_name):
+    def __init__(self, short_name: str, long_name: str):
+        if short_name not in ["pos", "neg", "abs", "net", ""]:
+            raise ValueError('short_name must be one of "pos", "neg", "abs", "net", ""')
         self.short_name = short_name
         self.long_name = long_name
+
+    def apply(self, time_series: np.array) -> np.array:
+        """
+        Apply the sign to given ``time_series``
+
+        If sign is positive, all negative values will be set to 0
+        If sign is negative, all positive values will be set to 0
+        If sign is absolute, all values will be |value|
+        If sign is net, all values will be returned unchanged
+        """
+
+        if self.short_name == "pos":
+            return time_series * (time_series >= 0).astype(int)
+        elif self.short_name == "neg":
+            return time_series * (time_series < 0).astype(int)
+        elif self.short_name == "abs":
+            return np.absolute(time_series)
+        elif self.short_name == "net":
+            return time_series
 
 
 class AggregationMethod:
