@@ -1,1 +1,0 @@
- Status of simulation (0=ok, 1=crashed) | Time since start of simulation | Number of time steps| Number of outer Newton iterations | Number of inner Newton iterations | Node of max. deviation | Deviation | Minimum acceptable Deviation

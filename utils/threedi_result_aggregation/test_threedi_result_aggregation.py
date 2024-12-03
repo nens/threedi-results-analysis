@@ -9,6 +9,7 @@ from .constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS
 
 
 def test_hybrid_time_aggregate_gradient():
+    assert False
     data_dir = Path(__file__).parent / "test_data" / "zwartedijkspolder"
     gridadmin_path = data_dir / "gridadmin.h5"
     results_3di_path = data_dir / "results_3di.nc"

@@ -769,7 +769,7 @@ def gradients(
     gradients = (levels_end - levels_start).T / distances
 
     # apply sign
-    gradients_signed = aggregation_sign.apply(gradients)
+    gradients_signed = aggregation_sign.apply(gradients) if gradient_type == "water_level" else gradients
 
     return gradients_signed, time_intervals
 
