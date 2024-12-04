@@ -12,13 +12,18 @@
 """
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingException
+from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
+from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QCoreApplication
 from threedigrid.admin.gridresultadmin import GridH5StructureControl
 from threedigrid.admin.structure_controls.exporters import (
     structure_control_actions_to_csv,
 )
+
+import os
 
 
 class StructureControlActionAlgorithm(QgsProcessingAlgorithm):
@@ -29,6 +34,7 @@ class StructureControlActionAlgorithm(QgsProcessingAlgorithm):
     SCA_INPUT = "SCA_INPUT"
     OUTPUT_FILENAME = "OUTPUT_FILENAME"
     GRIDADMIN_INPUT = "GRIDADMIN_INPUT"
+    ADD_TO_PROJECT = "ADD_TO_PROJECT"
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)
@@ -60,10 +66,16 @@ class StructureControlActionAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFile(self.SCA_INPUT, self.tr("structure_control_actions_3di.nc file"), extension="nc")
         )
         self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
+            )
+        )
+        # output parameters
+        self.addParameter(
             QgsProcessingParameterFileDestination(
                 self.OUTPUT_FILENAME,
                 self.tr("Destination CSV file path"),
-                fileFilter="*.csv",
+                fileFilter="csv",
             )
         )
 
@@ -73,16 +85,32 @@ class StructureControlActionAlgorithm(QgsProcessingAlgorithm):
         """
         gridadmin_path = parameters[self.GRIDADMIN_INPUT]
         results_3di_path = parameters[self.SCA_INPUT]
-        csv_output_file = parameters[self.OUTPUT_FILENAME]
+        generated_output_file_path = self.parameterAsFileOutput(
+            parameters, self.OUTPUT_FILENAME, context
+        )
+        self.csv_output_file = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
 
-        if not csv_output_file:
+        self.add_to_project = self.parameterAsBoolean(
+            parameters, self.ADD_TO_PROJECT, context
+        )
+
+        if not self.csv_output_file:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT_FILENAME))
 
         # https://threedigrid.readthedocs.io/en/latest/structure_control.html
         gst = GridH5StructureControl(gridadmin_path, results_3di_path)
         try:
-            structure_control_actions_to_csv(gst, csv_output_file)
+            structure_control_actions_to_csv(gst, self.csv_output_file)
         except Exception as e:
             return {"result": False, "error": str(e)}
 
         return {"result": True}
+
+    def postProcessAlgorithm(self, context, feedback):
+        if self.add_to_project:
+            if self.csv_output_file:
+                result_layer = QgsVectorLayer(
+                    self.csv_output_file, "Structure control actions"
+                )
+                QgsProject.instance().addMapLayer(result_layer)
+        return {self.OUTPUT_FILENAME: self.csv_output_file}
