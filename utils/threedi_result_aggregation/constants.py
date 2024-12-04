@@ -58,7 +58,7 @@ AGGREGATION_METHODS = AggregationVariableList()
 agg_method_list = [
     {"short_name": "sum", "long_name": "Sum", "integrates_over_time": True},
     {"short_name": "max", "long_name": "Max"},
-    {"short_name": "max_time", "long_name": "Time to max"},
+    {"short_name": "max_time", "long_name": "Time to max", "is_duration": True},
     {"short_name": "min", "long_name": "Min"},
     {"short_name": "mean", "long_name": "Mean"},
     {"short_name": "median", "long_name": "Median"},

@@ -66,7 +66,8 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 name=self.INPUT_UNITS,
                 description="Units",
-                options=["mm", "m/s", "mm/h"]
+                options=["mm", "m/s", "mm/h"],
+                usesStaticStrings=True
             )
         )
 
