@@ -143,7 +143,7 @@ class ThreediResult():
             for action_type in action_types:
                 source_types = [cta.source_type.value for cta in control_type_data.group_by_action_type(action_type)]
                 var = {
-                    "name": action_type,
+                    "name": action_type[4:].replace("_", " ").capitalize(),  # sanitize
                     "unit": ACTION_TYPE_ATTRIBUTE_MAP[action_type]["unit"],
                     "parameters": action_type,
                     "types": source_types
@@ -291,7 +291,6 @@ class ThreediResult():
                 values += list(structure_control.action_value_1)
 
         # Retrieve gridadmin structure
-        affected_nc_variable = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["variable"]
         if selected_object_type == "flowline":
             structure = self.gridadmin.lines.filter(id=node_id)
         elif selected_object_type == "pump":
@@ -308,6 +307,7 @@ class ThreediResult():
                 logger.info(f"Parameter {nc_variable} not applicable for type {str(content_type)}")
                 return np.column_stack(([], []))
 
+        affected_nc_variable = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["variable"]
         if affected_nc_variable:
             # Check if we need to prepend and append the plot with non-controlled (static) values
             orig_timestamps = self.get_timestamps()
