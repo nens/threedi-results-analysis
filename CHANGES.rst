@@ -4,6 +4,7 @@
 3.12 (unreleased)
 -----------------
 
+- Added Processing Algorithm "Extract structure control actions" (#926)
 - Fixed attributeError when loading a QGIS project (#1063)
 - Fix in Rasters to NetCDF algorithm to properly convert the units Enum to string (#1067)
 
