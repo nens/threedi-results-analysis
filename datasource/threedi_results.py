@@ -277,6 +277,8 @@ class ThreediResult():
         assert node_id
         timestamps = []
         values = []
+
+        prev_value = None
         for control_type in StructureControlTypes.__members__.values():
             control_type_data = getattr(ga, control_type.name)
             structure_controls_for_id = control_type_data.group_by_grid_id(node_id)
@@ -287,8 +289,14 @@ class ThreediResult():
             structure_controls = [sc for sc in structure_controls_for_id if sc.source_type == desired_type]
 
             for structure_control in structure_controls:
-                timestamps += list(structure_control.time)
-                values += list(structure_control.action_value_1)
+                assert len(structure_control.time) == len(structure_control.action_value_1)
+                for time_key, value in zip(structure_control.time, structure_control.action_value_1):
+                    if prev_value is not None:
+                        timestamps.append(time_key)
+                        values.append(prev_value)
+                    prev_value = value
+                    timestamps.append(time_key)
+                    values.append(value)
 
         # Retrieve gridadmin structure
         if selected_object_type == "flowline":
@@ -307,33 +315,43 @@ class ThreediResult():
                 logger.info(f"Parameter {nc_variable} not applicable for type {str(content_type)}")
                 return np.column_stack(([], []))
 
+        orig_timestamps = self.get_timestamps()
+        max_time_stamp_orig = max(orig_timestamps)
+        min_time_stamp_orig = min(orig_timestamps)
+        if timestamps:
+            assert values
+            max_time_stamp_structure = max(timestamps)
+            # Possibly append the structure control actions till the end
+            if values and max_time_stamp_orig > max_time_stamp_structure:
+                values.append(values[-1])
+                timestamps.append(max_time_stamp_structure)
+                values.append(values[-1])
+                timestamps.append(max_time_stamp_orig)
+
         affected_nc_variable = ACTION_TYPE_ATTRIBUTE_MAP[nc_variable]["variable"]
         if affected_nc_variable:
-            # Check if we need to prepend and append the plot with non-controlled (static) values
-            orig_timestamps = self.get_timestamps()
+            # Check if we need to prepend the plot with non-controlled (static) values
             orig_value = getattr(structure, affected_nc_variable)[0]
             if not timestamps:
                 # No actions at all, take original value to plot
                 assert not values
-                values = [orig_value] * len(orig_timestamps)
-                timestamps = orig_timestamps
+                values = [orig_value, orig_value]
+                timestamps = [min_time_stamp_orig, max_time_stamp_orig]
             else:
-                # find all timestamps before and after structure control timestamps
                 min_time_stamp_structure = min(timestamps)
-                max_time_stamp_structure = max(timestamps)
-                for timestamp in orig_timestamps:
-                    if timestamp < min_time_stamp_structure:
-                        values.insert(0, orig_value)
-                        timestamps.insert(0, timestamps)
-                    if timestamp > max_time_stamp_structure:
-                        values.append(orig_value)
-                        timestamps.append(timestamp)
+                if min_time_stamp_orig < min_time_stamp_structure:
+                    values.insert(0, orig_value)
+                    timestamps.insert(0, min_time_stamp_structure)
+                    values.insert(0, orig_value)
+                    timestamps.insert(0, min_time_stamp_orig)
 
         if not values:
             return np.column_stack(([], []))
 
         if fill_value is not None:
-            values[values == NO_DATA_VALUE] = fill_value
+            for index in range(len(values)):
+                if values[index] == NO_DATA_VALUE:
+                    values[index] = fill_value
 
         return np.column_stack((timestamps, values))
 
