@@ -145,7 +145,8 @@ class LocationTimeseriesModel(BaseModel):
 
             if (parameters not in threedi_result.available_subgrid_map_vars and
                     parameters not in threedi_result.available_aggregation_vars and
-                    parameters not in [v["parameters"] for v in threedi_result.available_water_quality_vars]):
+                    parameters not in [v["parameters"] for v in threedi_result.available_water_quality_vars] and
+                    parameters not in [v["parameters"] for v in threedi_result.available_structure_control_actions_vars]):
                 logger.warning(f"Parameter {parameters} not available in result {self.result.value.text()}")
                 return EMPTY_TIMESERIES
 
@@ -166,7 +167,7 @@ class LocationTimeseriesModel(BaseModel):
                 return EMPTY_TIMESERIES
 
             timeseries = threedi_result.get_timeseries(
-                parameters, node_id=self.object_id.value, fill_value=np.NaN
+                parameters, node_id=self.object_id.value, fill_value=np.NaN, selected_object_type=self.object_type.value
             )
             if timeseries.shape[1] == 1:
                 logger.info("1-element timeserie, plotting empty serie")
