@@ -688,7 +688,7 @@ class MapAnimator(QGroupBox):
             available_wq_vars = threedi_result.available_water_quality_vars[:]  # a copy
 
             parameter_config = generate_parameter_config(
-                available_subgrid_vars, agg_vars=agg_vars, wq_vars=available_wq_vars
+                available_subgrid_vars, agg_vars=agg_vars, wq_vars=available_wq_vars, sca_vars=None
             )
 
             def _intersection(a: List, b: List):

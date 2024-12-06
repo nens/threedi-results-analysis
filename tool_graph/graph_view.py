@@ -1,45 +1,47 @@
-from qgis.core import QgsFeatureRequest
 from qgis.core import Qgis
-from qgis.core import QgsWkbTypes
-from qgis.core import QgsValueMapFieldFormatter
 from qgis.core import QgsFeature
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsProject
+from qgis.core import QgsValueMapFieldFormatter
+from qgis.core import QgsVectorLayer
+from qgis.core import QgsWkbTypes
 from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
-from qgis.core import QgsProject
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtWidgets import QAbstractItemView
+from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QActionGroup
 from qgis.PyQt.QtWidgets import QCheckBox
+from qgis.PyQt.QtWidgets import QColorDialog
 from qgis.PyQt.QtWidgets import QComboBox
-from qgis.PyQt.QtWidgets import QSplitter
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QMenu
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.PyQt.QtWidgets import QActionGroup, QToolButton
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
+from qgis.PyQt.QtWidgets import QSplitter
 from qgis.PyQt.QtWidgets import QTableView
-from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTabWidget
-from qgis.PyQt.QtWidgets import QMenu
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QToolButton
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from qgis.PyQt.QtWidgets import QColorDialog
-from qgis.PyQt.QtGui import QColor
+from threedi_results_analysis.datasource.threedi_results import normalized_object_type
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.tool_graph.graph_model import LocationTimeseriesModel
+from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.utils.utils import generate_parameter_config
 from threedi_results_analysis.utils.widgets import PenStyleWidget
-from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
-from qgis.core import QgsVectorLayer
-from threedi_results_analysis.datasource.threedi_results import normalized_object_type
-from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel, ThreeDiResultItem, ThreeDiGridItem
-
 from typing import List
 
 import logging
@@ -843,11 +845,12 @@ class GraphDockWidget(QDockWidget):
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             available_agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
             available_wq_vars = threedi_result.available_water_quality_vars[:]  # a copy
+            available_sca_vars = threedi_result.available_structure_control_actions_vars[:]  # a copy
             if not available_agg_vars:
                 messagebar_message("Warning", "No aggregation netCDF was found.", level=1, duration=5)
 
             parameter_config = generate_parameter_config(
-                available_subgrid_vars, agg_vars=available_agg_vars, wq_vars=available_wq_vars
+                available_subgrid_vars, agg_vars=available_agg_vars, wq_vars=available_wq_vars, sca_vars=available_sca_vars
             )
 
             def _union(a: List, b: List):

@@ -273,23 +273,7 @@ def prepare_timeseries(
     if aggregation.variable.short_name == "ts_max":
         raw_values[:, np.in1d(kcu_types, np.array(NON_TS_REDUCING_KCU))] = 9999
 
-    if aggregation.sign:
-        if aggregation.sign.short_name == "pos":
-            raw_values_signed = raw_values * (raw_values >= 0).astype(int)
-        elif aggregation.sign.short_name == "neg":
-            raw_values_signed = raw_values * (raw_values < 0).astype(int)
-        elif aggregation.sign.short_name == "abs":
-            raw_values_signed = np.absolute(raw_values)
-        elif aggregation.sign.short_name == "net":
-            raw_values_signed = raw_values
-        elif aggregation.sign.short_name == "":
-            raw_values_signed = raw_values
-        else:
-            raise ValueError(
-                f"Aggregation has invalid sign type '{aggregation.sign}'"
-            )
-    else:
-        raw_values_signed = raw_values
+    raw_values_signed = aggregation.sign.apply(raw_values) if aggregation.sign else raw_values
 
     return raw_values_signed, tintervals
 
@@ -368,6 +352,8 @@ def aggregate_prepared_timeseries(
         "time_on_threshold": equal,  # method is applied to the abs difference (value - threshold)
         "time_above_threshold": greater,
     }
+
+    start_time = start_time or 0
 
     if aggregation.method.short_name == "sum":
         raw_values_per_time_interval = np.multiply(timeseries.T, tintervals).T
@@ -493,7 +479,7 @@ def hybrid_time_aggregate(
     aggregation: Aggregation,
     cfl_strictness: float = 1,  # to make signature interchangeable with time_aggregate
     gr: Union[GridH5Admin, GridH5ResultAdmin] = None,
-):
+) -> np.array:
     """
     Aggregations for which both the node/flowline and the flowlines/nodes it is connected to are required
     """
@@ -533,6 +519,8 @@ def hybrid_time_aggregate(
             surface_area = gr.nodes.filter(id__in=threedigrid_object.id).sumax
             result = result / surface_area
     elif aggregation.variable.short_name == "grad":
+        if not isinstance(threedigrid_object, Lines):
+            raise TypeError("threedigrid_object must be of type Lines if aggragation.variable.short_name is 'grad'")
         gradients_per_timestep, tintervals = gradients(
             gr=gr,
             flowline_ids=threedigrid_object.id,
@@ -764,7 +752,7 @@ def gradients(
             gr=gr,
             flowline_ids=flowline_ids,
             node_variable="s1",
-            aggregation_sign=aggregation_sign,
+            aggregation_sign=AggregationSign(short_name="net", long_name="Net"),  # apply sign to gradient, not to s1
             start_time=start_time,
             end_time=end_time
         )
@@ -779,7 +767,11 @@ def gradients(
     levels_end = levels.T[end_node_indices]
     distances = get_lengths(lines)
     gradients = (levels_end - levels_start).T / distances
-    return gradients, time_intervals
+
+    # apply sign
+    gradients_signed = aggregation_sign.apply(gradients) if gradient_type == "water_level" else gradients
+
+    return gradients_signed, time_intervals
 
 
 def water_levels_at_cross_section(

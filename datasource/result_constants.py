@@ -135,3 +135,14 @@ layer_information = [
 
 # TODO: QH is also defined above.
 LAYER_OBJECT_TYPE_MAPPING = dict([(a[0], a[1]) for a in layer_information])
+
+"""
+    Maps action type to affected structure.
+    This can be used when no control action is present for an object.
+"""
+ACTION_TYPE_ATTRIBUTE_MAP = {
+    "set_crest_level": {"variable": "dpumax", "unit": "m MSL", "applicable_structures": ["v2_weir", "v2_orifice"]},
+    "set_pump_capacity": {"variable": "capacity", "unit": "", "applicable_structures": None},
+    "set_discharge_coefficients": {"variable": "discharge_coefficient_positive", "unit": "", "applicable_structures": None},
+    "set_gate_level": {"variable": None, "unit": "m MSL", "applicable_structures": None}
+}
