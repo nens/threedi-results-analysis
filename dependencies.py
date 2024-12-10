@@ -85,14 +85,24 @@ QGIS_VERSION = Qgis.QGIS_VERSION_INT
 if QGIS_VERSION < 32806 and platform.system() == "Windows":
     SUPPORTED_HDF5_VERSIONS = ["1.10.7"]
     H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0", False)
+elif QGIS_VERSION >= 34000 and platform.system() == "Windows":
+    SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
+    H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.10.0", False)
 else:
     SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
     H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.8.0", True)
 
-WINDOWS_PLATFORM_DEPENDENCIES = [Dependency("scipy", "scipy", "==1.6.2", False)]
-if QGIS_VERSION >= 32811 and platform.system() == "Windows":
+if QGIS_VERSION < 32811 and platform.system() == "Windows":
     WINDOWS_PLATFORM_DEPENDENCIES = [
-        Dependency("scipy", "scipy", "==1.10.1", True),
+        Dependency("scipy", "scipy", "==1.6.2", True),
+    ]
+elif QGIS_VERSION >= 34000 and platform.system() == "Windows":
+    WINDOWS_PLATFORM_DEPENDENCIES = [
+        Dependency("scipy", "scipy", "==1.13.0", True),
+    ]
+else:
+    WINDOWS_PLATFORM_DEPENDENCIES = [
+        Dependency("scipy", "scipy", "==1.10.1", False),
     ]
 
 # If you add a dependency, also adjust external-dependencies/populate.sh
@@ -524,7 +534,7 @@ def _install_dependencies(dependencies, target_dir):
             # sticking around.
 
         if bar:
-            bar.setValue((count / len(dependencies)) * 100)
+            bar.setValue(int((count / len(dependencies)) * 100))
             bar.update()
             QApplication.processEvents()
 
