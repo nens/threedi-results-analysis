@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.12 (unreleased)
+3.12 (2024-12-10)
 -----------------
 
 - Compatibility with Python 3.12 (#1061)
