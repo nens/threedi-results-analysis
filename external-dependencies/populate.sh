@@ -53,6 +53,13 @@ tar -cf h5py-3.10.0.tar -C ./apps/Python312/Lib/site-packages/ .
 cp h5py-3.10.0.tar ..
 
 # as well as scipy
+# Download scipy 1.6.2 for QGis versions before 3.40
+wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-scipy/python3-scipy-1.10.1-1.tar.bz2
+tar -xvf python3-scipy-1.10.1-1.tar.bz2
+tar -cf scipy-1.10.1.tar -C ./apps/Python39/Lib/site-packages/ .
+cp scipy-1.10.1.tar ..
+
+# Download scipy 1.13.0 for QGis versions after 3.40
 wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-scipy/python3-scipy-1.13.0-1.tar.bz2
 tar -xvf python3-scipy-1.13.0-1.tar.bz2
 tar -cf scipy-1.13.0.tar -C ./apps/Python312/Lib/site-packages/ .
