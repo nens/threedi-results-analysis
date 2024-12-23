@@ -15,7 +15,7 @@ from threedi_results_analysis.processing.rasters_to_netcdf_algorithm import (
     RastersToNetCDFAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
-    CheckSchematisationAlgorithm,
+    # CheckSchematisationAlgorithm,
     MigrateAlgorithm,
     # ImportSufHydAlgorithm,
     # GuessIndicatorAlgorithm,
@@ -47,7 +47,7 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(ThreediDepthAlgorithm())
         self.addAlgorithm(ThreediMaxDepthAlgorithm())
         # self.addAlgorithm(DWFCalculatorAlgorithm())
-        self.addAlgorithm(CheckSchematisationAlgorithm())
+        # self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
         # self.addAlgorithm(ImportHydXAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
