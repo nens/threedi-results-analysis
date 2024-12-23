@@ -3,7 +3,6 @@ from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
 # from threedi_results_analysis.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
 from threedi_results_analysis.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
-from threedi_results_analysis.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
 from threedi_results_analysis.processing.cross_sectional_discharge_algorithm import CrossSectionalDischargeAlgorithm
 from threedi_results_analysis.processing.leak_detector_algorithms import (
     DetectLeakingObstaclesAlgorithm,
@@ -41,7 +40,6 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(MigrateAlgorithm())
         # self.addAlgorithm(ImportHydXAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
-        self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
         # self.addAlgorithm(ImportSufHydAlgorithm())
         # self.addAlgorithm(GuessIndicatorAlgorithm())
         self.addAlgorithm(CrossSectionalDischargeAlgorithm())
