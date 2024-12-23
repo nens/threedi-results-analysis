@@ -26,3 +26,4 @@ tests/data/small_2019_01_2entries_4tiff.sqlite
 .pytest_cache/v/cache/nodeids
 .h5py_marker
 constraints.txt
+requirements.in

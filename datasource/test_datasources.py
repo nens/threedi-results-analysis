@@ -1,9 +1,9 @@
-from threedigrid.admin import gridresultadmin
-from threedigrid.admin.constants import NO_DATA_VALUE
 from threedi_results_analysis.datasource.threedi_results import find_aggregation_netcdf
 from threedi_results_analysis.datasource.threedi_results import normalized_object_type
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
 from threedi_results_analysis.tests.utilities import TemporaryDirectory
+from threedigrid.admin import gridresultadmin
+from threedigrid.admin.constants import NO_DATA_VALUE
 
 import mock
 import numpy as np
@@ -106,16 +106,6 @@ def test_get_timeseries_filter_node(threedi_result):
     ) as data:
         data.return_value = np.ones((len(threedi_result.timestamps), 1))
         time_series = threedi_result.get_timeseries("s1", node_id=5)
-        np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
-        np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
-
-
-def test_get_timeseries_filter_content_pk(threedi_result):
-    with mock.patch(
-        "threedigrid.orm.base.models.Model.get_filtered_field_value"
-    ) as data:
-        data.return_value = np.ones((len(threedi_result.timestamps), 1))
-        time_series = threedi_result.get_timeseries("s1", content_pk=5)
         np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
         np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
 

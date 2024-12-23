@@ -1,10 +1,42 @@
 3Di Results Analysis changelog
 ========================
 
-3.9.4 (unreleased)
-------------------
+3.13 (unreleased)
+-----------------
 
 - Nothing changed yet.
+
+
+3.12 (2024-12-10)
+-----------------
+
+- Compatibility with Python 3.12 (#1061)
+- Bumped h5py to 3.10.0 and scipy to 1.13.0 for python 3.12 compatibility (#1061)
+- Added Processing Algorithm "Extract structure control actions" (#926)
+- Fixed attributeError when loading a QGIS project (#1063)
+- Fix in Rasters to NetCDF algorithm to properly convert the units Enum to string (#1067)
+
+3.11 (2024-11-12)
+-----------------
+
+- Allow LinestringZ input by using WKB instead of WKT as conversion format (#1040)
+- Make "Use selected features" behaviour explicit (#1057)
+- Added animation settings (#1046)
+- Bump hydxlib to 1.5.3
+
+
+3.10.0 (2024-09-12)
+-------------------
+
+- Add pump support to Result Aggregation tool
+- Add preset "Total pumped volume" to Result Aggregation tool
+- Add preset "Pumps: % of time at max capacity" to Result Aggregation tool
+- Cross-sectional discharge algorithm: allow cross-section lines to have different crs than 3Di results, automatically reproject
+- Watershed tool: 2D flowlines intersecting obstacles are no longer shown as 1D flowlines (#1034)
+- Model selection dialog: fixed order bug when sorting.
+- Bump threedi-mi-utils to 0.1.4
+- Fixed attribute error when selecting substance in a model that contains pumps (#1044)
+- Added Flow Summary Tool (#725)
 
 
 3.9.3 (2024-08-14)

@@ -4,7 +4,7 @@
 set -e
 #set -u
 
-BRANCH=${GITHUB_HEAD_REF:-refactor}
+BRANCH=${GITHUB_HEAD_REF:-master}
 
 ARTIFACT=threedi_results_analysis-${BRANCH}.zip
 PROJECT=threeditoolbox-dev

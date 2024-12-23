@@ -1,18 +1,21 @@
 """Imported in __init__.py"""
 from itertools import tee
-from uuid import uuid4
-from typing import List, Sequence
-
-import numpy as np
 from threedi_results_analysis.datasource.result_constants import AGGREGATION_VARIABLES
-from threedi_results_analysis.datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS
+from threedi_results_analysis.datasource.result_constants import (
+    CUMULATIVE_AGGREGATION_UNITS,
+)
 from threedi_results_analysis.datasource.result_constants import H_TYPES
 from threedi_results_analysis.datasource.result_constants import Q_TYPES
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
+from typing import List
+from typing import Sequence
+from uuid import uuid4
 
 import logging
+import numpy as np
 import os
 import shutil
+
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +91,7 @@ def parse_aggvarname(aggvarname):
     # Aggregation methods unfortunately can contain underscores; for now only
     # these two cases are known.
     # TODO: improve this, e.g., make more generic, because extra cases will
-    # need to be added later
+    #  need to be added later
     if aggvarname.endswith("cum_positive") or aggvarname.endswith("cum_negative"):
         varname, agg_method, sign = aggvarname.rsplit("_", 2)
         return varname, "_".join([agg_method, sign])
@@ -103,11 +106,12 @@ def is_substance_variable(variable: str) -> bool:
     return variable.startswith("substance")
 
 
-def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars):
+def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars, sca_vars=None):
     """Dynamically create the parameter config
 
     :param subgrid_map_vars: available vars from subgrid_map.nc
     :param agg_vars: available vars from aggregation netCDF
+    :param sca_vars: available vars from structure control actions netCDF (optional)
     :returns: dict with two lists of parameters for lines ('q') and nodes ('h'). Structure:
     {'q': [{"name": str, "unit": str, "parameters": (str, [str]) }], 'h': [<same structure as q>]}.
     """
@@ -152,6 +156,15 @@ def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars):
         }
         # always node variables
         config["h"].append(d)
+
+    if sca_vars:
+        for scavar in sca_vars:
+            if "lines" in scavar["types"]:
+                config["q"].append(scavar)
+            if "pumps" in scavar["types"]:
+                config["q"].append(scavar)
+            if "nodes" in scavar["types"]:
+                raise NotImplementedError("Structure control action plotting not yet implemented for nodes.")
 
     for aggvarname in agg_vars:
         _varname, _agg_method = parse_aggvarname(aggvarname)

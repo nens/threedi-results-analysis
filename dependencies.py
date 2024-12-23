@@ -75,7 +75,7 @@ DEPENDENCIES = [
     Dependency("threedigrid-builder", "threedigrid_builder", "==1.17.*", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
-    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.2", False),
+    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.4", False),
 ]
 
 # On Windows, the hdf5 binary and thus h5py version depends on the QGis version
@@ -84,14 +84,24 @@ QGIS_VERSION = Qgis.QGIS_VERSION_INT
 if QGIS_VERSION < 32806 and platform.system() == "Windows":
     SUPPORTED_HDF5_VERSIONS = ["1.10.7"]
     H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0", False)
+elif QGIS_VERSION >= 34000 and platform.system() == "Windows":
+    SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
+    H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.10.0", False)
 else:
     SUPPORTED_HDF5_VERSIONS = ["1.14.0"]
     H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==3.8.0", True)
 
-WINDOWS_PLATFORM_DEPENDENCIES = [Dependency("scipy", "scipy", "==1.6.2", False)]
-if QGIS_VERSION >= 32811 and platform.system() == "Windows":
+if QGIS_VERSION < 32811 and platform.system() == "Windows":
     WINDOWS_PLATFORM_DEPENDENCIES = [
-        Dependency("scipy", "scipy", "==1.10.1", True),
+        Dependency("scipy", "scipy", "==1.6.2", True),
+    ]
+elif QGIS_VERSION >= 34000 and platform.system() == "Windows":
+    WINDOWS_PLATFORM_DEPENDENCIES = [
+        Dependency("scipy", "scipy", "==1.13.0", True),
+    ]
+else:
+    WINDOWS_PLATFORM_DEPENDENCIES = [
+        Dependency("scipy", "scipy", "==1.10.1", False),
     ]
 
 # If you add a dependency, also adjust external-dependencies/populate.sh
@@ -104,7 +114,7 @@ logger = logging.getLogger(__name__)
 
 def create_progress_dialog(progress, text):
     dialog = QProgressDialog()
-    dialog.setWindowTitle("3Di Toolbox install progress")
+    dialog.setWindowTitle("3Di Results Analysis install progress")
     dialog.setLabelText(text)
     dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
     bar = QProgressBar(dialog)
@@ -523,7 +533,7 @@ def _install_dependencies(dependencies, target_dir):
             # sticking around.
 
         if bar:
-            bar.setValue((count / len(dependencies)) * 100)
+            bar.setValue(int((count / len(dependencies)) * 100))
             bar.update()
             QApplication.processEvents()
 

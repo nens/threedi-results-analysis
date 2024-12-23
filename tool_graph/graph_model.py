@@ -1,15 +1,17 @@
 from collections import OrderedDict
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
 from random import randint
 from threedi_results_analysis.models.base import BaseModel
-from threedi_results_analysis.models.base_fields import CheckboxField, CHECKBOX_FIELD
+from threedi_results_analysis.models.base_fields import CHECKBOX_FIELD
+from threedi_results_analysis.models.base_fields import CheckboxField
 from threedi_results_analysis.models.base_fields import ValueField
+from threedi_results_analysis.utils.color import COLOR_LIST
 
 import logging
 import numpy as np
 import pyqtgraph as pg
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QColor
-from threedi_results_analysis.utils.color import COLOR_LIST
+
 
 logger = logging.getLogger(__name__)
 
@@ -143,13 +145,20 @@ class LocationTimeseriesModel(BaseModel):
 
             if (parameters not in threedi_result.available_subgrid_map_vars and
                     parameters not in threedi_result.available_aggregation_vars and
-                    parameters not in [v["parameters"] for v in threedi_result.available_water_quality_vars]):
+                    parameters not in [v["parameters"] for v in threedi_result.available_water_quality_vars] and
+                    parameters not in [v["parameters"] for v in threedi_result.available_structure_control_actions_vars]):
                 logger.warning(f"Parameter {parameters} not available in result {self.result.value.text()}")
                 return EMPTY_TIMESERIES
 
             ga = threedi_result.get_gridadmin(parameters)
             if ga.has_pumpstations:
-                pump_fields = set(list(ga.pumps.Meta.composite_fields.keys()))
+                # In some gridadmin types pumps do not have a Meta attribute... In
+                # such cases (e.g. water quality) the attribute does not have a meaning and
+                # the timeserie should be empty.
+                try:
+                    pump_fields = set(list(ga.pumps.Meta.composite_fields.keys()))
+                except AttributeError:
+                    pump_fields = {}
             else:
                 pump_fields = {}
             if self.object_type.value == "pump_linestring" and parameters not in pump_fields:
@@ -158,7 +167,7 @@ class LocationTimeseriesModel(BaseModel):
                 return EMPTY_TIMESERIES
 
             timeseries = threedi_result.get_timeseries(
-                parameters, node_id=self.object_id.value, fill_value=np.NaN
+                parameters, node_id=self.object_id.value, fill_value=np.NaN, selected_object_type=self.object_type.value
             )
             if timeseries.shape[1] == 1:
                 logger.info("1-element timeserie, plotting empty serie")
