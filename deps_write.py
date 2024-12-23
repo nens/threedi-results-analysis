@@ -23,11 +23,6 @@ resticted. No qgis message boxes and so!
 """
 from collections import namedtuple
 from pathlib import Path
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QProgressBar
-from PyQt5.QtWidgets import QProgressDialog
-from qgis.core import Qgis
 
 import importlib
 import logging
@@ -71,13 +66,15 @@ DEPENDENCIES = [
     Dependency("networkx", "networkx", "", False),
     Dependency("condenser", "condenser", ">=0.2.1", False),
     Dependency("Shapely", "shapely", ">=2.0.0", False),
+    Dependency("threedigrid-builder", "threedigrid_builder", "==1.17.*", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
+    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.4", False),
 ]
 
 # On Windows, the hdf5 binary and thus h5py version depends on the QGis version
 # QGis upgraded from hdf5 == 1.10.7 to hdf5 == 1.14.0 in QGis 3.28.6
-QGIS_VERSION = Qgis.QGIS_VERSION_INT
+QGIS_VERSION = 34000
 if QGIS_VERSION < 32806 and platform.system() == "Windows":
     SUPPORTED_HDF5_VERSIONS = ["1.10.7"]
     H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0", False)
@@ -109,22 +106,6 @@ OUR_DIR = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
-def create_progress_dialog(progress, text):
-    dialog = QProgressDialog()
-    dialog.setWindowTitle("3Di Results Analysis install progress")
-    dialog.setLabelText(text)
-    dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    bar = QProgressBar(dialog)
-    bar.setTextVisible(True)
-    bar.setValue(progress)
-    bar.setValue(0)
-    bar.setMaximum(100)
-    dialog.setBar(bar)
-    dialog.setMinimumWidth(500)
-    dialog.update()
-    dialog.setCancelButton(None)
-    dialog.show()
-    return dialog, bar
 
 
 def ensure_everything_installed():
@@ -174,16 +155,7 @@ def ensure_everything_installed():
 
         if restart_required or not restart_marker.exists():
             if _is_windows():
-                # We always want to restart when deps are missing
-                from threedi_results_analysis.utils.user_messages import pop_up_info
-
-                pop_up_info(
-                    "Please restart QGIS to complete the installation process of "
-                    "3Di Results Analysis.",
-                    title="Restart required",
-                )
-                restart_marker.touch()
-
+                pass
         # Always update the import mechanism
         _refresh_python_import_mechanism()
 
@@ -474,11 +446,7 @@ def _install_dependencies(dependencies, target_dir):
     bar = None
     startupinfo = None
     if _is_windows():
-        dialog, bar = create_progress_dialog(0, f"Installing {dependencies[0].name}")
-        QApplication.processEvents()
-        startupinfo = subprocess.STARTUPINFO()
-        # Prevents terminal screens from popping up
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        pass
 
     for count, dependency in enumerate(dependencies):
         _uninstall_dependency(dependency)
@@ -516,7 +484,7 @@ def _install_dependencies(dependencies, target_dir):
             if exit_code:
                 if dialog:
                     dialog.close()
-                    QApplication.processEvents()
+
                 raise RuntimeError(
                     f"Installing {dependency.name} failed ({exit_code}) ({result})"
                 )
@@ -532,7 +500,6 @@ def _install_dependencies(dependencies, target_dir):
         if bar:
             bar.setValue(int((count / len(dependencies)) * 100))
             bar.update()
-            QApplication.processEvents()
 
     if dialog:
         dialog.close()

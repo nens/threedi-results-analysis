@@ -8,7 +8,6 @@ from qgis.core import (
     QgsProcessingParameterFileDestination,
     QgsVectorLayer,
 )
-from threedigrid_builder import make_gridadmin, SchematisationError
 from threedi_results_analysis.processing.processing_utils import gridadmin2geopackage, load_computational_layers
 import logging
 import io
@@ -108,7 +107,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             feedback.pushInfo(info)
 
         # Capture threedigridbuilder logging
-        logger = logging.getLogger("threedigrid_builder.grid.connection_nodes")
+        # logger = logging.getLogger("threedigrid_builder.grid.connection_nodes")
         assert logger.hasHandlers()  # Check whether we have the right one
         log_capture_string = io.StringIO()
         ch = logging.StreamHandler(log_capture_string)

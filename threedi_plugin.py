@@ -32,7 +32,6 @@ from threedi_results_analysis.tool_flow_summary.flow_summary import FlowSummaryT
 from threedi_results_analysis.tool_graph.graph import ThreeDiGraph
 from threedi_results_analysis.tool_sideview.sideview import ThreeDiSideView
 from threedi_results_analysis.tool_statistics.statistics import StatisticsTool
-from threedi_results_analysis.tool_water_balance import WaterBalanceTool
 from threedi_results_analysis.tool_watershed.watershed_analysis import (
     ThreeDiWatershedAnalyst,
 )
@@ -95,7 +94,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self.model)
         self.stats_tool = StatisticsTool(iface, self.model)
-        self.water_balance_tool = WaterBalanceTool(iface, self.model)
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.model)
         self.logfile_tool = ShowLogfile(iface)
         self.temporal_manager = TemporalManager(self.model)
@@ -108,7 +106,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.graph_tool, False),
             (self.sideview_tool, False),
             (self.stats_tool, False),
-            (self.water_balance_tool, False),
             (self.watershed_tool, False),
             (self.logfile_tool, True)
         ]
@@ -202,12 +199,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_removed.connect(self.stats_tool.result_removed)
         self.model.result_changed.connect(self.stats_tool.result_changed)
         self.model.grid_changed.connect(self.stats_tool.grid_changed)
-
-        # water balance signals
-        self.model.result_added.connect(self.water_balance_tool.result_added)
-        self.model.result_removed.connect(self.water_balance_tool.result_removed)
-        self.model.result_changed.connect(self.water_balance_tool.result_changed)
-        self.model.grid_changed.connect(self.water_balance_tool.grid_changed)
 
         for tool, _ in self.tools:
             self.dockwidget.add_custom_actions(tool.get_custom_actions())
