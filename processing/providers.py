@@ -15,16 +15,6 @@ from threedi_results_analysis.processing.rasters_to_netcdf_algorithm import (
     RastersToNetCDFAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
-    # CheckSchematisationAlgorithm,
-    MigrateAlgorithm,
-    # ImportSufHydAlgorithm,
-    # GuessIndicatorAlgorithm,
-    # ImportHydXAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
-    ImportSufHydAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
     MigrateAlgorithm,
 )
 from threedi_results_analysis.processing.structure_control_action_algorithms import (
