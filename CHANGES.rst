@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.13 (unreleased)
+3.13 (2025-01-23)
 -----------------
 
 - Fix issue with wrong version of h5py being used.
