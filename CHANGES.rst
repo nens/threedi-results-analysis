@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.14 (unreleased)
+3.14 (2025-01-23)
 -----------------
 
 - Update metadata tag.
