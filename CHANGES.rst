@@ -4,7 +4,7 @@
 3.13 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix issue with wrong version of h5py being used.
 
 
 3.12 (2024-12-10)
