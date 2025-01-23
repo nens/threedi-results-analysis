@@ -4,7 +4,7 @@
 3.14 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Update metadata tag.
 
 
 3.13 (2025-01-23)
