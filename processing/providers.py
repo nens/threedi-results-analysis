@@ -1,18 +1,9 @@
 # See https://docs.qgis.org/3.10/en/docs/pyqgis_developer_cookbook/processing.html
 from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
-from threedi_results_analysis.processing.cross_sectional_discharge_algorithm import (
-    CrossSectionalDischargeAlgorithm,
-)
-from threedi_results_analysis.processing.dwf_calculation_algorithm import (
-    DWFCalculatorAlgorithm,
-)
-from threedi_results_analysis.processing.gpkg_conversion_algorithm import (
-    ThreeDiConvertToGpkgAlgorithm,
-)
-from threedi_results_analysis.processing.grid_creation_algorithm import (
-    ThreeDiGenerateCompGridAlgorithm,
-)
+# from threedi_results_analysis.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
+from threedi_results_analysis.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
+from threedi_results_analysis.processing.cross_sectional_discharge_algorithm import CrossSectionalDischargeAlgorithm
 from threedi_results_analysis.processing.leak_detector_algorithms import (
     DetectLeakingObstaclesAlgorithm,
 )
@@ -21,18 +12,6 @@ from threedi_results_analysis.processing.leak_detector_algorithms import (
 )
 from threedi_results_analysis.processing.rasters_to_netcdf_algorithm import (
     RastersToNetCDFAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
-    CheckSchematisationAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
-    GuessIndicatorAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
-    ImportHydXAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
-    ImportSufHydAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
     MigrateAlgorithm,
@@ -56,14 +35,13 @@ class ThreediProvider(QgsProcessingProvider):
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(ThreediDepthAlgorithm())
         self.addAlgorithm(ThreediMaxDepthAlgorithm())
-        self.addAlgorithm(DWFCalculatorAlgorithm())
-        self.addAlgorithm(CheckSchematisationAlgorithm())
+        # self.addAlgorithm(DWFCalculatorAlgorithm())
+        # self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
-        self.addAlgorithm(ImportHydXAlgorithm())
+        # self.addAlgorithm(ImportHydXAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
-        self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
-        self.addAlgorithm(ImportSufHydAlgorithm())
-        self.addAlgorithm(GuessIndicatorAlgorithm())
+        # self.addAlgorithm(ImportSufHydAlgorithm())
+        # self.addAlgorithm(GuessIndicatorAlgorithm())
         self.addAlgorithm(CrossSectionalDischargeAlgorithm())
         self.addAlgorithm(DetectLeakingObstaclesAlgorithm())
         self.addAlgorithm(DetectLeakingObstaclesWithDischargeThresholdAlgorithm())
