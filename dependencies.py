@@ -48,7 +48,7 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint", "tar"])
 #: List of expected dependencies.
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6", False),
-    Dependency("GeoAlchemy2", "geoalchemy2", "==0.15.*", False),
+    Dependency("GeoAlchemy2", "geoalchemy2", "==0.14.0", False),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2", False),
     Dependency(
         "importlib-resources", "importlib_resources", "", False
@@ -58,9 +58,9 @@ DEPENDENCIES = [
     ),  # backward compat. alembic
     Dependency("Mako", "mako", "", False),
     Dependency("cftime", "cftime", ">=1.5.0", False),  # threedigrid[results]
-    Dependency("alembic", "alembic", "==1.8.*", False),
+    Dependency("alembic", "alembic", "==1.14.*", False),
     Dependency("threedigrid", "threedigrid", "==2.3.*", False),
-    Dependency("threedi-schema", "threedi_schema", "==0.300.5", False),
+    Dependency("threedi-schema", "threedi_schema", "==0.300.8", False),
     Dependency("threedidepth", "threedidepth", "==0.6.3", False),
     Dependency("click", "click", ">=8.0", False),
     Dependency("packaging", "packaging", "", False),
@@ -73,7 +73,7 @@ DEPENDENCIES = [
     Dependency("Shapely", "shapely", ">=2.0.0", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
-    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.5", False),
+    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.6.dev0", False),
 ]
 
 # On Windows, the hdf5 binary and thus h5py version depends on the QGis version
