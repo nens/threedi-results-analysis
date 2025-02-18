@@ -29,9 +29,6 @@ from threedi_results_analysis.processing.schematisation_algorithms import (
     GuessIndicatorAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
-    ImportHydXAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
     ImportSufHydAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
@@ -59,7 +56,6 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
-        self.addAlgorithm(ImportHydXAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
         self.addAlgorithm(ImportSufHydAlgorithm())

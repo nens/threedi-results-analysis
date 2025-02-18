@@ -8,7 +8,8 @@ from sqlalchemy import Float
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import relationship
 
 import logging
 
@@ -92,14 +93,13 @@ class ConnectionNode(Base):
     storage_area = Column(Float)
     initial_waterlevel = Column(Float)
     the_geom = Column(
-        Geometry(geometry_type="POINT", srid=4326, spatial_index=True, management=True),
+        Geometry(geometry_type="POINT", srid=4326, spatial_index=True),
         nullable=False,
     )
 
     the_geom_linestring = Column(
         Geometry(
-            geometry_type="POINT", srid=4326, spatial_index=False, management=True
-        ),
+            geometry_type="POINT", srid=4326, spatial_index=False),
         nullable=True,
     )
 

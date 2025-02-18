@@ -48,7 +48,7 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint", "tar"])
 #: List of expected dependencies.
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6", False),
-    Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*", False),
+    Dependency("GeoAlchemy2", "geoalchemy2", "==0.15.*", False),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2", False),
     Dependency(
         "importlib-resources", "importlib_resources", "", False
@@ -58,10 +58,10 @@ DEPENDENCIES = [
     ),  # backward compat. alembic
     Dependency("Mako", "mako", "", False),
     Dependency("cftime", "cftime", ">=1.5.0", False),  # threedigrid[results]
-    Dependency("alembic", "alembic", "==1.8.*", False),
+    Dependency("alembic", "alembic", "==1.14.*", False),
     Dependency("threedigrid", "threedigrid", "==2.3.*", False),
-    Dependency("threedi-schema", "threedi_schema", "==0.219.*", False),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.6.*", False),
+    Dependency("threedi-schema", "threedi_schema", "==0.300.8", False),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.17.3", False),
     Dependency("threedidepth", "threedidepth", "==0.6.3", False),
     Dependency("click", "click", ">=8.0", False),
     Dependency("packaging", "packaging", "", False),
@@ -72,11 +72,10 @@ DEPENDENCIES = [
     Dependency("networkx", "networkx", "", False),
     Dependency("condenser", "condenser", ">=0.2.1", False),
     Dependency("Shapely", "shapely", ">=2.0.0", False),
-    Dependency("threedigrid-builder", "threedigrid_builder", "==1.14.*", False),
-    Dependency("hydxlib", "hydxlib", "==1.5.3", False),
+    Dependency("threedigrid-builder", "threedigrid_builder", "==1.24.*", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
-    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.4", False),
+    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.6.dev0", False),
 ]
 
 # On Windows, the hdf5 binary and thus h5py version depends on the QGis version
