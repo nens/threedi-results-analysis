@@ -11,14 +11,10 @@
 ***************************************************************************
 """
 
-from pathlib import Path
 from qgis.core import QgsProcessingAlgorithm
-from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
-from qgis.core import QgsProcessingParameterFolderDestination
-from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QCoreApplication
@@ -29,7 +25,6 @@ from threedi_results_analysis.processing.deps.guess_indicator import (
     guess_indicators_utils,
 )
 from threedi_results_analysis.processing.deps.sufhyd.import_sufhyd_main import Importer
-from threedi_results_analysis.processing.download_hydx import download_hydx
 from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
