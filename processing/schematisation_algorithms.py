@@ -21,7 +21,6 @@ from qgis.PyQt.QtCore import QCoreApplication
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.exc import OperationalError
 from threedi_modelchecker import ThreediModelChecker
-from threedi_results_analysis.processing.deps.sufhyd.import_sufhyd_main import Importer
 from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
@@ -266,64 +265,3 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return CheckSchematisationAlgorithm()
-
-
-class ImportSufHydAlgorithm(QgsProcessingAlgorithm):
-    """
-    Import data from SufHyd to a 3Di Spatialite
-    """
-
-    INPUT_SUFHYD_FILE = "INPUT_SUFHYD_FILE"
-    TARGET_SQLITE = "TARGET_SQLITE"
-
-    def initAlgorithm(self, config):
-        self.addParameter(
-                QgsProcessingParameterFile(self.INPUT_SUFHYD_FILE, self.tr("Sufhyd file"), extension="hyd"))
-
-        self.addParameter(
-            QgsProcessingParameterFile(
-                self.TARGET_SQLITE,
-                "Target 3Di Sqlite",
-                extension="sqlite"
-            )
-        )
-
-    def processAlgorithm(self, parameters, context, feedback):
-        sufhyd_file = self.parameterAsString(parameters, self.INPUT_SUFHYD_FILE, context)
-        out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
-        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
-        if not threedi_db:
-            return {}
-        try:
-            schema = threedi_db.schema
-            schema.validate_schema()
-
-        except errors.MigrationMissingError:
-            feedback.pushWarning(
-                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
-                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
-            )
-            return {}
-
-        importer = Importer(sufhyd_file, threedi_db)
-        importer.run_import()
-
-        return {}
-
-    def name(self):
-        return "import_sufhyd"
-
-    def displayName(self):
-        return self.tr("Import Sufhyd")
-
-    def group(self):
-        return self.tr(self.groupId())
-
-    def groupId(self):
-        return "Schematisation"
-
-    def tr(self, string):
-        return QCoreApplication.translate("Processing", string)
-
-    def createInstance(self):
-        return ImportSufHydAlgorithm()

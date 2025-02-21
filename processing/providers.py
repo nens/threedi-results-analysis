@@ -26,9 +26,6 @@ from threedi_results_analysis.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
-    ImportSufHydAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
     MigrateAlgorithm,
 )
 from threedi_results_analysis.processing.structure_control_action_algorithms import (
@@ -55,7 +52,6 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(MigrateAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
-        self.addAlgorithm(ImportSufHydAlgorithm())
         self.addAlgorithm(CrossSectionalDischargeAlgorithm())
         self.addAlgorithm(DetectLeakingObstaclesAlgorithm())
         self.addAlgorithm(DetectLeakingObstaclesWithDischargeThresholdAlgorithm())

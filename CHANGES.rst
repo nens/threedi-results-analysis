@@ -4,7 +4,8 @@
 3.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Removed ImportSufHydAlgorithm and GuessIndicatorAlgorithm.
+- Updated schema to 3000
 
 
 3.14 (2025-01-23)
