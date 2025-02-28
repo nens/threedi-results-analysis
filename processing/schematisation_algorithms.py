@@ -36,7 +36,7 @@ def get_threedi_database(filename, feedback):
         threedi_db.check_connection()
         return threedi_db
     except (OperationalError, DatabaseError):
-        feedback.pushWarning("Invalid spatialite file")
+        feedback.pushWarning("Invalid schematisation file")
         return None
 
 
@@ -130,7 +130,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+                self.INPUT, self.tr("3Di Schematisation"), fileFilter="Spatialite (*.sqlite);;GeoPackage (*.gpkg)"
             )
         )
 
