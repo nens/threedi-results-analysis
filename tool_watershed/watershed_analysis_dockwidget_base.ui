@@ -104,12 +104,12 @@
               <string>Required only when analysing (impervious) surfaces (0D inflow)</string>
              </property>
              <property name="text">
-              <string>3Di model sqlite (optional):</string>
+              <string>3Di schematisation (optional):</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QgsFileWidget" name="QgsFileWidgetSqlite">
+            <widget class="QgsFileWidget" name="QgsFileWidgetSchematisation">
              <property name="enabled">
               <bool>true</bool>
              </property>
@@ -123,7 +123,7 @@
               <string>Required only when analysing (impervious) surfaces (0D inflow)</string>
              </property>
              <property name="filter">
-              <string>*.sqlite</string>
+              <string>GeoPackage (*.gpkg);;Spatialite (*.sqlite)</string>
              </property>
             </widget>
            </item>
