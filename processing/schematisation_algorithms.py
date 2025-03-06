@@ -11,6 +11,7 @@
 ***************************************************************************
 """
 
+from pathlib import Path
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterFile
@@ -24,6 +25,7 @@ from threedi_modelchecker import ThreediModelChecker
 from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
+from threedi_schema.migrations.exceptions import InvalidSRIDException
 
 import csv
 import os
@@ -32,7 +34,7 @@ import shutil
 
 def get_threedi_database(filename, feedback):
     try:
-        threedi_db = ThreediDatabase(filename)
+        threedi_db = ThreediDatabase(Path(filename))
         threedi_db.check_connection()
         return threedi_db
     except (OperationalError, DatabaseError):
@@ -66,17 +68,31 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
             schema.set_spatial_indexes()
         except errors.MigrationMissingError:
             backup_filepath = backup_sqlite(filename)
-            schema.upgrade(backup=False, upgrade_spatialite_version=True)
-            schema.set_spatial_indexes()
-            shutil.rmtree(os.path.dirname(backup_filepath))
-        except errors.UpgradeFailedError:
-            feedback.pushWarning(
-                "The spatialite database schema cannot be migrated to the current version. Please contact the service desk for assistance."
-            )
-            return {self.OUTPUT: None}
+
+            srid, _ = schema._get_epsg_data()
+            if srid is None:
+                try:
+                    srid = schema._get_dem_epsg()
+                except InvalidSRIDException:
+                    srid = None
+            if srid is None:
+                feedback.pushWarning(
+                    "Could not fetch valid EPSG code from database or DEM; aborting database migration."
+                )
+                return {self.OUTPUT: None}
+
+            try:
+                schema.upgrade(backup=False, upgrade_spatialite_version=True, epsg_code_override=srid)
+                schema.set_spatial_indexes()
+                shutil.rmtree(os.path.dirname(backup_filepath))
+            except errors.UpgradeFailedError:
+                feedback.pushWarning(
+                    "The spatialite database schema cannot be migrated to the current version. Please contact the service desk for assistance."
+                )
+                return {self.OUTPUT: None}
         success = True
         return {self.OUTPUT: success}
-
+ 
     def name(self):
         """
         Returns the algorithm name, used for identifying the algorithm. This
