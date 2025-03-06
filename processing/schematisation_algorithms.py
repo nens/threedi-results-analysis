@@ -92,7 +92,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
                 return {self.OUTPUT: None}
         success = True
         return {self.OUTPUT: success}
- 
+
     def name(self):
         """
         Returns the algorithm name, used for identifying the algorithm. This
