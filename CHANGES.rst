@@ -5,6 +5,7 @@
 -----------------
 
 - Removed ImportSufHydAlgorithm and GuessIndicatorAlgorithm.
+- Watershed: support gpkg and update to new schematisation schema (#1085)
 - Updated schema to 3000
 
 
