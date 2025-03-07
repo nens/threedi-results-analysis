@@ -4,7 +4,7 @@
 3.15 (unreleased)
 -----------------
 
-- Removed ImportSufHydAlgorithm and GuessIndicatorAlgorithm.
+- Removed ImportSufHydAlgorithm, GuessIndicatorAlgorithm and DWFCalculatorAlgorithm (#1079, #1051).
 - Watershed: support gpkg and update to new schematisation schema (#1085)
 - Updated schema to 3000
 - Select nearest result timestep at or before controller time. (#1084)

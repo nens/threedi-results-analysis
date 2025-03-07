@@ -4,9 +4,6 @@ from qgis.PyQt.QtGui import QIcon
 from threedi_results_analysis.processing.cross_sectional_discharge_algorithm import (
     CrossSectionalDischargeAlgorithm,
 )
-from threedi_results_analysis.processing.dwf_calculation_algorithm import (
-    DWFCalculatorAlgorithm,
-)
 from threedi_results_analysis.processing.gpkg_conversion_algorithm import (
     ThreeDiConvertToGpkgAlgorithm,
 )
@@ -47,7 +44,6 @@ class ThreediProvider(QgsProcessingProvider):
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(ThreediDepthAlgorithm())
         self.addAlgorithm(ThreediMaxDepthAlgorithm())
-        self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
