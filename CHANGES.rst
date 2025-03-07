@@ -4,7 +4,7 @@
 3.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Select nearest result timestep at or before controller time. (#1084)
 
 
 3.14 (2025-01-23)
