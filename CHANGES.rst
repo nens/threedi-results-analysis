@@ -7,6 +7,7 @@
 - Removed ImportSufHydAlgorithm and GuessIndicatorAlgorithm.
 - Watershed: support gpkg and update to new schematisation schema (#1085)
 - Updated schema to 3000
+- Select nearest result timestep at or before controller time. (#1084)
 
 
 3.14 (2025-01-23)

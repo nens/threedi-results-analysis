@@ -1,4 +1,4 @@
-from bisect import bisect_left
+from bisect import bisect
 from enum import Enum
 from functools import lru_cache
 from qgis.core import NULL
@@ -753,8 +753,7 @@ class MapAnimator(QGroupBox):
             # determine timestep number for current parameter
             current_seconds = result_item._timedelta.total_seconds()
             parameter_timestamps = threedi_result.get_timestamps(parameter)
-            timestep_nr = bisect_left(parameter_timestamps, current_seconds)
-            timestep_nr = min(timestep_nr, parameter_timestamps.size - 1)
+            timestep_nr = bisect(parameter_timestamps[1:], current_seconds)
 
             # get the data
             ids = self._get_feature_ids(layer)
