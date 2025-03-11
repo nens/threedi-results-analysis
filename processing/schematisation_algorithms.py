@@ -24,7 +24,6 @@ from threedi_modelchecker import ThreediModelChecker
 from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
-from threedi_schema.migrations.exceptions import InvalidSRIDException
 
 import csv
 import os
@@ -72,7 +71,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
             if srid is None:
                 try:
                     srid = schema._get_dem_epsg()
-                except InvalidSRIDException:
+                except errors.InvalidSRIDException:
                     srid = None
             if srid is None:
                 feedback.pushWarning(
