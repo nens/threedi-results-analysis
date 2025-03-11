@@ -11,7 +11,6 @@
 ***************************************************************************
 """
 
-from pathlib import Path
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterFile
@@ -34,7 +33,7 @@ import shutil
 
 def get_threedi_database(filename, feedback):
     try:
-        threedi_db = ThreediDatabase(Path(filename))
+        threedi_db = ThreediDatabase(filename)
         threedi_db.check_connection()
         return threedi_db
     except (OperationalError, DatabaseError):
