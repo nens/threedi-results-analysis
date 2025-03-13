@@ -76,6 +76,7 @@ DEPENDENCIES = [
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
     Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.7", False),
+    Dependency("hydxlib", "hydxlib", "==1.7.0", False),
 ]
 
 # On Windows, the hdf5 binary and thus h5py version depends on the QGis version

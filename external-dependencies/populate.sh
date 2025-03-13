@@ -33,6 +33,7 @@ threedidepth \
 threedigrid \
 typing-extensions \
 zipp \
+hydxlib \
 
 # Start a build/ directory for easier later cleanup.
 mkdir build

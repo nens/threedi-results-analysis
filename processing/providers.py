@@ -23,6 +23,9 @@ from threedi_results_analysis.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
+    ImportHydXAlgorithm,
+)
+from threedi_results_analysis.processing.schematisation_algorithms import (
     MigrateAlgorithm,
 )
 from threedi_results_analysis.processing.structure_control_action_algorithms import (
@@ -53,6 +56,7 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(DetectLeakingObstaclesWithDischargeThresholdAlgorithm())
         self.addAlgorithm(RastersToNetCDFAlgorithm())
         self.addAlgorithm(StructureControlActionAlgorithm())
+        self.addAlgorithm(ImportHydXAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.

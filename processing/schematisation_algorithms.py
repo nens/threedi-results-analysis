@@ -11,16 +11,23 @@
 ***************************************************************************
 """
 
+from hydxlib.scripts import run_import_export
+from hydxlib.scripts import write_logging_to_file
+from pathlib import Path
 from qgis.core import QgsProcessingAlgorithm
+from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
+from qgis.core import QgsProcessingParameterFolderDestination
+from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QCoreApplication
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.exc import OperationalError
 from threedi_modelchecker import ThreediModelChecker
+from threedi_results_analysis.processing.download_hydx import download_hydx
 from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
@@ -279,3 +286,162 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return CheckSchematisationAlgorithm()
+
+
+class ImportHydXAlgorithm(QgsProcessingAlgorithm):
+    """
+    Import data from GWSW HydX to a 3Di Schematisation
+    """
+
+    INPUT_DATASET_NAME = "INPUT_DATASET_NAME"
+    HYDX_DOWNLOAD_DIRECTORY = "HYDX_DOWNLOAD_DIRECTORY"
+    INPUT_HYDX_DIRECTORY = "INPUT_HYDX_DIRECTORY"
+    TARGET_SCHEMATISATION = "TARGET_SCHEMATISATION"
+
+    def initAlgorithm(self, config):
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.TARGET_SCHEMATISATION, "Target 3Di Schematisation", fileFilter="GeoPackage (*.gpkg);;Spatialite (*.sqlite)"
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.INPUT_HYDX_DIRECTORY,
+                "GWSW HydX directory (local)",
+                behavior=QgsProcessingParameterFile.Folder,
+                optional=True,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterString(
+                self.INPUT_DATASET_NAME, "GWSW dataset name (online)", optional=True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFolderDestination(
+                self.HYDX_DOWNLOAD_DIRECTORY,
+                "Destination directory for GWSW HydX dataset download",
+                optional=True,
+            )
+        )
+
+    def processAlgorithm(self, parameters, context, feedback):
+        hydx_dataset_name = self.parameterAsString(
+            parameters, self.INPUT_DATASET_NAME, context
+        )
+        hydx_download_dir = self.parameterAsString(
+            parameters, self.HYDX_DOWNLOAD_DIRECTORY, context
+        )
+        hydx_path = self.parameterAsString(
+            parameters, self.INPUT_HYDX_DIRECTORY, context
+        )
+        out_path = self.parameterAsFile(parameters, self.TARGET_SCHEMATISATION, context)
+        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
+        if not threedi_db:
+            raise QgsProcessingException(
+                f"Unable to connect to 3Di schematisation '{out_path}'"
+            )
+        try:
+            schema = threedi_db.schema
+            schema.validate_schema()
+
+        except errors.MigrationMissingError:
+            raise QgsProcessingException(
+                "The selected 3Di schematisation does not have the latest database schema version. Please migrate this "
+                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
+            )
+        if not (hydx_dataset_name or hydx_path):
+            raise QgsProcessingException(
+                "Either 'GWSW HydX directory (local)' or 'GWSW dataset name (online)' must be filled in!"
+            )
+        if hydx_dataset_name and hydx_path:
+            feedback.pushWarning(
+                "Both 'GWSW dataset name (online)' and 'GWSW HydX directory (local)' are filled in. "
+                "'GWSW dataset name (online)' will be ignored. This dataset will not be downloaded."
+            )
+        elif hydx_dataset_name:
+            try:
+                hydx_download_path = Path(hydx_download_dir)
+                hydx_download_dir_is_valid = hydx_download_path.is_dir()
+            except TypeError:
+                hydx_download_dir_is_valid = False
+            if parameters[self.HYDX_DOWNLOAD_DIRECTORY] == "TEMPORARY_OUTPUT":
+                hydx_download_dir_is_valid = True
+            if not hydx_download_dir_is_valid:
+                raise QgsProcessingException(
+                    f"'Destination directory for HydX dataset download' ({hydx_download_path}) is not a valid directory"
+                )
+            hydx_path = download_hydx(
+                dataset_name=hydx_dataset_name,
+                target_directory=hydx_download_path,
+                wait_times=[0.1, 1, 2, 3, 4, 5, 10],
+                feedback=feedback,
+            )
+            # hydx_path will be None if user has canceled the process during download
+            if feedback.isCanceled():
+                raise QgsProcessingException("Process canceled")
+        feedback.pushInfo(f"Starting import of {hydx_path} to {out_path}")
+        log_path = Path(out_path).parent / "import_hydx.log"
+        write_logging_to_file(log_path)
+        feedback.pushInfo(f"Logging will be written to {log_path}")
+        run_import_export(hydx_path=hydx_path, out_path=out_path)
+        return {}
+
+    def name(self):
+        """
+        Returns the algorithm name, used for identifying the algorithm. This
+        string should be fixed for the algorithm, and must not be localised.
+        The name should be unique within each provider. Names should contain
+        lowercase alphanumeric characters only and no spaces or other
+        formatting characters.
+        """
+        return "import_hydx"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-visible display of the algorithm name.
+        """
+        return self.tr("Import GWSW HydX")
+
+    def shortHelpString(self):
+        return """
+        <h3>Introduction</h3>
+        <p>Use this processing algorithm to import data in the format of the Dutch "Gegevenswoordenboek Stedelijk Water (GWSW)". Either select a previously downloaded local dataset, or download a dataset directly from the server.</p>
+        <p>A log file will be created in the same directory as the Target 3Di schematisation. Please check this log file after the import has completed.&nbsp;&nbsp;</p>
+        <h3>Parameters</h3>
+        <h4>Target 3Di Schematisation</h4>
+        <p>Spatialite (.sqlite) or GeoPackage (.gpkg) file that contains the layers required by 3Di. Imported data will be added to any data already contained in the 3Di schematisation.</p>
+        <h4>GWSW HydX directory (local)</h4>
+        <p>Use this option if you have already downloaded a GWSW HydX dataset to a local directory.</p>
+        <h4>GWSW dataset name (online)</h4>
+        <p>Use this option if you want to download a GWSW HydX dataset.</p>
+        <h4>Destination directory for GWSW HydX dataset download</h4>
+        <p>If you have chosen to download a GWSW HydX dataset, this is the directory it will be downloaded to.</p>
+        """
+
+    def group(self):
+        """
+        Returns the name of the group this algorithm belongs to. This string
+        should be localised.
+        """
+        return self.tr(self.groupId())
+
+    def groupId(self):
+        """
+        Returns the unique ID of the group this algorithm belongs to. This
+        string should be fixed for the algorithm, and must not be localised.
+        The group id should be unique within each provider. Group id should
+        contain lowercase alphanumeric characters only and no spaces or other
+        formatting characters.
+        """
+        return "Schematisation"
+
+    def tr(self, string):
+        return QCoreApplication.translate("Processing", string)
+
+    def createInstance(self):
+        return ImportHydXAlgorithm()
