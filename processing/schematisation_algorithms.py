@@ -11,30 +11,26 @@
 ***************************************************************************
 """
 
-from hydxlib.scripts import run_import_export
-from hydxlib.scripts import write_logging_to_file
-from pathlib import Path
-from qgis.core import QgsProcessingAlgorithm
-from qgis.core import QgsProcessingException
-from qgis.core import QgsProcessingParameterBoolean
-from qgis.core import QgsProcessingParameterFile
-from qgis.core import QgsProcessingParameterFileDestination
-from qgis.core import QgsProcessingParameterFolderDestination
-from qgis.core import QgsProcessingParameterString
-from qgis.core import QgsProject
-from qgis.core import QgsVectorLayer
-from qgis.PyQt.QtCore import QCoreApplication
-from sqlalchemy.exc import DatabaseError
-from sqlalchemy.exc import OperationalError
-from threedi_modelchecker import ThreediModelChecker
-from threedi_results_analysis.processing.download_hydx import download_hydx
-from threedi_results_analysis.utils.utils import backup_sqlite
-from threedi_schema import errors
-from threedi_schema import ThreediDatabase
-
 import csv
 import os
 import shutil
+from pathlib import Path
+
+from hydxlib.scripts import run_import_export, write_logging_to_file
+from qgis.core import (QgsProcessingAlgorithm, QgsProcessingException,
+                       QgsProcessingParameterBoolean,
+                       QgsProcessingParameterFile,
+                       QgsProcessingParameterFileDestination,
+                       QgsProcessingParameterFolderDestination,
+                       QgsProcessingParameterString, QgsProject,
+                       QgsVectorLayer)
+from qgis.PyQt.QtCore import QCoreApplication
+from sqlalchemy.exc import DatabaseError, OperationalError
+from threedi_modelchecker import ThreediModelChecker
+from threedi_schema import ThreediDatabase, errors
+
+from threedi_results_analysis.processing.download_hydx import download_hydx
+from threedi_results_analysis.utils.utils import backup_sqlite
 
 
 def get_threedi_database(filename, feedback):
@@ -383,6 +379,8 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
             # hydx_path will be None if user has canceled the process during download
             if feedback.isCanceled():
                 raise QgsProcessingException("Process canceled")
+            if hydx_path is None:
+                raise QgsProcessingException("Error in retrieving dataset (note case-sensitivity)")
         feedback.pushInfo(f"Starting import of {hydx_path} to {out_path}")
         log_path = Path(out_path).parent / "import_hydx.log"
         write_logging_to_file(log_path)

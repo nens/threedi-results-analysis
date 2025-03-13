@@ -1,9 +1,11 @@
 from pathlib import Path
+from typing import List
+from typing import Union
+
+import io
 import requests
 import time
-from typing import List, Union
 import zipfile
-import io
 
 
 KEY = "Bearer requestN&S"
@@ -46,6 +48,7 @@ def download_hydx(
         feedback.pushInfo(f"HydX dataset request has failed (status code {hydx_download.status_code})")
     finished = False
     i = 0
+    hydx_download_url = None
     while not finished:
         if feedback.isCanceled():
             return None
@@ -79,11 +82,14 @@ def download_hydx(
         except IndexError:
             time.sleep(wait_times[-1])
         i += 1
-    hydx_folder = target_directory / (dataset_name + '.hydx')
-    r = requests.get(url=hydx_download_url, headers=hydx_headers)
-    z = zipfile.ZipFile(io.BytesIO(r.content))
-    z.extractall(hydx_folder)
-    feedback.pushInfo(
-        f'HydX dataset {dataset_name} has been downloaded and unzipped to {hydx_folder}'
-    )
-    return hydx_folder
+
+    if hydx_download_url:
+        hydx_folder = target_directory / (dataset_name + '.hydx')
+        r = requests.get(url=hydx_download_url, headers=hydx_headers)
+        z = zipfile.ZipFile(io.BytesIO(r.content))
+        z.extractall(hydx_folder)
+        feedback.pushInfo(
+            f'HydX dataset {dataset_name} has been downloaded and unzipped to {hydx_folder}'
+        )
+        return hydx_folder
+    return None
