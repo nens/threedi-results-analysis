@@ -39,31 +39,48 @@ hydxlib \
 mkdir build
 cd build
 
+# Due to a very slow server the following dependencies are not downloaded if already present
 # Download the custom compiled qgis version tar of h5py, create a tar from the distro subfolder
 # Download h5py 3.8.0 for QGis versions before 3.40
-wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-h5py/python3-h5py-3.8.0-1.tar.bz2
-tar -xvf python3-h5py-3.8.0-1.tar.bz2
-tar -cf h5py-3.8.0.tar -C ./apps/Python39/Lib/site-packages/ .
-cp h5py-3.8.0.tar ..
+if ! test -f ../h5py-3.8.0.tar; then
+    wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-h5py/python3-h5py-3.8.0-1.tar.bz2
+    tar -xvf python3-h5py-3.8.0-1.tar.bz2
+    tar -cf h5py-3.8.0.tar -C ./apps/Python39/Lib/site-packages/ .
+    cp h5py-3.8.0.tar ..
+else
+    echo "h5py-3.8.0.tar already present, skipping download"
+fi
 
 # Download h5py 3.10.0 for QGis versions after 3.40
-wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-h5py/python3-h5py-3.10.0-1.tar.bz2
-tar -xvf python3-h5py-3.10.0-1.tar.bz2
-tar -cf h5py-3.10.0.tar -C ./apps/Python312/Lib/site-packages/ .
-cp h5py-3.10.0.tar ..
+if ! test -f ../h5py-3.10.0.tar; then
+    wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-h5py/python3-h5py-3.10.0-1.tar.bz2
+    tar -xvf python3-h5py-3.10.0-1.tar.bz2
+    tar -cf h5py-3.10.0.tar -C ./apps/Python312/Lib/site-packages/ .
+    cp h5py-3.10.0.tar ..
+else
+    echo "h5py-3.10.0.tar already present, skipping download"
+fi
 
 # as well as scipy
-# Download scipy 1.6.2 for QGis versions before 3.40
-wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-scipy/python3-scipy-1.10.1-1.tar.bz2
-tar -xvf python3-scipy-1.10.1-1.tar.bz2
-tar -cf scipy-1.10.1.tar -C ./apps/Python39/Lib/site-packages/ .
-cp scipy-1.10.1.tar ..
+# Download scipy 1.10.1 for QGis versions before 3.40
+if ! test -f ../scipy-1.10.1.tar; then
+    wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-scipy/python3-scipy-1.10.1-1.tar.bz2
+    tar -xvf python3-scipy-1.10.1-1.tar.bz2
+    tar -cf scipy-1.10.1.tar -C ./apps/Python39/Lib/site-packages/ .
+    cp scipy-1.10.1.tar ..
+else
+    echo "scipy-1.10.1.tar already present, skipping download"
+fi
 
 # Download scipy 1.13.0 for QGis versions after 3.40
-wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-scipy/python3-scipy-1.13.0-1.tar.bz2
-tar -xvf python3-scipy-1.13.0-1.tar.bz2
-tar -cf scipy-1.13.0.tar -C ./apps/Python312/Lib/site-packages/ .
-cp scipy-1.13.0.tar ..
+if ! test -f ../scipy-1.13.0.tar; then
+    wget http://download.osgeo.org/osgeo4w/v2/x86_64/release/python3/python3-scipy/python3-scipy-1.13.0-1.tar.bz2
+    tar -xvf python3-scipy-1.13.0-1.tar.bz2
+    tar -cf scipy-1.13.0.tar -C ./apps/Python312/Lib/site-packages/ .
+    cp scipy-1.13.0.tar ..
+else
+    echo "scipy-1.13.0.tar already present, skipping download"
+fi
 
 # Back up a level and clean up the build/ directory.
 cd ..
