@@ -54,7 +54,9 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di schematisation database"), extension="GeoPackage (*.gpkg);;Spatialite (*.sqlite)"
+                self.INPUT,
+                "3Di schematisation database",
+                fileFilter="Geopackage (*.gpkg);;Spatialite (*.sqlite)"
             )
         )
 
