@@ -54,7 +54,9 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+                self.INPUT,
+                "3Di schematisation database",
+                fileFilter="Geopackage (*.gpkg);;Spatialite (*.sqlite)"
             )
         )
 
@@ -88,7 +90,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
                 shutil.rmtree(os.path.dirname(backup_filepath))
             except errors.UpgradeFailedError:
                 feedback.pushWarning(
-                    "The spatialite database schema cannot be migrated to the current version. Please contact the service desk for assistance."
+                    "The schematisation database cannot be migrated to the current version. Please contact the service desk for assistance."
                 )
                 return {self.OUTPUT: None}
         success = True
@@ -109,7 +111,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr("Migrate Spatialite")
+        return self.tr("Migrate schematisation database")
 
     def group(self):
         """
@@ -147,7 +149,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Schematisation"), fileFilter="Spatialite (*.sqlite);;GeoPackage (*.gpkg)"
+                self.INPUT, self.tr("3Di Schematisation"), fileFilter="GeoPackage (*.gpkg)"
             )
         )
 
@@ -297,7 +299,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.TARGET_SCHEMATISATION, "Target 3Di Schematisation", fileFilter="GeoPackage (*.gpkg);;Spatialite (*.sqlite)"
+                self.TARGET_SCHEMATISATION, "Target 3Di Schematisation", fileFilter="GeoPackage (*.gpkg)"
             )
         )
 
@@ -347,7 +349,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         except errors.MigrationMissingError:
             raise QgsProcessingException(
                 "The selected 3Di schematisation does not have the latest database schema version. Please migrate this "
-                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
+                "schematisation and try again: Processing > Toolbox > 3Di > Schematisation > Migrate schematisation database"
             )
         if not (hydx_dataset_name or hydx_path):
             raise QgsProcessingException(
@@ -412,7 +414,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         <p>A log file will be created in the same directory as the Target 3Di schematisation. Please check this log file after the import has completed.&nbsp;&nbsp;</p>
         <h3>Parameters</h3>
         <h4>Target 3Di Schematisation</h4>
-        <p>Spatialite (.sqlite) or GeoPackage (.gpkg) file that contains the layers required by 3Di. Imported data will be added to any data already contained in the 3Di schematisation.</p>
+        <p>GeoPackage (.gpkg) file that contains the layers required by 3Di. Imported data will be added to any data already contained in the 3Di schematisation.</p>
         <h4>GWSW HydX directory (local)</h4>
         <p>Use this option if you have already downloaded a GWSW HydX dataset to a local directory.</p>
         <h4>GWSW dataset name (online)</h4>
