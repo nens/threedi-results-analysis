@@ -49,7 +49,6 @@ def feedback_callback_factory(feedback):
     def feedback_callback(progres_value, message):
         feedback.setProgress(progres_value)
         feedback.setProgressText(message)
-        QCoreApplication.processEvents()
 
     return feedback_callback
 
@@ -99,9 +98,6 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
                 feedback_callback = feedback_callback_factory(feedback)
                 schema.upgrade(backup=False, upgrade_spatialite_version=True, epsg_code_override=srid,
                                progress_func=feedback_callback)
-                # TODO: somehow this is version 230 and not 300 which causes set_spatial_indexes to fail
-                print(schema.get_version())
-                print(schema.db.path)
                 schema.set_spatial_indexes()
                 shutil.rmtree(os.path.dirname(backup_filepath))
             except errors.UpgradeFailedError:
