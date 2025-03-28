@@ -636,7 +636,7 @@ class Graph3DiQgsConnector:
 
     def create_impervious_surface_layer(self):
         # This layer is different from the other result layers, because it is a copy of an existing layer from the
-        # spatialite; It is easier to copy the layer using the QGIS API
+        # schematisation geopackage; It is easier to copy the layer using the QGIS API
         self.impervious_surface_source_layer = QgsVectorLayer(
             path=str(self.schematisation) + "|layername=surface",
             baseName="surface",
