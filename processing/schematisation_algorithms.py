@@ -66,7 +66,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFile(
                 self.INPUT,
                 "3Di schematisation database",
-                fileFilter="Geopackage (*.gpkg);;Spatialite (*.sqlite)"
+                fileFilter="3Di schematisation database (*.gpkg *.sqlite)"
             )
         )
 
