@@ -120,10 +120,10 @@
               </sizepolicy>
              </property>
              <property name="toolTip">
-              <string>Required only when analysing (impervious) surfaces (0D inflow)</string>
+              <string>Required only when analysing surfaces (0D inflow)</string>
              </property>
              <property name="filter">
-              <string>GeoPackage (*.gpkg);;Spatialite (*.sqlite)</string>
+              <string>GeoPackage (*.gpkg)</string>
              </property>
             </widget>
            </item>
