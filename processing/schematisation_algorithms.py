@@ -43,6 +43,16 @@ def get_threedi_database(filename, feedback):
         return None
 
 
+def feedback_callback_factory(feedback):
+    """Callback function to track schematisation migration progress."""
+
+    def feedback_callback(progres_value, message):
+        feedback.setProgress(progres_value)
+        feedback.setProgressText(message)
+
+    return feedback_callback
+
+
 class MigrateAlgorithm(QgsProcessingAlgorithm):
     """
     Migrate 3Di model schema to the current version
@@ -56,7 +66,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFile(
                 self.INPUT,
                 "3Di schematisation database",
-                fileFilter="Geopackage (*.gpkg);;Spatialite (*.sqlite)"
+                fileFilter="3Di schematisation database (*.gpkg *.sqlite)"
             )
         )
 
@@ -85,7 +95,9 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
                 return {self.OUTPUT: None}
 
             try:
-                schema.upgrade(backup=False, upgrade_spatialite_version=True, epsg_code_override=srid)
+                feedback_callback = feedback_callback_factory(feedback)
+                schema.upgrade(backup=False, upgrade_spatialite_version=True, epsg_code_override=srid,
+                               progress_func=feedback_callback)
                 schema.set_spatial_indexes()
                 shutil.rmtree(os.path.dirname(backup_filepath))
             except errors.UpgradeFailedError:
