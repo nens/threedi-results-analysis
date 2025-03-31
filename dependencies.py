@@ -75,7 +75,7 @@ DEPENDENCIES = [
     Dependency("threedigrid-builder", "threedigrid_builder", "==1.24.*", False),
     Dependency("h5netcdf", "h5netcdf", "", False),
     Dependency("greenlet", "greenlet", "!=0.4.17", False),
-    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.8", False),
+    Dependency("threedi-mi-utils", "threedi_mi_utils", "==0.1.9", False),
     Dependency("hydxlib", "hydxlib", "==1.7.2", False),
 ]
 
