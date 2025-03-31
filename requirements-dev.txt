@@ -7,7 +7,7 @@ black
 coveralls
 coverage >6.1.1,<7.0
 docstr-coverage >= 1.0.4
-flake8
+flake8 == 7.1.2
 isort
 mock
 pip-tools
