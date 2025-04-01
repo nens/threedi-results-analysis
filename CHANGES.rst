@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.15 (unreleased)
+3.15 (2025-04-01)
 -----------------
 
 - Removed ImportSufHydAlgorithm, GuessIndicatorAlgorithm and DWFCalculatorAlgorithm (#1079, #1051).
