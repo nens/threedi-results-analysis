@@ -17,7 +17,6 @@ from qgis.core import Qgis
 from qgis.core import QgsApplication
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QgsCoordinateTransform
-from qgis.core import QgsDataSourceUri
 from qgis.core import QgsExpression
 from qgis.core import QgsFeature
 from qgis.core import QgsFeatureRequest
@@ -44,6 +43,8 @@ from threedi_results_analysis.utils.qprojects import set_read_only
 from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import (
     threedigrid_to_ogr,
 )
+from threedi_schema import errors
+from threedi_schema import ThreediDatabase
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from typing import Iterable
 from typing import List
@@ -119,7 +120,7 @@ class Graph3DiQgsConnector:
         self.iface = parent_dock.iface
         self.gridadmin_gpkg = result_item.parent().path.with_suffix('.gpkg') if result_item else None
         self.graph_3di = Graph3Di(subset=None, gridadmin_gpkg=self.gridadmin_gpkg)
-        self._sqlite = None
+        self._schematisation = None
 
         self.model = model
         self.result_id = result_item.id if result_item else None  # Id of result_item referring to netcdf/gridadmin
@@ -150,18 +151,18 @@ class Graph3DiQgsConnector:
         self.graph_3di.gr = value
 
     @property
-    def sqlite(self):
-        return self._sqlite
+    def schematisation(self):
+        return self._schematisation
 
-    @sqlite.setter
-    def sqlite(self, sqlite):
-        sqlite_pathlib_path = pathlib.Path(sqlite)
-        if not isinstance(sqlite_pathlib_path, pathlib.PurePath):
+    @schematisation.setter
+    def schematisation(self, schematisation):
+        schematisation_pathlib_path = pathlib.Path(schematisation)
+        if not isinstance(schematisation_pathlib_path, pathlib.PurePath):
             raise TypeError
-        value_changed = sqlite != self._sqlite
-        self._sqlite = sqlite_pathlib_path
+        value_changed = schematisation != self._schematisation
+        self._schematisation = schematisation
         if value_changed:
-            if self.impervious_surface_layer is None and self._sqlite is not None:
+            if self.impervious_surface_layer is None and self._schematisation is not None:
                 self.create_impervious_surface_layer()
 
     @property
@@ -635,10 +636,10 @@ class Graph3DiQgsConnector:
 
     def create_impervious_surface_layer(self):
         # This layer is different from the other result layers, because it is a copy of an existing layer from the
-        # spatialite; It is easier to copy the layer using the QGIS API
+        # schematisation geopackage; It is easier to copy the layer using the QGIS API
         self.impervious_surface_source_layer = QgsVectorLayer(
-            path=str(self.sqlite) + "|layername=v2_impervious_surface",
-            baseName="v2_impervious_surface",
+            path=str(self.schematisation) + "|layername=surface",
+            baseName="surface",
             providerLib="ogr",
         )
 
@@ -664,9 +665,7 @@ class Graph3DiQgsConnector:
         fields = self.impervious_surface_source_layer.fields().toList()
         catchment_id_field = QgsField("catchment_id", QVariant.Int)
         fields.append(catchment_id_field)
-        crs = QgsCoordinateReferenceSystem()
-        crs.createFromId(4326)
-        self.impervious_surface_layer.setCrs(crs)
+        self.impervious_surface_layer.setCrs(self.impervious_surface_source_layer.crs())
         self.impervious_surface_layer.dataProvider().addAttributes(fields)
         self.impervious_surface_layer.updateFields()
 
@@ -674,7 +673,7 @@ class Graph3DiQgsConnector:
 
     def append_impervious_surfaces(self, result_set: int, ids: List = None, expression: str = None):
         """
-        Copy features from the source v2_impervious_surface table to the result table
+        Copy features from the source surface table to the result table
         impervious surfaces may be selected by ids or by expression. Expression overrules ids
         """
         impervious_surface_layer_subset_string = self.impervious_surface_layer.subsetString()
@@ -710,12 +709,12 @@ class Graph3DiQgsConnector:
         """
         Find impervious surfaces connected to nodes and append them to the impervious surface layer
         """
-        if self.impervious_surface_layer is not None and self.sqlite is not None:
+        if self.impervious_surface_layer is not None and self.schematisation is not None:
             nodes = self.gr.nodes.filter(id__in=node_ids)
             connection_node_ids = set(nodes.content_pk) - {None, -9999}
             connection_node_ids_str = ",".join(map(str, connection_node_ids))
             expression = (
-                "id in (SELECT impervious_surface_id FROM v2_impervious_surface_map "
+                "id in (SELECT surface_id FROM surface_map "
                 f"WHERE connection_node_id IN ({connection_node_ids_str}))"
             )
             success = self.append_impervious_surfaces(result_set=result_set, expression=expression)
@@ -1004,7 +1003,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if idx == self.comboBoxResult.currentIndex():
             self.disconnect_gq()
             self.comboBoxResult.setCurrentIndex(-1)
-            self.QgsFileWidgetSqlite.setEnabled(False)
+            self.QgsFileWidgetSchematisation.setEnabled(False)
 
         self.comboBoxResult.removeItem(idx)
 
@@ -1051,26 +1050,33 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.unset_map_tool()
         self.gq = None
 
-    def sqlite_selected(self):
-        uri = QgsDataSourceUri()
-        uri.setDatabase(self.QgsFileWidgetSqlite.filePath())
-        schema = ""
-        table = "v2_impervious_surface"
-        geom_column = "the_geom"
-        uri.setDataSource(schema, table, geom_column)
+    def schematisation_selected(self):
 
-        display_name = "just for validity"
-        vlayer = QgsVectorLayer(uri.uri(), display_name, "spatialite")
-        if vlayer.isValid():
-            self.gq.sqlite = self.QgsFileWidgetSqlite.filePath()
+        # Check schema version
+        threedi_db = ThreediDatabase(self.QgsFileWidgetSchematisation.filePath())
+        threedi_db.check_connection()
+        schema = threedi_db.schema
+        try:
+            schema.validate_schema()
+            schema.set_spatial_indexes()
+        except errors.MigrationMissingError:
+            self.iface.messageBar().pushMessage(
+                MESSAGE_CATEGORY, "Please update the 3Di schematisation to latest version first", level=Qgis.Warning
+            )
+            self.QgsFileWidgetSchematisation.setFilePath("")
+            return
+
+        surface_layer = QgsVectorLayer(self.QgsFileWidgetSchematisation.filePath() + "|layername=surface", "meta", "ogr")
+        if surface_layer.isValid():
+            self.gq.schematisation = self.QgsFileWidgetSchematisation.filePath()
             self.iface.messageBar().pushMessage(
                 MESSAGE_CATEGORY, "Succesfully added impervious surfaces from model", level=Qgis.Success
             )
         else:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Invalid 3Di model sqlite selected", level=Qgis.Warning
+                MESSAGE_CATEGORY, "Invalid 3Di schematisation selected", level=Qgis.Warning
             )
-            self.QgsFileWidgetSqlite.setFilePath("")
+            self.QgsFileWidgetSchematisation.setFilePath("")
 
     def threshold_changed(self):
         self.gq.threshold = self.doubleSpinBoxThreshold.value()
@@ -1208,8 +1214,8 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def setUpUI(self):
         self.setupUi(self)
         self.mMapLayerComboBoxTargetPolygons.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.QgsFileWidgetSqlite.fileChanged.connect(self.sqlite_selected)
-        self.QgsFileWidgetSqlite.setEnabled(False)
+        self.QgsFileWidgetSchematisation.fileChanged.connect(self.schematisation_selected)
+        self.QgsFileWidgetSchematisation.setEnabled(False)
         self.doubleSpinBoxThreshold.valueChanged.connect(self.threshold_changed)
         self.doubleSpinBoxThreshold.setSingleStep(1)
         self.doubleSpinBoxThreshold.setMinimum(0)
@@ -1258,7 +1264,7 @@ class UpdateGridAdminTask(QgsTask):
             self.parent.widget().repaint()
             raise self.exception
 
-        self.parent.QgsFileWidgetSqlite.setEnabled(result)
+        self.parent.QgsFileWidgetSchematisation.setEnabled(result)
 
         if result:
             self.parent.gq.gr_updated()

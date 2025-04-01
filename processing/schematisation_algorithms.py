@@ -14,32 +14,23 @@
 import csv
 import os
 import shutil
-
-from hydxlib.scripts import run_import_export
-from hydxlib.scripts import write_logging_to_file
 from pathlib import Path
-from sqlalchemy.exc import OperationalError, DatabaseError
-from threedi_results_analysis.processing.deps.sufhyd.import_sufhyd_main import Importer
-from threedi_results_analysis.processing.deps.guess_indicator import guess_indicators_utils
 
-from threedi_schema import ThreediDatabase
-from threedi_modelchecker import ThreediModelChecker
-from threedi_schema import errors
-from threedi_results_analysis.processing.download_hydx import download_hydx
-
-from threedi_results_analysis.utils.utils import backup_sqlite
+from hydxlib.scripts import run_import_export, write_logging_to_file
+from qgis.core import (QgsProcessingAlgorithm, QgsProcessingException,
+                       QgsProcessingParameterBoolean,
+                       QgsProcessingParameterFile,
+                       QgsProcessingParameterFileDestination,
+                       QgsProcessingParameterFolderDestination,
+                       QgsProcessingParameterString, QgsProject,
+                       QgsVectorLayer)
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (
-    QgsProject,
-    QgsProcessingAlgorithm,
-    QgsProcessingException,
-    QgsProcessingParameterBoolean,
-    QgsProcessingParameterFile,
-    QgsProcessingParameterFileDestination,
-    QgsProcessingParameterFolderDestination,
-    QgsProcessingParameterString,
-    QgsVectorLayer,
-)
+from sqlalchemy.exc import DatabaseError, OperationalError
+from threedi_modelchecker import ThreediModelChecker
+from threedi_schema import ThreediDatabase, errors
+
+from threedi_results_analysis.processing.download_hydx import download_hydx
+from threedi_results_analysis.utils.utils import backup_sqlite
 
 
 def get_threedi_database(filename, feedback):
@@ -48,8 +39,18 @@ def get_threedi_database(filename, feedback):
         threedi_db.check_connection()
         return threedi_db
     except (OperationalError, DatabaseError):
-        feedback.pushWarning("Invalid spatialite file")
+        feedback.pushWarning("Invalid schematisation file")
         return None
+
+
+def feedback_callback_factory(feedback):
+    """Callback function to track schematisation migration progress."""
+
+    def feedback_callback(progres_value, message):
+        feedback.setProgress(progres_value)
+        feedback.setProgressText(message)
+
+    return feedback_callback
 
 
 class MigrateAlgorithm(QgsProcessingAlgorithm):
@@ -63,7 +64,9 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+                self.INPUT,
+                "3Di schematisation database",
+                fileFilter="3Di schematisation database (*.gpkg *.sqlite)"
             )
         )
 
@@ -78,14 +81,30 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
             schema.set_spatial_indexes()
         except errors.MigrationMissingError:
             backup_filepath = backup_sqlite(filename)
-            schema.upgrade(backup=False, upgrade_spatialite_version=True)
-            schema.set_spatial_indexes()
-            shutil.rmtree(os.path.dirname(backup_filepath))
-        except errors.UpgradeFailedError:
-            feedback.pushWarning(
-                "The spatialite database schema cannot be migrated to the current version. Please contact the service desk for assistance."
-            )
-            return {self.OUTPUT: None}
+
+            srid, _ = schema._get_epsg_data()
+            if srid is None:
+                try:
+                    srid = schema._get_dem_epsg()
+                except errors.InvalidSRIDException:
+                    srid = None
+            if srid is None:
+                feedback.pushWarning(
+                    "Could not fetch valid EPSG code from database or DEM; aborting database migration."
+                )
+                return {self.OUTPUT: None}
+
+            try:
+                feedback_callback = feedback_callback_factory(feedback)
+                schema.upgrade(backup=False, upgrade_spatialite_version=True, epsg_code_override=srid,
+                               progress_func=feedback_callback)
+                schema.set_spatial_indexes()
+                shutil.rmtree(os.path.dirname(backup_filepath))
+            except errors.UpgradeFailedError:
+                feedback.pushWarning(
+                    "The schematisation database cannot be migrated to the current version. Please contact the service desk for assistance."
+                )
+                return {self.OUTPUT: None}
         success = True
         return {self.OUTPUT: success}
 
@@ -104,7 +123,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr("Migrate Spatialite")
+        return self.tr("Migrate schematisation database")
 
     def group(self):
         """
@@ -142,7 +161,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+                self.INPUT, self.tr("3Di Schematisation"), fileFilter="GeoPackage (*.gpkg)"
             )
         )
 
@@ -279,188 +298,20 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         return CheckSchematisationAlgorithm()
 
 
-class ImportSufHydAlgorithm(QgsProcessingAlgorithm):
-    """
-    Import data from SufHyd to a 3Di Spatialite
-    """
-
-    INPUT_SUFHYD_FILE = "INPUT_SUFHYD_FILE"
-    TARGET_SQLITE = "TARGET_SQLITE"
-
-    def initAlgorithm(self, config):
-        self.addParameter(
-                QgsProcessingParameterFile(self.INPUT_SUFHYD_FILE, self.tr("Sufhyd file"), extension="hyd"))
-
-        self.addParameter(
-            QgsProcessingParameterFile(
-                self.TARGET_SQLITE,
-                "Target 3Di Sqlite",
-                extension="sqlite"
-            )
-        )
-
-    def processAlgorithm(self, parameters, context, feedback):
-        sufhyd_file = self.parameterAsString(parameters, self.INPUT_SUFHYD_FILE, context)
-        out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
-        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
-        if not threedi_db:
-            return {}
-        try:
-            schema = threedi_db.schema
-            schema.validate_schema()
-
-        except errors.MigrationMissingError:
-            feedback.pushWarning(
-                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
-                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
-            )
-            return {}
-
-        importer = Importer(sufhyd_file, threedi_db)
-        importer.run_import()
-
-        return {}
-
-    def name(self):
-        return "import_sufhyd"
-
-    def displayName(self):
-        return self.tr("Import Sufhyd")
-
-    def group(self):
-        return self.tr(self.groupId())
-
-    def groupId(self):
-        return "Schematisation"
-
-    def tr(self, string):
-        return QCoreApplication.translate("Processing", string)
-
-    def createInstance(self):
-        return ImportSufHydAlgorithm()
-
-
-class GuessIndicatorAlgorithm(QgsProcessingAlgorithm):
-    """
-    Guess manhole indicator, pipe friction and manhole storage
-    area.
-    """
-
-    TARGET_SQLITE = "TARGET_SQLITE"
-    PIPE_FRICTION = "PIPE_FRICTION"
-    MANHOLE_INDICATOR = "MANHOLE_INDICATOR"
-    MANHOLE_AREA = "MANHOLE_AREA"
-    ONLY_NULL_FIELDS = "ONLY_NULL_FIELDS"
-
-    def initAlgorithm(self, config):
-
-        self.addParameter(
-            QgsProcessingParameterFile(
-                self.TARGET_SQLITE,
-                "Target 3Di Sqlite",
-                extension="sqlite"
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                name=self.PIPE_FRICTION,
-                description="Pipe friction",
-                defaultValue=True,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                name=self.MANHOLE_INDICATOR,
-                description="Manhole indicator",
-                defaultValue=True,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                name=self.MANHOLE_AREA,
-                description="Manhole area (only fills NULL fields)",
-                defaultValue=True,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                name=self.ONLY_NULL_FIELDS,
-                description="Only fill NULL fields",
-                defaultValue=True,
-            )
-        )
-
-    def processAlgorithm(self, parameters, context, feedback):
-        out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
-        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
-        if not threedi_db:
-            return {}
-        try:
-            schema = threedi_db.schema
-            schema.validate_schema()
-
-        except errors.MigrationMissingError:
-            feedback.pushWarning(
-                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
-                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
-            )
-            return {}
-
-        checks = []
-
-        if parameters[self.MANHOLE_INDICATOR]:
-            checks.append("manhole_indicator")
-
-        if parameters[self.PIPE_FRICTION]:
-            checks.append("pipe_friction")
-
-        if parameters[self.MANHOLE_AREA]:
-            checks.append("manhole_area")
-
-        guesser = guess_indicators_utils.Guesser(threedi_db)
-        msg = guesser.run(checks, parameters[self.ONLY_NULL_FIELDS])
-
-        feedback.pushInfo(f"Guess indicators ready: {msg}")
-
-        return {}
-
-    def name(self):
-        return "guess_indicators"
-
-    def displayName(self):
-        return self.tr("Guess Indicators")
-
-    def group(self):
-        return self.tr(self.groupId())
-
-    def groupId(self):
-        return "Schematisation"
-
-    def tr(self, string):
-        return QCoreApplication.translate("Processing", string)
-
-    def createInstance(self):
-        return GuessIndicatorAlgorithm()
-
-
 class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     """
-    Import data from GWSW HydX to a 3Di Spatialite
+    Import data from GWSW HydX to a 3Di Schematisation
     """
 
     INPUT_DATASET_NAME = "INPUT_DATASET_NAME"
     HYDX_DOWNLOAD_DIRECTORY = "HYDX_DOWNLOAD_DIRECTORY"
     INPUT_HYDX_DIRECTORY = "INPUT_HYDX_DIRECTORY"
-    TARGET_SQLITE = "TARGET_SQLITE"
+    TARGET_SCHEMATISATION = "TARGET_SCHEMATISATION"
 
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.TARGET_SQLITE, "Target 3Di Spatialite", extension="sqlite"
+                self.TARGET_SCHEMATISATION, "Target 3Di Schematisation", fileFilter="GeoPackage (*.gpkg)"
             )
         )
 
@@ -497,11 +348,11 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         hydx_path = self.parameterAsString(
             parameters, self.INPUT_HYDX_DIRECTORY, context
         )
-        out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
+        out_path = self.parameterAsFile(parameters, self.TARGET_SCHEMATISATION, context)
         threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
         if not threedi_db:
             raise QgsProcessingException(
-                f"Unable to connect to 3Di spatialite '{out_path}'"
+                f"Unable to connect to 3Di schematisation '{out_path}'"
             )
         try:
             schema = threedi_db.schema
@@ -509,8 +360,8 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
 
         except errors.MigrationMissingError:
             raise QgsProcessingException(
-                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
-                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
+                "The selected 3Di schematisation does not have the latest database schema version. Please migrate this "
+                "schematisation and try again: Processing > Toolbox > 3Di > Schematisation > Migrate schematisation database"
             )
         if not (hydx_dataset_name or hydx_path):
             raise QgsProcessingException(
@@ -542,11 +393,13 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
             # hydx_path will be None if user has canceled the process during download
             if feedback.isCanceled():
                 raise QgsProcessingException("Process canceled")
+            if hydx_path is None:
+                raise QgsProcessingException("Error in retrieving dataset (note case-sensitivity)")
         feedback.pushInfo(f"Starting import of {hydx_path} to {out_path}")
         log_path = Path(out_path).parent / "import_hydx.log"
         write_logging_to_file(log_path)
         feedback.pushInfo(f"Logging will be written to {log_path}")
-        run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)
+        run_import_export(hydx_path=hydx_path, out_path=out_path)
         return {}
 
     def name(self):
@@ -570,10 +423,10 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         return """
         <h3>Introduction</h3>
         <p>Use this processing algorithm to import data in the format of the Dutch "Gegevenswoordenboek Stedelijk Water (GWSW)". Either select a previously downloaded local dataset, or download a dataset directly from the server.</p>
-        <p>A log file will be created in the same directory as the Target 3Di Spatialite. Please check this log file after the import has completed.&nbsp;&nbsp;</p>
+        <p>A log file will be created in the same directory as the Target 3Di schematisation. Please check this log file after the import has completed.&nbsp;&nbsp;</p>
         <h3>Parameters</h3>
-        <h4>Target 3Di Spatialite</h4>
-        <p>Spatialite (.sqlite) file that contains the layers required by 3Di. Imported data will be added to any data already contained in the 3Di Spatialite.</p>
+        <h4>Target 3Di Schematisation</h4>
+        <p>GeoPackage (.gpkg) file that contains the layers required by 3Di. Imported data will be added to any data already contained in the 3Di schematisation.</p>
         <h4>GWSW HydX directory (local)</h4>
         <p>Use this option if you have already downloaded a GWSW HydX dataset to a local directory.</p>
         <h4>GWSW dataset name (online)</h4>

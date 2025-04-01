@@ -1,26 +1,29 @@
-import os
 from collections import OrderedDict
+from qgis.core import QgsProcessingAlgorithm
+from qgis.core import QgsProcessingException
+from qgis.core import QgsProcessingParameterFile
+from qgis.core import QgsProcessingParameterFileDestination
+from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (
-    QgsProcessingAlgorithm,
-    QgsProcessingException,
-    QgsProcessingParameterFile,
-    QgsProcessingParameterFileDestination,
-    QgsVectorLayer,
+from threedi_results_analysis.processing.processing_utils import gridadmin2geopackage
+from threedi_results_analysis.processing.processing_utils import (
+    load_computational_layers,
 )
-from threedigrid_builder import make_gridadmin, SchematisationError
-from threedi_results_analysis.processing.processing_utils import gridadmin2geopackage, load_computational_layers
-import logging
+from threedigrid_builder import make_gridadmin
+from threedigrid_builder import SchematisationError
+
 import io
+import logging
+import os
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
     """
-    Generate a gridadmin.h5 file out of Spatialite database and convert it to GeoPackage.
+    Generate a gridadmin.h5 file out of schematisation database and convert it to GeoPackage.
     Created layers will be added to the map canvas after successful conversion.
     """
 
-    INPUT_SPATIALITE = "INPUT_SPATIALITE"
+    INPUT_SCHEMATISATION = "INPUT_SCHEMATISATION"
     OUTPUT = "OUTPUT"
     LAYERS_TO_ADD = OrderedDict()
 
@@ -52,10 +55,10 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT_SPATIALITE,
-                self.tr("Input SpatiaLite file"),
+                self.INPUT_SCHEMATISATION,
+                self.tr("Input schematisation file"),
                 behavior=QgsProcessingParameterFile.File,
-                extension="sqlite",
+                fileFilter="GeoPackage (*.gpkg);;Spatialite (*.sqlite)",
             )
         )
 
@@ -66,33 +69,22 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        input_spatialite = self.parameterAsString(parameters, self.INPUT_SPATIALITE, context)
-        if not input_spatialite:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_SPATIALITE))
+        input_schematisation = self.parameterAsString(parameters, self.INPUT_SCHEMATISATION, context)
+        if not input_schematisation:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_SCHEMATISATION))
 
-        uri = input_spatialite + "|layername=v2_global_settings"
-        feedback.pushInfo(f"Reading DEM settings from: {uri}")
-        settings_lyr = QgsVectorLayer(uri, "glob_settings", "ogr")
-        if not settings_lyr.isValid():
-            err = f"Global Spatialite settings table could not be loaded from {uri}\n" "Check your Spatialite file."
-            raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
-        try:
-            settings_feat = next(settings_lyr.getFeatures())
-        except StopIteration:
-            err = f"No global settings entries in {uri}" "Check your Spatialite file."
-            raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
-        set_dem_rel_path = settings_feat["dem_file"]
+        set_dem_rel_path = self._get_rel_dem_path(input_schematisation, feedback)
         if set_dem_rel_path:
-            input_spatialite_dir = os.path.dirname(input_spatialite)
-            set_dem_path = os.path.join(input_spatialite_dir, set_dem_rel_path)
-            feedback.pushInfo(f"DEM raster referenced in Spatialite settings:\n{set_dem_path}")
+            input_schematisation_dir = os.path.dirname(input_schematisation)
+            set_dem_path = os.path.join(input_schematisation_dir, set_dem_rel_path)
+            feedback.pushInfo(f"DEM raster referenced in schematisation settings:\n{set_dem_path}")
             if not os.path.exists(set_dem_path):
                 set_dem_path = None
-                info = "The DEM referenced in the Spatialite settings doesn't exist - skipping."
+                info = "The DEM referenced in the schematisation settings doesn't exist - skipping."
                 feedback.pushInfo(info)
         else:
             set_dem_path = None
-            info = "There is no DEM file referenced in the Spatialite settings - skipping."
+            info = "There is no DEM file referenced in the schematisation settings - skipping."
             feedback.pushInfo(info)
         output_gpkg_file = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if output_gpkg_file is None:
@@ -116,7 +108,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         ch.setLevel(logging.DEBUG)
         logger.addHandler(ch)
         try:
-            make_gridadmin(input_spatialite, set_dem_path, gridadmin_file, progress_callback=progress_rep)
+            make_gridadmin(input_schematisation, set_dem_path, gridadmin_file, progress_callback=progress_rep)
         except SchematisationError as e:
             err = f"Creating grid file failed with the following error: {repr(e)}"
             raise QgsProcessingException(err)
@@ -140,3 +132,36 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         load_computational_layers(self.LAYERS_TO_ADD, project)
         self.LAYERS_TO_ADD.clear()
         return {}
+
+    def _get_schematisation_version(self, input_schematisation: str) -> int:
+        uri = input_schematisation + "|layername=schema_version"
+        schema_lyr = QgsVectorLayer(uri, "schema_version", "ogr")
+        if schema_lyr.isValid() and schema_lyr.featureCount() == 1:
+            # Take first (and only)
+            meta = next(schema_lyr.getFeatures())
+            return int(meta["version_num"])
+        else:
+            return None
+
+    def _get_rel_dem_path(self, input_schematisation: str, feedback) -> str:
+
+        schematisation_version = self._get_schematisation_version(input_schematisation)
+        setting_uri = None
+        if schematisation_version < 222:
+            setting_uri = input_schematisation + "|layername=v2_global_settings"
+        else:
+            setting_uri = input_schematisation + "|layername=model_settings"
+
+        feedback.pushInfo(f"Reading DEM file from: {setting_uri}")
+        settings_lyr = QgsVectorLayer(setting_uri, "settings", "ogr")
+        if settings_lyr.isValid() and settings_lyr.featureCount() == 1:
+            settings_feat = next(settings_lyr.getFeatures())
+            set_dem_rel_path = settings_feat["dem_file"]
+        else:
+            err = f"No (or multiple) global settings entries in {setting_uri}" "Check your schematisation file."
+            raise QgsProcessingException(f"Incorrect input schematisation file:\n{err}")
+
+        if schematisation_version >= 222:
+            set_dem_rel_path = os.path.join("rasters", set_dem_rel_path)
+
+        return set_dem_rel_path

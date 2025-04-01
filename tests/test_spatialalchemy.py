@@ -2,8 +2,9 @@ from geoalchemy2.types import Geometry
 from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
-from threedi_results_analysis.utils.threedi_database import ThreediDatabase
 from sqlalchemy.orm import declarative_base
+from threedi_results_analysis.utils.threedi_database import ThreediDatabase
+
 import logging
 import os.path
 import tempfile
@@ -30,7 +31,7 @@ class GeoTable(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     geom = Column(
-        Geometry(geometry_type="POINT", srid=4326, management=True, spatial_index=True)
+        Geometry(geometry_type="POINT", srid=4326, spatial_index=True)
     )
 
     def __repr__(self):

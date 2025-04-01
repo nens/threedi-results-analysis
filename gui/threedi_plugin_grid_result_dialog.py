@@ -248,7 +248,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     rows.append([schema_item, revision_item, result_item])
 
                 # In case no results are present, but a gridadmin is present, we still add the grid, but without result item
-                if num_of_results == 0 and os.path.exists(os.path.join(local_revision.grid_dir, "gridadmin.h5")):
+                if num_of_results == 0 and local_revision.grid_dir and os.path.exists(os.path.join(local_revision.grid_dir, "gridadmin.h5")):
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))

@@ -4,9 +4,6 @@ from qgis.PyQt.QtGui import QIcon
 from threedi_results_analysis.processing.cross_sectional_discharge_algorithm import (
     CrossSectionalDischargeAlgorithm,
 )
-from threedi_results_analysis.processing.dwf_calculation_algorithm import (
-    DWFCalculatorAlgorithm,
-)
 from threedi_results_analysis.processing.gpkg_conversion_algorithm import (
     ThreeDiConvertToGpkgAlgorithm,
 )
@@ -26,13 +23,7 @@ from threedi_results_analysis.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
-    GuessIndicatorAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
     ImportHydXAlgorithm,
-)
-from threedi_results_analysis.processing.schematisation_algorithms import (
-    ImportSufHydAlgorithm,
 )
 from threedi_results_analysis.processing.schematisation_algorithms import (
     MigrateAlgorithm,
@@ -56,19 +47,16 @@ class ThreediProvider(QgsProcessingProvider):
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(ThreediDepthAlgorithm())
         self.addAlgorithm(ThreediMaxDepthAlgorithm())
-        self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
-        self.addAlgorithm(ImportHydXAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
-        self.addAlgorithm(ImportSufHydAlgorithm())
-        self.addAlgorithm(GuessIndicatorAlgorithm())
         self.addAlgorithm(CrossSectionalDischargeAlgorithm())
         self.addAlgorithm(DetectLeakingObstaclesAlgorithm())
         self.addAlgorithm(DetectLeakingObstaclesWithDischargeThresholdAlgorithm())
         self.addAlgorithm(RastersToNetCDFAlgorithm())
         self.addAlgorithm(StructureControlActionAlgorithm())
+        self.addAlgorithm(ImportHydXAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.

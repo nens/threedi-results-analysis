@@ -4,8 +4,11 @@
 3.15 (unreleased)
 -----------------
 
+- Removed ImportSufHydAlgorithm, GuessIndicatorAlgorithm and DWFCalculatorAlgorithm (#1079, #1051).
+- Watershed: support gpkg and update to new schematisation schema (#1085)
+- Updated schema to 300
 - Select nearest result timestep at or before controller time. (#1084)
-
+- Remove all mentions and uses of spatialite, except in "Migrate schematisation database" algorithm
 
 3.14 (2025-01-23)
 -----------------
