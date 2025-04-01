@@ -47,23 +47,46 @@ def threedigrid_to_ogr(
     src_layer = src_ds.GetLayerByName(layer_name)
     if ids is not None:
         src_layer.SetAttributeFilter(f"id in ({','.join([str(i) for i in ids])})")
-    layer = tgt_ds.CopyLayer(src_layer, layer_name)
+    layer = tgt_ds.CreateLayer(
+        name=layer_name,
+        srs=src_layer.GetSpatialRef(),
+        geom_type=GEOMETRY_TYPE_MAP[layer_name]
+    )
     layer_defn = layer.GetLayerDefn()
+    # first copy old layer field definitions to the new layer
+    old_layer_defn = src_layer.GetLayerDefn()
+    for i in range(old_layer_defn.GetFieldCount()):
+        old_field = old_layer_defn.GetFieldDefn(i)
+        old_name = old_field.GetName()
+        old_type = old_field.GetType()
+        old_subtype = old_field.GetSubType()
+        field_defn = ogr.FieldDefn(old_name, old_type)
+        if old_subtype != 0:
+            field_defn.SetSubType(old_subtype)
 
-    # the initial geometry type of the layer is unknown or none
-    # thus we need to set geometry type manually
-    layer_defn.SetGeomType(GEOMETRY_TYPE_MAP[layer_name])
+        layer.CreateField(field_defn)
 
-    # add additional attributes to the layer
+    # then create layer field definitions for any missing attributes
     for attr_name, attr_values in attributes.items():
-        if len(attr_values) != layer.GetFeatureCount():
-            raise ValueError(
-                f"The number of attribute values ({len(attr_values)}) supplied for attribute {attr_name} differs from "
-                f"the number of {layer_name} features to be copied ({layer.GetFeatureCount()})"
-            )
+        # TODO: sort out what this stuff does and if it's still necessary
+        # if len(attr_values) != layer.GetFeatureCount():
+        #     raise ValueError(
+        #         f"The number of attribute values ({len(attr_values)}) supplied for attribute {attr_name} differs from "
+        #         f"the number of {layer_name} features to be copied ({layer.GetFeatureCount()})"
+        #     )
         if layer_defn.GetFieldIndex(attr_name) == -1:
             field_defn = ogr.FieldDefn(attr_name, attr_data_types[attr_name])
             layer.CreateField(field_defn)
+
+    for feature in src_layer:
+        new_feature = ogr.Feature(layer.GetLayerDefn())
+        new_feature.SetFrom(feature)
+        new_feature.SetFID(feature.GetFID())
+        layer.CreateFeature(new_feature)
+
+
+    # add additional attributes to the layer
+    for attr_name, attr_values in attributes.items():
 
         # set the additional attribute value for each feature
         for i, feature in enumerate(layer):
@@ -76,6 +99,7 @@ def threedigrid_to_ogr(
                 val = val.decode("utf-8") if isinstance(val, bytes) else str(val)
 
             feature[attr_name] = val
+
             layer.SetFeature(feature)
             feature = None
 
