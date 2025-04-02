@@ -78,7 +78,6 @@ def threedigrid_to_ogr(
         new_feature.SetFID(feature.GetFID())
         layer.CreateFeature(new_feature)
 
-
     # add additional attributes to the layer
     for attr_name, attr_values in attributes.items():
         if len(attr_values) != layer.GetFeatureCount():
