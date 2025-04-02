@@ -18,14 +18,17 @@ jobs:
       # Checkout the code.
       - uses: actions/checkout@v2
 
-      - name: build
+      - name: Build
         run: docker compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
 
+      - name: Lint
+        run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make flake8
+
+      - name: Check dependency constraints
+        run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make check
+
       - name: test
-        run: |
-          docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make check
-          docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
-          docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make flake8
+        run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
           docker compose run qgis-desktop make docstrings
           docker compose run qgis-desktop coveralls || true
           docker compose run qgis-desktop make zip
