@@ -4,7 +4,7 @@
 3.16 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bumped threedi-mi-utils to 0.1.10.
 
 
 3.15 (2025-04-01)
