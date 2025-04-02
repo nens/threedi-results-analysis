@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.16 (unreleased)
+3.16 (2025-04-02)
 -----------------
 
 - Bumped threedi-mi-utils to 0.1.10.
