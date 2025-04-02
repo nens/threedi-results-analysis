@@ -27,13 +27,19 @@ jobs:
       - name: Check dependency constraints
         run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make check
 
-      - name: test
+      - name: Test
         run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
-          docker compose run qgis-desktop make docstrings
-          docker compose run qgis-desktop coveralls || true
-          docker compose run qgis-desktop make zip
+
+      - name: Docstring coverage report
+        run: docker compose run qgis-desktop make docstrings
+
+      - name: Submit coverage to coveralls.io
+        run: docker compose run qgis-desktop coveralls || true
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+
+      - name: Build zip
+        run: docker compose run qgis-desktop make zip
 
       - name: Publish package
         if: startsWith(github.event.ref, 'refs/tags')
