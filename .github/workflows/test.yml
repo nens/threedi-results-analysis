@@ -34,7 +34,9 @@ jobs:
         run: docker compose run qgis-desktop make docstrings
 
       - name: Submit coverage to coveralls.io
-        run: docker compose run qgis-desktop coveralls || true
+        # current directory must be marked as safe, or git rev-parse --abbrev-ref HEAD will complain of dubious ownership
+        # this causes coveralls to raise an exception
+        run: docker compose run qgis-desktop pwd | xargs git config --global --add safe.directory && coveralls || true
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
