@@ -68,12 +68,6 @@ def threedigrid_to_ogr(
 
     # then create layer field definitions for any missing attributes
     for attr_name, attr_values in attributes.items():
-        # TODO: sort out what this stuff does and if it's still necessary
-        # if len(attr_values) != layer.GetFeatureCount():
-        #     raise ValueError(
-        #         f"The number of attribute values ({len(attr_values)}) supplied for attribute {attr_name} differs from "
-        #         f"the number of {layer_name} features to be copied ({layer.GetFeatureCount()})"
-        #     )
         if layer_defn.GetFieldIndex(attr_name) == -1:
             field_defn = ogr.FieldDefn(attr_name, attr_data_types[attr_name])
             layer.CreateField(field_defn)
@@ -87,6 +81,11 @@ def threedigrid_to_ogr(
 
     # add additional attributes to the layer
     for attr_name, attr_values in attributes.items():
+        if len(attr_values) != layer.GetFeatureCount():
+            raise ValueError(
+                f"The number of attribute values ({len(attr_values)}) supplied for attribute {attr_name} differs from "
+                f"the number of {layer_name} features to be copied ({layer.GetFeatureCount()})"
+            )
 
         # set the additional attribute value for each feature
         for i, feature in enumerate(layer):
