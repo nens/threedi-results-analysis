@@ -61,7 +61,7 @@ def threedigrid_to_ogr(
         old_type = old_field.GetType()
         old_subtype = old_field.GetSubType()
         field_defn = ogr.FieldDefn(old_name, old_type)
-        if old_subtype != 0:
+        if old_subtype != ogr.OFSTNone:
             field_defn.SetSubType(old_subtype)
 
         layer.CreateField(field_defn)
