@@ -18,19 +18,30 @@ jobs:
       # Checkout the code.
       - uses: actions/checkout@v2
 
-      - name: build
+      - name: Build
         run: docker compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
 
-      - name: test
-        run: |
-          docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make check
-          docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
-          docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make flake8
-          docker compose run qgis-desktop make docstrings
-          docker compose run qgis-desktop coveralls || true
-          docker compose run qgis-desktop make zip
+      - name: Lint
+        run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make flake8
+
+      - name: Check dependency constraints
+        run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make check
+
+      - name: Test
+        run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
+
+      - name: Docstring coverage report
+        run: docker compose run qgis-desktop make docstrings
+
+      - name: Submit coverage to coveralls.io
+        # current directory must be marked as safe, or git rev-parse --abbrev-ref HEAD will complain of dubious ownership
+        # this causes coveralls to raise an exception
+        run: docker compose run qgis-desktop bash -c 'git config --global --add safe.directory $(pwd) && coveralls'
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+
+      - name: Build zip
+        run: docker compose run qgis-desktop make zip
 
       - name: Publish package
         if: startsWith(github.event.ref, 'refs/tags')
