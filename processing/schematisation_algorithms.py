@@ -14,6 +14,7 @@
 import csv
 import os
 import shutil
+import warnings
 from pathlib import Path
 
 from hydxlib.scripts import run_import_export, write_logging_to_file
@@ -96,8 +97,12 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
 
             try:
                 feedback_callback = feedback_callback_factory(feedback)
-                schema.upgrade(backup=False, upgrade_spatialite_version=True, epsg_code_override=srid,
-                               progress_func=feedback_callback)
+                with warnings.catch_warnings(record=True) as w:
+                    warnings.simplefilter("always", UserWarning)
+                    schema.upgrade(backup=False, epsg_code_override=srid, progress_func=feedback_callback)
+                if w:
+                    for warning in w:
+                        feedback.pushWarning(f'{warning._category_name}: {warning.message}')
                 schema.set_spatial_indexes()
                 shutil.rmtree(os.path.dirname(backup_filepath))
             except errors.UpgradeFailedError:
