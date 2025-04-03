@@ -4,7 +4,7 @@
 3.17 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Create a new layer and copy features to it instead of using CopyLayer to work around GDAL 3.9 behaviour (#1094).
 
 
 3.16 (2025-04-02)
