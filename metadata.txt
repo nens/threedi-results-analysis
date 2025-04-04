@@ -37,6 +37,7 @@ category=Plugins
 icon=icons/icon.png
 experimental=False
 hasProcessingProvider=yes
+plugin_dependencies=N&S Dependency Loader
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

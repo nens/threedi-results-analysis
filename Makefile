@@ -53,7 +53,7 @@ docstrings:
 	@echo "#### Docstring coverage report"
 	python3 scripts/docstring-report.py
 
-zip: compile
+zip:
 	@echo
 	@echo "---------------------------"
 	@echo "Creating plugin zip bundle."
