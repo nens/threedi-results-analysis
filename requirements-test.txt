@@ -1,0 +1,17 @@
+SQLAlchemy==2.0.6
+GeoAlchemy2==0.15.*
+pyqtgraph>=0.13.2
+Mako
+cftime>=1.5.0
+alembic==1.14.*
+threedigrid==2.3.*
+threedi-schema==0.300.22
+threedi-modelchecker==2.17.13
+threedidepth==0.6.3
+networkx
+condenser>=0.2.1
+Shapely>=2.0.0
+threedigrid-builder==1.24.*
+h5netcdf
+threedi-mi-utils==0.1.10
+hydxlib==1.7.2
