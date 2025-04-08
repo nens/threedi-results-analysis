@@ -13,7 +13,11 @@ RUN qgis_setup.sh
 ENV PYTHONPATH=/usr/share/qgis/python/:/usr/share/qgis/python/plugins:/usr/lib/python3/dist-packages/qgis:/usr/share/qgis/python/qgis:/root/.local/share/QGIS/QGIS3/profiles/default/python
  
 # Install the test dependencies in a folder in python path
-RUN pip3 install -r /root/requirements-test.txt --no-deps --upgrade --target /usr/share/qgis/python/plugins
+# Retrieve constraints from dependency loader
+ADD https://raw.githubusercontent.com/nens/nens-dependency-loader/refs/heads/main/dependencies.py /root/dependencies.py
+RUN python3 /root/dependencies.py
+
+RUN pip3 install -r /root/requirements-test.txt -c /root/constraints.txt --no-deps --upgrade --target /usr/share/qgis/python/plugins
 
 # Note: we'll mount the current dir into this WORKDIR
 WORKDIR /root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/threedi_results_analysis
