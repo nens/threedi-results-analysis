@@ -38,10 +38,6 @@ from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
 
-import csv
-import os
-import shutil
-
 
 def get_threedi_database(filename, feedback):
     try:
