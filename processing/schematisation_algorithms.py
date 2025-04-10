@@ -87,7 +87,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         # the schematisation editor
         if filename.endswith(".gpkg"):
             if schema.get_version() < 300:
-                warn_msg = "Perhaps you have selected a geopackage that was created by an older version (< 2.0) of the 3Di Schematisation Editor. In that case, please use the processing algorithm Migrate schematisation database on the Spatialite in the same folder to solve this problem."
+                warn_msg = "The selected file is not a valid 3Di schematisation database.\n\nYou may have selected a geopackage that was created by an older version of the 3Di Schematisation Editor (before version 2.0). In that case, there will probably be a Spatialite (*.sqlite) in the same folder. Please use that file instead."
                 feedback.pushWarning(warn_msg)
                 return {self.OUTPUT: None}
 

@@ -5,14 +5,10 @@ can have also have such files in subdirectories. The fixtures in this file
 *stay* available there, except when you override them.
 
 """
+from pathlib import Path
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
-
 from threedi_results_analysis import PLUGIN_DIR
-from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
-
-from pathlib import Path
 
 import os
 import pytest
@@ -58,7 +54,9 @@ def ts_datasources(tmp_path):
 
     """
     # Late import, otherwise we get circular import errors.
-    from threedi_results_analysis.tool_result_selection.models import TimeseriesDatasourceModel
+    from threedi_results_analysis.tool_result_selection.models import (
+        TimeseriesDatasourceModel,
+    )
 
     shutil.copytree(BERGERMEER_DIR, tmp_path / "v2_bergermeer")
     copied_results_3di_path = tmp_path / "v2_bergermeer" / "results_3di.nc"
@@ -75,6 +73,8 @@ def ts_datasources(tmp_path):
 
 @pytest.fixture(scope='session')
 def three_di_result_item(tmpdir_factory):
+    from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+    from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
     """ Result pointing to the bergermeer test model. """
     tmp_path = tmpdir_factory.mktemp("testdata")
     shutil.copytree(BERGERMEER_DIR, tmp_path / "v2_bergermeer")

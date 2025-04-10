@@ -24,9 +24,6 @@ jobs:
       - name: Lint
         run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make flake8
 
-      - name: Check dependency constraints
-        run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make check
-
       - name: Test
         run: docker compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
 

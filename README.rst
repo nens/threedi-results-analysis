@@ -47,9 +47,7 @@ Installation notes
 ^^^^^^^^^^^^^^^^^^
 
 If you have the ``PIP_REQUIRE_VIRTUALENV=1`` setting you may have to
-(temporally) remove that in order to install the plugin, but be assured that
-all the required dependencies are bundled with the plugin and automatically
-installed into the ``deps`` directory of the plugin in your QGIS profile.
+(temporally) remove that in order to install the plugin.
 
 
 Local development
