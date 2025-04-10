@@ -1,5 +1,4 @@
 """Tests QGIS plugin init."""
-from threedi_results_analysis import dependencies
 from threedi_results_analysis import PLUGIN_DIR
 
 import configparser
@@ -60,7 +59,6 @@ def test_classFactory(qtbot):
     # Somehow some deps seemed to be missing after a recent change, that's why we install
     # everything again.
     importlib.reload(pkg_resources)
-    dependencies.ensure_everything_installed()
     with mock.patch("threedi_results_analysis.threedi_plugin.ThreeDiPlugin.__init__", mock_init):
         iface = mock.Mock()
         assert threedi_results_analysis.classFactory(iface)

@@ -1,0 +1,17 @@
+SQLAlchemy
+GeoAlchemy2
+pyqtgraph
+Mako
+cftime
+alembic
+threedigrid
+threedi-schema
+threedi-modelchecker
+threedidepth
+networkx
+condenser
+Shapely
+threedigrid-builder
+h5netcdf
+threedi-mi-utils
+hydxlib

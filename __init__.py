@@ -3,17 +3,12 @@
 Qgis automatically calls an installed plugin's :py:func:`classFactory` to
 actually load the plugin.
 
-Note: beforehand we call our dependency mechanism (see
-:doc:`linked_external-dependencies_readme`) to ensure all dependencies are
-there.
-
 """
+from .utils.qlogging import setup_logging
 from pathlib import Path
+
 import faulthandler
 import sys
-
-from . import dependencies
-from .utils.qlogging import setup_logging
 
 
 #: Handy constant for building relative paths.
@@ -28,8 +23,8 @@ if sys.stderr is not None and hasattr(sys.stderr, "fileno"):
 
 def enable_high_dpi_scaling():
     """Enable High DPI scaling."""
-    from qgis.PyQt.QtCore import Qt
     from qgis.PyQt.QtCore import QCoreApplication
+    from qgis.PyQt.QtCore import Qt
     from qgis.PyQt.QtWidgets import QApplication
 
     if hasattr(Qt, "HighDpiScaleFactorRoundingPolicy"):
@@ -52,7 +47,3 @@ def classFactory(iface):
 
     from .threedi_plugin import ThreeDiPlugin
     return ThreeDiPlugin(iface)
-
-
-dependencies.ensure_everything_installed()
-dependencies.check_importability()
