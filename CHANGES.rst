@@ -5,6 +5,7 @@
 -----------------
 
 - Create a new layer and copy features to it instead of using CopyLayer to work around GDAL 3.9 behaviour (#1094).
+- Added additonal check for legacy geopackages.
 
 
 3.16 (2025-04-02)

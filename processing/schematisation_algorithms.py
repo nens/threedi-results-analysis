@@ -11,26 +11,30 @@
 ***************************************************************************
 """
 
+from hydxlib.scripts import run_import_export
+from hydxlib.scripts import write_logging_to_file
+from pathlib import Path
+from qgis.core import QgsProcessingAlgorithm
+from qgis.core import QgsProcessingException
+from qgis.core import QgsProcessingParameterBoolean
+from qgis.core import QgsProcessingParameterFile
+from qgis.core import QgsProcessingParameterFileDestination
+from qgis.core import QgsProcessingParameterFolderDestination
+from qgis.core import QgsProcessingParameterString
+from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
+from qgis.PyQt.QtCore import QCoreApplication
+from sqlalchemy.exc import DatabaseError
+from sqlalchemy.exc import OperationalError
+from threedi_modelchecker import ThreediModelChecker
+from threedi_results_analysis.processing.download_hydx import download_hydx
+from threedi_results_analysis.utils.utils import backup_sqlite
+from threedi_schema import errors
+from threedi_schema import ThreediDatabase
+
 import csv
 import os
 import shutil
-from pathlib import Path
-
-from hydxlib.scripts import run_import_export, write_logging_to_file
-from qgis.core import (QgsProcessingAlgorithm, QgsProcessingException,
-                       QgsProcessingParameterBoolean,
-                       QgsProcessingParameterFile,
-                       QgsProcessingParameterFileDestination,
-                       QgsProcessingParameterFolderDestination,
-                       QgsProcessingParameterString, QgsProject,
-                       QgsVectorLayer)
-from qgis.PyQt.QtCore import QCoreApplication
-from sqlalchemy.exc import DatabaseError, OperationalError
-from threedi_modelchecker import ThreediModelChecker
-from threedi_schema import ThreediDatabase, errors
-
-from threedi_results_analysis.processing.download_hydx import download_hydx
-from threedi_results_analysis.utils.utils import backup_sqlite
 
 
 def get_threedi_database(filename, feedback):
@@ -76,6 +80,15 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         if not threedi_db:
             return {self.OUTPUT: None}
         schema = threedi_db.schema
+
+        # Check whether is it not an intermediate legacy geopackage created by
+        # the schematisation editor
+        if filename.endswith(".gpkg"):
+            if schema.get_version() < 300:
+                warn_msg = "The selected file is not a valid 3Di schematisation database.\n\nYou may have selected a geopackage that was created by an older version of the 3Di Schematisation Editor (before version 2.0). In that case, there will probably be a Spatialite (*.sqlite) in the same folder. Please use that file instead."
+                feedback.pushWarning(warn_msg)
+                return {self.OUTPUT: None}
+
         try:
             schema.validate_schema()
             schema.set_spatial_indexes()
