@@ -44,7 +44,6 @@ class FractionDockWidget(QDockWidget):
 
         parameter_config = self._get_active_parameter_config()
 
-        # add graph widgets
         self.fraction_widget = FractionWidget(
             self,
             self.model,

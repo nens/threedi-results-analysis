@@ -22,6 +22,7 @@ from threedi_results_analysis.datasource.threedi_results import normalized_objec
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.tool_fraction_analysis.fraction_plot import FractionPlot
+from threedi_results_analysis.tool_fraction_analysis.fraction_table import FractionTable
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import statusbar_message
@@ -73,17 +74,17 @@ class FractionWidget(QWidget):
 
         self.setup_ui()
 
-        # self.location_model = LocationTimeseriesModel(self.model)
+        self.location_model = None  #LocationTimeseriesModel(self.model)
         self.graph_plot.set_location_model(self.location_model)
         self.graph_plot.set_result_model(self.model)
-        self.location_timeseries_table.setModel(self.location_model)
+        self.fraction_table.setModel(self.location_model)
         self._updateHiddenColumns(self.showFullLegendCheckbox.checkState())
 
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.showFullLegendCheckbox.stateChanged.connect(self._updateHiddenColumns)
-        self.location_timeseries_table.deleteRequested.connect(self._removeRows)
+        self.fraction_table.deleteRequested.connect(self._removeRows)
 
         # init parameter selection
         self.set_parameter_list(parameter_config)
@@ -214,16 +215,16 @@ class FractionWidget(QWidget):
         vLayoutTable.addWidget(self.ts_units_combo_box)
 
         # add timeseries table
-        self.location_timeseries_table = None # LocationTimeseriesTable(self)
-        self.location_timeseries_table.hoverEnterRow.connect(self.highlight_feature)
-        self.location_timeseries_table.hoverExitAllRows.connect(self.unhighlight_all_features)
+        self.fraction_table = FractionTable(self)
+        self.fraction_table.hoverEnterRow.connect(self.highlight_feature)
+        self.fraction_table.hoverExitAllRows.connect(self.unhighlight_all_features)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.location_timeseries_table.sizePolicy().hasHeightForWidth())
-        self.location_timeseries_table.setSizePolicy(sizePolicy)
-        self.location_timeseries_table.setMinimumSize(QSize(250, 0))
-        vLayoutTable.addWidget(self.location_timeseries_table)
+        sizePolicy.setHeightForWidth(self.fraction_table.sizePolicy().hasHeightForWidth())
+        self.fraction_table.setSizePolicy(sizePolicy)
+        self.fraction_table.setMinimumSize(QSize(250, 0))
+        vLayoutTable.addWidget(self.fraction_table)
 
         # add button below table
         hLayoutButtons = QHBoxLayout(self)
@@ -417,7 +418,7 @@ class FractionWidget(QWidget):
         removes selected objects from table
         :return:
         """
-        selection_model = self.location_timeseries_table.selectionModel()
+        selection_model = self.fraction_table.selectionModel()
         # get unique rows in selected fields
         rows = set([index.row() for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):

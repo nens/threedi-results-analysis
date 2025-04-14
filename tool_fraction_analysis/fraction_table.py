@@ -3,9 +3,7 @@ from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QAbstractItemView
-from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QColorDialog
-from qgis.PyQt.QtWidgets import QMenu
 from qgis.PyQt.QtWidgets import QTableView
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.utils.widgets import PenStyleWidget
@@ -16,10 +14,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class LocationTimeseriesTable(QTableView):
+class FractionTable(QTableView):
 
     hoverExitRow = pyqtSignal(int)
-    hoverExitAllRows = pyqtSignal()  # exit the whole widget
+    hoverExitAllRows = pyqtSignal()
     hoverEnterRow = pyqtSignal(int, str, ThreeDiResultItem)
     deleteRequested = pyqtSignal(list)
 
@@ -30,19 +28,8 @@ class LocationTimeseriesTable(QTableView):
         self.verticalHeader().hide()
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.model = None
-
         self._last_hovered_row = None
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.customMenuRequested)
         self.viewport().installEventFilter(self)
-
-    def customMenuRequested(self, pos):
-        selectionModel = self.selectionModel()
-        menu = QMenu(self)
-        action_delete = QAction("Delete", self)
-        action_delete.triggered.connect(lambda _, sel_inx=selectionModel.selectedRows(): self.deleteRequested.emit(sel_inx))
-        menu.addAction(action_delete)
-        menu.popup(self.viewport().mapToGlobal(pos))
 
     def on_close(self):
         """
@@ -131,7 +118,6 @@ class LocationTimeseriesTable(QTableView):
         self.horizontalHeader().setStretchLastSection(True)
         self.setVisible(True)
         self.model.set_column_sizes_on_view(self)
-        # Columns checkbox can be set small always
         self.setColumnWidth(0, 20)  # checkbox
 
     def _update_table_widgets(self):
