@@ -16,10 +16,13 @@ import os
 import shutil
 import warnings
 
+from pathlib import Path
+
 from hydxlib.scripts import run_import_export
 from hydxlib.scripts import write_logging_to_file
 
-from pathlib import Path
+from osgeo import ogr, osr
+from osgeo import gdal
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingParameterBoolean
@@ -30,9 +33,12 @@ from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QCoreApplication
+from shapely import wkb  # Import Shapely wkb for geometry handling
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.exc import OperationalError
+
 from threedi_modelchecker import ThreediModelChecker
+from threedi_modelchecker.exporters import export_with_geom
 from threedi_results_analysis.processing.download_hydx import download_hydx
 from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
@@ -218,53 +224,82 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         generated_output_file_path = self.parameterAsFileOutput(
             parameters, self.OUTPUT, context
         )
-        self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
+        self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.gpkg"
         session = model_checker.db.get_session()
         session.model_checker_context = model_checker.context
         total_checks = len(model_checker.config.checks)
         progress_per_check = 100.0 / total_checks
         checks_passed = 0
-        try:
-            with open(self.output_file_path, "w", newline="") as output_file:
-                writer = csv.writer(output_file)
-                writer.writerow(
-                    [
-                        "level",
-                        "error_code",
-                        "id",
-                        "table",
-                        "column",
-                        "value",
-                        "description",
-                    ]
-                )
-                for i, check in enumerate(model_checker.checks(level="info")):
-                    model_errors = check.get_invalid(session)
-                    for error_row in model_errors:
-                        writer.writerow(
-                            [
-                                check.level.name,
-                                check.error_code,
-                                error_row.id,
-                                check.table.name,
-                                check.column.name,
-                                getattr(error_row, check.column.name),
-                                check.description(),
-                            ]
-                        )
-                    checks_passed += 1
-                    feedback.setProgress(int(checks_passed * progress_per_check))
-        except PermissionError:
-            # PermissionError happens for example when a user has the file already open
-            # with Excel on Windows, which locks the file.
+        errors = []
+        for i, check in enumerate(model_checker.checks(level="info")):
+            model_errors = check.get_invalid(session)
+            errors += [[check, error_row] for error_row in model_errors]
+            checks_passed += 1
+            feedback.setProgress(int(checks_passed * progress_per_check))
+        error_details = export_with_geom(errors)
+
+        # Create an output GeoPackage
+        gdal.UseExceptions()
+        driver = ogr.GetDriverByName("GPKG")
+        data_source = driver.CreateDataSource(self.output_file_path)
+        if data_source is None:
             feedback.pushWarning(
-                f"Not enough permissions to write the file '{self.output_file_path}'.\n\n"
-                "The file may be used by another program. Please close all "
-                "other programs using the file or select another output "
-                "file."
+                f"Unable to create the GeoPackage '{self.output_file_path}', check the directory permissions."
             )
             return {self.OUTPUT: None}
 
+        # Loop through the error_details and group by geometry type
+        grouped_errors = {}
+        for error in error_details:
+            geom = wkb.loads(error.geom.data) if error.geom is not None else None
+            geom_type = None if geom is None else geom.geom_type  # Get geometry type as string
+            if geom_type not in grouped_errors:
+                grouped_errors[geom_type] = []
+            grouped_errors[geom_type].append(error)
+
+        for geom_type, errors_group in grouped_errors.items():
+            if geom_type is None:
+                # Create a table for non-geometry errors
+                layer = data_source.CreateLayer(
+                    "errors_no_geom", None, ogr.wkbNone, options=["OVERWRITE=YES"]
+                )
+            else:
+                # Create a layer for each type of geometry
+                spatial_ref = osr.SpatialReference()
+                # TODO: set correct epsg!!!
+                spatial_ref.ImportFromEPSG(4326)
+                layer = data_source.CreateLayer(
+                    f"errors_{geom_type.lower()}",
+                    srs=spatial_ref,
+                    geom_type=getattr(ogr, f"wkb{geom_type}"),
+                    options=["OVERWRITE=YES"],
+                    )
+
+            # Add fields
+            layer.CreateField(ogr.FieldDefn("level", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("error_code", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("id", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("table", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("column", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("value", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("description", ogr.OFTString))
+
+            defn = layer.GetLayerDefn()
+            for error in errors_group:
+                feat = ogr.Feature(defn)
+                feat.SetField("level", error.name)
+                feat.SetField("error_code", error.code)
+                feat.SetField("id", error.id)
+                feat.SetField("table", error.table)
+                feat.SetField("column", error.column)
+                feat.SetField("value", error.value)
+                feat.SetField("description", error.description)
+                if geom_type is not None:
+                    geom = wkb.loads(error.geom.data)  # Convert WKB to a Shapely geometry object
+                    feat.SetGeometry(ogr.CreateGeometryFromWkb(geom.wkb))  # Convert back to OGR-compatible WKB
+                layer.CreateFeature(feat)
+
+        feedback.pushInfo(f"GeoPackage successfully written to {self.output_file_path}")
         return {self.OUTPUT: self.output_file_path}
 
     def postProcessAlgorithm(self, context, feedback):
