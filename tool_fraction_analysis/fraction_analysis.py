@@ -19,7 +19,7 @@ class FractionAnalysis(ThreeDiPluginTool):
         self.iface = iface
         self.model = model
 
-        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_graph.png")
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_fraction.png")
         self.menu_text = "Fraction analysis tool"
 
         self.dock_widgets = []
@@ -73,10 +73,6 @@ class FractionAnalysis(ThreeDiPluginTool):
         pass
 
     def run(self):
-        """
-        Run method that loads and starts the plugin (docked graph widget)
-        """
-        # create the dockwidget
         self.widget_nr += 1
         new_widget = FractionDockWidget(
             iface=self.iface,
@@ -97,3 +93,5 @@ class FractionAnalysis(ThreeDiPluginTool):
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)
 
         new_widget.show()
+
+        pass

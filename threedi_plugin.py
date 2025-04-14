@@ -29,8 +29,8 @@ from threedi_results_analysis.threedi_plugin_model_validation import (
 )
 from threedi_results_analysis.tool_animation.map_animator import MapAnimator
 from threedi_results_analysis.tool_flow_summary.flow_summary import FlowSummaryTool
-from threedi_results_analysis.tool_fragment_analysis.fragment_analysis import (
-    FragmentAnalysis,
+from threedi_results_analysis.tool_fraction_analysis.fraction_analysis import (
+    FractionAnalysis,
 )
 from threedi_results_analysis.tool_graph.graph import ThreeDiGraph
 from threedi_results_analysis.tool_sideview.sideview import ThreeDiSideView
@@ -103,7 +103,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.logfile_tool = ShowLogfile(iface)
         self.temporal_manager = TemporalManager(self.model)
         self.flow_summary_tool = FlowSummaryTool(self.dockwidget.get_tools_widget(), iface, self.model)
-        self.fragment_analysis = FragmentAnalysis(iface, self.model)
+        self.fraction_analysis = FractionAnalysis(iface, self.model)
 
         self.tools = [  # second item indicates enabled on startup
             (self.about_tool, True),
@@ -114,7 +114,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.stats_tool, False),
             (self.water_balance_tool, False),
             (self.watershed_tool, False),
-            (self.fragment_analysis, False),
+            (self.fraction_analysis, False),
             (self.logfile_tool, True)
         ]
 
@@ -215,10 +215,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.grid_changed.connect(self.water_balance_tool.grid_changed)
 
         # fraction signals
-        self.model.result_added.connect(self.fragment_analysis.result_added)
-        self.model.result_removed.connect(self.fragment_analysis.result_removed)
-        self.model.result_changed.connect(self.fragment_analysis.result_changed)
-        self.model.grid_changed.connect(self.fragment_analysis.grid_changed)
+        self.model.result_added.connect(self.fraction_analysis.result_added)
+        self.model.result_removed.connect(self.fraction_analysis.result_removed)
+        self.model.result_changed.connect(self.fraction_analysis.result_changed)
+        self.model.grid_changed.connect(self.fraction_analysis.grid_changed)
 
         for tool, _ in self.tools:
             self.dockwidget.add_custom_actions(tool.get_custom_actions())

@@ -21,9 +21,7 @@ from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis.datasource.threedi_results import normalized_object_type
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
-from threedi_results_analysis.tool_fraction_analysis.fraction_map_tool.fraction_plot import (
-    FractionPlot,
-)
+from threedi_results_analysis.tool_fraction_analysis.fraction_plot import FractionPlot
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import statusbar_message
