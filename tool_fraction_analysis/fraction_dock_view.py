@@ -49,7 +49,6 @@ class FractionDockWidget(QDockWidget):
             self.model,
             parameter_config["h"],
             "Nodes && cells",
-            QgsWkbTypes.Point,
         )
         
         self.graphTabWidget.addTab(self.fraction_widget, self.fraction_widget.name)
@@ -72,10 +71,8 @@ class FractionDockWidget(QDockWidget):
         unloading widget and remove all required stuff
         :return:
         """
-        self.addFlowlinePumpButton.clicked.disconnect(self.add_flowline_pump_button_clicked)
         self.addNodeCellButton.clicked.disconnect(self.add_node_cell_button_clicked)
 
-        self.map_tool_add_flowline_pump = None
         self.map_tool_add_node_cell = None
 
         # self.q_graph_widget.close()
@@ -152,19 +149,12 @@ class FractionDockWidget(QDockWidget):
 
     def setup_ui(self):
 
-        self.setObjectName("dock_widget")
         self.setAttribute(Qt.WA_DeleteOnClose)
-
         self.dockWidgetContent = QWidget(self)
-        self.dockWidgetContent.setObjectName("dockWidgetContent")
-
         self.mainVLayout = QVBoxLayout(self.dockWidgetContent)
         self.dockWidgetContent.setLayout(self.mainVLayout)
-
         self.buttonBarHLayout = QHBoxLayout(self)
-
         self.buttonBarHLayout.setSpacing(10)
-
 
         selection_node_cell_menu = QMenu(self)
         action_group = QActionGroup(self)
@@ -199,12 +189,11 @@ class FractionDockWidget(QDockWidget):
             self.graphTabWidget.sizePolicy().hasHeightForWidth()
         )
         self.graphTabWidget.setSizePolicy(sizePolicy)
-        self.graphTabWidget.setObjectName("graphTabWidget")
         self.mainVLayout.addWidget(self.graphTabWidget)
 
         # add dockwidget
         self.setWidget(self.dockWidgetContent)
-        self.setWindowTitle("3Di Time series plot %i" % self.nr)
+        self.setWindowTitle("3Di Fraction analysis %i" % self.nr)
 
 
     def _changeNodeCellSelectionMode(self, single_pick_selected: bool) -> None:
@@ -233,8 +222,6 @@ class FractionDockWidget(QDockWidget):
     def unset_map_tools(self):
         if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
             self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
-        elif self.iface.mapCanvas().mapTool() is self.map_tool_add_flowline_pump:
-            self.iface.mapCanvas().unsetMapTool(self.map_tool_add_flowline_pump)
 
     def add_results(self, results, feature_type, single_feature_per_layer=False):
         """

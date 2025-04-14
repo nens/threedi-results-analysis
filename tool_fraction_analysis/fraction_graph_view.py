@@ -21,6 +21,7 @@ from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis.datasource.threedi_results import normalized_object_type
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
+from threedi_results_analysis.tool_fraction_analysis.fraction_model import FractionModel
 from threedi_results_analysis.tool_fraction_analysis.fraction_plot import FractionPlot
 from threedi_results_analysis.tool_fraction_analysis.fraction_table import FractionTable
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
@@ -59,25 +60,23 @@ def is_threedi_layer(vector_layer: QgsVectorLayer) -> bool:
 class FractionWidget(QWidget):
     def __init__(
         self,
-        parent=None,
-        model: ThreeDiPluginModel = None,
-        parameter_config=[],
-        name="",
-        geometry_type=QgsWkbTypes.Point,
+        parent,
+        model: ThreeDiPluginModel,
+        parameter_config,
+        name
     ):
         super().__init__(parent)
 
         self.name = name
         self.model = model
         self.parent = parent
-        self.geometry_type = geometry_type
 
         self.setup_ui()
 
-        self.location_model = None  #LocationTimeseriesModel(self.model)
-        self.graph_plot.set_location_model(self.location_model)
+        self.fraction_model = FractionModel(self.model)
+        self.graph_plot.set_fraction_model(self.fraction_model)
         self.graph_plot.set_result_model(self.model)
-        self.fraction_table.setModel(self.location_model)
+        self.fraction_table.setModel(self.fraction_model)
         self._updateHiddenColumns(self.showFullLegendCheckbox.checkState())
 
         # set listeners
@@ -98,33 +97,33 @@ class FractionWidget(QWidget):
         row_list = [index.row() for index in index_list]
         row_list.sort(reverse=True)
         for row in row_list:
-            self.location_model.removeRows(row, 1)
+            self.fraction_model.removeRows(row, 1)
 
     def _updateHiddenColumns(self, state):
         if state == Qt.Unchecked:
             for i in range(3, 7):
-                self.location_timeseries_table.setColumnHidden(i, True)
+                self.fraction_table.setColumnHidden(i, True)
         else:
             for i in range(7):
-                self.location_timeseries_table.setColumnHidden(i, False)
+                self.fraction_table.setColumnHidden(i, False)
 
     def refresh_table(self):
         # trigger all listeners by emiting dataChanged signal
-        self.location_model.beginResetModel()
-        self.location_model.endResetModel()
-        self.location_timeseries_table._update_table_widgets()
+        self.fraction_model.beginResetModel()
+        self.fraction_model.endResetModel()
+        self.fraction_table._update_table_widgets()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, result_item: ThreeDiResultItem):
         # Remove corresponding plots that refer to this item
         item_idx_to_remove = []
-        for count, item in enumerate(self.location_model.rows):
+        for count, item in enumerate(self.fraction_model.rows):
             if item.result.value is result_item:
                 item_idx_to_remove.append(count)
 
         # We delete them descending to keep the row idx consistent
         for item_idx in reversed(item_idx_to_remove):
-            self.location_model.removeRows(item_idx, 1)
+            self.fraction_model.removeRows(item_idx, 1)
 
         # In case there are no more other results in results model, we clean up the parameter combobox
         if len(self.model.get_results(checked_only=False)) == 1:
@@ -331,7 +330,7 @@ class FractionWidget(QWidget):
 
         # Retrieve summary of existing items in model (!= graph plots)
         existing_items = [
-            f"{item.object_type.value}_{str(item.object_id.value)}_{item.result.value.id}" for item in self.location_model.rows
+            f"{item.object_type.value}_{str(item.object_id.value)}_{item.result.value.id}" for item in self.fraction_model.rows
         ]
 
         # Determine new items
@@ -375,7 +374,7 @@ class FractionWidget(QWidget):
                         "object_name": new_object_name,
                         "object_label": f"{result_item.parent().text()} | {result_item.text()} | ID: {new_idx}",
                         "result": result_item,
-                        "color": self.location_model.get_color(new_idx, layer.id()),
+                        "color": self.fraction_model.get_color(new_idx, layer.id()),
                     }
                     new_items.append(item)
 
@@ -404,7 +403,7 @@ class FractionWidget(QWidget):
             if reply == QMessageBox.No:
                 return False
 
-        self.location_model.insertRows(new_items)
+        self.fraction_model.insertRows(new_items)
         msg = "%i new objects added to plot " % len(new_items)
         skipped_items = len(features) - len(new_items)
         if skipped_items > 0:
@@ -422,4 +421,4 @@ class FractionWidget(QWidget):
         # get unique rows in selected fields
         rows = set([index.row() for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
-            self.location_model.removeRows(row, 1)
+            self.fraction_model.removeRows(row, 1)
