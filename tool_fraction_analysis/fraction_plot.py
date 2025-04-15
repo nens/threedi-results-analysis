@@ -141,17 +141,18 @@ class FractionPlot(pg.PlotWidget):
         old_time_units = self.current_time_units
         self.current_parameter = parameter
         self.current_time_units = time_units
+        
+        #TODO
+        # for item in self.fraction_model.rowCount():
+        #     if not item.active.value:
+        #         continue
 
-        for item in self.fraction_model.rows:
-            if not item.active.value:
-                continue
-
-            self.removeItem(
-                item.plots(old_parameter["parameters"], time_units=old_time_units)
-            )
-            self.addItem(
-                item.plots(self.current_parameter["parameters"], time_units=self.current_time_units)
-            )
+        #     self.removeItem(
+        #         item.plots(old_parameter["parameters"], time_units=old_time_units)
+        #     )
+        #     self.addItem(
+        #         item.plots(self.current_parameter["parameters"], time_units=self.current_time_units)
+        #     )
 
         self.setLabel(
             "left", self.current_parameter["name"], self.current_parameter["unit"]

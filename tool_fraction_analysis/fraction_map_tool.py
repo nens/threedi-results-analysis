@@ -13,5 +13,5 @@ class AddNodeCellMapTool(QgsMapToolIdentify):
             layerList=self.parent().layers(),
         )
         self.widget.add_results(
-            results=results, feature_type='node_or_cell', single_feature_per_layer=True
+            results=results, single_feature_per_layer=True
         )

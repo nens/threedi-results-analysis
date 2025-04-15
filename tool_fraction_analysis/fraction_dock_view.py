@@ -1,14 +1,10 @@
-from qgis.core import QgsWkbTypes
-from qgis.gui import QgsMapToolIdentify
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QActionGroup
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
-from qgis.PyQt.QtWidgets import QMenu
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
-from qgis.PyQt.QtWidgets import QTabWidget
+from qgis.PyQt.QtWidgets import QSplitter
 from qgis.PyQt.QtWidgets import QToolButton
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
@@ -42,28 +38,13 @@ class FractionDockWidget(QDockWidget):
 
         self.setup_ui()
 
-        parameter_config = self._get_active_parameter_config()
-
-        self.fraction_widget = FractionWidget(
-            self,
-            self.model,
-            parameter_config["h"],
-            "Nodes && cells",
-        )
-        
-        self.graphTabWidget.addTab(self.fraction_widget, self.fraction_widget.name)
-
-        # add listeners
-        self.addNodeCellButton.clicked.connect(self.add_node_cell_button_clicked)
-
-        # add map tools
         self.map_tool_add_node_cell = AddNodeCellMapTool(
             widget=self, canvas=self.iface.mapCanvas(),
         )
         self.map_tool_add_node_cell.setButton(self.addNodeCellButton)
         self.map_tool_add_node_cell.setCursor(Qt.CrossCursor)
 
-        # In case this dock widget becomes (in)visible, we disable the route tools
+        # In case this dock widget becomes (in)visible, we disable the map tools
         self.visibilityChanged.connect(self.unset_map_tools)
 
     def on_close(self):
@@ -72,10 +53,8 @@ class FractionDockWidget(QDockWidget):
         :return:
         """
         self.addNodeCellButton.clicked.disconnect(self.add_node_cell_button_clicked)
-
         self.map_tool_add_node_cell = None
 
-        # self.q_graph_widget.close()
 
     def closeEvent(self, event):
         """
@@ -154,82 +133,48 @@ class FractionDockWidget(QDockWidget):
         self.mainVLayout = QVBoxLayout(self.dockWidgetContent)
         self.dockWidgetContent.setLayout(self.mainVLayout)
         self.buttonBarHLayout = QHBoxLayout(self)
-        self.buttonBarHLayout.setSpacing(10)
-
-        selection_node_cell_menu = QMenu(self)
-        action_group = QActionGroup(self)
-        action_group.setExclusive(True)
-        self.node_single_pick = selection_node_cell_menu.addAction("Pick single node/cell")
-        self.node_single_pick.setCheckable(True)
-        self.node_single_pick.setChecked(True)
-        self.node_single_pick.toggled.connect(self._changeNodeCellSelectionMode)
-        action_group.addAction(self.node_single_pick)
-        selected_pick = selection_node_cell_menu.addAction("Add all selected nodes/cells")
-        selected_pick.setCheckable(True)
-        action_group.addAction(selected_pick)
-
+      
         self.addNodeCellButton = QToolButton(parent=self.dockWidgetContent)
-        self.addNodeCellButton.setText("Pick nodes/cells")
+        self.addNodeCellButton.setText("Pick node/cell")
         self.addNodeCellButton.setCheckable(True)
-        self.addNodeCellButton.setPopupMode(QToolButton.MenuButtonPopup)
-        self.addNodeCellButton.setMenu(selection_node_cell_menu)
+        self.addNodeCellButton.clicked.connect(self.add_node_cell_button_clicked)
         self.buttonBarHLayout.addWidget(self.addNodeCellButton)
 
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
 
         self.mainVLayout.addItem(self.buttonBarHLayout)
+        self.mainVLayout.setContentsMargins(0, 10, 0, 10)
 
-        # add tabWidget for graphWidgets
-        self.graphTabWidget = QTabWidget(self.dockWidgetContent)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(6)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.graphTabWidget.sizePolicy().hasHeightForWidth()
+        # TODO
+        # populate the combobox, but select none
+
+        
+        self.fraction_widget = FractionWidget(
+            self.dockWidgetContent,
+            self.model,
+            self._get_active_parameter_config()["h"],
+            self.iface
         )
-        self.graphTabWidget.setSizePolicy(sizePolicy)
-        self.mainVLayout.addWidget(self.graphTabWidget)
-
-        # add dockwidget
+        self.mainVLayout.addWidget(self.fraction_widget)
         self.setWidget(self.dockWidgetContent)
-        self.setWindowTitle("3Di Fraction analysis %i" % self.nr)
-
-
-    def _changeNodeCellSelectionMode(self, single_pick_selected: bool) -> None:
-        if not single_pick_selected:
-            if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
-                self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
-            self.addNodeCellButton.setCheckable(False)
-            self.addNodeCellButton.setText("Add nodes/cells")
-        else:
-            self.addNodeCellButton.setCheckable(True)
-            self.addNodeCellButton.setText("Pick nodes/cells")
+        self.setWindowTitle("3Di Substance comparison %i" % self.nr)
 
 
     def add_node_cell_button_clicked(self):
-        if self.node_single_pick.isChecked():
-            self.iface.mapCanvas().setMapTool(self.map_tool_add_node_cell)
-        else:
-            current_layer = self.iface.mapCanvas().currentLayer()
-
-            if not current_layer or current_layer.objectName() not in ['node', 'cell']:
-                logger.error("Select features from node or cell layer first.")
-                return
-
-            self.add_results([QgsMapToolIdentify.IdentifyResult(current_layer, f, dict()) for f in current_layer.selectedFeatures()], feature_type="node_or_cell")
+        self.iface.mapCanvas().setMapTool(self.map_tool_add_node_cell)
 
     def unset_map_tools(self):
         if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
             self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
 
-    def add_results(self, results, feature_type, single_feature_per_layer=False):
+    def add_results(self, results, single_feature_per_layer=False):
         """
         Add results for features of specific types.
         """
-        if feature_type == "node_or_cell":
-            layer_keys = ['node', 'cell']
-            graph_widget = self.h_graph_widget
+        # only check node/cell items
+        layer_keys = ['node', 'cell']
+        
         item = self.model.invisibleRootItem()
 
         relevant_grid_layer_ids = []
@@ -245,10 +190,8 @@ class FractionDockWidget(QDockWidget):
                 continue
             if single_feature_per_layer and layer_id in layers_added:
                 continue
-            graph_widget.add_objects(result.mLayer, [result.mFeature])
+            self.fraction_widget.add_objects(result.mLayer, [result.mFeature])
             layers_added.add(layer_id)
 
         if layers_added:
-            tab_index = self.graphTabWidget.indexOf(graph_widget)
-            self.graphTabWidget.setCurrentIndex(tab_index)
-            graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
+            self.fraction_widget.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
