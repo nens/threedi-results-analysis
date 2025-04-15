@@ -71,12 +71,8 @@ class FractionWidget(QWidget):
         self.fraction_table.setModel(self.fraction_model)
         
         # set listeners
-        self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.fraction_table.deleteRequested.connect(self._removeRows)
-
-        # init parameter selection
-        self.set_parameter_list(parameter_config)
 
         self.marker = QgsRubberBand(self.iface.mapCanvas())
         self.marker.setColor(Qt.red)
@@ -106,40 +102,6 @@ class FractionWidget(QWidget):
         # We delete them descending to keep the row idx consistent
         for item_idx in reversed(item_idx_to_remove):
             self.fraction_model.removeRows(item_idx, 1)
-
-        # In case there are no more other results in results model, we clean up the parameter combobox
-        if len(self.model.get_results(checked_only=False)) == 1:
-            self.parameter_combo_box.clear()
-
-    def set_parameter_list(self, parameter_config):
-        self.parameter_combo_box.clear()
-
-        if not parameter_config:
-            return
-
-        self.parameters = dict([(p["name"], p) for p in parameter_config])
-
-        params = sorted([p["name"] for p in parameter_config])
-
-        Q_CUM = 'Net cumulative discharge'
-        active = {'Waterlevel', Q_CUM}
-        if Q_CUM not in params:
-            active.add('Discharge')
-        active_idx = None
-
-        for idx, param in enumerate(params):
-            self.parameter_combo_box.addItem(param)
-            if param in active:
-                active_idx = idx
-
-        self.parameter_combo_box.setCurrentIndex(active_idx)
-
-    def on_close(self):
-        """
-        unloading widget and remove all required stuff
-        :return:
-        """
-        self.parameter_combo_box.currentIndexChanged.disconnect(self.parameter_change)
 
     def closeEvent(self, event):
         """
@@ -191,8 +153,6 @@ class FractionWidget(QWidget):
         # add comboboxes
         self.ts_units_combo_box = QComboBox(self)
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
-        self.parameter_combo_box = QComboBox(self)
-        vLayoutTable.addWidget(self.parameter_combo_box)
         vLayoutTable.addWidget(self.ts_units_combo_box)
         vLayoutTable.setMargin(0)
 
@@ -207,31 +167,16 @@ class FractionWidget(QWidget):
         self.fraction_table.setSizePolicy(sizePolicy)
         self.fraction_table.setMinimumSize(QSize(250, 0))
         vLayoutTable.addWidget(self.fraction_table)
-
         splitterWidget.addWidget(legendWidget)
-
         mainLayout.addWidget(splitterWidget)
-
         mainLayout.setContentsMargins(0, 0, 0, 0)
 
-    def parameter_change(self, nr):
-        """
-        set current selected parameter and trigger refresh of graphs
-        :param nr: nr of selected option of combobox
-        :return:
-        """
-        if nr == -1:
-            return  # Combobox cleared
 
-        self.current_parameter = self.parameters[self.parameter_combo_box.currentText()]
+    def time_units_change(self):
         time_units = self.ts_units_combo_box.currentText()
         self.graph_plot.setLabel("bottom", "Time", time_units)
         self.graph_plot.set_parameter(self.current_parameter, time_units)
         self.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
-
-    def time_units_change(self):
-        parameter_idx = self.parameter_combo_box.currentIndex()
-        self.parameter_change(parameter_idx)
 
     def get_feature_index(self, layer, feature):
         """
@@ -286,16 +231,15 @@ class FractionWidget(QWidget):
 
         return "N/A"
 
-    def add_objects(self, layer: QgsVectorLayer, features: List[QgsFeature]) -> bool:
+    def set_fraction(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
         """
         :param layer: layer of features
-        :param features: Qgis layer features to be added
+        :param feature: Qgis layer feature to be added
         :return: boolean: new objects are added
         """
 
         if not is_threedi_node_cell_layer(layer):
-            msg = """Please select results from either the 'flowlines', 'nodes', 'cells' or
-            'pumplines' layer."""
+            msg = """Please select results from either the 'nodes' or 'cells' layer."""
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
             return False
 
@@ -310,79 +254,55 @@ class FractionWidget(QWidget):
 
         # Determine new items
         new_items = []
-        for feature in features:
-            new_idx = self.get_feature_index(layer, feature)
-            new_object_name = self.get_object_name(layer, feature)
+        
+        new_idx = self.get_feature_index(layer, feature)
+        new_object_name = self.get_object_name(layer, feature)
 
-            result_items = self.model.get_results(checked_only=False)
-            for result_item in result_items:
-                # Check whether this result belongs to the selected grid
-                if layer.id() not in result_item.parent().layer_ids.values():
+        result_items = self.model.get_results(checked_only=False)
+        for result_item in result_items:
+            # Check whether this result belongs to the selected grid
+            if layer.id() not in result_item.parent().layer_ids.values():
+                continue
+
+            # Check whether a pump isn't already plotted as pump_linestring or vice versa (QGIS doesn't know they are the same thing)
+            if layer.objectName() == "pump_linestring":
+                if ("pump_" + str(new_idx) + "_" + result_item.id) in existing_items:
+                    logger.error("Pump already plotted as node item")
+                    continue
+            elif layer.objectName() == "pump":
+                if ("pump_linestring_" + str(new_idx) + "_" + result_item.id) in existing_items:
+                    logger.error("Pump already plotted as line item")
                     continue
 
-                # Check whether a pump isn't already plotted as pump_linestring or vice versa (QGIS doesn't know they are the same thing)
-                if layer.objectName() == "pump_linestring":
-                    if ("pump_" + str(new_idx) + "_" + result_item.id) in existing_items:
-                        logger.error("Pump already plotted as node item")
-                        continue
-                elif layer.objectName() == "pump":
-                    if ("pump_linestring_" + str(new_idx) + "_" + result_item.id) in existing_items:
-                        logger.error("Pump already plotted as line item")
-                        continue
+            # Check whether a node isn't already plotted as cell or vice versa (QGIS doesn't know they are the same thing)
+            if layer.objectName() == "cell":
+                if ("node_" + str(new_idx) + "_" + result_item.id) in existing_items:
+                    logger.error("Cell already plotted as node item")
+                    continue
+            elif layer.objectName() == "node":
+                if ("cell_" + str(new_idx) + "_" + result_item.id) in existing_items:
+                    # Assert whether this is a 2D node
+                    assert new_object_name.startswith("2D")
+                    logger.error("Node already plotted as cell item")
+                    continue
 
-                # Check whether a node isn't already plotted as cell or vice versa (QGIS doesn't know they are the same thing)
-                if layer.objectName() == "cell":
-                    if ("node_" + str(new_idx) + "_" + result_item.id) in existing_items:
-                        logger.error("Cell already plotted as node item")
-                        continue
-                elif layer.objectName() == "node":
-                    if ("cell_" + str(new_idx) + "_" + result_item.id) in existing_items:
-                        # Assert whether this is a 2D node
-                        assert new_object_name.startswith("2D")
-                        logger.error("Node already plotted as cell item")
-                        continue
+            if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:
+                item = {
+                    "object_type": layer.objectName(),
+                    "object_id": new_idx,
+                    "object_name": new_object_name,
+                    "object_label": f"{result_item.parent().text()} | {result_item.text()} | ID: {new_idx}",
+                    "result": result_item,
+                    "color": self.fraction_model.get_color(new_idx, layer.id()),
+                }
+                new_items.append(item)
 
-                if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:
-                    item = {
-                        "object_type": layer.objectName(),
-                        "object_id": new_idx,
-                        "object_name": new_object_name,
-                        "object_label": f"{result_item.parent().text()} | {result_item.text()} | ID: {new_idx}",
-                        "result": result_item,
-                        "color": self.fraction_model.get_color(new_idx, layer.id()),
-                    }
-                    new_items.append(item)
 
-        # Small usability tweak, if we are adding a pump flowline, set a specific parameter
-        if not existing_items and "pump" in layer.objectName() and new_items:
-            # Find the corresponding name for q_cum, set parameter (and set combobox)
-            pump_params = [p for p in self.parameters.values() if p["parameters"] == "q_pump"]
-            if pump_params:
-                self.graph_plot.set_parameter(pump_params[0], self.ts_units_combo_box.currentText())
-                combo_idx = self.parameter_combo_box.findText(pump_params[0]["name"])
-                assert combo_idx != -1
-                # Prevent the combobox to trigger other signals (and set the parameter again)
-                self.parameter_combo_box.blockSignals(True)
-                self.parameter_combo_box.setCurrentIndex(combo_idx)
-                self.parameter_combo_box.blockSignals(False)
-
-        if len(new_items) > 20:
-            msg = (
-                "%i new objects selected. Adding those to the plot can "
-                "take a while. Do you want to continue?" % len(new_items)
-            )
-            reply = QMessageBox.question(
-                self, "Add objects", msg, QMessageBox.Yes, QMessageBox.No
-            )
-
-            if reply == QMessageBox.No:
-                return False
-
-        self.fraction_model.insertRows(new_items)
-        msg = "%i new objects added to plot " % len(new_items)
-        skipped_items = len(features) - len(new_items)
-        if skipped_items > 0:
-            msg += "(skipped %s already present objects)" % skipped_items
+        # self.fraction_model.insertRows(new_items)
+        # msg = "%i new objects added to plot " % len(new_items)
+        # skipped_items = len(features) - len(new_items)
+        # if skipped_items > 0:
+        #     msg += "(skipped %s already present objects)" % skipped_items
 
         statusbar_message(msg)
         return True

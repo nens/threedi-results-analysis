@@ -1,10 +1,11 @@
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
-from qgis.PyQt.QtWidgets import QSplitter
 from qgis.PyQt.QtWidgets import QToolButton
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
@@ -48,19 +49,11 @@ class FractionDockWidget(QDockWidget):
         self.visibilityChanged.connect(self.unset_map_tools)
 
     def on_close(self):
-        """
-        unloading widget and remove all required stuff
-        :return:
-        """
         self.addNodeCellButton.clicked.disconnect(self.add_node_cell_button_clicked)
         self.map_tool_add_node_cell = None
 
 
     def closeEvent(self, event):
-        """
-        overwrite of QDockWidget class to emit signal
-        :param event: QEvent
-        """
         self.on_close()
         self.closingWidget.emit(self.nr)
         event.accept()
@@ -126,6 +119,30 @@ class FractionDockWidget(QDockWidget):
         # self.h_graph_widget.refresh_table()
         pass
 
+    def grid_added(self, result_item: ThreeDiGridItem):
+        pass 
+
+    def grid_removed(self, result_item: ThreeDiGridItem):
+        # self.q_graph_widget.refresh_table()
+        # self.h_graph_widget.refresh_table()
+        pass
+
+    def current_result(self):
+        current_index = self.simulationCombobox.currentIndex()                
+        if current_index == -1:
+            return None
+        
+        item_id = self.simulationCombobox.itemData(current_index)
+        return self.model.get_result(item_id)
+
+    def result_selected(self, result_index: int):
+        # Because we connected the "activated" signal instead of the "currentIndexChanged" signal,
+        # programmatically changing the index does not emit a signal
+        self.simulationCombobox.setCurrentIndex(result_index)
+        item_id = self.simulationCombobox.itemData(result_index)
+        result = self.model.get_result(item_id)
+        self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result.text()} ({result.parent().text()})")
+
     def setup_ui(self):
 
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -134,7 +151,7 @@ class FractionDockWidget(QDockWidget):
         self.dockWidgetContent.setLayout(self.mainVLayout)
         self.buttonBarHLayout = QHBoxLayout(self)
       
-        self.addNodeCellButton = QToolButton(parent=self.dockWidgetContent)
+        self.addNodeCellButton = QToolButton(self.dockWidgetContent)
         self.addNodeCellButton.setText("Pick node/cell")
         self.addNodeCellButton.setCheckable(True)
         self.addNodeCellButton.clicked.connect(self.add_node_cell_button_clicked)
@@ -142,13 +159,19 @@ class FractionDockWidget(QDockWidget):
 
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
+        result_label = QLabel("Simulation result:", self.dockWidgetContent)
+        self.buttonBarHLayout.addWidget(result_label)
+        self.simulationCombobox = QComboBox(self.dockWidgetContent)
+        self.buttonBarHLayout.addWidget(self.simulationCombobox)
 
         self.mainVLayout.addItem(self.buttonBarHLayout)
         self.mainVLayout.setContentsMargins(0, 10, 0, 10)
 
-        # TODO
-        # populate the combobox, but select none
-
+        # populate the combobox, with results, but select None
+        for result in self.model.get_results(checked_only=False):
+            self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
+        self.simulationCombobox.setCurrentIndex(-1)
+        self.simulationCombobox.activated.connect(self.result_selected)
         
         self.fraction_widget = FractionWidget(
             self.dockWidgetContent,
@@ -160,7 +183,6 @@ class FractionDockWidget(QDockWidget):
         self.setWidget(self.dockWidgetContent)
         self.setWindowTitle("3Di Substance comparison %i" % self.nr)
 
-
     def add_node_cell_button_clicked(self):
         self.iface.mapCanvas().setMapTool(self.map_tool_add_node_cell)
 
@@ -168,30 +190,13 @@ class FractionDockWidget(QDockWidget):
         if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
             self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
 
-    def add_results(self, results, single_feature_per_layer=False):
-        """
-        Add results for features of specific types.
-        """
-        # only check node/cell items
-        layer_keys = ['node', 'cell']
-        
-        item = self.model.invisibleRootItem()
-
-        relevant_grid_layer_ids = []
-        for layer_key in layer_keys:
-            for i in range(item.rowCount()):
-                if layer_key in item.child(i).layer_ids:
-                    relevant_grid_layer_ids.append(item.child(i).layer_ids[layer_key])
-
-        layers_added = set()
+    def add_results(self, results):
+        current_result = self.current_result()        
+        assert current_result
         for result in results:
-            layer_id = result.mLayer.id()
-            if layer_id not in relevant_grid_layer_ids:
-                continue
-            if single_feature_per_layer and layer_id in layers_added:
-                continue
-            self.fraction_widget.add_objects(result.mLayer, [result.mFeature])
-            layers_added.add(layer_id)
-
-        if layers_added:
-            self.fraction_widget.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
+            # Check whether the selected layer belongs to the selected grid/result AND is a node/cell layer
+            for layer_type, layer_id in current_result.parent().layer_ids:
+                if layer_type in ['node', 'cell'] and layer_id == result.mLayer.id():
+                    self.fraction_widget.set_fraction(result.mLayer, result.mFeature)
+                    self.fraction_widget.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
+                    return  # Only add a single item

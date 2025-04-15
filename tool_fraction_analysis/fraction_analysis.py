@@ -67,10 +67,19 @@ class FractionAnalysis(ThreeDiPluginTool):
         pass
 
     @pyqtSlot(ThreeDiGridItem)
+    def grid_added(self, grid_item: ThreeDiGridItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.grid_added(grid_item)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_removed(self, grid_item: ThreeDiGridItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.grid_removed(grid_item)
+
+    @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, grid_item: ThreeDiGridItem):
-        # for dock_widget in self.dock_widgets:
-        #     dock_widget.grid_changed(grid_item)
-        pass
+        for dock_widget in self.dock_widgets:
+            dock_widget.grid_changed(grid_item)
 
     def run(self):
         self.widget_nr += 1

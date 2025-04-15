@@ -9,9 +9,6 @@ class AddNodeCellMapTool(QgsMapToolIdentify):
     def canvasReleaseEvent(self, event):
         results = self.identify(
             x=int(event.pos().x()),
-            y=int(event.pos().y()),
-            layerList=self.parent().layers(),
+            y=int(event.pos().y())
         )
-        self.widget.add_results(
-            results=results, single_feature_per_layer=True
-        )
+        self.widget.add_results(results)

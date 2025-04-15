@@ -114,7 +114,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             (self.stats_tool, False),
             (self.water_balance_tool, False),
             (self.watershed_tool, False),
-            (self.fraction_analysis, False),
+            (self.fraction_analysis, True),
             (self.logfile_tool, True)
         ]
 
@@ -219,6 +219,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_removed.connect(self.fraction_analysis.result_removed)
         self.model.result_changed.connect(self.fraction_analysis.result_changed)
         self.model.grid_changed.connect(self.fraction_analysis.grid_changed)
+        self.model.grid_removed.connect(self.fraction_analysis.grid_removed)
+        self.model.grid_added.connect(self.fraction_analysis.grid_added)
 
         for tool, _ in self.tools:
             self.dockwidget.add_custom_actions(tool.get_custom_actions())
