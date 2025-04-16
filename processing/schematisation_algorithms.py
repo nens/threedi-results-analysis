@@ -221,6 +221,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             return {self.OUTPUT: None}
         schema = threedi_db.schema
         schema.set_spatial_indexes()
+        srid, _ = schema._get_epsg_data()
         generated_output_file_path = self.parameterAsFileOutput(
             parameters, self.OUTPUT, context
         )
@@ -267,7 +268,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 # Create a layer for each type of geometry
                 spatial_ref = osr.SpatialReference()
                 # TODO: set correct epsg!!!
-                spatial_ref.ImportFromEPSG(4326)
+                spatial_ref.ImportFromEPSG(srid)
                 layer = data_source.CreateLayer(
                     f"errors_{geom_type.lower()}",
                     srs=spatial_ref,
