@@ -304,12 +304,24 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         return {self.OUTPUT: self.output_file_path}
 
     def postProcessAlgorithm(self, context, feedback):
-        if self.add_to_project:
-            if self.output_file_path:
-                result_layer = QgsVectorLayer(
-                    self.output_file_path, "3Di schematisation errors"
-                )
-                QgsProject.instance().addMapLayer(result_layer)
+        if self.add_to_project and self.output_file_path:
+            # Create a group for the GeoPackage layers
+            group = QgsProject.instance().layerTreeRoot().addGroup("ERRORS")
+            # Add all layers in the geopackage to the group
+            conn = ogr.Open(self.output_file_path)
+            if conn:
+                for i in range(conn.GetLayerCount()):
+                    layer_name = conn.GetLayerByIndex(i).GetName()
+                    layer_uri = f"{self.output_file_path}|layername={layer_name}"
+                    layer = QgsVectorLayer(layer_uri, layer_name.replace('errors_', '', 1), "ogr")
+                    if layer.isValid():
+                        added_layer = QgsProject.instance().addMapLayer(layer, False)
+                        group.addLayer(added_layer)
+                    else:
+                        feedback.reportError(f"Layer {layer_name} is not valid")
+                conn = None  # Close the connection
+            else:
+                feedback.reportError(f"Could not open GeoPackage file: {self.output_file_path}")
         return {self.OUTPUT: self.output_file_path}
 
     def name(self):
