@@ -192,7 +192,10 @@ class FractionDockWidget(QDockWidget):
 
     def add_results(self, results):
         current_result = self.current_result()        
-        assert current_result
+        if current_result == -1:
+            logger.warning("First select a result")
+            return
+
         for result in results:
             # Check whether the selected layer belongs to the selected grid/result AND is a node/cell layer
             for layer_type, layer_id in current_result.parent().layer_ids:

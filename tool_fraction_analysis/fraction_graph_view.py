@@ -65,7 +65,7 @@ class FractionWidget(QWidget):
 
         self.setup_ui()
 
-        self.fraction_model = FractionModel(self.model)
+        self.fraction_model = FractionModel(self, self.model)
         self.graph_plot.set_fraction_model(self.fraction_model)
         self.graph_plot.set_result_model(self.model)
         self.fraction_table.setModel(self.fraction_model)
@@ -252,27 +252,13 @@ class FractionWidget(QWidget):
             f"{item.object_type.value}_{str(item.object_id.value)}_{item.result.value.id}" for item in self.fraction_model.rows
         ]
 
-        # Determine new items
-        new_items = []
-        
         new_idx = self.get_feature_index(layer, feature)
         new_object_name = self.get_object_name(layer, feature)
 
         result_items = self.model.get_results(checked_only=False)
         for result_item in result_items:
             # Check whether this result belongs to the selected grid
-            if layer.id() not in result_item.parent().layer_ids.values():
-                continue
-
-            # Check whether a pump isn't already plotted as pump_linestring or vice versa (QGIS doesn't know they are the same thing)
-            if layer.objectName() == "pump_linestring":
-                if ("pump_" + str(new_idx) + "_" + result_item.id) in existing_items:
-                    logger.error("Pump already plotted as node item")
-                    continue
-            elif layer.objectName() == "pump":
-                if ("pump_linestring_" + str(new_idx) + "_" + result_item.id) in existing_items:
-                    logger.error("Pump already plotted as line item")
-                    continue
+            assert layer.id() in result_item.parent().layer_ids.values()
 
             # Check whether a node isn't already plotted as cell or vice versa (QGIS doesn't know they are the same thing)
             if layer.objectName() == "cell":

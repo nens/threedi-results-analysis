@@ -117,7 +117,7 @@ class FractionTable(QTableView):
         self.resizeColumnsToContents()
         self.horizontalHeader().setStretchLastSection(True)
         self.setVisible(True)
-        self.model.set_column_sizes_on_view(self)
+        # self.model.set_column_sizes_on_view(self)
         self.setColumnWidth(0, 20)  # checkbox
 
     def _update_table_widgets(self):
