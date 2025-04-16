@@ -11,7 +11,6 @@
 ***************************************************************************
 """
 
-import csv
 import os
 import shutil
 import warnings
@@ -231,13 +230,13 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         total_checks = len(model_checker.config.checks)
         progress_per_check = 100.0 / total_checks
         checks_passed = 0
-        errors = []
+        error_list = []
         for i, check in enumerate(model_checker.checks(level="info")):
             model_errors = check.get_invalid(session)
-            errors += [[check, error_row] for error_row in model_errors]
+            error_list += [[check, error_row] for error_row in model_errors]
             checks_passed += 1
             feedback.setProgress(int(checks_passed * progress_per_check))
-        error_details = export_with_geom(errors)
+        error_details = export_with_geom(error_list)
 
         # Create an output GeoPackage
         gdal.UseExceptions()
