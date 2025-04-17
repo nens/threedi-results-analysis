@@ -18,9 +18,6 @@ from threedi_results_analysis.tool_fraction_analysis.fraction_graph_view import 
 from threedi_results_analysis.tool_fraction_analysis.fraction_map_tool import (
     AddNodeCellMapTool,
 )
-from threedi_results_analysis.utils.user_messages import messagebar_message
-from threedi_results_analysis.utils.utils import generate_parameter_config
-from typing import List
 
 import logging
 
@@ -58,73 +55,23 @@ class FractionDockWidget(QDockWidget):
         self.closingWidget.emit(self.nr)
         event.accept()
 
-    def _get_active_parameter_config(self, result_item_ignored: ThreeDiResultItem = None):
-        """
-        Generates a parameter dict based on results, takes union of parameters from results.
-        """
-        q_vars = []
-        h_vars = []
-
-        for result in self.model.get_results(checked_only=False):
-            if result is result_item_ignored:  # about to be deleted
-                continue
-
-            threedi_result = result.threedi_result
-            available_subgrid_vars = threedi_result.available_subgrid_map_vars
-            available_agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
-            available_wq_vars = threedi_result.available_water_quality_vars[:]  # a copy
-            available_sca_vars = threedi_result.available_structure_control_actions_vars[:]  # a copy
-            if not available_agg_vars:
-                messagebar_message("Warning", "No aggregation netCDF was found.", level=1, duration=5)
-
-            parameter_config = generate_parameter_config(
-                available_subgrid_vars, agg_vars=available_agg_vars, wq_vars=available_wq_vars, sca_vars=available_sca_vars
-            )
-
-            def _union(a: List, b: List):
-                if not a:
-                    return b
-
-                for param in b:
-                    # Check whether a contains param with same name, if so, don't add
-                    if not [x for x in a if x["name"] == param["name"]]:
-                        a.append(param)
-
-                return a
-
-            q_vars = _union(q_vars, parameter_config["q"])
-            h_vars = _union(h_vars, parameter_config["h"])
-
-        return {"q": q_vars, "h": h_vars}
 
     def result_added(self, _: ThreeDiResultItem):
-        parameter_config = self._get_active_parameter_config()
-        # self.q_graph_widget.set_parameter_list(parameter_config["q"])
-        # self.h_graph_widget.set_parameter_list(parameter_config["h"])
+        pass
 
     def result_removed(self, result_item: ThreeDiResultItem):
-        parameter_config = self._get_active_parameter_config(result_item)
-        # self.q_graph_widget.result_removed(result_item)
-        # self.h_graph_widget.result_removed(result_item)
-        # self.q_graph_widget.set_parameter_list(parameter_config["q"])
-        # self.h_graph_widget.set_parameter_list(parameter_config["h"])
+        pass
 
     def result_changed(self, _: ThreeDiResultItem):
-        # self.q_graph_widget.refresh_table()
-        # self.h_graph_widget.refresh_table()
         pass
 
     def grid_changed(self, result_item: ThreeDiGridItem):
-        # self.q_graph_widget.refresh_table()
-        # self.h_graph_widget.refresh_table()
         pass
 
     def grid_added(self, result_item: ThreeDiGridItem):
         pass 
 
     def grid_removed(self, result_item: ThreeDiGridItem):
-        # self.q_graph_widget.refresh_table()
-        # self.h_graph_widget.refresh_table()
         pass
 
     def current_result(self):
@@ -144,13 +91,11 @@ class FractionDockWidget(QDockWidget):
         self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result.text()} ({result.parent().text()})")
 
     def setup_ui(self):
-
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.dockWidgetContent = QWidget(self)
         self.mainVLayout = QVBoxLayout(self.dockWidgetContent)
         self.dockWidgetContent.setLayout(self.mainVLayout)
         self.buttonBarHLayout = QHBoxLayout(self)
-      
         self.addNodeCellButton = QToolButton(self.dockWidgetContent)
         self.addNodeCellButton.setText("Pick node/cell")
         self.addNodeCellButton.setCheckable(True)
@@ -176,7 +121,6 @@ class FractionDockWidget(QDockWidget):
         self.fraction_widget = FractionWidget(
             self.dockWidgetContent,
             self.model,
-            self._get_active_parameter_config()["h"],
             self.iface
         )
         self.mainVLayout.addWidget(self.fraction_widget)
@@ -192,13 +136,13 @@ class FractionDockWidget(QDockWidget):
 
     def add_results(self, results):
         current_result = self.current_result()        
-        if current_result == -1:
+        if current_result == None:
             logger.warning("First select a result")
             return
-
+        
         for result in results:
             # Check whether the selected layer belongs to the selected grid/result AND is a node/cell layer
-            for layer_type, layer_id in current_result.parent().layer_ids:
+            for layer_type, layer_id in current_result.parent().layer_ids.items():
                 if layer_type in ['node', 'cell'] and layer_id == result.mLayer.id():
                     self.fraction_widget.set_fraction(result.mLayer, result.mFeature)
                     self.fraction_widget.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()

@@ -5,6 +5,10 @@ pg.setConfigOption("background", "w")
 pg.setConfigOption("foreground", "k")
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 class FractionPlot(pg.PlotWidget):
     """Graph element"""
@@ -46,7 +50,6 @@ class FractionPlot(pg.PlotWidget):
         self.fraction_model = model
         self.fraction_model.dataChanged.connect(self.fraction_data_changed)
         self.fraction_model.rowsInserted.connect(self.on_insert_fractions)
-        self.fraction_model.rowsAboutToBeRemoved.connect(self.on_remove_fractions)
 
     def set_result_model(self, model: ThreeDiPluginModel):
         self.result_model = model
@@ -59,29 +62,9 @@ class FractionPlot(pg.PlotWidget):
         :param end: last row nr
         """
         for i in range(start, end + 1):
-            item = self.fraction_model.rows[i]
-            self.addItem(
-                item.plots(
-                    self.current_parameter["parameters"],
-                    time_units=self.current_time_units,
-                )
-            )
-
-    def on_remove_fractions(self, index, start, end):
-        """
-        remove items from graph. based on Qt model removeRows
-        trigger
-        :param index: Qt Index (not used)
-        :param start: first row nr
-        :param end: last row nr
-        """
-        for i in range(start, end + 1):
-            item = self.fraction_model.rows[i]
-            self.removeItem(
-                        item.plots(self.current_parameter["parameters"], time_units=self.current_time_units)
-                    )
-
-        self.plotItem.vb.menu.viewAll.triggered.emit()
+            plots = self.fraction_model.create_plots(i, time_units=self.current_time_units, substance_unit="substance_unit", stacked=False)
+            for plot in plots:
+                self.addItem(plot)
 
     def fraction_data_changed(self, index):
         """

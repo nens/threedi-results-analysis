@@ -21,7 +21,7 @@ class FractionTable(QTableView):
     hoverEnterRow = pyqtSignal(int, str, ThreeDiResultItem)
     deleteRequested = pyqtSignal(list)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super().__init__(parent)
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
@@ -121,6 +121,7 @@ class FractionTable(QTableView):
         self.setColumnWidth(0, 20)  # checkbox
 
     def _update_table_widgets(self):
+        return
         """The PenStyle widget is not part of the model, but explicitely added/overlayed to the table"""
         for i in range(self.model.rowCount()):
             item = self.model.rows[i]
