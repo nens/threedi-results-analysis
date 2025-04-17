@@ -49,15 +49,15 @@ class FractionDockWidget(QDockWidget):
         self.addNodeCellButton.clicked.disconnect(self.add_node_cell_button_clicked)
         self.map_tool_add_node_cell = None
 
-
     def closeEvent(self, event):
         self.on_close()
         self.closingWidget.emit(self.nr)
         event.accept()
 
-
-    def result_added(self, _: ThreeDiResultItem):
-        pass
+    def result_added(self, result: ThreeDiResultItem):
+        currentIndex = self.simulationCombobox.currentIndex()
+        self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
+        self.simulationCombobox.setCurrentIndex(currentIndex)
 
     def result_removed(self, result_item: ThreeDiResultItem):
         pass
@@ -66,12 +66,6 @@ class FractionDockWidget(QDockWidget):
         pass
 
     def grid_changed(self, result_item: ThreeDiGridItem):
-        pass
-
-    def grid_added(self, result_item: ThreeDiGridItem):
-        pass 
-
-    def grid_removed(self, result_item: ThreeDiGridItem):
         pass
 
     def current_result(self):

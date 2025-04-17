@@ -18,7 +18,6 @@ class FractionAnalysis(ThreeDiPluginTool):
 
         self.iface = iface
         self.model = model
-
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_fraction.png")
         self.menu_text = "Fraction analysis tool"
 
@@ -36,8 +35,6 @@ class FractionAnalysis(ThreeDiPluginTool):
 
     def on_close_child_widget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""
-
-        # find widget based on nr
         for i in range(0, len(self.dock_widgets)):
             widget = self.dock_widgets[i]
             if widget.nr == widget_nr:
@@ -48,33 +45,19 @@ class FractionAnalysis(ThreeDiPluginTool):
     @pyqtSlot(ThreeDiResultItem)
     def result_added(self, result_item: ThreeDiResultItem):
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
-        # for dock_widget in self.dock_widgets:
-        #     dock_widget.result_added(result_item)
-        pass
+        for dock_widget in self.dock_widgets:
+            dock_widget.result_added(result_item)
 
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, result_item: ThreeDiResultItem):
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
-        # for dock_widget in self.dock_widgets:
-        #     dock_widget.result_removed(result_item)
-
-        pass
+        for dock_widget in self.dock_widgets:
+            dock_widget.result_removed(result_item)
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem):
-        # for dock_widget in self.dock_widgets:
-        #     dock_widget.result_changed(result_item)
-        pass
-
-    @pyqtSlot(ThreeDiGridItem)
-    def grid_added(self, grid_item: ThreeDiGridItem):
         for dock_widget in self.dock_widgets:
-            dock_widget.grid_added(grid_item)
-
-    @pyqtSlot(ThreeDiGridItem)
-    def grid_removed(self, grid_item: ThreeDiGridItem):
-        for dock_widget in self.dock_widgets:
-            dock_widget.grid_removed(grid_item)
+            dock_widget.result_changed(result_item)
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_changed(self, grid_item: ThreeDiGridItem):

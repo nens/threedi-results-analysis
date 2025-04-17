@@ -21,22 +21,21 @@ class FractionModel(QStandardItemModel):
     def set_fraction(self, id, item: ThreeDiResultItem):
         self.clear()
         self.setHorizontalHeaderLabels(["active", "pattern", "label", "id"])
-
         self.result_item = item
 
         # Retrieve the substances (TODO: filter on right unit)
-        self.appendRow([QStandardItem(True), QStandardItem(), QStandardItem(item.text()), QStandardItem(id)])
+        self.appendRow([QStandardItem(True), QStandardItem(), QStandardItem(item.text()), QStandardItem(str(id))])
 
-    def create_plots(self, id, time_units, substance_unit, stacked):
+    def create_plots(self, index, time_units, substance_unit, stacked):
         threedi_result = self.result_item.threedi_result
+        id = int(self.item(index, 3).text())
 
         # iterate over substances        
         water_quality_vars = threedi_result.available_water_quality_vars
-        logger.error(water_quality_vars)
 
         plots = []
         for substance in water_quality_vars:
-            ts_table = self.timeseries_table(substance, id, time_units=time_units)
+            ts_table = self.timeseries_table(substance["parameters"], id, time_units=time_units)
             pen = pg.mkPen(color=self.color.value, width=2, style=self.result.value._pattern)
             plots += pg.PlotDataItem(ts_table, pen=pen)
         
