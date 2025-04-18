@@ -21,12 +21,12 @@ class FractionPlot(pg.PlotWidget):
         self.setLabel("bottom", "Time", "hrs")
         self.getAxis("left").enableAutoSIPrefix(False)
 
-    def fraction_set(self, substance_unit: str, time_unit: str):
+    def fraction_set(self, feature_id, substance_unit: str, time_unit: str):
         """
         Retrieve info from model and create plots
         """
         self.clear()
-        plots = self.fraction_model.create_plots(time_unit, substance_unit, stacked=False)
+        plots = self.fraction_model.create_plots(feature_id, time_unit, substance_unit, stacked=False)
         for plot in plots:
             self.addItem(plot)
 

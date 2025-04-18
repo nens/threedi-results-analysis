@@ -59,6 +59,8 @@ class FractionWidget(QWidget):
         wq_units = [wq_var["unit"] for wq_var in wq_vars]
         self.substance_units_combo_box.clear()
         self.substance_units_combo_box.insertItems(0, wq_units)
+        logger.error("result_selected")
+        self.fraction_model.set_fraction(result_item, self.substance_units_combo_box.currentText())
 
     def closeEvent(self, event):
         """
@@ -168,8 +170,7 @@ class FractionWidget(QWidget):
         for result_item in result_items:
             # Check whether this result belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
-                self.fraction_model.set_fraction(new_idx, result_item)
-                self.fraction_plot.fraction_set(self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
+                self.fraction_plot.fraction_set(new_idx, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
                 break
         
         return True

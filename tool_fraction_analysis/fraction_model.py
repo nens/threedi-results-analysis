@@ -20,38 +20,36 @@ class FractionModel(QStandardItemModel):
     def __init__(self, parent, result_model):
         super().__init__(parent)
         self.result_model = result_model
-        self.setHorizontalHeaderLabels(["active", "pattern", "substance", "id"])
+        self.setHorizontalHeaderLabels(["active", "pattern", "substance"])
         self.result_item = None
 
-    def set_fraction(self, id, item: ThreeDiResultItem):
+    def set_fraction(self, item: ThreeDiResultItem, substance: str):
         self.clear()
-        self.setHorizontalHeaderLabels(["active", "pattern", "substance", "id"])
+        self.setHorizontalHeaderLabels(["active", "pattern", "substance"])
         self.result_item = item
 
-        # Retrieve the substances (TODO: filter on right unit)
+        # Retrieve the substances
         threedi_result = self.result_item.threedi_result
         water_quality_vars = threedi_result.available_water_quality_vars
-        for substance in water_quality_vars:
+        for wq_var in water_quality_vars:
+            if wq_var["unit"] != substance:
+                continue
             color_item = QStandardItem()
             color_item.setData((Qt.SolidLine, self.get_color()))
             color_item.setEditable(False)
-            substance_item = QStandardItem(substance["parameters"])
+            substance_item = QStandardItem(wq_var["parameters"])
             substance_item.setEditable(True)
-            id_item = QStandardItem(QStandardItem(str(id)))
-            id_item.setEditable(True)
-            self.appendRow([QStandardItem(True), color_item, substance_item, id_item])
+            self.appendRow([QStandardItem(True), color_item, substance_item])
 
     def get_color(self) -> QColor:
         return COLOR_LIST[self.rowCount() % len(COLOR_LIST)]
 
-    def create_plots(self, time_units, substance_unit, stacked):
+    def create_plots(self, feature_id, time_units, substance_unit, stacked):
         plots = []
         for index in range(self.rowCount()):
             style, color = self.item(index, 1).data()
             substance = self.item(index, 2).text()
-            id = int(self.item(index, 3).text())
-            
-            ts_table = self.timeseries_table(substance, id, time_units=time_units)
+            ts_table = self.timeseries_table(substance, feature_id, time_units=time_units)
             pen = pg.mkPen(color=QColor(*color), width=2, style=style)
             plots.append(pg.PlotDataItem(ts_table, pen=pen))
 
