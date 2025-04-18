@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 EMPTY_TIMESERIES = np.array([], dtype=float)
 
 class FractionModel(QStandardItemModel):
-    fraction_set = pyqtSignal()
+
     def __init__(self, parent, result_model):
         super().__init__(parent)
         self.result_model = result_model
@@ -40,8 +40,6 @@ class FractionModel(QStandardItemModel):
             id_item = QStandardItem(QStandardItem(str(id)))
             id_item.setEditable(True)
             self.appendRow([QStandardItem(True), color_item, substance_item, id_item])
-
-        self.fraction_set.emit()
 
     def get_color(self) -> QColor:
         return COLOR_LIST[self.rowCount() % len(COLOR_LIST)]

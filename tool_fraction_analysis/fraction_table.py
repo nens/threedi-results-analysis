@@ -40,33 +40,12 @@ class FractionTable(QTableView):
         self.viewport().removeEventFilter(self)
 
     def closeEvent(self, event):
-        """
-        overwrite of QDockWidget class to emit signal
-        :param event: QEvent
-        """
         self.on_close()
         event.accept()
 
     def eventFilter(self, widget, event):
         if widget is self.viewport():
-            if event.type() == QEvent.MouseButtonDblClick:
-
-                if event.button() == Qt.RightButton:
-                    return True
-                # map mouse position to index
-                column = self.indexAt(event.pos()).column()
-                if self.model.columns[column].name == "color":
-                    row = self.indexAt(event.pos()).row()
-                    item = self.model.rows[row]
-                    selected_color = QColorDialog.getColor()
-                    if not selected_color.isValid():  # User pressed cancel
-                        return True
-
-                    item.color.value = (selected_color.red(), selected_color.green(), selected_color.blue())
-
-                return QTableView.eventFilter(self, widget, event)
-
-            elif event.type() == QEvent.MouseMove:
+            if event.type() == QEvent.MouseMove:
                 row = self.indexAt(event.pos()).row()
                 if row == 0 and self.model and row > self.model.rowCount():
                     row = None

@@ -4,6 +4,7 @@ import pyqtgraph as pg
 pg.setConfigOption("background", "w")
 pg.setConfigOption("foreground", "k")
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
+from threedi_results_analysis.tool_fraction_analysis.fraction_model import FractionModel
 
 import logging
 
@@ -11,78 +12,49 @@ import logging
 logger = logging.getLogger(__name__)
 
 class FractionPlot(pg.PlotWidget):
-    """Graph element"""
-
-    def __init__(self, parent=None):
+    def __init__(self, parent, result_model: ThreeDiPluginModel, fraction_model: FractionModel):
         super().__init__(parent)
         self.showGrid(True, True, 0.5)
         self.current_parameter = None
-        self.fraction_model = None
-        self.result_model = None
-        self.parent = parent
-        self.current_time_units = "hrs"
-        self.setLabel("bottom", "Time", self.current_time_units)
-        # Auto SI prefix scaling doesn't work properly with m3, m2 etc.
+        self.fraction_model = fraction_model
+        self.result_model = result_model
+        self.setLabel("bottom", "Time", "hrs")
         self.getAxis("left").enableAutoSIPrefix(False)
 
-    def on_close(self):
+    def fraction_set(self, substance_unit: str, time_unit: str):
         """
-        unloading widget and remove all required stuff
-        :return:
-        """
-        if self.fraction_model:
-            self.fraction_model.dataChanged.disconnect(self.fraction_data_changed)
-            self.fraction_model.fraction_set.disconnect(self.on_insert_fractions)
-            self.fraction_model = None
-
-    def closeEvent(self, event):
-        """
-        overwrite of QDockWidget class to emit signal
-        :param event: QEvent
-        """
-        self.on_close()
-        event.accept()
-
-    def set_fraction_model(self, model):
-        self.fraction_model = model
-        self.fraction_model.dataChanged.connect(self.fraction_data_changed)
-        self.fraction_model.fraction_set.connect(self.fraction_set)
-
-    def set_result_model(self, model: ThreeDiPluginModel):
-        self.result_model = model
-
-    def fraction_set(self):
-        """
-        add fraction to the graph, based on model signal
+        Retrieve info from model and create plots
         """
         self.clear()
-        plots = self.fraction_model.create_plots(time_units=self.current_time_units, substance_unit="substance_unit", stacked=False)
+        plots = self.fraction_model.create_plots(time_unit, substance_unit, stacked=False)
         for plot in plots:
             self.addItem(plot)
 
     def fraction_data_changed(self, index):
-        """
-        change graphs
-        :param index: index of changed field
-        """
-        item = self.fraction_model.rows[index.row()]
+        # """
+        # change graphs
+        # :param index: index of changed field
+        # """
+        # item = self.fraction_model.rows[index.row()]
 
-        if self.fraction_model.columns[index.column()].name == "active":
-            if item.active.value:
-                self.show_timeseries(index.row())
-            else:
-                self.hide_timeseries(index.row())
+        # if self.fraction_model.columns[index.column()].name == "active":
+        #     if item.active.value:
+        #         self.show_timeseries(index.row())
+        #     else:
+        #         self.hide_timeseries(index.row())
 
-        elif self.fraction_model.columns[index.column()].name == "hover":
-            width = 2
-            if item.hover.value:
-                width = 5
-            item.plots(self.current_parameter["parameters"], time_units=self.current_time_units).setPen(
-                color=item.color.qvalue, width=width, style=item.result.value._pattern)
+        # elif self.fraction_model.columns[index.column()].name == "hover":
+        #     width = 2
+        #     if item.hover.value:
+        #         width = 5
+        #     item.plots(self.current_parameter["parameters"], time_units=self.current_time_units).setPen(
+        #         color=item.color.qvalue, width=width, style=item.result.value._pattern)
 
-        elif self.fraction_model.columns[index.column()].name == "color":
-            item.plots(self.current_parameter["parameters"], time_units=self.current_time_units).setPen(
-                color=item.color.qvalue, width=2, style=item.result.value._pattern)
+        # elif self.fraction_model.columns[index.column()].name == "color":
+        #     item.plots(self.current_parameter["parameters"], time_units=self.current_time_units).setPen(
+        #         color=item.color.qvalue, width=2, style=item.result.value._pattern)
+            
+        pass
 
     def hide_timeseries(self, location_nr):
         """

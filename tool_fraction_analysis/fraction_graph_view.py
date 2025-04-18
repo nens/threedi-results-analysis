@@ -40,12 +40,8 @@ class FractionWidget(QWidget):
         self.parent = parent
         self.iface = iface
 
-        self.setup_ui()
-
         self.fraction_model = FractionModel(self, self.result_model)
-        self.fraction_plot.set_fraction_model(self.fraction_model)
-        self.fraction_plot.set_result_model(self.result_model)
-        self.fraction_table.setModel(self.fraction_model)
+        self.setup_ui()
 
         self.marker = QgsRubberBand(self.iface.mapCanvas())
         self.marker.setColor(Qt.red)
@@ -96,7 +92,7 @@ class FractionWidget(QWidget):
         splitterWidget = QSplitter(self)
 
         # add plot
-        self.fraction_plot = FractionPlot(self)
+        self.fraction_plot = FractionPlot(self, self.result_model, self.fraction_model)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
@@ -131,6 +127,7 @@ class FractionWidget(QWidget):
         sizePolicy.setHeightForWidth(self.fraction_table.sizePolicy().hasHeightForWidth())
         self.fraction_table.setSizePolicy(sizePolicy)
         self.fraction_table.setMinimumSize(QSize(250, 0))
+        self.fraction_table.setModel(self.fraction_model)
         vLayoutTable.addWidget(self.fraction_table)
         splitterWidget.addWidget(legendWidget)
         mainLayout.addWidget(splitterWidget)
@@ -138,9 +135,9 @@ class FractionWidget(QWidget):
 
     def time_units_change(self):
         time_units = self.ts_units_combo_box.currentText()
-        self.fraction_plot.setLabel("bottom", "Time", time_units)
-        self.fraction_plot.set_parameter(self.current_parameter, time_units)
-        self.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
+        # self.fraction_plot.setLabel("bottom", "Time", time_units)
+        # self.fraction_plot.set_parameter(self.current_parameter, time_units)
+        # self.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
     def substance_units_change(self):
         substance_units = self.substance_units_combo_box.currentText()
@@ -172,6 +169,7 @@ class FractionWidget(QWidget):
             # Check whether this result belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
                 self.fraction_model.set_fraction(new_idx, result_item)
+                self.fraction_plot.fraction_set(self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
                 break
         
         return True
