@@ -73,3 +73,6 @@ class FractionModel(QStandardItemModel):
         else:
             vector = np.array([1, 1])
         return timeseries / vector
+    
+    def has_wq_results(self, result_item: ThreeDiResultItem):
+        return len(result_item.threedi_result.available_water_quality_vars) != 0

@@ -55,6 +55,9 @@ class FractionDockWidget(QDockWidget):
         event.accept()
 
     def result_added(self, result: ThreeDiResultItem):
+        if not self.has_wq_results(result):
+            return
+
         currentIndex = self.simulationCombobox.currentIndex()
         self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
         self.simulationCombobox.setCurrentIndex(currentIndex)
@@ -77,12 +80,16 @@ class FractionDockWidget(QDockWidget):
         return self.model.get_result(item_id)
 
     def result_selected(self, result_index: int):
-        # Because we connected the "activated" signal instead of the "currentIndexChanged" signal,
-        # programmatically changing the index does not emit a signal
-        self.simulationCombobox.setCurrentIndex(result_index)
+        if result_index == -1:
+            return
+            
         item_id = self.simulationCombobox.itemData(result_index)
         result = self.model.get_result(item_id)
         self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result.text()} ({result.parent().text()})")
+
+        # Retrieve the units of the substances
+        self.fraction_widget.result_selected(result)
+        
 
     def setup_ui(self):
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -106,12 +113,6 @@ class FractionDockWidget(QDockWidget):
         self.mainVLayout.addItem(self.buttonBarHLayout)
         self.mainVLayout.setContentsMargins(0, 10, 0, 10)
 
-        # populate the combobox, with results, but select None
-        for result in self.model.get_results(checked_only=False):
-            self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
-        self.simulationCombobox.setCurrentIndex(-1)
-        self.simulationCombobox.activated.connect(self.result_selected)
-        
         self.fraction_widget = FractionWidget(
             self.dockWidgetContent,
             self.model,
@@ -120,6 +121,18 @@ class FractionDockWidget(QDockWidget):
         self.mainVLayout.addWidget(self.fraction_widget)
         self.setWidget(self.dockWidgetContent)
         self.setWindowTitle("3Di Substance comparison %i" % self.nr)
+
+        # populate the combobox, with wq results, select first
+        for result in self.model.get_results(checked_only=False):
+            if self.has_wq_results(result):
+                self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
+
+        self.simulationCombobox.currentIndexChanged.connect(self.result_selected)
+        if self.simulationCombobox.count() > 0:
+            # trigger only emitted when changed
+            self.simulationCombobox.setCurrentIndex(-1)
+            self.simulationCombobox.setCurrentIndex(0) 
+            
 
     def add_node_cell_button_clicked(self):
         self.iface.mapCanvas().setMapTool(self.map_tool_add_node_cell)
@@ -141,3 +154,6 @@ class FractionDockWidget(QDockWidget):
                     self.fraction_widget.set_fraction(result.mLayer, result.mFeature)
                     self.fraction_widget.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
                     return  # Only add a single item
+
+    def has_wq_results(self, result_item: ThreeDiResultItem):
+        return len(result_item.threedi_result.available_water_quality_vars) != 0

@@ -36,31 +36,20 @@ class FractionWidget(QWidget):
     ):
         super().__init__(parent)
 
-        self.model = model
+        self.result_model = model
         self.parent = parent
         self.iface = iface
 
         self.setup_ui()
 
-        self.fraction_model = FractionModel(self, self.model)
+        self.fraction_model = FractionModel(self, self.result_model)
         self.fraction_plot.set_fraction_model(self.fraction_model)
-        self.fraction_plot.set_result_model(self.model)
+        self.fraction_plot.set_result_model(self.result_model)
         self.fraction_table.setModel(self.fraction_model)
-        
-        # set listeners
-        self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
-        self.fraction_table.deleteRequested.connect(self._removeRows)
 
         self.marker = QgsRubberBand(self.iface.mapCanvas())
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
-
-    def _removeRows(self, index_list):
-        # Also here, remove in decreasing order to keep table idx valid
-        row_list = [index.row() for index in index_list]
-        row_list.sort(reverse=True)
-        for row in row_list:
-            self.fraction_model.removeRows(row, 1)
 
     def refresh_table(self):
         # trigger all listeners by emiting dataChanged signal
@@ -68,17 +57,12 @@ class FractionWidget(QWidget):
         self.fraction_model.endResetModel()
         self.fraction_table._update_table_widgets()
 
-    @pyqtSlot(ThreeDiResultItem)
-    def result_removed(self, result_item: ThreeDiResultItem):
-        # Remove corresponding plots that refer to this item
-        item_idx_to_remove = []
-        for count, item in enumerate(self.fraction_model.rows):
-            if item.result.value is result_item:
-                item_idx_to_remove.append(count)
-
-        # We delete them descending to keep the row idx consistent
-        for item_idx in reversed(item_idx_to_remove):
-            self.fraction_model.removeRows(item_idx, 1)
+    def result_selected(self, result_item: ThreeDiResultItem):
+        # retrieve the units
+        wq_vars = result_item.threedi_result.available_water_quality_vars
+        wq_units = [wq_var["unit"] for wq_var in wq_vars]
+        self.substance_units_combo_box.clear()
+        self.substance_units_combo_box.insertItems(0, wq_units)
 
     def closeEvent(self, event):
         """
@@ -102,7 +86,6 @@ class FractionWidget(QWidget):
                     self.marker.setToGeometry(feature.geometry(), lyr)
 
     def unhighlight_all_features(self):
-        """Remove the highlights from all layers"""
         self.marker.reset()
 
     def setup_ui(self):
@@ -125,13 +108,18 @@ class FractionWidget(QWidget):
         # add widget for timeseries table and other controls
         legendWidget = QWidget(self)
         vLayoutTable = QVBoxLayout(self)
+        vLayoutTable.setMargin(0)
         legendWidget.setLayout(vLayoutTable)
 
         # add comboboxes
         self.ts_units_combo_box = QComboBox(self)
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
+        self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         vLayoutTable.addWidget(self.ts_units_combo_box)
-        vLayoutTable.setMargin(0)
+        
+        self.substance_units_combo_box = QComboBox(self)
+        self.substance_units_combo_box.currentIndexChanged.connect(self.substance_units_change)
+        vLayoutTable.addWidget(self.substance_units_combo_box)
 
         # add timeseries table
         self.fraction_table = FractionTable(self)
@@ -154,21 +142,11 @@ class FractionWidget(QWidget):
         self.fraction_plot.set_parameter(self.current_parameter, time_units)
         self.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
-    def get_feature_index(self, layer, feature):
-        """
-        get the id of the selected id feature
-        :param layer: selected Qgis layer to be added
-        :param feature: selected Qgis feature to be added
-        :return: idx (integer)
-        We can't do ``feature.id()``, so we have to pick something that we
-        have agreed on. For now we have hardcoded the 'id' field as the
-        default, but that doesn't mean it's always the case in the future
-        when more layers are added!
-        """
-        idx = feature.id()
-        if layer.dataProvider().name() in ["memory", "ogr"]:
-            idx = feature["id"]
-        return idx
+    def substance_units_change(self):
+        substance_units = self.substance_units_combo_box.currentText()
+        # self.fraction_plot.setLabel("bottom", "Time", time_units)
+        # self.fraction_plot.set_parameter(self.current_parameter, time_units)
+        # self.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
     def set_fraction(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
         """
@@ -182,13 +160,14 @@ class FractionWidget(QWidget):
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
             return False
 
-        if len(self.model.get_results(checked_only=False)) == 0:
+        if len(self.result_model.get_results(checked_only=False)) == 0:
             logger.warning("No results loaded")
             return False
 
         # Retrieve summary of existing items in model (!= graph plots)
-        new_idx = self.get_feature_index(layer, feature)
-        result_items = self.model.get_results(checked_only=False)
+        assert layer.dataProvider().name() in ["memory", "ogr"]
+        new_idx = feature["id"]
+        result_items = self.result_model.get_results(checked_only=False)
         for result_item in result_items:
             # Check whether this result belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
