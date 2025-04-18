@@ -151,7 +151,7 @@ class FractionDockWidget(QDockWidget):
             # Check whether the selected layer belongs to the selected grid/result AND is a node/cell layer
             for layer_type, layer_id in current_result.parent().layer_ids.items():
                 if layer_type in ['node', 'cell'] and layer_id == result.mLayer.id():
-                    self.fraction_widget.set_fraction(result.mLayer, result.mFeature)
+                    self.fraction_widget.feature_selected(result.mLayer, result.mFeature)
                     self.fraction_widget.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
                     return  # Only add a single item
 

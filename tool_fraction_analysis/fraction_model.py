@@ -44,7 +44,7 @@ class FractionModel(QStandardItemModel):
     def get_color(self) -> QColor:
         return COLOR_LIST[self.rowCount() % len(COLOR_LIST)]
 
-    def create_plots(self, feature_id, time_units, substance_unit, stacked):
+    def create_plots(self, feature_id, time_units, stacked):
         plots = []
         for index in range(self.rowCount()):
             style, color = self.item(index, 1).data()

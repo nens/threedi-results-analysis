@@ -15,20 +15,25 @@ class FractionPlot(pg.PlotWidget):
     def __init__(self, parent, result_model: ThreeDiPluginModel, fraction_model: FractionModel):
         super().__init__(parent)
         self.showGrid(True, True, 0.5)
-        self.current_parameter = None
+        self.current_feature_id = None
         self.fraction_model = fraction_model
         self.result_model = result_model
         self.setLabel("bottom", "Time", "hrs")
+        self.setLabel("left", "Concentration", "")
         self.getAxis("left").enableAutoSIPrefix(False)
 
-    def fraction_set(self, feature_id, substance_unit: str, time_unit: str):
+    def fraction_selected(self, feature_id, substance_unit: str, time_unit: str):
         """
         Retrieve info from model and create plots
         """
         self.clear()
-        plots = self.fraction_model.create_plots(feature_id, time_unit, substance_unit, stacked=False)
+        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked=False)
         for plot in plots:
             self.addItem(plot)
+
+        self.setLabel("left", "Concentration", substance_unit)
+        self.current_feature_id = feature_id  # TODO: don't forget to reset when result removed
+        self.plotItem.vb.menu.viewAll.triggered.emit()
 
     def fraction_data_changed(self, index):
         # """
@@ -75,34 +80,3 @@ class FractionPlot(pg.PlotWidget):
         plot = self.fraction_model.rows[location_nr].plots(
             self.current_parameter["parameters"], time_units=self.current_time_units)
         self.addItem(plot)
-
-    def set_parameter(self, parameter, time_units):
-        """
-        on selection of parameter (in combobox), change timeseries in graphs
-        :param parameter: parameter identification string
-        :param time_units: current time units string
-        """
-
-        if self.current_parameter == parameter and self.current_time_units == time_units:
-            return
-
-        old_parameter = self.current_parameter
-        old_time_units = self.current_time_units
-        self.current_parameter = parameter
-        self.current_time_units = time_units
-        
-        #TODO
-        # for item in self.fraction_model.rowCount():
-        #     if not item.active.value:
-        #         continue
-
-        #     self.removeItem(
-        #         item.plots(old_parameter["parameters"], time_units=old_time_units)
-        #     )
-        #     self.addItem(
-        #         item.plots(self.current_parameter["parameters"], time_units=self.current_time_units)
-        #     )
-
-        self.setLabel(
-            "left", self.current_parameter["name"], self.current_parameter["unit"]
-        )

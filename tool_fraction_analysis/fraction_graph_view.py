@@ -59,7 +59,6 @@ class FractionWidget(QWidget):
         wq_units = [wq_var["unit"] for wq_var in wq_vars]
         self.substance_units_combo_box.clear()
         self.substance_units_combo_box.insertItems(0, wq_units)
-        logger.error("result_selected")
         self.fraction_model.set_fraction(result_item, self.substance_units_combo_box.currentText())
 
     def closeEvent(self, event):
@@ -90,7 +89,6 @@ class FractionWidget(QWidget):
 
         mainLayout = QHBoxLayout(self)
         self.setLayout(mainLayout)
-
         splitterWidget = QSplitter(self)
 
         # add plot
@@ -103,7 +101,6 @@ class FractionWidget(QWidget):
         self.fraction_plot.setMinimumSize(QSize(250, 250))
         splitterWidget.addWidget(self.fraction_plot)
 
-        # add widget for timeseries table and other controls
         legendWidget = QWidget(self)
         vLayoutTable = QVBoxLayout(self)
         vLayoutTable.setMargin(0)
@@ -119,7 +116,6 @@ class FractionWidget(QWidget):
         self.substance_units_combo_box.currentIndexChanged.connect(self.substance_units_change)
         vLayoutTable.addWidget(self.substance_units_combo_box)
 
-        # add timeseries table
         self.fraction_table = FractionTable(self)
         self.fraction_table.hoverEnterRow.connect(self.highlight_feature)
         self.fraction_table.hoverExitAllRows.connect(self.unhighlight_all_features)
@@ -136,23 +132,14 @@ class FractionWidget(QWidget):
         mainLayout.setContentsMargins(0, 0, 0, 0)
 
     def time_units_change(self):
-        time_units = self.ts_units_combo_box.currentText()
-        # self.fraction_plot.setLabel("bottom", "Time", time_units)
-        # self.fraction_plot.set_parameter(self.current_parameter, time_units)
-        # self.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
+        if self.fraction_plot.current_feature_id:
+            self.fraction_plot.fraction_selected(self.fraction_plot.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
 
     def substance_units_change(self):
-        substance_units = self.substance_units_combo_box.currentText()
-        # self.fraction_plot.setLabel("bottom", "Time", time_units)
-        # self.fraction_plot.set_parameter(self.current_parameter, time_units)
-        # self.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
+        if self.fraction_plot.current_feature_id:
+            self.fraction_plot.fraction_selected(self.fraction_plot.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
 
-    def set_fraction(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
-        """
-        :param layer: layer of features
-        :param feature: Qgis layer feature to be added
-        :return: boolean: new objects are added
-        """
+    def feature_selected(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
 
         if not layer.objectName() in ("node", "cell"):
             msg = """Please select results from either the 'nodes' or 'cells' layer."""
@@ -170,7 +157,7 @@ class FractionWidget(QWidget):
         for result_item in result_items:
             # Check whether this result belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
-                self.fraction_plot.fraction_set(new_idx, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
+                self.fraction_plot.fraction_selected(new_idx, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
                 break
         
         return True
