@@ -2,7 +2,6 @@ from qgis.core import Qgis
 from qgis.core import QgsFeature
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsProject
-from qgis.core import QgsValueMapFieldFormatter
 from qgis.core import QgsVectorLayer
 from qgis.gui import QgsRubberBand
 from qgis.PyQt.QtCore import pyqtSlot
@@ -149,7 +148,6 @@ class FractionWidget(QWidget):
         mainLayout.addWidget(splitterWidget)
         mainLayout.setContentsMargins(0, 0, 0, 0)
 
-
     def time_units_change(self):
         time_units = self.ts_units_combo_box.currentText()
         self.fraction_plot.setLabel("bottom", "Time", time_units)
@@ -172,43 +170,6 @@ class FractionWidget(QWidget):
             idx = feature["id"]
         return idx
 
-    def get_object_name(self, layer, feature):
-        """
-        get the object_name (display_name / type)  of the selected id feature
-        :param layer: selected Qgis layer to be added
-        :param feature: selected Qgis feature to be added
-        :return: object_name (string)
-        To get a object_name we use the following logic:
-        - get the 'display_name' column if available;
-        - if not: get the 'type' column if available;
-        - if not: get the 'line_type' column if available;
-        - if not: get the 'node_type' column if available;
-        - if not: object_name = 'N/A'
-        """
-        for column_nr, field in enumerate(layer.fields()):
-            if "display_name" in field.name():
-                return feature[column_nr]
-        for column_nr, field in enumerate(layer.fields()):
-            if field.name() == "type":
-                return feature[column_nr]
-
-        # Apply ValueMap field formatter
-        for column_nr, field in enumerate(layer.fields()):
-            if field.name() == "line_type":
-                config = layer.editorWidgetSetup(column_nr).config()
-                return QgsValueMapFieldFormatter().representValue(layer, column_nr, config, None, feature[column_nr])
-        for column_nr, field in enumerate(layer.fields()):
-            if field.name() == "node_type":
-                config = layer.editorWidgetSetup(column_nr).config()
-                return QgsValueMapFieldFormatter().representValue(layer, column_nr, config, None, feature[column_nr])
-
-        logger.warning("Layer has no 'display_name', it's probably a result "
-                       "layer, but putting a placeholder object name just "
-                       "for safety."
-                       )
-
-        return "N/A"
-
     def set_fraction(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
         """
         :param layer: layer of features
@@ -227,8 +188,6 @@ class FractionWidget(QWidget):
 
         # Retrieve summary of existing items in model (!= graph plots)
         new_idx = self.get_feature_index(layer, feature)
-        # new_object_name = self.get_object_name(layer, feature)
-
         result_items = self.model.get_results(checked_only=False)
         for result_item in result_items:
             # Check whether this result belongs to the selected grid
@@ -237,14 +196,3 @@ class FractionWidget(QWidget):
                 break
         
         return True
-
-    def remove_objects_table(self):
-        """
-        removes selected objects from table
-        :return:
-        """
-        selection_model = self.fraction_table.selectionModel()
-        # get unique rows in selected fields
-        rows = set([index.row() for index in selection_model.selectedIndexes()])
-        for row in reversed(sorted(rows)):
-            self.fraction_model.removeRows(row, 1)

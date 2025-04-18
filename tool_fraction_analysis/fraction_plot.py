@@ -32,10 +32,7 @@ class FractionPlot(pg.PlotWidget):
         """
         if self.fraction_model:
             self.fraction_model.dataChanged.disconnect(self.fraction_data_changed)
-            self.fraction_model.rowsInserted.disconnect(self.on_insert_fractions)
-            self.fraction_model.rowsAboutToBeRemoved.disconnect(
-                self.on_remove_fractions
-            )
+            self.fraction_model.fraction_set.disconnect(self.on_insert_fractions)
             self.fraction_model = None
 
     def closeEvent(self, event):
@@ -49,22 +46,19 @@ class FractionPlot(pg.PlotWidget):
     def set_fraction_model(self, model):
         self.fraction_model = model
         self.fraction_model.dataChanged.connect(self.fraction_data_changed)
-        self.fraction_model.rowsInserted.connect(self.on_insert_fractions)
+        self.fraction_model.fraction_set.connect(self.fraction_set)
 
     def set_result_model(self, model: ThreeDiPluginModel):
         self.result_model = model
 
-    def on_insert_fractions(self, parent, start, end):
+    def fraction_set(self):
         """
-        add list of items to graph. based on Qt addRows model trigger
-        :param parent: parent of event (Qt parameter)
-        :param start: first row nr
-        :param end: last row nr
+        add fraction to the graph, based on model signal
         """
-        for i in range(start, end + 1):
-            plots = self.fraction_model.create_plots(i, time_units=self.current_time_units, substance_unit="substance_unit", stacked=False)
-            for plot in plots:
-                self.addItem(plot)
+        self.clear()
+        plots = self.fraction_model.create_plots(time_units=self.current_time_units, substance_unit="substance_unit", stacked=False)
+        for plot in plots:
+            self.addItem(plot)
 
     def fraction_data_changed(self, index):
         """
