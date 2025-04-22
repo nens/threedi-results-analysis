@@ -46,9 +46,9 @@ class FractionModel(QStandardItemModel):
 
     def create_plots(self, feature_id, time_units, stacked):
         plots = []
-        for index in range(self.rowCount()):
-            style, color = self.item(index, 1).data()
-            substance = self.item(index, 2).text()
+        for row in range(self.rowCount()):
+            style, color = self.item(row, 1).data()
+            substance = self.item(row, 2).text()
             ts_table = self.timeseries_table(substance, feature_id, time_units=time_units)
             pen = pg.mkPen(color=QColor(*color), width=2, style=style)
             plots.append(pg.PlotDataItem(ts_table, pen=pen))

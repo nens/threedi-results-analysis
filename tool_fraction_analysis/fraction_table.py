@@ -44,35 +44,35 @@ class FractionTable(QTableView):
         event.accept()
 
     def eventFilter(self, widget, event):
-        if widget is self.viewport():
-            if event.type() == QEvent.MouseMove:
-                row = self.indexAt(event.pos()).row()
-                if row == 0 and self.model and row > self.model.rowCount():
-                    row = None
+        # if widget is self.viewport():
+        #     if event.type() == QEvent.MouseMove:
+        #         row = self.indexAt(event.pos()).row()
+        #         if row == 0 and self.model and row > self.model.rowCount():
+        #             row = None
 
-            elif event.type() == QEvent.Leave:
-                row = None
-                self.hoverExitAllRows.emit()
-            else:
-                row = self._last_hovered_row
+        #     elif event.type() == QEvent.Leave:
+        #         row = None
+        #         self.hoverExitAllRows.emit()
+        #     else:
+        #         row = self._last_hovered_row
 
-            if row != self._last_hovered_row:
-                if self._last_hovered_row is not None:
-                    try:
-                        self.hover_exit(self._last_hovered_row)
-                    except IndexError:
-                        logger.warning(
-                            "Hover row index %s out of range" % self._last_hovered_row
-                        )
-                    # self.hoverExitRow.emit(self._last_hovered_row)
-                # self.hoverEnterRow.emit(row)
-                if row is not None:
-                    try:
-                        self.hover_enter(row)
-                    except IndexError:
-                        logger.warning("Hover row index %s out of range" % row)
-                self._last_hovered_row = row
-                pass
+        #     if row != self._last_hovered_row:
+        #         if self._last_hovered_row is not None:
+        #             try:
+        #                 self.hover_exit(self._last_hovered_row)
+        #             except IndexError:
+        #                 logger.warning(
+        #                     "Hover row index %s out of range" % self._last_hovered_row
+        #                 )
+        #             # self.hoverExitRow.emit(self._last_hovered_row)
+        #         # self.hoverEnterRow.emit(row)
+        #         if row is not None:
+        #             try:
+        #                 self.hover_enter(row)
+        #             except IndexError:
+        #                 logger.warning("Hover row index %s out of range" % row)
+        #         self._last_hovered_row = row
+        #         pass
         return QTableView.eventFilter(self, widget, event)
 
     def hover_exit(self, row_nr):
@@ -99,14 +99,10 @@ class FractionTable(QTableView):
         self.setColumnWidth(0, 20)  # checkbox
 
     def _update_table_widgets(self):
-        return
         """The PenStyle widget is not part of the model, but explicitely added/overlayed to the table"""
-        for i in range(self.model.rowCount()):
-            item = self.model.rows[i]
-            index = self.model.index(i, 1)
-            pen_color = QColor(item.color.value[0], item.color.value[1], item.color.value[2])
+        for row in range(self.model.rowCount()):
+            style, color = self.model.item(row, 1).data()
             # If index widget A is replaced with index widget B, index widget A will be deleted.
-            patternWidget = PenStyleWidget(item.result.value._pattern, pen_color, self)
-            # patternWidget.setAutoFillBackground(True)
+            patternWidget = PenStyleWidget(style, QColor(*color), self)
             patternWidget.setPalette(self.palette())
-            self.setIndexWidget(index, patternWidget)
+            self.setIndexWidget(self.model.index(row, 1), patternWidget)
