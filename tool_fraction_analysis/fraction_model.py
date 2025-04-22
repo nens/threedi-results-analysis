@@ -38,8 +38,12 @@ class FractionModel(QStandardItemModel):
             color_item.setData((Qt.SolidLine, self.get_color()))
             color_item.setEditable(False)
             substance_item = QStandardItem(wq_var["parameters"])
-            substance_item.setEditable(True)
-            self.appendRow([QStandardItem(True), color_item, substance_item])
+            substance_item.setEditable(False)
+            check_item = QStandardItem("")
+            check_item.setCheckable(True)
+            check_item.setEditable(False)
+            check_item.setCheckState(Qt.Checked)
+            self.appendRow([check_item, color_item, substance_item])
 
     def get_color(self) -> QColor:
         return COLOR_LIST[self.rowCount() % len(COLOR_LIST)]
