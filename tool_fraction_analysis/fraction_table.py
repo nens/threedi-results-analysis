@@ -16,10 +16,8 @@ logger = logging.getLogger(__name__)
 
 class FractionTable(QTableView):
 
-    hoverExitRow = pyqtSignal(int)
     hoverExitAllRows = pyqtSignal()
-    hoverEnterRow = pyqtSignal(int, str, ThreeDiResultItem)
-    deleteRequested = pyqtSignal(list)
+    hoverEnterRow = pyqtSignal()
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -44,47 +42,17 @@ class FractionTable(QTableView):
         event.accept()
 
     def eventFilter(self, widget, event):
-        # if widget is self.viewport():
-        #     if event.type() == QEvent.MouseMove:
-        #         row = self.indexAt(event.pos()).row()
-        #         if row == 0 and self.model and row > self.model.rowCount():
-        #             row = None
-
-        #     elif event.type() == QEvent.Leave:
-        #         row = None
-        #         self.hoverExitAllRows.emit()
-        #     else:
-        #         row = self._last_hovered_row
-
-        #     if row != self._last_hovered_row:
-        #         if self._last_hovered_row is not None:
-        #             try:
-        #                 self.hover_exit(self._last_hovered_row)
-        #             except IndexError:
-        #                 logger.warning(
-        #                     "Hover row index %s out of range" % self._last_hovered_row
-        #                 )
-        #             # self.hoverExitRow.emit(self._last_hovered_row)
-        #         # self.hoverEnterRow.emit(row)
-        #         if row is not None:
-        #             try:
-        #                 self.hover_enter(row)
-        #             except IndexError:
-        #                 logger.warning("Hover row index %s out of range" % row)
-        #         self._last_hovered_row = row
-        #         pass
+        if widget is self.viewport():
+            if event.type() == QEvent.MouseMove:
+                index = self.indexAt(event.pos())
+                row = index.row()
+                if row != -1:
+                    self.hoverEnterRow.emit()
+                else:
+                    self.hoverExitAllRows.emit()
+            elif event.type() == QEvent.Leave:
+                self.hoverExitAllRows.emit()
         return QTableView.eventFilter(self, widget, event)
-
-    def hover_exit(self, row_nr):
-        if row_nr >= 0:
-            item = self.model.rows[row_nr]
-            item.hover.value = False
-
-    def hover_enter(self, row_nr):
-        if row_nr >= 0:
-            item = self.model.rows[row_nr]
-            self.hoverEnterRow.emit(item.object_id.value, item.object_type.value, item.result.value)
-            item.hover.value = True
 
     def setModel(self, model):
         super().setModel(model)

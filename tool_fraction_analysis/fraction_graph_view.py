@@ -37,6 +37,8 @@ class FractionWidget(QWidget):
 
         self.result_model = model
         self.current_feature_id = None
+        self.current_result_id = None
+        self.current_layer = None
         self.parent = parent
         self.iface = iface
 
@@ -69,18 +71,18 @@ class FractionWidget(QWidget):
         self.on_close()
         event.accept()
 
-    def highlight_feature(self, obj_id, obj_type, result_item: ThreeDiResultItem):
-
-        for table_name, layer_id in result_item.parent().layer_ids.items():
-
-            if obj_type == table_name:
-                # query layer for object
-                filt = u'"id" = {0}'.format(obj_id)
-                request = QgsFeatureRequest().setFilterExpression(filt)
-                lyr = QgsProject.instance().mapLayer(layer_id)
-                features = lyr.getFeatures(request)
-                for feature in features:
-                    self.marker.setToGeometry(feature.geometry(), lyr)
+    def highlight_feature(self):
+        if self.current_feature_id and self.current_result_id and self.current_layer:
+            result_item = self.result_model.get_result(self.current_result_id)
+            for table_name, layer_id in result_item.parent().layer_ids.items():
+                if self.current_layer == table_name:
+                    # query layer for object
+                    filt = u'"id" = {0}'.format(self.current_feature_id)
+                    request = QgsFeatureRequest().setFilterExpression(filt)
+                    lyr = QgsProject.instance().mapLayer(layer_id)
+                    features = lyr.getFeatures(request)
+                    for feature in features:
+                        self.marker.setToGeometry(feature.geometry(), lyr)
 
     def unhighlight_all_features(self):
         self.marker.reset()
@@ -158,6 +160,7 @@ class FractionWidget(QWidget):
             if layer.id() in result_item.parent().layer_ids.values():
                 self.fraction_plot.fraction_selected(new_idx, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
                 self.current_result_id = result_item.id  # TODO: don't forget to reset when result removed
+                self.current_layer = layer.objectName() # TODO: don't forget to reset when result removed
                 break
         
         return True
