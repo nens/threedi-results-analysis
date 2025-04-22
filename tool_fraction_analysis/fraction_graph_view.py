@@ -4,7 +4,6 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.gui import QgsRubberBand
-from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QComboBox
@@ -37,6 +36,7 @@ class FractionWidget(QWidget):
         super().__init__(parent)
 
         self.result_model = model
+        self.current_feature_id = None
         self.parent = parent
         self.iface = iface
 
@@ -91,7 +91,6 @@ class FractionWidget(QWidget):
         self.setLayout(mainLayout)
         splitterWidget = QSplitter(self)
 
-        # add plot
         self.fraction_plot = FractionPlot(self, self.result_model, self.fraction_model)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
@@ -106,7 +105,6 @@ class FractionWidget(QWidget):
         vLayoutTable.setMargin(0)
         legendWidget.setLayout(vLayoutTable)
 
-        # add comboboxes
         self.ts_units_combo_box = QComboBox(self)
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
@@ -132,12 +130,13 @@ class FractionWidget(QWidget):
         mainLayout.setContentsMargins(0, 0, 0, 0)
 
     def time_units_change(self):
-        if self.fraction_plot.current_feature_id:
-            self.fraction_plot.fraction_selected(self.fraction_plot.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
+        if self.current_feature_id:
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
 
     def substance_units_change(self):
-        if self.fraction_plot.current_feature_id:
-            self.fraction_plot.fraction_selected(self.fraction_plot.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
+        if self.current_feature_id and self.current_result_id:
+            self.fraction_model.set_fraction(self.result_model.get_result(self.current_result_id), self.substance_units_combo_box.currentText())
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
 
     def feature_selected(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
 
@@ -150,14 +149,15 @@ class FractionWidget(QWidget):
             logger.warning("No results loaded")
             return False
 
-        # Retrieve summary of existing items in model (!= graph plots)
         assert layer.dataProvider().name() in ["memory", "ogr"]
         new_idx = feature["id"]
+        self.current_feature_id = new_idx  # TODO: don't forget to reset when result removed
         result_items = self.result_model.get_results(checked_only=False)
         for result_item in result_items:
             # Check whether this result belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
                 self.fraction_plot.fraction_selected(new_idx, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
+                self.current_result_id = result_item.id  # TODO: don't forget to reset when result removed
                 break
         
         return True

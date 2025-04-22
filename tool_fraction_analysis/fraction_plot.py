@@ -15,7 +15,6 @@ class FractionPlot(pg.PlotWidget):
     def __init__(self, parent, result_model: ThreeDiPluginModel, fraction_model: FractionModel):
         super().__init__(parent)
         self.showGrid(True, True, 0.5)
-        self.current_feature_id = None
         self.fraction_model = fraction_model
         self.result_model = result_model
         self.setLabel("bottom", "Time", "hrs")
@@ -32,7 +31,6 @@ class FractionPlot(pg.PlotWidget):
             self.addItem(plot)
 
         self.setLabel("left", "Concentration", substance_unit)
-        self.current_feature_id = feature_id  # TODO: don't forget to reset when result removed
         self.plotItem.vb.menu.viewAll.triggered.emit()
 
     def fraction_data_changed(self, index):
