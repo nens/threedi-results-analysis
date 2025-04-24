@@ -18,6 +18,9 @@ from threedi_results_analysis.tool_fraction_analysis.fraction_graph_view import 
 from threedi_results_analysis.tool_fraction_analysis.fraction_map_tool import (
     AddNodeCellMapTool,
 )
+from threedi_results_analysis.tool_fraction_analysis.fraction_utils import (
+    has_wq_results,
+)
 
 import logging
 
@@ -56,7 +59,7 @@ class FractionDockWidget(QDockWidget):
 
     def result_added(self, result: ThreeDiResultItem):
         
-        if not self.has_wq_results(result):
+        if not has_wq_results(result):
             return
         self.action_icon.setEnabled(True)
 
@@ -65,13 +68,13 @@ class FractionDockWidget(QDockWidget):
         self.simulationCombobox.setCurrentIndex(currentIndex)
 
     def result_removed(self, removed_result: ThreeDiResultItem):
-        # TODO: Check whether this is the currently plot result
+        if self.fraction_widget.current_result_id == removed_result.id:
+            # This is the currently loaded result, so unload
+            self.setWindowTitle("3Di Substance comparison %i" % self.nr)
+            # TODO: Remove from comboboxes
 
-        for result_item in self.model.get_results(checked_only=False):
-            if self.has_wq_results(result_item) and removed_result.id != result_item.id:
-                self.action_icon.setEnabled(True)
-                return
-        self.action_icon.setEnabled(False)
+            self.fraction_widget.clear()
+            pass
 
     def result_changed(self, result_item: ThreeDiResultItem):
         if self.fraction_widget.current_result_id == result_item.id:
@@ -101,7 +104,6 @@ class FractionDockWidget(QDockWidget):
 
         # Retrieve the units of the substances
         self.fraction_widget.result_selected(result)
-        
 
     def setup_ui(self):
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -136,7 +138,7 @@ class FractionDockWidget(QDockWidget):
 
         # populate the combobox, with wq results, select first
         for result in self.model.get_results(checked_only=False):
-            if self.has_wq_results(result):
+            if has_wq_results(result):
                 self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
 
         self.simulationCombobox.currentIndexChanged.connect(self.result_selected)
@@ -166,6 +168,3 @@ class FractionDockWidget(QDockWidget):
                     self.fraction_widget.feature_selected(result.mLayer, result.mFeature)
                     self.fraction_widget.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
                     return  # Only add a single item
-
-    def has_wq_results(self, result_item: ThreeDiResultItem):
-        return len(result_item.threedi_result.available_water_quality_vars) != 0

@@ -49,6 +49,9 @@ class FractionWidget(QWidget):
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
 
+    def clear(self):
+        self.fraction_model.clear()
+        self.fraction_plot.clear()
 
     def result_selected(self, result_item: ThreeDiResultItem):
         # retrieve the units
@@ -56,6 +59,8 @@ class FractionWidget(QWidget):
         wq_units = [wq_var["unit"] for wq_var in wq_vars]
         self.substance_units_combo_box.clear()
         self.substance_units_combo_box.insertItems(0, wq_units)
+
+        self.current_result_id = result_item.id
         self.fraction_model.set_fraction(result_item, self.substance_units_combo_box.currentText())
 
     def highlight_feature(self):

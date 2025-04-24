@@ -6,10 +6,16 @@ from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool
 from threedi_results_analysis.tool_fraction_analysis.fraction_dock_view import (
     FractionDockWidget,
 )
+from threedi_results_analysis.tool_fraction_analysis.fraction_utils import (
+    has_wq_results,
+)
 
+import logging
 import os
 import qgis
 
+
+logger = logging.getLogger(__name__)
 
 class FractionAnalysis(ThreeDiPluginTool):
 
@@ -44,15 +50,22 @@ class FractionAnalysis(ThreeDiPluginTool):
 
     @pyqtSlot(ThreeDiResultItem)
     def result_added(self, result_item: ThreeDiResultItem):
-        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+        if has_wq_results(result_item):
+            self.action_icon.setEnabled(True)
+
         for dock_widget in self.dock_widgets:
             dock_widget.result_added(result_item)
 
     @pyqtSlot(ThreeDiResultItem)
-    def result_removed(self, result_item: ThreeDiResultItem):
-        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+    def result_removed(self, removed_result: ThreeDiResultItem):
         for dock_widget in self.dock_widgets:
-            dock_widget.result_removed(result_item)
+            dock_widget.result_removed(removed_result)
+
+        for result_item in self.model.get_results(checked_only=False):
+            if has_wq_results(result_item) and removed_result.id != result_item.id:
+                self.action_icon.setEnabled(True)
+                return
+        self.action_icon.setEnabled(False)
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem):
