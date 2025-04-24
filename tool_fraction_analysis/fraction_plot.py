@@ -34,7 +34,6 @@ class FractionPlot(pg.PlotWidget):
         self.plotItem.vb.menu.viewAll.triggered.emit()
 
     def fraction_data_changed(self, index):
-        logger.error("CHAGNED")
         # """
         # change graphs
         # :param index: index of changed field

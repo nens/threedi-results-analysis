@@ -49,11 +49,6 @@ class FractionWidget(QWidget):
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
 
-    def refresh_table(self):
-        # trigger all listeners by emiting dataChanged signal
-        self.fraction_model.beginResetModel()
-        self.fraction_model.endResetModel()
-        self.fraction_table._update_table_widgets()
 
     def result_selected(self, result_item: ThreeDiResultItem):
         # retrieve the units
@@ -62,14 +57,6 @@ class FractionWidget(QWidget):
         self.substance_units_combo_box.clear()
         self.substance_units_combo_box.insertItems(0, wq_units)
         self.fraction_model.set_fraction(result_item, self.substance_units_combo_box.currentText())
-
-    def closeEvent(self, event):
-        """
-        overwrite of QDockWidget class to emit signal
-        :param event: QEvent
-        """
-        self.on_close()
-        event.accept()
 
     def highlight_feature(self):
         if self.current_feature_id and self.current_result_id and self.current_layer:

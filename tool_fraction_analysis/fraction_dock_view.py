@@ -55,21 +55,33 @@ class FractionDockWidget(QDockWidget):
         event.accept()
 
     def result_added(self, result: ThreeDiResultItem):
+        
         if not self.has_wq_results(result):
             return
+        self.action_icon.setEnabled(True)
 
         currentIndex = self.simulationCombobox.currentIndex()
         self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
         self.simulationCombobox.setCurrentIndex(currentIndex)
 
-    def result_removed(self, result_item: ThreeDiResultItem):
-        pass
+    def result_removed(self, removed_result: ThreeDiResultItem):
+        # TODO: Check whether this is the currently plot result
 
-    def result_changed(self, _: ThreeDiResultItem):
-        pass
+        for result_item in self.model.get_results(checked_only=False):
+            if self.has_wq_results(result_item) and removed_result.id != result_item.id:
+                self.action_icon.setEnabled(True)
+                return
+        self.action_icon.setEnabled(False)
 
-    def grid_changed(self, result_item: ThreeDiGridItem):
-        pass
+    def result_changed(self, result_item: ThreeDiResultItem):
+        if self.fraction_widget.current_result_id == result_item.id:
+            self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result_item.text()} ({result_item.parent().text()})")
+
+    def grid_changed(self, grid_item: ThreeDiGridItem):
+        if self.fraction_widget.current_result_id:
+            result = self.model.get_result(self.fraction_widget.current_result_id)
+            if result.parent().id == grid_item.id:
+                self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result.text()} ({result.parent().text()})")
 
     def current_result(self):
         current_index = self.simulationCombobox.currentIndex()                
