@@ -36,30 +36,24 @@ class FractionWidget(QWidget):
         super().__init__(parent)
 
         self.result_model = model
-        self.current_feature_id = None
-        self.current_result_id = None
-        self.current_layer = None
         self.parent = parent
         self.iface = iface
-
         self.fraction_model = FractionModel(self, self.result_model)
         self.setup_ui()
+        self.clear()
 
     def clear(self):
         self.fraction_model.clear()
         self.fraction_plot.clear()
-        self.current_feature_id = None
+
+        self.current_result_id = None
         self.current_layer = None
+        self.current_substance_unit = None
         self.current_feature_id = None
 
-    def result_selected(self, result_item: ThreeDiResultItem):
-        wq_vars = result_item.threedi_result.available_water_quality_vars
-        wq_units = [wq_var["unit"] for wq_var in wq_vars]
-        self.substance_units_combo_box.clear()
-        self.substance_units_combo_box.insertItems(0, wq_units)
-
+    def result_selected(self, result_item: ThreeDiResultItem, substance_units):
         self.current_result_id = result_item.id
-        self.fraction_model.set_fraction(result_item, self.substance_units_combo_box.currentText())
+        self.fraction_model.set_fraction(result_item, substance_units)
 
     def highlight_feature(self):
         if self.current_feature_id and self.current_result_id and self.current_layer:
@@ -102,10 +96,6 @@ class FractionWidget(QWidget):
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         vLayoutTable.addWidget(self.ts_units_combo_box)
         
-        self.substance_units_combo_box = QComboBox(self)
-        self.substance_units_combo_box.currentIndexChanged.connect(self.substance_units_change)
-        vLayoutTable.addWidget(self.substance_units_combo_box)
-
         self.fraction_table = FractionTable(self)
         self.fraction_table.hoverEnterRow.connect(self.highlight_feature)
         self.fraction_table.hoverExitAllRows.connect(self.unhighlight_all_features)
@@ -126,14 +116,15 @@ class FractionWidget(QWidget):
         self.marker.setWidth(2)
 
     def time_units_change(self):
-        if self.current_feature_id:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
+        if self.current_feature_id and self.current_substance_unit:
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText())
 
-    def substance_units_change(self):
+    def substance_units_change(self, substance_unit):
+        self.current_substance_unit = substance_unit
         if self.current_result_id:
-            self.fraction_model.set_fraction(self.result_model.get_result(self.current_result_id), self.substance_units_combo_box.currentText())
+            self.fraction_model.set_fraction(self.result_model.get_result(self.current_result_id), self.current_substance_unit)
         if self.current_feature_id:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText())
 
     def feature_selected(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
 
@@ -153,7 +144,7 @@ class FractionWidget(QWidget):
         for result_item in result_items:
             # Check whether this layer belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
-                self.fraction_plot.fraction_selected(new_idx, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
+                self.fraction_plot.fraction_selected(new_idx, self.current_substance_unit, self.ts_units_combo_box.currentText())
                 self.current_result_id = result_item.id
                 self.current_layer = layer.objectName()
                 break

@@ -21,6 +21,10 @@ class FractionPlot(pg.PlotWidget):
         self.setLabel("left", "Concentration", "")
         self.getAxis("left").enableAutoSIPrefix(False)
 
+    def clear(self):
+        self.setLabel("left", "Concentration", "")
+        super().clear()
+
     def fraction_selected(self, feature_id, substance_unit: str, time_unit: str):
         """
         Retrieve info from model and create plots
