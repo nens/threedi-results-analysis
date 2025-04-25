@@ -45,16 +45,14 @@ class FractionWidget(QWidget):
         self.fraction_model = FractionModel(self, self.result_model)
         self.setup_ui()
 
-        self.marker = QgsRubberBand(self.iface.mapCanvas())
-        self.marker.setColor(Qt.red)
-        self.marker.setWidth(2)
-
     def clear(self):
         self.fraction_model.clear()
         self.fraction_plot.clear()
+        self.current_feature_id = None
+        self.current_layer = None
+        self.current_feature_id = None
 
     def result_selected(self, result_item: ThreeDiResultItem):
-        # retrieve the units
         wq_vars = result_item.threedi_result.available_water_quality_vars
         wq_units = [wq_var["unit"] for wq_var in wq_vars]
         self.substance_units_combo_box.clear()
@@ -123,13 +121,18 @@ class FractionWidget(QWidget):
         mainLayout.addWidget(splitterWidget)
         mainLayout.setContentsMargins(0, 0, 0, 0)
 
+        self.marker = QgsRubberBand(self.iface.mapCanvas())
+        self.marker.setColor(Qt.red)
+        self.marker.setWidth(2)
+
     def time_units_change(self):
         if self.current_feature_id:
             self.fraction_plot.fraction_selected(self.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
 
     def substance_units_change(self):
-        if self.current_feature_id and self.current_result_id:
+        if self.current_result_id:
             self.fraction_model.set_fraction(self.result_model.get_result(self.current_result_id), self.substance_units_combo_box.currentText())
+        if self.current_feature_id:
             self.fraction_plot.fraction_selected(self.current_feature_id, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
 
     def feature_selected(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
@@ -145,14 +148,14 @@ class FractionWidget(QWidget):
 
         assert layer.dataProvider().name() in ["memory", "ogr"]
         new_idx = feature["id"]
-        self.current_feature_id = new_idx  # TODO: don't forget to reset when result removed
+        self.current_feature_id = new_idx
         result_items = self.result_model.get_results(checked_only=False)
         for result_item in result_items:
-            # Check whether this result belongs to the selected grid
+            # Check whether this layer belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
                 self.fraction_plot.fraction_selected(new_idx, self.substance_units_combo_box.currentText(), self.ts_units_combo_box.currentText())
-                self.current_result_id = result_item.id  # TODO: don't forget to reset when result removed
-                self.current_layer = layer.objectName() # TODO: don't forget to reset when result removed
+                self.current_result_id = result_item.id
+                self.current_layer = layer.objectName()
                 break
         
         return True

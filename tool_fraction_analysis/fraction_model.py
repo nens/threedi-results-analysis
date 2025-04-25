@@ -27,6 +27,8 @@ class FractionModel(QStandardItemModel):
         super().clear()
 
     def set_fraction(self, item: ThreeDiResultItem, substance: str):
+        self.clear()
+
         self.setHorizontalHeaderLabels(["active", "pattern", "substance"])
         self.result_item = item
 
