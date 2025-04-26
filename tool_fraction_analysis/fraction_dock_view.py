@@ -89,7 +89,13 @@ class FractionDockWidget(QDockWidget):
         if self.fraction_widget.current_result_id == result_item.id:
             self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result_item.text()} ({result_item.parent().text()})")
 
-        # TODO: Update result combobox
+        # Update result combobox
+        for i in range(self.simulationCombobox.count()):
+            item_id = self.simulationCombobox.itemData(i)
+            if self.model.get_result(item_id).id == result_item.id:
+                self.simulationCombobox.removeItem(i)
+                self.simulationCombobox.insertItem(i, f"{result_item.text()} ({result_item.parent().text()})", result_item.id)
+                break
 
     def grid_changed(self, grid_item: ThreeDiGridItem):
         if self.fraction_widget.current_result_id:
@@ -97,7 +103,13 @@ class FractionDockWidget(QDockWidget):
             if result.parent().id == grid_item.id:
                 self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result.text()} ({result.parent().text()})")
         
-        # TODO: Update result combobox
+        # Update result combobox
+        for i in range(self.simulationCombobox.count()):
+            item_id = self.simulationCombobox.itemData(i)
+            result_item = self.model.get_result(item_id)
+            if result_item.parent().id == grid_item.id:
+                self.simulationCombobox.removeItem(i)
+                self.simulationCombobox.insertItem(i, f"{result_item.text()} ({result_item.parent().text()})", result_item.id)
 
     def current_result(self):
         current_index = self.simulationCombobox.currentIndex()                
