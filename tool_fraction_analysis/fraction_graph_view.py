@@ -39,8 +39,12 @@ class FractionWidget(QWidget):
         self.parent = parent
         self.iface = iface
         self.fraction_model = FractionModel(self, self.result_model)
+        self.fraction_model.itemChanged.connect(self.model_item_changed)
         self.setup_ui()
         self.clear()
+
+    def model_item_changed(self, item):
+        logger.error("CHANGED")
 
     def clear(self):
         self.fraction_model.clear()

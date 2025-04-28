@@ -15,9 +15,7 @@ from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.tool_fraction_analysis.fraction_graph_view import (
     FractionWidget,
 )
-from threedi_results_analysis.tool_fraction_analysis.fraction_map_tool import (
-    AddNodeCellMapTool,
-)
+from threedi_results_analysis.tool_fraction_analysis.fraction_map_tool import AddMapTool
 from threedi_results_analysis.tool_fraction_analysis.fraction_utils import (
     has_wq_results,
 )
@@ -39,7 +37,7 @@ class FractionDockWidget(QDockWidget):
 
         self.setup_ui()
 
-        self.map_tool_add_node_cell = AddNodeCellMapTool(
+        self.map_tool_add_node_cell = AddMapTool(
             widget=self, canvas=self.iface.mapCanvas(),
         )
         self.map_tool_add_node_cell.setButton(self.addNodeCellButton)
@@ -61,7 +59,6 @@ class FractionDockWidget(QDockWidget):
         
         if not has_wq_results(result):
             return
-        self.action_icon.setEnabled(True)
 
         currentIndex = self.simulationCombobox.currentIndex()
         self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)

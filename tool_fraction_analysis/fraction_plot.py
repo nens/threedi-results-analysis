@@ -21,8 +21,8 @@ class FractionPlot(pg.PlotWidget):
         self.setLabel("left", "Concentration", "")
         self.getAxis("left").enableAutoSIPrefix(False)
 
-    def clear(self):
-        super().clear()
+    def clear_plot(self):
+        self.clear()
         self.setLabel("left", "Concentration", "")
 
     def fraction_selected(self, feature_id, substance_unit: str, time_unit: str):

@@ -1,7 +1,7 @@
 from qgis.gui import QgsMapToolIdentify
 
 
-class AddNodeCellMapTool(QgsMapToolIdentify):
+class AddMapTool(QgsMapToolIdentify):
     def __init__(self, widget, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.widget = widget
