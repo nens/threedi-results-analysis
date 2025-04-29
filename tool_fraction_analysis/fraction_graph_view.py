@@ -120,6 +120,7 @@ class FractionWidget(QWidget):
         self.marker.setWidth(2)
 
     def time_units_change(self):
+        self.fraction_plot.setLabel("bottom", "Time", self.ts_units_combo_box.currentText())
         if self.current_feature_id and self.current_substance_unit:
             self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText())
 
