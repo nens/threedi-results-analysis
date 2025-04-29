@@ -56,13 +56,10 @@ class FractionDockWidget(QDockWidget):
         event.accept()
 
     def result_added(self, result: ThreeDiResultItem):
-        
         if not has_wq_results(result):
             return
 
-        currentIndex = self.simulationCombobox.currentIndex()
         self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
-        self.simulationCombobox.setCurrentIndex(currentIndex)
 
     def result_removed(self, removed_result: ThreeDiResultItem):
         if self.fraction_widget.current_result_id == removed_result.id:
