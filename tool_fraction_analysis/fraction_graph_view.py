@@ -44,7 +44,7 @@ class FractionWidget(QWidget):
         self.clear()
 
     def model_item_changed(self, item):
-        logger.error("CHANGED")
+        self.fraction_plot.item_changed(item)
 
     def clear(self):
         self.fraction_model.clear()

@@ -41,12 +41,13 @@ class FractionModel(QStandardItemModel):
             color_item = QStandardItem()
             color_item.setData((Qt.SolidLine, self.get_color()))
             color_item.setEditable(False)
-            substance_item = QStandardItem(wq_var["parameters"])
+            substance_item = QStandardItem(wq_var["name"])
             substance_item.setEditable(False)
             check_item = QStandardItem("")
             check_item.setCheckable(True)
             check_item.setEditable(False)
             check_item.setCheckState(Qt.Checked)
+            check_item.setData(wq_var["parameters"])
             self.appendRow([check_item, color_item, substance_item])
 
     def get_color(self) -> QColor:
@@ -56,10 +57,10 @@ class FractionModel(QStandardItemModel):
         plots = []
         for row in range(self.rowCount()):
             style, color = self.item(row, 1).data()
-            substance = self.item(row, 2).text()
+            substance = self.item(row, 0).data()
             ts_table = self.timeseries_table(substance, feature_id, time_units=time_units)
             pen = pg.mkPen(color=QColor(*color), width=2, style=style)
-            plots.append(pg.PlotDataItem(ts_table, pen=pen))
+            plots.append((substance, pg.PlotDataItem(ts_table, pen=pen)))
 
         return plots
     

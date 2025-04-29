@@ -26,7 +26,6 @@ class FractionTable(QTableView):
         self.verticalHeader().hide()
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.model = None
-        self._last_hovered_row = None
         self.viewport().installEventFilter(self)
 
     def on_close(self):
@@ -60,11 +59,9 @@ class FractionTable(QTableView):
         self.model.dataChanged.connect(self._update_table_widgets)
         self.model.rowsInserted.connect(self._update_table_widgets)
         self.model.rowsAboutToBeRemoved.connect(self._update_table_widgets)
-        self.setVisible(False)
-        self.resizeColumnsToContents()
         self.horizontalHeader().setStretchLastSection(True)
+        self.resizeColumnsToContents()
         self.setVisible(True)
-        self.setColumnWidth(0, 20)  # checkbox
 
     def _update_table_widgets(self):
         """The PenStyle widget is not part of the model, but explicitely added/overlayed to the table"""
