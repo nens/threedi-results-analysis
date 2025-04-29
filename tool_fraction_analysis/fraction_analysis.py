@@ -78,13 +78,14 @@ class FractionAnalysis(ThreeDiPluginTool):
             dock_widget.grid_changed(grid_item)
 
     def run(self):
-        self.widget_nr += 1
         new_widget = FractionDockWidget(
             iface=self.iface,
             nr=self.widget_nr,
             model=self.model,
         )
         self.dock_widgets.append(new_widget)
+
+        self.widget_nr += 1
 
         # connect cleanup on closing of dockwidget
         new_widget.closingWidget.connect(self.on_close_child_widget)

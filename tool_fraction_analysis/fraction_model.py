@@ -41,7 +41,9 @@ class FractionModel(QStandardItemModel):
             color_item = QStandardItem()
             color_item.setData((Qt.SolidLine, self.get_color()))
             color_item.setEditable(False)
-            substance_item = QStandardItem(wq_var["name"])
+            # Display the "name" if present, otherwise parameter name
+            substance_name = wq_var["name"] or wq_var["parameters"]
+            substance_item = QStandardItem(substance_name)
             substance_item.setEditable(False)
             check_item = QStandardItem("")
             check_item.setCheckable(True)

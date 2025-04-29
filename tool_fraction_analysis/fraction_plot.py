@@ -36,7 +36,7 @@ class FractionPlot(pg.PlotWidget):
         """
         Retrieve info from model and create plots
         """
-        self.clear()
+        self.clear_plot()
         plots = self.fraction_model.create_plots(feature_id, time_unit, stacked=False)
         for substance, plot in plots:
             self.item_map[substance] = plot

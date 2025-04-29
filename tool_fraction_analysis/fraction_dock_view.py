@@ -79,7 +79,9 @@ class FractionDockWidget(QDockWidget):
                 self.simulationCombobox.removeItem(i)
                 break
 
-        # TODO: select next result
+        # select next result
+        if self.simulationCombobox.count() > 0:
+            self.result_selected(0)
 
 
     def result_changed(self, result_item: ThreeDiResultItem):
@@ -126,9 +128,9 @@ class FractionDockWidget(QDockWidget):
 
         # Retrieve the units of the substances
         wq_vars = result_item.threedi_result.available_water_quality_vars
-        wq_units = [wq_var["unit"] for wq_var in wq_vars]
+        wq_units = {wq_var["unit"] for wq_var in wq_vars}
         self.substanceUnitsCombobox.clear()
-        self.substanceUnitsCombobox.insertItems(0, wq_units)
+        self.substanceUnitsCombobox.insertItems(0, list(wq_units))
         self.fraction_widget.result_selected(result_item, self.substanceUnitsCombobox.currentText())
 
     def setup_ui(self):
