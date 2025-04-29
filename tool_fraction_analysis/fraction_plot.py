@@ -1,3 +1,5 @@
+from qgis.PyQt.QtGui import QColor
+
 import pyqtgraph as pg
 
 
@@ -30,17 +32,40 @@ class FractionPlot(pg.PlotWidget):
 
     def item_changed(self, model_item):
         substance = model_item.data()
-        self.item_map[substance].setVisible(model_item.checkState() == Qt.Checked)
+        for plot in self.item_map[substance]:
+            plot.setVisible(model_item.checkState() == Qt.Checked)
 
-    def fraction_selected(self, feature_id, substance_unit: str, time_unit: str):
+    def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool):
         """
         Retrieve info from model and create plots
         """
         self.clear_plot()
-        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked=False)
+        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked)
+        prev_plot = None
         for substance, plot in plots:
-            self.item_map[substance] = plot
+            self.item_map[substance] = [plot]
+            plot.setZValue(100)
             self.addItem(plot)
+
+            if stacked:
+                # Add fill between consecutive plots
+                plot_color = plot.opts['pen'].color()
+                # Reduce saturation for fill
+                fill_color = self.reduce_saturation(plot_color)
+                if not prev_plot:
+                    # this is the first, just fill downward to axis
+                    plot.setFillLevel(0)
+                    plot.setFillBrush(pg.mkBrush(fill_color))
+                else:
+                    fill = pg.FillBetweenItem(plot, prev_plot, pg.mkBrush(fill_color))
+                    fill.setZValue(20)
+                    self.addItem(fill)
+                    self.item_map[substance].append(fill)
+
+            prev_plot = plot
 
         self.setLabel("left", "Concentration", substance_unit)
         self.plotItem.vb.menu.viewAll.triggered.emit()
+
+    def reduce_saturation(self, plot_color):
+        return QColor.fromHsvF(plot_color.hueF(), plot_color.saturationF()/2.0, plot_color.valueF())

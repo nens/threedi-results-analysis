@@ -54,6 +54,7 @@ class FractionWidget(QWidget):
         self.current_layer = None
         self.current_substance_unit = None
         self.current_feature_id = None
+        self.current_stacked = False
 
     def result_selected(self, result_item: ThreeDiResultItem, substance_units):
         self.current_result_id = result_item.id
@@ -77,7 +78,6 @@ class FractionWidget(QWidget):
         self.marker.reset()
 
     def setup_ui(self):
-
         mainLayout = QHBoxLayout(self)
         self.setLayout(mainLayout)
         splitterWidget = QSplitter(self)
@@ -100,7 +100,6 @@ class FractionWidget(QWidget):
         self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         vLayoutTable.addWidget(self.ts_units_combo_box)
-        
         self.fraction_table = FractionTable(self)
         self.fraction_table.hoverEnterRow.connect(self.highlight_feature)
         self.fraction_table.hoverExitAllRows.connect(self.unhighlight_all_features)
@@ -123,17 +122,21 @@ class FractionWidget(QWidget):
     def time_units_change(self):
         self.fraction_plot.setLabel("bottom", "Time", self.ts_units_combo_box.currentText())
         if self.current_feature_id and self.current_substance_unit:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText())
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
 
     def substance_units_change(self, substance_unit):
         self.current_substance_unit = substance_unit
         if self.current_result_id:
             self.fraction_model.set_fraction(self.result_model.get_result(self.current_result_id), self.current_substance_unit)
         if self.current_feature_id:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText())
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+
+    def stacked_changed(self, check_state):
+        self.current_stacked = (check_state == Qt.Checked)
+        if self.current_feature_id:
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
 
     def feature_selected(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
-
         if not layer.objectName() in ("node", "cell"):
             msg = """Please select results from either the 'nodes' or 'cells' layer."""
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
@@ -150,7 +153,7 @@ class FractionWidget(QWidget):
         for result_item in result_items:
             # Check whether this layer belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
-                self.fraction_plot.fraction_selected(new_idx, self.current_substance_unit, self.ts_units_combo_box.currentText())
+                self.fraction_plot.fraction_selected(new_idx, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
                 self.current_result_id = result_item.id
                 self.current_layer = layer.objectName()
                 break

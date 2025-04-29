@@ -12,8 +12,6 @@ import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
 
-EMPTY_TIMESERIES = np.array([], dtype=float)
-
 class FractionModel(QStandardItemModel):
 
     def __init__(self, parent, result_model):
@@ -57,12 +55,20 @@ class FractionModel(QStandardItemModel):
 
     def create_plots(self, feature_id, time_units, stacked):
         plots = []
+        cumulative_ts_table = None
+
         for row in range(self.rowCount()):
             style, color = self.item(row, 1).data()
+            pen = pg.mkPen(color=QColor(*color), width=2, style=style)
             substance = self.item(row, 0).data()
             ts_table = self.timeseries_table(substance, feature_id, time_units=time_units)
-            pen = pg.mkPen(color=QColor(*color), width=2, style=style)
-            plots.append((substance, pg.PlotDataItem(ts_table, pen=pen)))
+            if stacked:
+                if cumulative_ts_table is not None:
+                    ts_table[:, 1] = np.add(ts_table[:, 1], cumulative_ts_table)
+                cumulative_ts_table = ts_table[:, 1]  # Don't sum the timekeys
+
+            plot = pg.PlotDataItem(ts_table, pen=pen)
+            plots.append((substance, plot))
 
         return plots
     
@@ -71,8 +77,8 @@ class FractionModel(QStandardItemModel):
             substance, node_id=id, fill_value=np.NaN
         )
         if timeseries.shape[1] == 1:
-            logger.info("1-element timeserie, plotting empty serie")
-            return EMPTY_TIMESERIES
+            logger.error("1-element timeserie, plotting empty serie")
+            return np.array([], dtype=float)
         if time_units == "hrs":
             vector = np.array([3600, 1])
         elif time_units == "mins":

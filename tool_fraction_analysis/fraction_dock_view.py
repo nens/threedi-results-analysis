@@ -1,5 +1,6 @@
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
@@ -141,6 +142,8 @@ class FractionDockWidget(QDockWidget):
         self.addNodeCellButton.setCheckable(True)
         self.addNodeCellButton.clicked.connect(self.add_node_cell_button_clicked)
         self.buttonBarHLayout.addWidget(self.addNodeCellButton)
+        self.stackedCheckbox = QCheckBox("Stacked plot", self.dockWidgetContent)
+        self.buttonBarHLayout.addWidget(self.stackedCheckbox)
 
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
@@ -152,6 +155,7 @@ class FractionDockWidget(QDockWidget):
         self.buttonBarHLayout.addWidget(QLabel("Substance unit filter:", self.dockWidgetContent))
         self.substanceUnitsCombobox = QComboBox(self.dockWidgetContent)
         self.buttonBarHLayout.addWidget(self.substanceUnitsCombobox)
+        self.buttonBarHLayout.setSpacing(10)
 
         self.mainVLayout.addItem(self.buttonBarHLayout)
         self.mainVLayout.setContentsMargins(0, 10, 0, 10)
@@ -166,6 +170,7 @@ class FractionDockWidget(QDockWidget):
         self.setWindowTitle("3Di Substance comparison %i" % self.nr)
 
         self.substanceUnitsCombobox.currentTextChanged.connect(self.fraction_widget.substance_units_change)
+        self.stackedCheckbox.stateChanged.connect(self.fraction_widget.stacked_changed)
 
         # populate the combobox, with wq results, select first
         for result in self.model.get_results(checked_only=False):
