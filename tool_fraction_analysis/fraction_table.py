@@ -25,7 +25,6 @@ class FractionTable(QTableView):
         self.setMouseTracking(True)
         self.verticalHeader().hide()
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.model = None
         self.viewport().installEventFilter(self)
 
     def on_close(self):
@@ -55,19 +54,18 @@ class FractionTable(QTableView):
 
     def setModel(self, model):
         super().setModel(model)
-        self.model = model
-        self.model.dataChanged.connect(self._update_table_widgets)
-        self.model.rowsInserted.connect(self._update_table_widgets)
-        self.model.rowsAboutToBeRemoved.connect(self._update_table_widgets)
+        self.model().dataChanged.connect(self._update_table_widgets)
+        self.model().rowsInserted.connect(self._update_table_widgets)
+        self.model().rowsAboutToBeRemoved.connect(self._update_table_widgets)
         self.horizontalHeader().setStretchLastSection(True)
         self.resizeColumnsToContents()
         self.setVisible(True)
 
     def _update_table_widgets(self):
         """The PenStyle widget is not part of the model, but explicitely added/overlayed to the table"""
-        for row in range(self.model.rowCount()):
-            style, color = self.model.item(row, 1).data()
+        for row in range(self.model().rowCount()):
+            style, color = self.model().item(row, 1).data()
             # If index widget A is replaced with index widget B, index widget A will be deleted.
             patternWidget = PenStyleWidget(style, QColor(*color), self)
             patternWidget.setPalette(self.palette())
-            self.setIndexWidget(self.model.index(row, 1), patternWidget)
+            self.setIndexWidget(self.model().index(row, 1), patternWidget)

@@ -3,7 +3,6 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtGui import QStandardItem
 from qgis.PyQt.QtGui import QStandardItemModel
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
-from threedi_results_analysis.utils.color import COLOR_LIST
 
 import logging
 import numpy as np
@@ -11,6 +10,28 @@ import pyqtgraph as pg
 
 
 logger = logging.getLogger(__name__)
+
+FRACTION_COLOR_LIST = [
+    (135, 86, 146),  # paars
+    (243, 132, 0),  # oranje
+    (190, 0, 50),  # rood
+    (194, 178, 128),  # beige
+    (0, 136, 86), # groen
+    (161, 202, 241), # lichtblauw
+    (230, 143, 172),
+    (0, 103, 165),
+    (249, 147, 121),
+    (96, 78, 151),
+    (246, 166, 0),
+    (179, 68, 108),
+    (220, 211, 0),
+    (136, 45, 23),
+    (141, 182, 0),
+    (101, 69, 34),
+    (226, 88, 34),
+    (43, 61, 38),
+]
+
 
 class FractionModel(QStandardItemModel):
 
@@ -51,7 +72,7 @@ class FractionModel(QStandardItemModel):
             self.appendRow([check_item, color_item, substance_item])
 
     def get_color(self) -> QColor:
-        return COLOR_LIST[self.rowCount() % len(COLOR_LIST)]
+        return FRACTION_COLOR_LIST[self.rowCount() % len(FRACTION_COLOR_LIST)]
 
     def create_plots(self, feature_id, time_units, stacked):
         plots = []
