@@ -64,23 +64,28 @@ class FractionDockWidget(QDockWidget):
         self.simulationCombobox.addItem(f"{result.text()} ({result.parent().text()})", result.id)
 
     def result_removed(self, removed_result: ThreeDiResultItem):
+        current_result_removed = False
         if self.fraction_widget.current_result_id == removed_result.id:
             # This is the currently loaded result, so unload
             self.setWindowTitle("3Di Substance comparison %i" % self.nr)
             self.fraction_widget.clear()
             # Also remove retrieved units
             self.substanceUnitsCombobox.clear()
+            current_result_removed = True
 
         # Remove from result combobox
         for i in range(self.simulationCombobox.count()):
             item_id = self.simulationCombobox.itemData(i)
             if self.model.get_result(item_id).id == removed_result.id:
+                self.simulationCombobox.blockSignals(True)
                 self.simulationCombobox.removeItem(i)
+                self.simulationCombobox.blockSignals(False)
                 break
 
-        # select next result
-        if self.simulationCombobox.count() > 0:
-            self.result_selected(0)
+        # select top result
+        if current_result_removed:
+            if self.simulationCombobox.count() > 0:
+                self.result_selected(0)
 
     def result_changed(self, result_item: ThreeDiResultItem):
         if self.fraction_widget.current_result_id == result_item.id:
