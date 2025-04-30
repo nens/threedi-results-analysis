@@ -90,8 +90,7 @@ class FractionDockWidget(QDockWidget):
         for i in range(self.simulationCombobox.count()):
             item_id = self.simulationCombobox.itemData(i)
             if self.model.get_result(item_id).id == result_item.id:
-                self.simulationCombobox.removeItem(i)
-                self.simulationCombobox.insertItem(i, f"{result_item.text()} ({result_item.parent().text()})", result_item.id)
+                self.simulationCombobox.setItemText(i, f"{result_item.text()} ({result_item.parent().text()})")
                 break
 
     def grid_changed(self, grid_item: ThreeDiGridItem):
@@ -105,8 +104,7 @@ class FractionDockWidget(QDockWidget):
             item_id = self.simulationCombobox.itemData(i)
             result_item = self.model.get_result(item_id)
             if result_item.parent().id == grid_item.id:
-                self.simulationCombobox.removeItem(i)
-                self.simulationCombobox.insertItem(i, f"{result_item.text()} ({result_item.parent().text()})", result_item.id)
+                self.simulationCombobox.setItemText(i, f"{result_item.text()} ({result_item.parent().text()})")
 
     def current_result(self):
         current_index = self.simulationCombobox.currentIndex()                
