@@ -16,8 +16,8 @@ FRACTION_COLOR_LIST = [
     (243, 132, 0),  # oranje
     (190, 0, 50),  # rood
     (194, 178, 128),  # beige
-    (0, 136, 86), # groen
-    (161, 202, 241), # lichtblauw
+    (0, 136, 86),  # groen
+    (161, 202, 241),  # lichtblauw
     (230, 143, 172),
     (0, 103, 165),
     (249, 147, 121),
@@ -92,7 +92,7 @@ class FractionModel(QStandardItemModel):
             plots.append((substance, plot))
 
         return plots
-    
+
     def timeseries_table(self, substance, id, time_units):
         timeseries = self.result_item.threedi_result.get_timeseries(
             substance, node_id=id, fill_value=np.NaN

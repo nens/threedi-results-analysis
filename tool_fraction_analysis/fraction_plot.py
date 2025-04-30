@@ -9,10 +9,6 @@ from PyQt5.QtCore import Qt
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.tool_fraction_analysis.fraction_model import FractionModel
 
-import logging
-
-
-logger = logging.getLogger(__name__)
 
 class FractionPlot(pg.PlotWidget):
     def __init__(self, parent, result_model: ThreeDiPluginModel, fraction_model: FractionModel):

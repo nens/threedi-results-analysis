@@ -10,12 +10,9 @@ from threedi_results_analysis.tool_fraction_analysis.fraction_utils import (
     has_wq_results,
 )
 
-import logging
 import os
 import qgis
 
-
-logger = logging.getLogger(__name__)
 
 class FractionAnalysis(ThreeDiPluginTool):
 

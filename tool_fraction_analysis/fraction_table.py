@@ -1,17 +1,9 @@
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QEvent
-from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QAbstractItemView
-from qgis.PyQt.QtWidgets import QColorDialog
 from qgis.PyQt.QtWidgets import QTableView
-from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.utils.widgets import PenStyleWidget
-
-import logging
-
-
-logger = logging.getLogger(__name__)
 
 
 class FractionTable(QTableView):

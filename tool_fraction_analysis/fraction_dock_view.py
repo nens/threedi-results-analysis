@@ -26,6 +26,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class FractionDockWidget(QDockWidget):
     closingWidget = pyqtSignal(int)
 
@@ -67,7 +68,7 @@ class FractionDockWidget(QDockWidget):
             # This is the currently loaded result, so unload
             self.setWindowTitle("3Di Substance comparison %i" % self.nr)
             self.fraction_widget.clear()
-             # Also remove retrieved units
+            # Also remove retrieved units
             self.substanceUnitsCombobox.clear()
 
         # Remove from result combobox
@@ -80,7 +81,6 @@ class FractionDockWidget(QDockWidget):
         # select next result
         if self.simulationCombobox.count() > 0:
             self.result_selected(0)
-
 
     def result_changed(self, result_item: ThreeDiResultItem):
         if self.fraction_widget.current_result_id == result_item.id:
@@ -98,7 +98,7 @@ class FractionDockWidget(QDockWidget):
             result = self.model.get_result(self.fraction_widget.current_result_id)
             if result.parent().id == grid_item.id:
                 self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result.text()} ({result.parent().text()})")
-        
+
         # Update result combobox
         for i in range(self.simulationCombobox.count()):
             item_id = self.simulationCombobox.itemData(i)
@@ -107,17 +107,17 @@ class FractionDockWidget(QDockWidget):
                 self.simulationCombobox.setItemText(i, f"{result_item.text()} ({result_item.parent().text()})")
 
     def current_result(self):
-        current_index = self.simulationCombobox.currentIndex()                
+        current_index = self.simulationCombobox.currentIndex()
         if current_index == -1:
             return None
-        
+
         item_id = self.simulationCombobox.itemData(current_index)
         return self.model.get_result(item_id)
 
     def result_selected(self, result_index: int):
         if result_index == -1:
             return
-            
+
         item_id = self.simulationCombobox.itemData(result_index)
         result_item = self.model.get_result(item_id)
         self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result_item.text()} ({result_item.parent().text()})")
@@ -179,8 +179,8 @@ class FractionDockWidget(QDockWidget):
         if self.simulationCombobox.count() > 0:
             # trigger only emitted when changed
             self.simulationCombobox.setCurrentIndex(-1)
-            self.simulationCombobox.setCurrentIndex(0) 
-    
+            self.simulationCombobox.setCurrentIndex(0)
+
     def add_node_cell_button_clicked(self):
         self.iface.mapCanvas().setMapTool(self.map_tool_add_node_cell)
 
@@ -189,11 +189,11 @@ class FractionDockWidget(QDockWidget):
             self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
 
     def add_results(self, results):
-        current_result = self.current_result()        
-        if current_result == None:
+        current_result = self.current_result()
+        if current_result is None:
             logger.warning("First select a result")
             return
-        
+
         for result in results:
             # Check whether the selected layer belongs to the selected grid/result AND is a node/cell layer
             for layer_type, layer_id in current_result.parent().layer_ids.items():

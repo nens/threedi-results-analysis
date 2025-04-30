@@ -157,5 +157,5 @@ class FractionWidget(QWidget):
                 self.current_result_id = result_item.id
                 self.current_layer = layer.objectName()
                 break
-        
+
         return True

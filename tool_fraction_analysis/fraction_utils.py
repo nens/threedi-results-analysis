@@ -1,4 +1,3 @@
-    
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 
 
