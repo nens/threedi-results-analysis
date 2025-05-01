@@ -9,6 +9,7 @@
 - Added additonal check for legacy geopackages.
 - Collect any errors or warnings from 'Check Schematisation' that are associated to a geometry as vector layer
 - Seperate model checker results into layers by associated geometry
+- Fix setting path in computational grid from schematisation processing algorithm
 
 
 3.16 (2025-04-02)

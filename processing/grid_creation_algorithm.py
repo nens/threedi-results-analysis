@@ -162,6 +162,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             raise QgsProcessingException(f"Incorrect input schematisation file:\n{err}")
 
         if schematisation_version >= 222:
-            set_dem_rel_path = os.path.join("rasters", set_dem_rel_path)
+            set_dem_rel_path = os.path.join("rasters", str(set_dem_rel_path))
 
         return set_dem_rel_path

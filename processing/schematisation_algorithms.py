@@ -266,7 +266,6 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             else:
                 # Create a layer for each type of geometry
                 spatial_ref = osr.SpatialReference()
-                # TODO: set correct epsg!!!
                 spatial_ref.ImportFromEPSG(srid)
                 layer = data_source.CreateLayer(
                     f"errors_{geom_type.lower()}",
