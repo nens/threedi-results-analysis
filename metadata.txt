@@ -2,7 +2,7 @@
 name=3Di Results Analysis
 qgisMinimumVersion=3.22
 description=3Di Results Analysis
-version=3.99
+version=3.44
 author=3Di Water Management
 email=servicedesk@nelen-schuurmans.nl
 
@@ -37,7 +37,7 @@ category=Plugins
 icon=icons/icon.png
 experimental=False
 hasProcessingProvider=yes
-plugin_dependencies=Nelen and Schuurmans Dependency Loader>=1.0.8
+plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.0.8
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
