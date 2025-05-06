@@ -42,7 +42,7 @@ class FractionAnalysis(ThreeDiPluginTool):
             widget = self.dock_widgets[i]
             if widget.nr == widget_nr:
                 widget.closingWidget.disconnect(self.on_close_child_widget)
-                del self.dock_widgets[widget_nr]
+                del self.dock_widgets[i]
                 return
 
     @pyqtSlot(ThreeDiResultItem)
@@ -96,5 +96,3 @@ class FractionAnalysis(ThreeDiPluginTool):
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)
 
         new_widget.show()
-
-        pass
