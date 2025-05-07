@@ -37,7 +37,7 @@ category=Plugins
 icon=icons/icon.png
 experimental=False
 hasProcessingProvider=yes
-plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.10.0
+plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.0.10
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
