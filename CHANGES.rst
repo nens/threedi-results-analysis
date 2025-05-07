@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.17 (unreleased)
+3.17 (2025-05-07)
 -----------------
 
 - Create a new layer and copy features to it instead of using CopyLayer to work around GDAL 3.9 behaviour (#1094).
