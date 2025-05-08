@@ -927,8 +927,8 @@ def rasterize_cell_layer(
         tmp_lyr.SyncToDisk()
 
         xmin, xmax, ymin, ymax = cell_layer.GetExtent()
-        raster_x_size = (xmax - xmin) / pixel_size
-        raster_y_size = (ymax - ymin) / pixel_size
+        raster_x_size = int((xmax - xmin) / pixel_size)
+        raster_y_size = int((ymax - ymin) / pixel_size)
         output_bounds = [xmin, ymax, xmax, ymin]
         interpolated_ds = gdal.Grid(
             "tmp_rast",

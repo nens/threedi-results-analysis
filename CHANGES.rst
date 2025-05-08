@@ -4,7 +4,7 @@
 3.18 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- In Result aggregation, make resampling and rasterizing of nodes compatible with GDAL 3.10
 
 
 3.17 (2025-05-07)
