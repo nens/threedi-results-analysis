@@ -67,11 +67,11 @@ class FractionDockWidget(QDockWidget):
         current_result_removed = False
         if self.fraction_widget.current_result_id == removed_result.id:
             # This is the currently loaded result, so unload
-            self.setWindowTitle("3Di Substance comparison %i" % self.nr)
             self.fraction_widget.clear()
             # Also remove retrieved units
             self.substanceUnitsCombobox.clear()
             current_result_removed = True
+            self._update_widget_title()
 
         # Remove from result combobox
         for i in range(self.simulationCombobox.count()):
@@ -88,8 +88,7 @@ class FractionDockWidget(QDockWidget):
                 self.result_selected(0)
 
     def result_changed(self, result_item: ThreeDiResultItem):
-        if self.fraction_widget.current_result_id == result_item.id:
-            self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result_item.text()} ({result_item.parent().text()})")
+        self._update_widget_title()
 
         # Update result combobox
         for i in range(self.simulationCombobox.count()):
@@ -99,10 +98,7 @@ class FractionDockWidget(QDockWidget):
                 break
 
     def grid_changed(self, grid_item: ThreeDiGridItem):
-        if self.fraction_widget.current_result_id:
-            result = self.model.get_result(self.fraction_widget.current_result_id)
-            if result.parent().id == grid_item.id:
-                self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result.text()} ({result.parent().text()})")
+        self._update_widget_title()
 
         # Update result combobox
         for i in range(self.simulationCombobox.count()):
@@ -125,7 +121,6 @@ class FractionDockWidget(QDockWidget):
 
         item_id = self.simulationCombobox.itemData(result_index)
         result_item = self.model.get_result(item_id)
-        self.setWindowTitle(f"3Di Substance comparison {self.nr}: {result_item.text()} ({result_item.parent().text()})")
 
         # Retrieve the units of the substances
         wq_vars = result_item.threedi_result.available_water_quality_vars
@@ -133,6 +128,7 @@ class FractionDockWidget(QDockWidget):
         self.substanceUnitsCombobox.clear()
         self.substanceUnitsCombobox.insertItems(0, list(wq_units))
         self.fraction_widget.result_selected(result_item, self.substanceUnitsCombobox.currentText())
+        self._update_widget_title()
 
     def setup_ui(self):
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -170,7 +166,7 @@ class FractionDockWidget(QDockWidget):
         )
         self.mainVLayout.addWidget(self.fraction_widget)
         self.setWidget(self.dockWidgetContent)
-        self.setWindowTitle("3Di Substance comparison %i" % self.nr)
+        self._update_widget_title()
 
         self.substanceUnitsCombobox.currentTextChanged.connect(self.fraction_widget.substance_units_change)
         self.stackedCheckbox.stateChanged.connect(self.fraction_widget.stacked_changed)
@@ -205,4 +201,14 @@ class FractionDockWidget(QDockWidget):
                 if layer_type in ['node', 'cell'] and layer_id == result.mLayer.id():
                     self.fraction_widget.feature_selected(result.mLayer, result.mFeature)
                     self.fraction_widget.fraction_plot.plotItem.vb.menu.viewAll.triggered.emit()
+                    self._update_widget_title()
                     return  # Only add a single item
+
+    def _update_widget_title(self):
+        title = f"3Di Fraction analysis {self.nr}: "
+        if self.fraction_widget.current_result_id:
+            result = self.model.get_result(self.fraction_widget.current_result_id)
+            title += f"{result.text()} ({result.parent().text()})"
+        if self.fraction_widget.current_feature_id:
+            title += f" - Node {self.fraction_widget.current_feature_id}"
+        self.setWindowTitle(title)
