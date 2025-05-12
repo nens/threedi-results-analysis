@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.18 (unreleased)
+3.18 (2025-05-12)
 -----------------
 
 - In Result aggregation, make resampling and rasterizing of nodes compatible with GDAL 3.10
