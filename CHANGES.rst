@@ -5,6 +5,8 @@
 -----------------
 
 - In Result aggregation, make resampling and rasterizing of nodes compatible with GDAL 3.10
+- Added Fraction Analysis Tool (#1068)
+- Bumped dependency plugin.
 
 
 3.17 (2025-05-07)
