@@ -250,28 +250,31 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             return {self.OUTPUT: None}
 
         # Loop through the error_details and group by geometry type
-        grouped_errors = {}
+        grouped_errors = {'Point': [], 'LineString': [], 'Polygon': [], 'Table': []}
         for error in error_details:
             geom = wkb.loads(error.geom.data) if error.geom is not None else None
-            geom_type = None if geom is None else geom.geom_type  # Get geometry type as string
-            if geom_type not in grouped_errors:
-                grouped_errors[geom_type] = []
-            grouped_errors[geom_type].append(error)
+            if geom is None or geom.geom_type not in grouped_errors.keys():
+                feature_type = 'Table'
+            else:
+                feature_type = geom.geom_type
+            grouped_errors[feature_type].append(error)
 
-        for geom_type, errors_group in grouped_errors.items():
-            if geom_type is None:
+        group_name_map = {'LineString': 'Line'}
+        for feature_type, errors_group in grouped_errors.items():
+            group_name = f'{group_name_map.get(feature_type, feature_type)} features'
+            if feature_type == 'Table':
                 # Create a table for non-geometry errors
                 layer = data_source.CreateLayer(
-                    "errors_no_geom", None, ogr.wkbNone, options=["OVERWRITE=YES"]
+                    group_name, None, ogr.wkbNone, options=["OVERWRITE=YES"]
                 )
             else:
                 # Create a layer for each type of geometry
                 spatial_ref = osr.SpatialReference()
                 spatial_ref.ImportFromEPSG(srid)
                 layer = data_source.CreateLayer(
-                    f"errors_{geom_type.lower()}",
+                    group_name,
                     srs=spatial_ref,
-                    geom_type=getattr(ogr, f"wkb{geom_type}"),
+                    geom_type=getattr(ogr, f"wkb{feature_type}"),
                     options=["OVERWRITE=YES"],
                     )
 
@@ -294,7 +297,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 feat.SetField("column", error.column)
                 feat.SetField("value", error.value)
                 feat.SetField("description", error.description)
-                if geom_type is not None:
+                if feature_type != 'Table':
                     geom = wkb.loads(error.geom.data)  # Convert WKB to a Shapely geometry object
                     feat.SetGeometry(ogr.CreateGeometryFromWkb(geom.wkb))  # Convert back to OGR-compatible WKB
                 layer.CreateFeature(feat)
