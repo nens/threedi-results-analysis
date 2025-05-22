@@ -207,6 +207,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         )
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
+        self.schema_name = Path(input_filename).stem
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
         if not threedi_db:
             return {self.OUTPUT: None}
@@ -304,7 +305,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project and self.output_file_path:
             # Create a group for the GeoPackage layers
-            group = QgsProject.instance().layerTreeRoot().addGroup("ERRORS")
+            group = QgsProject.instance().layerTreeRoot().addGroup(f'Check results: {self.schema_name}')
             # Add all layers in the geopackage to the group
             conn = ogr.Open(self.output_file_path)
             if conn:
