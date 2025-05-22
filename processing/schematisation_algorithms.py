@@ -308,7 +308,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project and self.output_file_path:
             # Create a group for the GeoPackage layers
-            group = QgsProject.instance().layerTreeRoot().addGroup(f'Check results: {self.schema_name}')
+            group = QgsProject.instance().layerTreeRoot().insertGroup(0, f'Check results: {self.schema_name}')
             # Add all layers in the geopackage to the group
             conn = ogr.Open(self.output_file_path)
             if conn:
