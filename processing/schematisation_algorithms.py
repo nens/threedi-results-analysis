@@ -22,7 +22,6 @@ from hydxlib.scripts import write_logging_to_file
 
 from osgeo import ogr, osr
 from osgeo import gdal
-from qgis.core import Qgis
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingParameterBoolean
