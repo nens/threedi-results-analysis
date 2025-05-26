@@ -321,9 +321,14 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                     layer = QgsVectorLayer(layer_uri, layer_name.replace('errors_', '', 1), "ogr")
                     if layer.isValid():
                         added_layer = QgsProject.instance().addMapLayer(layer, False)
-                        added_layer.loadNamedStyle(
-                            str(STYLE_DIR / f"checker_{added_layer.geometryType().name.lower()}.qml")
-                        )
+                        if added_layer.geometryType() in [
+                            Qgis.GeometryType.Point,
+                            Qgis.GeometryType.Line,
+                            Qgis.GeometryType.Polygon,
+                        ]:
+                            added_layer.loadNamedStyle(
+                                str(STYLE_DIR / f"checker_{added_layer.geometryType().name.lower()}.qml")
+                            )
                         group.addLayer(added_layer)
                     else:
                         feedback.reportError(f"Layer {layer_name} is not valid")
