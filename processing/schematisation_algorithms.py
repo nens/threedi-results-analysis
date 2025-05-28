@@ -22,6 +22,7 @@ from hydxlib.scripts import write_logging_to_file
 
 from osgeo import ogr, osr
 from osgeo import gdal
+from qgis.core import Qgis
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingParameterBoolean
@@ -42,6 +43,8 @@ from threedi_results_analysis.processing.download_hydx import download_hydx
 from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
+
+STYLE_DIR = Path(__file__).parent / "styles"
 
 
 def get_threedi_database(filename, feedback):
@@ -325,6 +328,14 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                     layer = QgsVectorLayer(layer_uri, layer_name.replace('errors_', '', 1), "ogr")
                     if layer.isValid():
                         added_layer = QgsProject.instance().addMapLayer(layer, False)
+                        if added_layer.geometryType() in [
+                            Qgis.GeometryType.Point,
+                            Qgis.GeometryType.Line,
+                            Qgis.GeometryType.Polygon,
+                        ]:
+                            added_layer.loadNamedStyle(
+                                str(STYLE_DIR / f"checker_{added_layer.geometryType().name.lower()}.qml")
+                            )
                         group.addLayer(added_layer)
                     else:
                         feedback.reportError(f"Layer {layer_name} is not valid")
