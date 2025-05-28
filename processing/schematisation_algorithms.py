@@ -309,7 +309,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                     geom = wkb.loads(error.geom.data)  # Convert WKB to a Shapely geometry object
                     feat.SetGeometry(ogr.CreateGeometryFromWkb(geom.wkb))  # Convert back to OGR-compatible WKB
                 layer.CreateFeature(feat)
-        feedback.pushInfo(f"GeoPackage successfully written to file")
+        feedback.pushInfo("GeoPackage successfully written to file")
         return {self.OUTPUT: self.output_file_path}
 
     def postProcessAlgorithm(self, context, feedback):
