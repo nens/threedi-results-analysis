@@ -202,9 +202,11 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
+        feedback.setProgress(0)
         self.add_to_project = self.parameterAsBoolean(
             parameters, self.ADD_TO_PROJECT, context
         )
+        feedback.pushInfo("Loading schematisation...")
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         self.schema_name = Path(input_filename).stem
@@ -229,9 +231,10 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         session = model_checker.db.get_session()
         session.model_checker_context = model_checker.context
         total_checks = len(model_checker.config.checks)
-        progress_per_check = 100.0 / total_checks
+        progress_per_check = 80.0 / total_checks
         checks_passed = 0
         error_list = []
+        feedback.pushInfo("Checking schematisation...")
         for i, check in enumerate(model_checker.checks(level="info")):
             model_errors = check.get_invalid(session)
             error_list += [[check, error_row] for error_row in model_errors]
@@ -240,6 +243,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         error_details = export_with_geom(error_list)
 
         # Create an output GeoPackage
+        feedback.pushInfo("Writing results to GeoPackage...")
         gdal.UseExceptions()
         driver = ogr.GetDriverByName("GPKG")
         data_source = driver.CreateDataSource(self.output_file_path)
@@ -258,7 +262,6 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             else:
                 feature_type = geom.geom_type
             grouped_errors[feature_type].append(error)
-
         group_name_map = {'LineString': 'Line'}
         for feature_type, errors_group in grouped_errors.items():
             group_name = f'{group_name_map.get(feature_type, feature_type)} features'
@@ -301,12 +304,16 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                     geom = wkb.loads(error.geom.data)  # Convert WKB to a Shapely geometry object
                     feat.SetGeometry(ogr.CreateGeometryFromWkb(geom.wkb))  # Convert back to OGR-compatible WKB
                 layer.CreateFeature(feat)
-
-        feedback.pushInfo(f"GeoPackage successfully written to {self.output_file_path}")
+        feedback.pushInfo(f"GeoPackage successfully written to file")
+        if self.add_to_project:
+            feedback.setProgress(99)
+        else:
+            feedback
         return {self.OUTPUT: self.output_file_path}
 
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project and self.output_file_path:
+            feedback.pushInfo("Adding results to project...")
             # Create a group for the GeoPackage layers
             group = QgsProject.instance().layerTreeRoot().insertGroup(0, f'Check results: {self.schema_name}')
             # Add all layers in the geopackage to the group
@@ -324,6 +331,8 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 conn = None  # Close the connection
             else:
                 feedback.reportError(f"Could not open GeoPackage file: {self.output_file_path}")
+            feedback.pushInfo(f"Added results to layer 'Check results: {self.schema_name}'")
+            feedback.setProgress(100)
         return {self.OUTPUT: self.output_file_path}
 
     def name(self):
