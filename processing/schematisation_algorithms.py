@@ -246,7 +246,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         error_details = export_with_geom(error_list)
 
         # Create an output GeoPackage
-        feedback.pushInfo("Writing results to GeoPackage...")
+        feedback.pushInfo("Writing checker results to geopackage...")
         gdal.UseExceptions()
         driver = ogr.GetDriverByName("GPKG")
         data_source = driver.CreateDataSource(self.output_file_path)
@@ -266,8 +266,10 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 feature_type = geom.geom_type
             grouped_errors[feature_type].append(error)
         group_name_map = {'LineString': 'Line'}
-        for feature_type, errors_group in grouped_errors.items():
+        for i, (feature_type, errors_group) in enumerate(grouped_errors.items()):
             group_name = f'{group_name_map.get(feature_type, feature_type)} features'
+            feedback.pushInfo(f"Adding layer '{group_name}' to geopackage...")
+            feedback.setProgress(85+5*i)
             if feature_type == 'Table':
                 # Create a table for non-geometry errors
                 layer = data_source.CreateLayer(
@@ -308,10 +310,6 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                     feat.SetGeometry(ogr.CreateGeometryFromWkb(geom.wkb))  # Convert back to OGR-compatible WKB
                 layer.CreateFeature(feat)
         feedback.pushInfo(f"GeoPackage successfully written to file")
-        if self.add_to_project:
-            feedback.setProgress(99)
-        else:
-            feedback
         return {self.OUTPUT: self.output_file_path}
 
     def postProcessAlgorithm(self, context, feedback):
@@ -343,7 +341,6 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             else:
                 feedback.reportError(f"Could not open GeoPackage file: {self.output_file_path}")
             feedback.pushInfo(f"Added results to layer 'Check results: {self.schema_name}'")
-            feedback.setProgress(100)
         return {self.OUTPUT: self.output_file_path}
 
     def name(self):
