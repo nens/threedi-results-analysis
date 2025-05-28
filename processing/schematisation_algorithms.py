@@ -11,15 +11,18 @@
 ***************************************************************************
 """
 
-import csv
 import os
 import shutil
 import warnings
 
+from pathlib import Path
+
 from hydxlib.scripts import run_import_export
 from hydxlib.scripts import write_logging_to_file
 
-from pathlib import Path
+from osgeo import ogr, osr
+from osgeo import gdal
+from qgis.core import Qgis
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingParameterBoolean
@@ -30,13 +33,18 @@ from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QCoreApplication
+from shapely import wkb  # Import Shapely wkb for geometry handling
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.exc import OperationalError
+
 from threedi_modelchecker import ThreediModelChecker
+from threedi_modelchecker.exporters import export_with_geom
 from threedi_results_analysis.processing.download_hydx import download_hydx
 from threedi_results_analysis.utils.utils import backup_sqlite
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
+
+STYLE_DIR = Path(__file__).parent / "styles"
 
 
 def get_threedi_database(filename, feedback):
@@ -197,11 +205,14 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
+        feedback.setProgress(0)
         self.add_to_project = self.parameterAsBoolean(
             parameters, self.ADD_TO_PROJECT, context
         )
+        feedback.pushInfo("Loading schematisation...")
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
+        self.schema_name = Path(input_filename).stem
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
         if not threedi_db:
             return {self.OUTPUT: None}
@@ -215,65 +226,121 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             return {self.OUTPUT: None}
         schema = threedi_db.schema
         schema.set_spatial_indexes()
+        srid, _ = schema._get_epsg_data()
         generated_output_file_path = self.parameterAsFileOutput(
             parameters, self.OUTPUT, context
         )
-        self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
+        self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.gpkg"
         session = model_checker.db.get_session()
         session.model_checker_context = model_checker.context
         total_checks = len(model_checker.config.checks)
-        progress_per_check = 100.0 / total_checks
+        progress_per_check = 80.0 / total_checks
         checks_passed = 0
-        try:
-            with open(self.output_file_path, "w", newline="") as output_file:
-                writer = csv.writer(output_file)
-                writer.writerow(
-                    [
-                        "level",
-                        "error_code",
-                        "id",
-                        "table",
-                        "column",
-                        "value",
-                        "description",
-                    ]
-                )
-                for i, check in enumerate(model_checker.checks(level="info")):
-                    model_errors = check.get_invalid(session)
-                    for error_row in model_errors:
-                        writer.writerow(
-                            [
-                                check.level.name,
-                                check.error_code,
-                                error_row.id,
-                                check.table.name,
-                                check.column.name,
-                                getattr(error_row, check.column.name),
-                                check.description(),
-                            ]
-                        )
-                    checks_passed += 1
-                    feedback.setProgress(int(checks_passed * progress_per_check))
-        except PermissionError:
-            # PermissionError happens for example when a user has the file already open
-            # with Excel on Windows, which locks the file.
+        error_list = []
+        feedback.pushInfo("Checking schematisation...")
+        for i, check in enumerate(model_checker.checks(level="info")):
+            model_errors = check.get_invalid(session)
+            error_list += [[check, error_row] for error_row in model_errors]
+            checks_passed += 1
+            feedback.setProgress(int(checks_passed * progress_per_check))
+        error_details = export_with_geom(error_list)
+
+        # Create an output GeoPackage
+        feedback.pushInfo("Writing checker results to geopackage...")
+        gdal.UseExceptions()
+        driver = ogr.GetDriverByName("GPKG")
+        data_source = driver.CreateDataSource(self.output_file_path)
+        if data_source is None:
             feedback.pushWarning(
-                f"Not enough permissions to write the file '{self.output_file_path}'.\n\n"
-                "The file may be used by another program. Please close all "
-                "other programs using the file or select another output "
-                "file."
+                f"Unable to create the GeoPackage '{self.output_file_path}', check the directory permissions."
             )
             return {self.OUTPUT: None}
 
+        # Loop through the error_details and group by geometry type
+        grouped_errors = {'Point': [], 'LineString': [], 'Polygon': [], 'Table': []}
+        for error in error_details:
+            geom = wkb.loads(error.geom.data) if error.geom is not None else None
+            if geom is None or geom.geom_type not in grouped_errors.keys():
+                feature_type = 'Table'
+            else:
+                feature_type = geom.geom_type
+            grouped_errors[feature_type].append(error)
+        group_name_map = {'LineString': 'Line'}
+        for i, (feature_type, errors_group) in enumerate(grouped_errors.items()):
+            group_name = f'{group_name_map.get(feature_type, feature_type)} features'
+            feedback.pushInfo(f"Adding layer '{group_name}' to geopackage...")
+            feedback.setProgress(85+5*i)
+            if feature_type == 'Table':
+                # Create a table for non-geometry errors
+                layer = data_source.CreateLayer(
+                    group_name, None, ogr.wkbNone, options=["OVERWRITE=YES"]
+                )
+            else:
+                # Create a layer for each type of geometry
+                spatial_ref = osr.SpatialReference()
+                spatial_ref.ImportFromEPSG(srid)
+                layer = data_source.CreateLayer(
+                    group_name,
+                    srs=spatial_ref,
+                    geom_type=getattr(ogr, f"wkb{feature_type}"),
+                    options=["OVERWRITE=YES"],
+                    )
+
+            # Add fields
+            layer.CreateField(ogr.FieldDefn("level", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("error_code", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("id", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("table", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("column", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("value", ogr.OFTString))
+            layer.CreateField(ogr.FieldDefn("description", ogr.OFTString))
+
+            defn = layer.GetLayerDefn()
+            for error in errors_group:
+                feat = ogr.Feature(defn)
+                feat.SetField("level", error.name)
+                feat.SetField("error_code", error.code)
+                feat.SetField("id", error.id)
+                feat.SetField("table", error.table)
+                feat.SetField("column", error.column)
+                feat.SetField("value", error.value)
+                feat.SetField("description", error.description)
+                if feature_type != 'Table':
+                    geom = wkb.loads(error.geom.data)  # Convert WKB to a Shapely geometry object
+                    feat.SetGeometry(ogr.CreateGeometryFromWkb(geom.wkb))  # Convert back to OGR-compatible WKB
+                layer.CreateFeature(feat)
+        feedback.pushInfo("GeoPackage successfully written to file")
         return {self.OUTPUT: self.output_file_path}
 
     def postProcessAlgorithm(self, context, feedback):
-        if self.add_to_project:
-            if self.output_file_path:
-                result_layer = QgsVectorLayer(
-                    self.output_file_path, "3Di schematisation errors"
-                )
-                QgsProject.instance().addMapLayer(result_layer)
+        if self.add_to_project and self.output_file_path:
+            feedback.pushInfo("Adding results to project...")
+            # Create a group for the GeoPackage layers
+            group = QgsProject.instance().layerTreeRoot().insertGroup(0, f'Check results: {self.schema_name}')
+            # Add all layers in the geopackage to the group
+            conn = ogr.Open(self.output_file_path)
+            if conn:
+                for i in range(conn.GetLayerCount()):
+                    layer_name = conn.GetLayerByIndex(i).GetName()
+                    layer_uri = f"{self.output_file_path}|layername={layer_name}"
+                    layer = QgsVectorLayer(layer_uri, layer_name.replace('errors_', '', 1), "ogr")
+                    if layer.isValid():
+                        added_layer = QgsProject.instance().addMapLayer(layer, False)
+                        if added_layer.geometryType() in [
+                            Qgis.GeometryType.Point,
+                            Qgis.GeometryType.Line,
+                            Qgis.GeometryType.Polygon,
+                        ]:
+                            added_layer.loadNamedStyle(
+                                str(STYLE_DIR / f"checker_{added_layer.geometryType().name.lower()}.qml")
+                            )
+                        group.addLayer(added_layer)
+                    else:
+                        feedback.reportError(f"Layer {layer_name} is not valid")
+                conn = None  # Close the connection
+            else:
+                feedback.reportError(f"Could not open GeoPackage file: {self.output_file_path}")
+            feedback.pushInfo(f"Added results to layer 'Check results: {self.schema_name}'")
         return {self.OUTPUT: self.output_file_path}
 
     def name(self):
