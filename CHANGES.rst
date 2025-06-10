@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.19 (unreleased)
+3.19 (2025-06-10)
 -----------------
 
 - Add model checker errors as vector layers.
