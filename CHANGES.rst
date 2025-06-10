@@ -4,7 +4,7 @@
 3.19 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add model checker errors as vector layers.
 
 
 3.18 (2025-05-12)
