@@ -11,10 +11,10 @@
         <rule label="1D Short-crested structure" symbol="6" filter="&quot;line_type&quot; = 4" key="{8d78379f-7454-456e-b0b9-1a3b58221857}"/>
       </rule>
       <rule label="1D2D" symbol="7" filter="line_type in (51, 52, 53, 54, 55, 56, 57, 58)" key="{43bbf659-0b69-4e1d-8284-4ee6b8fef86d}">
-        <rule label="1D-2D Single connected line with storage" symbol="8" filter="&quot;line_type&quot; = 51" key="{d233dab4-3cb1-47d0-a38d-e9ea0dad8665}"/>
-        <rule label="1D-2D Single connected line without storage" symbol="9" filter="&quot;line_type&quot; = 52" key="{68321ec1-1aa2-406e-b1cc-b4abc1f552f2}"/>
-        <rule label="1D-2D Double connected line with storage" symbol="10" filter="&quot;line_type&quot; = 53" key="{68eaabfe-9f5c-4017-92b0-5798f8a3dbaf}"/>
-        <rule label="1D-2D Double connected line without storage" symbol="11" filter="&quot;line_type&quot; = 54" key="{e457f5fc-dab3-4066-a18c-ee590aad07a0}"/>
+        <rule label="1D-2D Single connected line (closed)" symbol="8" filter="&quot;line_type&quot; = 51" key="{d233dab4-3cb1-47d0-a38d-e9ea0dad8665}"/>
+        <rule label="1D-2D Single connected line (open water)" symbol="9" filter="&quot;line_type&quot; = 52" key="{68321ec1-1aa2-406e-b1cc-b4abc1f552f2}"/>
+        <rule label="1D-2D Double connected line (closed)" symbol="10" filter="&quot;line_type&quot; = 53" key="{68eaabfe-9f5c-4017-92b0-5798f8a3dbaf}"/>
+        <rule label="1D-2D Double connected line (open water)" symbol="11" filter="&quot;line_type&quot; = 54" key="{e457f5fc-dab3-4066-a18c-ee590aad07a0}"/>
         <rule label="1D-2D Connected line possible breach" symbol="12" filter="&quot;line_type&quot; = 55" key="{8870efce-2f61-4586-b05c-9b0fd8af0bc5}"/>
         <rule label="1D-2D Connected line active breach" symbol="13" filter="&quot;line_type&quot; = 56" key="{24b65c14-237c-4488-91b3-232dc251e9f0}"/>
         <rule label="1D-2D Groundwater" symbol="14" filter="&quot;line_type&quot; = 57" key="{b0a5fa35-0d6b-4e07-af09-49cbcfe379bd}"/>
@@ -2938,16 +2938,16 @@
                 <Option name="5: 1D Double connected" type="QString" value="5"/>
               </Option>
               <Option type="Map">
-                <Option name="51: 1D-2D Single connected line with storage" type="QString" value="51"/>
+                <Option name="51: 1D-2D Single connected line (closed)" type="QString" value="51"/>
               </Option>
               <Option type="Map">
-                <Option name="52: 1D-2D Single connected line without storage" type="QString" value="52"/>
+                <Option name="52: 1D-2D Single connected line (open water)" type="QString" value="52"/>
               </Option>
               <Option type="Map">
-                <Option name="53: 1D-2D Double connected line with storage" type="QString" value="53"/>
+                <Option name="53: 1D-2D Double connected line (closed)" type="QString" value="53"/>
               </Option>
               <Option type="Map">
-                <Option name="54: 1D-2D Double connected line without storage" type="QString" value="54"/>
+                <Option name="54: 1D-2D Double connected line (open water)" type="QString" value="54"/>
               </Option>
               <Option type="Map">
                 <Option name="55: 1D-2D Connected line possible breach" type="QString" value="55"/>

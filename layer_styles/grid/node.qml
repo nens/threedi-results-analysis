@@ -4,8 +4,8 @@
     <categories>
       <category render="true" value="1" symbol="0" label="2D Surface water"/>
       <category render="true" value="2" symbol="1" label="2D Groundwater"/>
-      <category render="true" value="3" symbol="2" label="1D Without storage"/>
-      <category render="true" value="4" symbol="3" label="1D With storage"/>
+      <category render="true" value="3" symbol="2" label="1D Open water"/>
+      <category render="true" value="4" symbol="3" label="1D Closed"/>
       <category render="true" value="5" symbol="4" label="2D Surface water boundary"/>
       <category render="true" value="6" symbol="5" label="2D Groundwater boundary"/>
       <category render="true" value="7" symbol="6" label="1D Boundary"/>
@@ -590,10 +590,10 @@
                 <Option name="2: 2D Groundwater" type="QString" value="2"/>
               </Option>
               <Option type="Map">
-                <Option name="3: 1D Without storage" type="QString" value="3"/>
+                <Option name="3: 1D Open water" type="QString" value="3"/>
               </Option>
               <Option type="Map">
-                <Option name="4: 1D With storage" type="QString" value="4"/>
+                <Option name="4: 1D Closed" type="QString" value="4"/>
               </Option>
               <Option type="Map">
                 <Option name="5: 2D Surface water boundary" type="QString" value="5"/>
