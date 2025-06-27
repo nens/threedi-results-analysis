@@ -19,7 +19,7 @@ already_used_ids = []
 
 
 def _generate_identifier() -> str:
-    global already_used_ids
+    global already_used_ids  # noqa: F824
     while True:
         id = str(uuid.uuid4())
         if id not in already_used_ids:

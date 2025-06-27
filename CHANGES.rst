@@ -4,7 +4,7 @@
 3.20 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixed issue when plotting pump structure control (#1117)
 
 
 3.19 (2025-06-10)
