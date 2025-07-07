@@ -4,7 +4,7 @@
 3.20 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added global load_result function for external invokation (##1118)
 
 
 3.19 (2025-06-10)
