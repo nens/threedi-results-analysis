@@ -4,6 +4,7 @@
 3.20 (unreleased)
 -----------------
 
+- Fixed issue when plotting pump structure control (#1117)
 - Added global load_result function for external invokation (##1118)
 
 

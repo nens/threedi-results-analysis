@@ -7,6 +7,7 @@ from threedi_results_analysis.models.base_fields import CHECKBOX_FIELD
 from threedi_results_analysis.models.base_fields import CheckboxField
 from threedi_results_analysis.models.base_fields import ValueField
 from threedi_results_analysis.utils.color import COLOR_LIST
+from threedigrid.admin.gridresultadmin import GridH5StructureControl
 
 import logging
 import numpy as np
@@ -161,7 +162,7 @@ class LocationTimeseriesModel(BaseModel):
                     pump_fields = {}
             else:
                 pump_fields = {}
-            if self.object_type.value == "pump_linestring" and parameters not in pump_fields:
+            if self.object_type.value == "pump_linestring" and parameters not in pump_fields and not isinstance(ga, GridH5StructureControl):
                 return EMPTY_TIMESERIES
             if self.object_type.value == "flowline" and parameters in pump_fields:
                 return EMPTY_TIMESERIES
