@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.20 (unreleased)
+3.20 (2025-07-08)
 -----------------
 
 - Fixed issue when plotting pump structure control (#1117)
