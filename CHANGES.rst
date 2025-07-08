@@ -5,6 +5,7 @@
 -----------------
 
 - Fixed issue when plotting pump structure control (#1117)
+- Added global load_result function for external invokation (##1118)
 
 
 3.19 (2025-06-10)
