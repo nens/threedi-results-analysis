@@ -4,7 +4,7 @@
 3.21 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Use randomly generated colour for timeseries plotter when list of colours runs out (#1111)
 
 
 3.20 (2025-07-08)
