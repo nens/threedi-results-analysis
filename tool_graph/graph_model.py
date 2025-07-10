@@ -41,7 +41,6 @@ class LocationTimeseriesModel(BaseModel):
             self.feature_color_map[key] = current_color + 1
             return self.colors[self.feature_color_map[key]]
 
-
         return self.colors[self.feature_color_map[key]]
 
     def flags(self, index):
