@@ -30,7 +30,7 @@ class LocationTimeseriesModel(BaseModel):
         if self.color_counter == len(self.colors):
             new_random_color = (randint(0, 256), randint(0, 256), randint(0, 256))
             self.colors.append(new_random_color)
-        new_color =  self.colors[self.color_counter]
+        new_color = self.colors[self.color_counter]
         self.color_counter += 1
         return new_color
 
