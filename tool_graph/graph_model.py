@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from random import randint
@@ -19,44 +18,21 @@ logger = logging.getLogger(__name__)
 EMPTY_TIMESERIES = np.array([], dtype=float)
 
 
-def select_default_color(item_field):
-    """
-    return color for lines
-    :param item_field: ItemField object
-    :return: tuple with the 3 color bands (values between 0-256)
-    """
-
-    model = item_field.row.model
-    colors = OrderedDict([(str(color), color) for color in COLOR_LIST])
-
-    for item in model.rows:
-        if str(item.color.value) in colors:
-            del colors[str(item.color.value)]
-
-    if len(colors) >= 1:
-        return list(colors.values())[0]
-
-    # predefined colors are all used, return random color
-    return (randint(0, 256), randint(0, 256), randint(0, 256))
-
-
 class LocationTimeseriesModel(BaseModel):
     """Model implementation for (selected objects) for display in graph"""
 
-    feature_color_map = {}
-
     def __init__(self, *args, **kwargs):
+        self.colors = COLOR_LIST.copy()
+        self.color_counter = 0
         super().__init__(*args, **kwargs)
 
-    def get_color(self, idx: int, layer_id: str) -> QColor:
-        key = (idx, layer_id)
-        if not self.feature_color_map:
-            self.feature_color_map[key] = 0
-        elif key not in self.feature_color_map:
-            # pick next color from COLOR_LIST
-            self.feature_color_map[key] = ((max(self.feature_color_map.values())+1) % len(COLOR_LIST))
-
-        return COLOR_LIST[self.feature_color_map[key]]
+    def get_color(self) -> QColor:
+        if self.color_counter == len(self.colors):
+            new_random_color = (randint(0, 256), randint(0, 256), randint(0, 256))
+            self.colors.append(new_random_color)
+        new_color = self.colors[self.color_counter]
+        self.color_counter += 1
+        return new_color
 
     def flags(self, index):
 
