@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from random import randint
@@ -19,31 +18,11 @@ logger = logging.getLogger(__name__)
 EMPTY_TIMESERIES = np.array([], dtype=float)
 
 
-def select_default_color(item_field):
-    """
-    return color for lines
-    :param item_field: ItemField object
-    :return: tuple with the 3 color bands (values between 0-256)
-    """
-
-    model = item_field.row.model
-    colors = OrderedDict([(str(color), color) for color in COLOR_LIST])
-
-    for item in model.rows:
-        if str(item.color.value) in colors:
-            del colors[str(item.color.value)]
-
-    if len(colors) >= 1:
-        return list(colors.values())[0]
-
-    # predefined colors are all used, return random color
-    return (randint(0, 256), randint(0, 256), randint(0, 256))
-
-
 class LocationTimeseriesModel(BaseModel):
     """Model implementation for (selected objects) for display in graph"""
 
     feature_color_map = {}
+    colors = COLOR_LIST.copy()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,10 +32,16 @@ class LocationTimeseriesModel(BaseModel):
         if not self.feature_color_map:
             self.feature_color_map[key] = 0
         elif key not in self.feature_color_map:
-            # pick next color from COLOR_LIST
-            self.feature_color_map[key] = ((max(self.feature_color_map.values())+1) % len(COLOR_LIST))
+            current_color = max(self.feature_color_map.values())
+            # if the list of colors is exhausted append a new random one
+            if current_color + 1 == len(self.colors):
+                new_random_color = (randint(0, 256), randint(0, 256), randint(0, 256))
+                self.colors.append(new_random_color)
+            # choose the next color in the list
+            self.feature_color_map[key] = current_color + 1
+            return self.colors[self.feature_color_map[key]]
 
-        return COLOR_LIST[self.feature_color_map[key]]
+        return self.colors[self.feature_color_map[key]]
 
     def flags(self, index):
 
