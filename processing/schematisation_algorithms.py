@@ -347,7 +347,8 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                             added_layer.loadNamedStyle(
                                 str(STYLE_DIR / f"checker_{added_layer.geometryType().name.lower()}.qml")
                             )
-                        group.addLayer(added_layer)
+                        layer_tree_item = group.addLayer(added_layer)
+                        layer_tree_item.setCustomProperty("showFeatureCount", True)
                     else:
                         feedback.reportError(f"Layer {layer_name} is not valid")
                 conn = None  # Close the connection
