@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.21 (unreleased)
+3.21 (2025-07-16)
 -----------------
 
 - Use randomly generated colour for timeseries plotter when list of colours runs out (#1111)
