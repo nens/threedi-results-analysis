@@ -7,6 +7,7 @@
 - Use randomly generated colour for timeseries plotter when list of colours runs out (#1111)
 - Fix issue where checks on a geometry column could not be processed by the schematisation checker (#1122)
 - Show number of features for each of the schematisation checker results layers (#1124)
+- Bump Dependency Loader plugin version to 1.2.1 (nens/nens-dependency-loader#14)
 
 
 3.20 (2025-07-08)
