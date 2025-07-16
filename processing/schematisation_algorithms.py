@@ -301,9 +301,9 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             for error in errors_group:
                 if feature_type != 'Table':
                     try:
-                        geom = wkb.loads(error.geom.data) 
+                        geom = wkb.loads(error.geom.data)
                         geom_wkb = ogr.CreateGeometryFromWkb(geom.wkb)
-                    except Exception (ValueError, TypeError):
+                    except (ValueError, TypeError):
                         # When wkb.loads fails due to malformed WKB data move error to Table errors
                         grouped_errors['Table'].append(error)
                         continue
