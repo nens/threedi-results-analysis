@@ -316,7 +316,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 feat.SetField("description", error.description)
                 try:
                     feat.SetField("value", error.value)
-                except NotImplementedError:
+                except Exception:
                     # handle setting value if error.value cannot be processed for any reason
                     pass
                 if feature_type != 'Table':
