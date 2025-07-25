@@ -316,9 +316,10 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 feat.SetField("description", error.description)
                 try:
                     feat.SetField("value", error.value)
-                except NotImplementedError:
-                    # handle setting value if error.value cannot be processed for any reason
+                except (NotImplementedError, TypeError):
                     pass
+                except Exception:
+                    feedback.pushWarning(f"Could not set value for check with code {error.code}")
                 if feature_type != 'Table':
                     feat.SetGeometry(geom_wkb)
                 layer.CreateFeature(feat)

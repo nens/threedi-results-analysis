@@ -4,7 +4,7 @@
 3.22 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Make handling of errors in processing values in the schematisation checker generic to prevent crashes on checks with unexpected values
 
 
 3.21 (2025-07-16)
