@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.22 (unreleased)
+3.22 (2025-07-28)
 -----------------
 
 - Make handling of errors in processing values in the schematisation checker generic to prevent crashes on checks with unexpected values
