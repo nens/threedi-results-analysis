@@ -4,7 +4,7 @@
 3.23 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Ignore vertical flow (groundwater/surface water exchange) in *Flow pattern* algorithm
 
 
 3.22 (2025-07-28)
