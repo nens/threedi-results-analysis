@@ -4,7 +4,7 @@
 3.23 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Use np.ptp(arr) instead of ndarray.ptp() to support Numpy 2.0
 
 
 3.22 (2025-07-28)
