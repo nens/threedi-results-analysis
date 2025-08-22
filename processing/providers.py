@@ -37,6 +37,10 @@ from threedi_results_analysis.processing.threedidepth_algorithms import (
 from threedi_results_analysis.processing.threedidepth_algorithms import (
     ThreediMaxDepthAlgorithm,
 )
+from threedi_results_analysis.processing.water_depth_difference_algorithms import (
+    WaterDepthDiffAlgorithm,
+)
+
 
 import os
 
@@ -57,6 +61,7 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(RastersToNetCDFAlgorithm())
         self.addAlgorithm(StructureControlActionAlgorithm())
         self.addAlgorithm(ImportHydXAlgorithm())
+        self.addAlgorithm(WaterDepthDiffAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.
