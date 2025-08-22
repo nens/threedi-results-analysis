@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-from osgeo import gdal
+from osgeo import gdal, osr
 from qgis.core import (
     QgsProcessingAlgorithm,
     QgsProcessingContext,
@@ -11,15 +11,34 @@ from qgis.core import (
 )
 
 gdal.UseExceptions()
+osr.UseExceptions()
 
 STYLE_DIR = Path(__file__).parent / "styles"
 
 
-def get_authority_code(raster: gdal.Dataset) -> str:
-    """Return authority code (e.g. EPSG:28992) for given raster"""
-    srs = raster.GetProjection()
-    key = "GEOGCS" if srs.IsGeographic() else "PROJCS"
-    return srs.GetAuthorityCode(key)
+def get_authority_code(raster: gdal.Dataset) -> str | None:
+    """
+    Return authority code (e.g. EPSG:28992) for given raster
+    Returns None if no projection is defined
+    """
+    wkt = raster.GetProjection()
+    if not wkt:
+        return None  # no projection defined
+
+    srs = osr.SpatialReference()
+    srs.ImportFromWkt(wkt)
+
+    if srs.IsGeographic():
+        key = "GEOGCS"
+    else:
+        key = "PROJCS"
+
+    code = srs.GetAuthorityCode(key)
+    auth = srs.GetAuthorityName(key)
+
+    if code and auth:
+        return f"{auth}:{code}"
+    return None
 
 
 def get_extent(raster):
@@ -133,16 +152,19 @@ class WaterDepthDiffAlgorithm(QgsProcessingAlgorithm):
     INPUT_RASTER2 = "INPUT_RASTER2"
     OUTPUT_RASTER = "OUTPUT_RASTER"
 
+    def createInstance(self):
+        return WaterDepthDiffAlgorithm()
+
     def initAlgorithm(self, config=None):
         self.addParameter(
             QgsProcessingParameterRasterLayer(
-                self.INPUT_RASTER1, "First Raster"
+                self.INPUT_RASTER1, "Water depth reference raster"
             )
         )
 
         self.addParameter(
             QgsProcessingParameterRasterLayer(
-                self.INPUT_RASTER2, "Second Raster"
+                self.INPUT_RASTER2, "Water depth raster to compare"
             )
         )
 
@@ -157,23 +179,25 @@ class WaterDepthDiffAlgorithm(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
         raster1 = self.parameterAsRasterLayer(parameters, self.INPUT_RASTER1, context)
         raster2 = self.parameterAsRasterLayer(parameters, self.INPUT_RASTER2, context)
-        output = self.parameterAsFileOutput(parameters, self.OUTPUT_RASTER, context)
+        self.output = self.parameterAsFileOutput(parameters, self.OUTPUT_RASTER, context)
 
-        water_depth_diff(raster1.source(), raster2.source(), output)
-        layer = QgsProcessingUtils.mapLayerFromString(output, context)
+        water_depth_diff(raster1.source(), raster2.source(), self.output)
+        layer = QgsProcessingUtils.mapLayerFromString(self.output, context)
         self.output_layer_id = layer.id()
         context.temporaryLayerStore().addMapLayer(layer)
         layer_details = QgsProcessingContext.LayerDetails(
-            "Water depth difference", context.project(), "Water depth difference"
+            "Water depth difference [m]", context.project(), "Water depth difference [m]"
         )
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
 
-        return {self.OUTPUT_RASTER: output}
+        return {self.OUTPUT_RASTER: self.output}
 
     def postProcessAlgorithm(self, context, feedback):
         output_layer = context.getMapLayer(self.output_layer_id)
-        output_layer.loadNamedStyle(STYLE_DIR / "water_depth_difference.qml")
+        output_layer.loadNamedStyle(str(STYLE_DIR / "water_depth_difference.qml"))
         context.project().addMapLayer(output_layer)
+        return {self.OUTPUT_RASTER: self.output}
+
 
     def name(self):
         return "water_depth_diff"
@@ -182,10 +206,17 @@ class WaterDepthDiffAlgorithm(QgsProcessingAlgorithm):
         return "Water depth difference"
 
     def group(self):
-        return self.tr("Post-process results")
+        return "Post-process results"
 
     def groupId(self):
         return "postprocessing"
 
     def shortHelpString(self):
-        return "Calculate difference between two overlapping water depth rasters. Result is raster 2 - raster 1."
+        return (
+            "Calculate difference between two overlapping water depth rasters.\n\n"
+            "The resulting values are [compare raster] - [reference raster]: "
+            "negative values (green) mean the water depth has decreased, "
+            "positive values (pink) mean the water depth has increased "
+            "relative to the reference raster.\n\n"
+            "Pixels with a difference of less than a centimeter are not visualised."
+        )
