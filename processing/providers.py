@@ -37,7 +37,7 @@ from threedi_results_analysis.processing.threedidepth_algorithms import (
 from threedi_results_analysis.processing.threedidepth_algorithms import (
     ThreediMaxDepthAlgorithm,
 )
-from threedi_results_analysis.processing.water_depth_difference_algorithms import (
+from threedi_results_analysis.processing.water_depth_difference_algorithm import (
     WaterDepthDiffAlgorithm,
 )
 
