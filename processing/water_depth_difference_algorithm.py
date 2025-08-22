@@ -3,7 +3,6 @@ from pathlib import Path
 import numpy as np
 from osgeo import gdal
 from qgis.core import (
-    QgsProcessing,
     QgsProcessingAlgorithm,
     QgsProcessingContext,
     QgsProcessingParameterRasterLayer,
