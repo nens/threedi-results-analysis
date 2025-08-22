@@ -4,6 +4,7 @@
 3.23 (unreleased)
 -----------------
 
+- Ignore vertical flow (groundwater/surface water exchange) in *Flow pattern* algorithm
 - Use np.ptp(arr) instead of ndarray.ptp() to support Numpy 2.0
 
 
