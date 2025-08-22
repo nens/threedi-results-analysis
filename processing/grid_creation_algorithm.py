@@ -10,7 +10,6 @@ from threedi_results_analysis.processing.processing_utils import (
     load_computational_layers,
 )
 from threedigrid_builder import make_gridadmin
-from threedigrid_builder import SchematisationError
 
 import io
 import logging
