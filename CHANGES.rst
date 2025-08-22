@@ -1,10 +1,40 @@
 3Di Results Analysis changelog
 ========================
 
-3.19 (unreleased)
+3.23 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Ignore vertical flow (groundwater/surface water exchange) in *Flow pattern* algorithm
+- Use np.ptp(arr) instead of ndarray.ptp() to support Numpy 2.0
+
+
+3.22 (2025-07-28)
+-----------------
+
+- Make handling of errors in processing values in the schematisation checker generic to prevent crashes on checks with unexpected values
+
+
+3.21 (2025-07-16)
+-----------------
+
+- Use randomly generated colour for timeseries plotter when list of colours runs out (#1111)
+- Fix issue where checks on a geometry column could not be processed by the schematisation checker (#1122)
+- Show number of features for each of the schematisation checker results layers (#1124)
+- Bump Dependency Loader plugin version to 1.2.1 (nens/nens-dependency-loader#14)
+
+
+3.20 (2025-07-08)
+-----------------
+
+- Fixed issue when plotting pump structure control (#1117)
+- Added global load_result function for external invokation (#1118)
+- Change flowline and node symbology labels
+
+
+3.19 (2025-06-10)
+-----------------
+
+- Add model checker errors as vector layers.
 
 
 3.18 (2025-05-12)

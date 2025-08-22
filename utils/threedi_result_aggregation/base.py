@@ -578,10 +578,13 @@ def flow_per_node(
     """
     Calculate the aggregate of all flows per node, split in x and y directions
 
+    Note: ignores vertical flow (groundwater/surface water interaction)
+
     :param out: if True, only outgoing flows are calculated. If false, only incoming flows
     :returns: numpy 2d array; columns: node ids, x sign flow, y sign flow
     """
     lines = filter_lines_by_node_ids(gr.lines, node_ids)
+    lines = lines.filter(kcu__ne=150)  # 2d vertical link
 
     start_end_node_ids = lines.line_nodes.T.reshape(
         lines.line_nodes.size

@@ -236,6 +236,12 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Disable warning that scratch layer data will be lost
         QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
 
+    def load_result(self, result_path: str, grid_path: str):
+        """This function can be used by other plugins to load results into
+        this tool. It will follow the standard workflow (as it would have been
+        selected in the UI in this tool)"""
+        self.validator.validate_result_grid(result_path, grid_path)
+
     def write(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")

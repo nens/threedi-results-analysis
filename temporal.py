@@ -117,7 +117,7 @@ class TemporalManager(QObject):
         # extent
         start_time = min(d[0].item() for d in datetimes)
         if self._align_starts:
-            end_time = start_time + max(d.ptp().item() for d in datetimes)
+            end_time = start_time + max(np.ptp(d).item() for d in datetimes)
         else:
             end_time = max(d[-1].item() for d in datetimes)
         end_time += Timedelta(seconds=frame_duration)  # to access last step

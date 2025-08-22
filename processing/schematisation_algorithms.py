@@ -266,7 +266,9 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 feature_type = geom.geom_type
             grouped_errors[feature_type].append(error)
         group_name_map = {'LineString': 'Line'}
-        for i, (feature_type, errors_group) in enumerate(grouped_errors.items()):
+        ordered_keys = ["Point", "LineString", "Polygon", "Table"]
+        for i, feature_type in enumerate(ordered_keys):
+            errors_group = grouped_errors[feature_type]
             group_name = f'{group_name_map.get(feature_type, feature_type)} features'
             feedback.pushInfo(f"Adding layer '{group_name}' to geopackage...")
             feedback.setProgress(85+5*i)
@@ -297,17 +299,29 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
 
             defn = layer.GetLayerDefn()
             for error in errors_group:
+                if feature_type != 'Table':
+                    try:
+                        geom = wkb.loads(error.geom.data)
+                        geom_wkb = ogr.CreateGeometryFromWkb(geom.wkb)
+                    except (ValueError, TypeError):
+                        # When wkb.loads fails due to malformed WKB data move error to Table errors
+                        grouped_errors['Table'].append(error)
+                        continue
                 feat = ogr.Feature(defn)
                 feat.SetField("level", error.name)
                 feat.SetField("error_code", error.code)
                 feat.SetField("id", error.id)
                 feat.SetField("table", error.table)
                 feat.SetField("column", error.column)
-                feat.SetField("value", error.value)
                 feat.SetField("description", error.description)
+                try:
+                    feat.SetField("value", error.value)
+                except (NotImplementedError, TypeError):
+                    pass
+                except Exception:
+                    feedback.pushWarning(f"Could not set value for check with code {error.code}")
                 if feature_type != 'Table':
-                    geom = wkb.loads(error.geom.data)  # Convert WKB to a Shapely geometry object
-                    feat.SetGeometry(ogr.CreateGeometryFromWkb(geom.wkb))  # Convert back to OGR-compatible WKB
+                    feat.SetGeometry(geom_wkb)
                 layer.CreateFeature(feat)
         feedback.pushInfo("GeoPackage successfully written to file")
         return {self.OUTPUT: self.output_file_path}
@@ -334,7 +348,8 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                             added_layer.loadNamedStyle(
                                 str(STYLE_DIR / f"checker_{added_layer.geometryType().name.lower()}.qml")
                             )
-                        group.addLayer(added_layer)
+                        layer_tree_item = group.addLayer(added_layer)
+                        layer_tree_item.setCustomProperty("showFeatureCount", True)
                     else:
                         feedback.reportError(f"Layer {layer_name} is not valid")
                 conn = None  # Close the connection

@@ -10,7 +10,6 @@ from threedi_results_analysis.processing.processing_utils import (
     load_computational_layers,
 )
 from threedigrid_builder import make_gridadmin
-from threedigrid_builder import SchematisationError
 
 import io
 import logging
@@ -109,8 +108,12 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         logger.addHandler(ch)
         try:
             make_gridadmin(input_schematisation, set_dem_path, gridadmin_file, progress_callback=progress_rep)
-        except SchematisationError as e:
-            err = f"Creating grid file failed with the following error: {repr(e)}"
+        except Exception as e:
+            err = (
+                f"Creating grid file failed with the following error: {repr(e)}\n"
+                "This error is likely caused by errors in the schematisation.\n"
+                "Run the schematisation checker, correct any errors that are reported, and try again."
+            )
             raise QgsProcessingException(err)
         finally:
             # Pull the contents back into a string and close the stream

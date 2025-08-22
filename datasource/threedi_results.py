@@ -301,7 +301,7 @@ class ThreediResult():
         # Retrieve gridadmin structure
         if selected_object_type == "flowline":
             structure = self.gridadmin.lines.filter(id=node_id)
-        elif selected_object_type == "pump":
+        elif selected_object_type == "pump_linestring":
             structure = self.gridadmin.pumps.filter(id=node_id)
         else:
             raise NotImplementedError("Plotting node control actions is not yet implemented")
