@@ -198,7 +198,6 @@ class WaterDepthDiffAlgorithm(QgsProcessingAlgorithm):
         context.project().addMapLayer(output_layer)
         return {self.OUTPUT_RASTER: self.output}
 
-
     def name(self):
         return "water_depth_diff"
 
