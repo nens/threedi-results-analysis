@@ -59,6 +59,34 @@ def get_shared_extent(extent1, extent2):
     return [ulx, uly, lrx, lry]
 
 
+def get_arrays(raster1, raster2):
+    raster1_extend = get_extent(raster1)
+    raster2_extend = get_extent(raster2)
+    if raster1_extend == raster2_extend:
+        raster1_array = raster1.ReadAsArray()
+        raster2_array = raster2.ReadAsArray()
+        gt = raster1.GetGeoTransform()
+    else:
+        shared_extent = get_shared_extent(raster1_extend, raster2_extend)
+        raster1_shared_extent = gdal.Translate('', raster1, format='MEM', projWin=shared_extent)
+        raster1_array = raster1_shared_extent.ReadAsArray()
+        raster1_shared_extent = None
+        raster2_shared_extent = gdal.Translate('', raster2, format='MEM', projWin=shared_extent)
+        raster2_array = raster2_shared_extent.ReadAsArray()
+        raster2_shared_extent = None
+        gt = list(raster1.GetGeoTransform())  # (upper_left_x, x_resolution, x_skew, upper_left_y, y_skew, y_resolution)
+        gt[0] = shared_extent[0]
+        gt[3] = shared_extent[1]
+        gt = tuple(gt)
+    return raster1_array, raster2_array, gt
+
+
+def replace_no_data_values(raster, raster_array):
+    ndv = raster.GetRasterBand(1).GetNoDataValue()
+    raster_array[np.where(raster_array == ndv)] = 0
+    return raster_array
+
+
 def water_depth_diff(raster1_fn: Path | str, raster2_fn: Path | str, output: Path | str):
     """
     Calculate difference between two overlapping water depth tiffs. Result is raster2 - raster1.
@@ -73,13 +101,13 @@ def water_depth_diff(raster1_fn: Path | str, raster2_fn: Path | str, output: Pat
     raster2 = gdal.Open(raster2_fn)
 
     # raise error if pixel sizes differ
-    if not raster1.GetGeoTransform()[1] == raster2.GetGeoTransform()[1] and \
-            raster1.GetGeoTransform()[5] == raster2.GetGeoTransform()[5]:
+    if not (raster1.GetGeoTransform()[1] == raster2.GetGeoTransform()[1] and
+            raster1.GetGeoTransform()[5] == raster2.GetGeoTransform()[5]):
         raise ValueError("Input rasters have different pixel sizes")
 
     # raise error if pixel skews differ
-    if not raster1.GetGeoTransform()[2] == raster2.GetGeoTransform()[2] and \
-            raster1.GetGeoTransform()[4] == raster2.GetGeoTransform()[4]:
+    if not (raster1.GetGeoTransform()[2] == raster2.GetGeoTransform()[2] and
+            raster1.GetGeoTransform()[4] == raster2.GetGeoTransform()[4]):
         raise ValueError("Input rasters have different pixel skew")
 
     # raise error if projections differ
@@ -90,35 +118,11 @@ def water_depth_diff(raster1_fn: Path | str, raster2_fn: Path | str, output: Pat
         raise ValueError(f"Input rasters have different CRS ({authority_code_raster1} vs {authority_code_raster2}")
 
     # Clip rasters if they do not have the same extent
-    raster1extent = get_extent(raster1)
-    raster2extent = get_extent(raster2)
-
-    if raster1extent == raster2extent:
-        raster1_array = raster1.ReadAsArray()
-        raster2_array = raster2.ReadAsArray()
-        gt = raster1.GetGeoTransform()
-
-    else:
-        shared_extent = get_shared_extent(raster1extent, raster2extent)
-
-        raster1_shared_extent = gdal.Translate('', raster1, format='MEM', projWin=shared_extent)
-        raster1_array = raster1_shared_extent.ReadAsArray()
-        raster1_shared_extent = None
-
-        raster2_shared_extent = gdal.Translate('', raster2, format='MEM', projWin=shared_extent)
-        raster2_array = raster2_shared_extent.ReadAsArray()
-        raster2_shared_extent = None
-
-        gt = list(raster1.GetGeoTransform())  # (upper_left_x, x_resolution, x_skew, upper_left_y, y_skew, y_resolution)
-        gt[0] = shared_extent[0]
-        gt[3] = shared_extent[1]
-        gt = tuple(gt)
+    raster1_array, raster2_array, gt = get_arrays(raster1, raster2)
 
     # Replace all nodata pixels by 0
-    ndv1 = raster1.GetRasterBand(1).GetNoDataValue()
-    raster1_array[np.where(raster1_array == ndv1)] = 0
-    ndv2 = raster2.GetRasterBand(1).GetNoDataValue()
-    raster2_array[np.where(raster2_array == ndv2)] = 0
+    raster1_array = replace_no_data_values(raster1, raster1_array)
+    raster2_array = replace_no_data_values(raster2, raster2_array)
 
     # Calculate difference
     result = np.subtract(raster2_array, raster1_array)
@@ -130,10 +134,9 @@ def water_depth_diff(raster1_fn: Path | str, raster2_fn: Path | str, output: Pat
 
     if output.exists():
         output.unlink()
-
     dst_drv = gdal.GetDriverByName('GTiff')
     dst_ds = dst_drv.Create(
-        output,
+        str(output),
         xsize=width,
         ysize=height,
         bands=1,
@@ -197,7 +200,6 @@ class WaterDepthDiffAlgorithm(QgsProcessingAlgorithm):
         output_layer.loadNamedStyle(str(STYLE_DIR / "water_depth_difference.qml"))
         context.project().addMapLayer(output_layer)
         return {self.OUTPUT_RASTER: self.output}
-
 
     def name(self):
         return "water_depth_diff"
