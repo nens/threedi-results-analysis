@@ -4,7 +4,7 @@
 3.24 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Replaced release 3.23
 
 
 3.23 (2025-08-28)
