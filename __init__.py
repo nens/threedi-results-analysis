@@ -79,6 +79,7 @@ def classFactory(iface):
         iface (QgsInterface): A QGIS interface instance.
 
     """
+    check_dependency_loader()
     setup_logging()
     enable_high_dpi_scaling()
 
