@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.23 (unreleased)
+3.23 (2025-08-28)
 -----------------
 
 - Ignore vertical flow (groundwater/surface water exchange) in *Flow pattern* algorithm
