@@ -87,9 +87,9 @@ def replace_no_data_values(raster, raster_array):
     return raster_array
 
 
-def water_depth_diff(raster1_fn: Path | str, raster2_fn: Path | str, output: Path | str):
+def water_depth_diff(reference: Path | str, compare: Path | str, output: Path | str):
     """
-    Calculate difference between two overlapping water depth tiffs. Result is raster2 - raster1.
+    Calculate difference between two overlapping water depth tiffs. Result is compare - reference.
     Regards nodata as 0 water depth
     Nodatavalue of output is always 0
     If input rasters have different extents, difference raster will be calculated for the overlapping part of the input
@@ -97,40 +97,40 @@ def water_depth_diff(raster1_fn: Path | str, raster2_fn: Path | str, output: Pat
     """
     output = Path(output)
 
-    raster1 = gdal.Open(raster1_fn)
-    raster2 = gdal.Open(raster2_fn)
+    reference_raster = gdal.Open(reference)
+    compare_raster = gdal.Open(compare)
 
     # raise error if pixel sizes differ
-    if not (raster1.GetGeoTransform()[1] == raster2.GetGeoTransform()[1] and
-            raster1.GetGeoTransform()[5] == raster2.GetGeoTransform()[5]):
+    if not (reference_raster.GetGeoTransform()[1] == compare_raster.GetGeoTransform()[1] and
+            reference_raster.GetGeoTransform()[5] == compare_raster.GetGeoTransform()[5]):
         raise ValueError("Input rasters have different pixel sizes")
 
     # raise error if pixel skews differ
-    if not (raster1.GetGeoTransform()[2] == raster2.GetGeoTransform()[2] and
-            raster1.GetGeoTransform()[4] == raster2.GetGeoTransform()[4]):
+    if not (reference_raster.GetGeoTransform()[2] == compare_raster.GetGeoTransform()[2] and
+            reference_raster.GetGeoTransform()[4] == compare_raster.GetGeoTransform()[4]):
         raise ValueError("Input rasters have different pixel skew")
 
     # raise error if projections differ
     # compare on EPSG code to prevent errors from insignificant differences between the projections
-    authority_code_raster1 = get_authority_code(raster1)
-    authority_code_raster2 = get_authority_code(raster2)
-    if not authority_code_raster1 == authority_code_raster2:
-        raise ValueError(f"Input rasters have different CRS ({authority_code_raster1} vs {authority_code_raster2}")
+    authority_code_reference = get_authority_code(reference_raster)
+    authority_code_compare = get_authority_code(compare_raster)
+    if not authority_code_reference == authority_code_compare:
+        raise ValueError(f"Input rasters have different CRS ({authority_code_reference} vs {authority_code_compare}")
 
     # Clip rasters if they do not have the same extent
-    raster1_array, raster2_array, gt = get_arrays(raster1, raster2)
+    reference_array, compare_array, gt = get_arrays(reference_raster, compare_raster)
 
     # Replace all nodata pixels by 0
-    raster1_array = replace_no_data_values(raster1, raster1_array)
-    raster2_array = replace_no_data_values(raster2, raster2_array)
+    reference_array = replace_no_data_values(reference_raster, reference_array)
+    compare_array = replace_no_data_values(compare_raster, compare_array)
 
     # Calculate difference
-    result = np.subtract(raster2_array, raster1_array)
+    result = np.subtract(compare_array, reference_array)
 
     # Write to raster with 0 as nodatavalue
     height = result.shape[0]
     width = result.shape[1]
-    wkt = raster1.GetProjection()
+    wkt = reference_raster.GetProjection()
 
     if output.exists():
         output.unlink()
@@ -151,9 +151,9 @@ def water_depth_diff(raster1_fn: Path | str, raster2_fn: Path | str, output: Pat
 
 
 class WaterDepthDiffAlgorithm(QgsProcessingAlgorithm):
-    INPUT_RASTER1 = "INPUT_RASTER1"
-    INPUT_RASTER2 = "INPUT_RASTER2"
-    OUTPUT_RASTER = "OUTPUT_RASTER"
+    REFERENCE = "REFERENCE"
+    COMPARE = "COMPARE"
+    OUTPUT = "OUTPUT"
 
     def createInstance(self):
         return WaterDepthDiffAlgorithm()
@@ -161,30 +161,30 @@ class WaterDepthDiffAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config=None):
         self.addParameter(
             QgsProcessingParameterRasterLayer(
-                self.INPUT_RASTER1, "Water depth reference raster"
+                self.REFERENCE, "Water depth reference raster"
             )
         )
 
         self.addParameter(
             QgsProcessingParameterRasterLayer(
-                self.INPUT_RASTER2, "Water depth raster to compare"
+                self.COMPARE, "Water depth raster to compare"
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT_RASTER,
+                self.OUTPUT,
                 "Output raster",
                 fileFilter="GeoTIFF (*.tif)"
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        raster1 = self.parameterAsRasterLayer(parameters, self.INPUT_RASTER1, context)
-        raster2 = self.parameterAsRasterLayer(parameters, self.INPUT_RASTER2, context)
-        self.output = self.parameterAsFileOutput(parameters, self.OUTPUT_RASTER, context)
+        reference = self.parameterAsRasterLayer(parameters, self.REFERENCE, context)
+        compare = self.parameterAsRasterLayer(parameters, self.COMPARE, context)
+        self.output = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
 
-        water_depth_diff(raster1.source(), raster2.source(), self.output)
+        water_depth_diff(reference.source(), compare.source(), self.output)
         layer = QgsProcessingUtils.mapLayerFromString(self.output, context)
         self.output_layer_id = layer.id()
         context.temporaryLayerStore().addMapLayer(layer)
@@ -193,13 +193,13 @@ class WaterDepthDiffAlgorithm(QgsProcessingAlgorithm):
         )
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
 
-        return {self.OUTPUT_RASTER: self.output}
+        return {self.OUTPUT: self.output}
 
     def postProcessAlgorithm(self, context, feedback):
         output_layer = context.getMapLayer(self.output_layer_id)
         output_layer.loadNamedStyle(str(STYLE_DIR / "water_depth_difference.qml"))
         context.project().addMapLayer(output_layer)
-        return {self.OUTPUT_RASTER: self.output}
+        return {self.OUTPUT: self.output}
 
     def name(self):
         return "water_depth_diff"
