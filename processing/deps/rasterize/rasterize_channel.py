@@ -976,9 +976,16 @@ class Channel:
         The channel id tuple's first value will always be the original channel id; the second value will be incremented
         by 1 for the last half. So (23, 0) becomes ((23, 0), (23, 1)); (23, 1) becomes ((23, 1), (23, 2)), etc. The same
         logic applies to connection_node_id_start and connection_node_id_end.
+
+        To make sure that interpolation is unaffected by splitting the channel, the following cross-section locations
+        are preserved:
+        - To the first part of the channel, the first cross-section location beyond the split point is added
+        - To the last part of the channel, the first cross-section location before the split point is added
         """
+        if vertex_index == 0:
+            return None, self
+
         if vertex_index == len(self.geometry.coords) - 1:
-            # entire input channel is valid
             return self, None
 
         vertex = Point(self.geometry.coords[vertex_index])

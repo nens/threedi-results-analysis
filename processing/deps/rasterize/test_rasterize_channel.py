@@ -4,7 +4,6 @@ from shapely import wkt, wkb
 from shapely import __version__ as shapely_version, geos_version
 import pytest
 
-
 from rasterize_channel import (
     IndexedPoint,
     Triangle,
@@ -16,7 +15,6 @@ from rasterize_channel import (
     parse_cross_section_table,
     triangulate_between, highest_valid_index_single_offset, highest_valid_index, is_valid_offset,
 )
-
 
 WALL_DISPLACEMENT = 0.01  # tops or bottoms of vertical segments are moved by this amount
 
@@ -64,7 +62,7 @@ def get_test_channel(nr: int = 0):
             connection_node_id_start=2,
             connection_node_id_end=4,
             id=3,
-            )
+        )
         xsec = get_test_cross_section_location()
         xsec.geometry = Point(50, 0)
         channel.add_cross_section_location(xsec)
@@ -86,6 +84,17 @@ def get_test_channel(nr: int = 0):
             connection_node_id_start=6,
             connection_node_id_end=7,
             id=5,
+        )
+    elif nr == 6:
+        channel = Channel(
+            geometry=LineString([
+                [0, 0], [10, 10], [10, 20], [0, 30], [0, 40], [10, 50], [20, 50], [30, 40], [30, 30], [20, 20],
+                [20, 10], [30, 0], [37, 0], [38, 1], [38, 2], [37, 3], [37, 4], [38, 5], [39, 5], [40, 4], [40, 3],
+                [39, 2], [39, 1], [40, 0]]
+            ),
+            connection_node_id_start=1,
+            connection_node_id_end=2,
+            id=6,
         )
     else:
         raise ValueError(f"Invalid value for parameter 'nr': {nr}")
@@ -358,8 +367,8 @@ def test_highest_valid_index(plot: bool = False):
 
 def test_channel_azimuth_at():
     assert get_test_channel(1).azimuth_at(connection_node_id=(2, 0)) == 180
-    assert round(get_test_channel(2).azimuth_at(connection_node_id=(2,0)), 2) == 11.31
-    assert get_test_channel(3).azimuth_at(connection_node_id=(2,0)) == 90
+    assert round(get_test_channel(2).azimuth_at(connection_node_id=(2, 0)), 2) == 11.31
+    assert get_test_channel(3).azimuth_at(connection_node_id=(2, 0)) == 90
 
 
 def test_cross_section_location_thalweg_y():
@@ -625,11 +634,160 @@ def test_channel_parallel_offsets():
     ]
 
 
-def test_channel_split():
+def test_channel_split(plot: bool = False):
+    if plot:
+        import matplotlib.pyplot as plt
+
+        def plot_it(channel: Channel, split_idx: int, title=""):
+            """
+            Plot a Channel (with .geometry as LineString),
+            its cross-section locations (fractions along the length),
+            and the split point defined by a vertex index.
+
+            Parameters
+            ----------
+            channel : Channel
+                An object with:
+                  - .geometry : shapely LineString
+                  - .cross_section_locations : list of floats in [0, 1]
+            split_idx : int
+                Index of the channel vertex to highlight as the split point.
+            """
+            channel_geom: LineString = channel.geometry
+
+            # Validate index
+            if split_idx < 0 or split_idx >= len(channel_geom.coords):
+                raise IndexError(
+                    f"split_idx {split_idx} out of range for channel with {len(channel_geom.coords)} vertices.")
+
+            # Compute split point
+            split_point = Point(channel_geom.coords[split_idx])
+
+            # Compute cross section points
+            cross_section_points = [
+                channel_geom.interpolate(f, normalized=False)
+                for f in channel.cross_section_location_positions
+            ]
+
+            # --- Plotting ---
+            fig, ax = plt.subplots(figsize=(8, 4))
+
+            # Plot channel
+            x, y = channel_geom.xy
+            ax.plot(x, y, color="blue", linewidth=2, label="Channel")
+
+            # Plot cross-section points
+            if cross_section_points:
+                ax.scatter(
+                    [p.x for p in cross_section_points],
+                    [p.y for p in cross_section_points],
+                    color="green", s=50, zorder=3, label="Cross Sections"
+                )
+
+            # Plot split point
+            ax.scatter(
+                split_point.x, split_point.y,
+                color="red", s=80, zorder=3,
+                label=f"Split Point (index {split_idx})"
+            )
+
+            # Decorations
+            ax.legend()
+            ax.set_aspect("equal", "box")
+            ax.set_title(title)
+
+            plt.show()
+
     # TODO add assertion(s)
-    channel = get_test_channel(2)
-    # split_channel = channel.split(0)
+    # - geometry
+    # - cross-section locations
+    # - cross-section location positions
+    # - ID
+    # - connection_node id start
+    # - connection_node id end
+    # CASES
+    # - Split point is at first vertex
+    channel = get_test_channel(6)
+    split_idx = 0
+    split_channel = channel.split(split_idx)
+    assert split_channel == (None, channel)
+    if plot:
+        plot_it(channel, split_idx, title="Split point is at first vertex")
+
+    # - Split point is at last vertex
+    channel = get_test_channel(6)
+    split_idx = len(channel.geometry.coords) - 1
+    split_channel = channel.split(split_idx)
+    assert split_channel == (channel, None)
+    if plot:
+        plot_it(channel, split_idx, title="Split point is at last vertex")
+
+    # Split point is before the cross-section location
+    channel = get_test_channel(6)
+    xsec = get_test_cross_section_location()
+    xsec.geometry = Point(channel.geometry.coords[15])
+    channel.add_cross_section_location(xsec)
+    split_idx = 10
+    split_channel = channel.split(split_idx)
+    assert all([isinstance(part, Channel) for part in split_channel])
+    # TODO add assertions
+    # - geometry
+    # - cross-section locations
+    # - cross-section location positions
+    # - ID
+    # - connection_node id start
+    # - connection_node id end
+    if plot:
+        plot_it(channel, split_idx, title="Split point is before the cross-section location")
+
+    # - Split point is after the cross-section location
+    channel = get_test_channel(6)
+    xsec = get_test_cross_section_location()
+    xsec.geometry = Point(channel.geometry.coords[15])
+    channel.add_cross_section_location(xsec)
+    split_idx = 16
+    split_channel = channel.split(split_idx)
+    assert all([isinstance(part, Channel) for part in split_channel])
+    # TODO add assertions
+    # - geometry
+    # - cross-section locations
+    # - cross-section location positions
+    # - ID
+    # - connection_node id start
+    # - connection_node id end
+    if plot:
+        plot_it(channel, split_idx, title="Split point is after the cross-section location")
+
+    # - Split point is in between two cross-section locations
+    channel = get_test_channel(6)
+    for idx in [5, 15]:
+        xsec = get_test_cross_section_location()
+        xsec.geometry = Point(channel.geometry.coords[idx])
+        channel.add_cross_section_location(xsec)
+    split_idx = 10
+    split_channel = channel.split(split_idx)
+    assert all([isinstance(part, Channel) for part in split_channel])
+    # TODO add assertions
+    # - geometry
+    # - cross-section locations
+    # - cross-section location positions
+    # - ID
+    # - connection_node id start
+    # - connection_node id end
+    if plot:
+        plot_it(channel, split_idx, title="Split point is in between two cross-section locations")
+
+    # - Two cross-section locations after the split point
+    # - Two cross-section locations before the split point
+    for i in [6]:
+        channel = get_test_channel(6)
+
+        # split_channel = channel.split(0)  # TODO fix this
+        if plot:
+            plot_it(channel, 1)
     split_channel = channel.split(1)
+    if plot:
+        plot_it(channel, 2)
     split_channel = channel.split(2)
 
 
@@ -993,8 +1151,8 @@ def test_fill_wedge(plot: bool = False):
     assert len(channel_2._wedge_fill_triangles) == 0
     print([tri.geometry.wkt for tri in channel_1._wedge_fill_triangles])
     assert [tri.geometry.wkt for tri in channel_1._wedge_fill_triangles] == [
-            'POLYGON Z ((50.84932298251876 0.166422494958816 10, 52.611203192631464 -0.7800330640682285 13, '
-            '50.85569237696996 -1.8335673627190487 13, 50.84932298251876 0.166422494958816 10))'
+        'POLYGON Z ((50.84932298251876 0.166422494958816 10, 52.611203192631464 -0.7800330640682285 13, '
+        '50.85569237696996 -1.8335673627190487 13, 50.84932298251876 0.166422494958816 10))'
     ]
 
 
@@ -1058,7 +1216,8 @@ def test_triangle(plot: bool = False):
     line_1 = LineString([(-10, -10), (10, 10)])
     line_2 = LineString([(-6, -10), (14, 10)])
     if plot:
-        plot_triangle_with_lines(tri, line_1, line_2, "Case 2.1: one side shared, opposite point does not touch other line")
+        plot_triangle_with_lines(tri, line_1, line_2,
+                                 "Case 2.1: one side shared, opposite point does not touch other line")
     assert not tri.is_between(line_1, line_2)
 
     # TODO: Fix this (in the code, the test is ok)
@@ -1081,7 +1240,6 @@ def test_triangle(plot: bool = False):
 
 
 def test_triangulate_between():
-
     # Base case: two parallel lines
     # TODO: add assertions to this case
     points_1 = [
@@ -1096,8 +1254,8 @@ def test_triangulate_between():
         IndexedPoint(10, 9, 40, index=7),
     ]
     triangles = [triangle for triangle in triangulate_between(
-            left_side_points=points_1,
-            right_side_points=points_2,
+        left_side_points=points_1,
+        right_side_points=points_2,
     )]
     tri_queries = [f"SELECT ST_GeomFromText('{tri.geometry.wkt}') as geom /*:polygon:28992*/" for tri in triangles]
     print("\nUNION\n".join(tri_queries))
@@ -1118,8 +1276,8 @@ def test_triangulate_between():
     ]
     points_2.reverse()
     triangles = [triangle for triangle in triangulate_between(
-            left_side_points=points_1,
-            right_side_points=points_2,
+        left_side_points=points_1,
+        right_side_points=points_2,
     )]
     tri_queries = [f"SELECT ST_GeomFromText('{tri.geometry.wkt}') as geom /*:polygon:28992*/" for tri in triangles]
     print("\nUNION\n".join(tri_queries))
@@ -1131,11 +1289,12 @@ def test_triangulate_between():
         IndexedPoint(45, 2.5, 15, index=9)
     ]
     triangles = [triangle for triangle in triangulate_between(
-            left_side_points=points_1,
-            right_side_points=points_2,
+        left_side_points=points_1,
+        right_side_points=points_2,
     )]
     assert len(triangles) == 1
     assert triangles[0].geometry.wkt == "POLYGON Z ((50 5 15, 50 0 10, 45 2.5 15, 50 5 15))"
+
 
 if __name__ == "__main__":
     test_parse_cross_section_table()
@@ -1149,7 +1308,7 @@ if __name__ == "__main__":
     test_channel_properties()
     test_channel_outline()
     test_channel_parallel_offsets()
-    test_channel_split()
+    test_channel_split(plot=True)
     test_two_vertex_channel()
     test_cross_section_starting_at_0_0()
     test_channel_max_width_at()
@@ -1157,5 +1316,5 @@ if __name__ == "__main__":
     test_find_wedge_channels()
     test_fill_wedge()
     test_indexed_point()
-    test_triangle(plot=True)
+    test_triangle()
     test_triangulate_between()
