@@ -7,6 +7,7 @@
 - Ignore vertical flow (groundwater/surface water exchange) in *Flow pattern* algorithm
 - Use np.ptp(arr) instead of ndarray.ptp() to support Numpy 2.0
 - Add water depth difference processing algorithm (#1136)
+- Prevent N&S Dependency Loader from getting disabled (nens/nens-dependency-loader#19)
 
 3.22 (2025-07-28)
 -----------------
