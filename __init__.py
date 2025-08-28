@@ -10,7 +10,7 @@ from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.utils import isPluginLoaded, startPlugin
 from .utils.qlogging import setup_logging
 from pathlib import Path
-
+import platform
 import faulthandler
 import sys
 
@@ -79,7 +79,8 @@ def classFactory(iface):
         iface (QgsInterface): A QGIS interface instance.
 
     """
-    check_dependency_loader()
+    if platform.system() == "Windows":
+        check_dependency_loader()
     setup_logging()
     enable_high_dpi_scaling()
 
