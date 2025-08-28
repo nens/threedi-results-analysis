@@ -13,32 +13,9 @@ from qgis.core import (
 gdal.UseExceptions()
 osr.UseExceptions()
 
+from threedi_results_analysis.utils.utils import get_authority_code
+
 STYLE_DIR = Path(__file__).parent / "styles"
-
-
-def get_authority_code(raster: gdal.Dataset) -> str | None:
-    """
-    Return authority code (e.g. EPSG:28992) for given raster
-    Returns None if no projection is defined
-    """
-    wkt = raster.GetProjection()
-    if not wkt:
-        return None  # no projection defined
-
-    srs = osr.SpatialReference()
-    srs.ImportFromWkt(wkt)
-
-    if srs.IsGeographic():
-        key = "GEOGCS"
-    else:
-        key = "PROJCS"
-
-    code = srs.GetAuthorityCode(key)
-    auth = srs.GetAuthorityName(key)
-
-    if code and auth:
-        return f"{auth}:{code}"
-    return None
 
 
 def get_extent(raster):
