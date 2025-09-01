@@ -143,6 +143,9 @@ class FractionDockWidget(QDockWidget):
         self.buttonBarHLayout.addWidget(self.addNodeCellButton)
         self.stackedCheckbox = QCheckBox("Stacked plot", self.dockWidgetContent)
         self.buttonBarHLayout.addWidget(self.stackedCheckbox)
+        self.volumeCheckbox = QCheckBox("Volume mode", self.dockWidgetContent)
+        self.volumeCheckbox.setToolTip("Multiply percentages by the volume. Available only when units are %")
+        self.buttonBarHLayout.addWidget(self.volumeCheckbox)
 
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
@@ -170,6 +173,7 @@ class FractionDockWidget(QDockWidget):
 
         self.substanceUnitsCombobox.currentTextChanged.connect(self.fraction_widget.substance_units_change)
         self.stackedCheckbox.stateChanged.connect(self.fraction_widget.stacked_changed)
+        self.volumeCheckbox.stateChanged.connect(self.fraction_widget.volume_changed)
 
         # populate the combobox, with wq results, select first
         for result in self.model.get_results(checked_only=False):

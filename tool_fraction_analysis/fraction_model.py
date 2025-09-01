@@ -74,7 +74,7 @@ class FractionModel(QStandardItemModel):
     def get_color(self) -> QColor:
         return FRACTION_COLOR_LIST[self.rowCount() % len(FRACTION_COLOR_LIST)]
 
-    def create_plots(self, feature_id, time_units, stacked):
+    def create_plots(self, feature_id, time_units, stacked, volume):
         plots = []
         cumulative_ts_table = None
 
@@ -83,6 +83,11 @@ class FractionModel(QStandardItemModel):
             pen = pg.mkPen(color=QColor(*color), width=2, style=style)
             substance = self.item(row, 0).data()
             ts_table = self.timeseries_table(substance, feature_id, time_units=time_units)
+            if volume:
+                # multiply with nodes' volume when volume_mode is selected
+                volume_series = self.timeseries_table("vol", feature_id, time_units=time_units)
+                ts_table[:, 1] = np.multiply(ts_table[:, 1], volume_series[:, 1])
+
             if stacked:
                 if cumulative_ts_table is not None:
                     ts_table[:, 1] = np.add(ts_table[:, 1], cumulative_ts_table)

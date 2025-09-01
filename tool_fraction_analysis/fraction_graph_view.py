@@ -55,6 +55,7 @@ class FractionWidget(QWidget):
         self.current_substance_unit = None
         self.current_feature_id = None
         self.current_stacked = False
+        self.current_volume = False
 
     def result_selected(self, result_item: ThreeDiResultItem, substance_units):
         self.current_result_id = result_item.id
@@ -122,19 +123,24 @@ class FractionWidget(QWidget):
     def time_units_change(self):
         self.fraction_plot.setLabel("bottom", "Time", self.ts_units_combo_box.currentText())
         if self.current_feature_id and self.current_substance_unit:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def substance_units_change(self, substance_unit):
         self.current_substance_unit = substance_unit
         if self.current_result_id:
             self.fraction_model.set_fraction(self.result_model.get_result(self.current_result_id), self.current_substance_unit)
         if self.current_feature_id:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def stacked_changed(self, check_state):
         self.current_stacked = (check_state == Qt.Checked)
         if self.current_feature_id:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
+
+    def volume_changed(self, check_state):
+        self.current_volume = (check_state == Qt.Checked)
+        if self.current_feature_id:
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def feature_selected(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
         if not layer.objectName() in ("node", "cell"):
@@ -153,7 +159,7 @@ class FractionWidget(QWidget):
         for result_item in result_items:
             # Check whether this layer belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
-                self.fraction_plot.fraction_selected(new_idx, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+                self.fraction_plot.fraction_selected(new_idx, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
                 self.current_result_id = result_item.id
                 self.current_layer = layer.objectName()
                 break

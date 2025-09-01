@@ -31,12 +31,12 @@ class FractionPlot(pg.PlotWidget):
         for plot in self.item_map[substance]:
             plot.setVisible(model_item.checkState() == Qt.Checked)
 
-    def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool):
+    def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool, volume: bool):
         """
         Retrieve info from model and create plots
         """
         self.clear_plot()
-        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked)
+        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked, volume)
         prev_plot = None
         for substance, plot in plots:
             self.item_map[substance] = [plot]
@@ -60,7 +60,7 @@ class FractionPlot(pg.PlotWidget):
 
             prev_plot = plot
 
-        self.setLabel("left", "Concentration", substance_unit)
+        self.setLabel("left", "Concentration", "m<sup>3</sup>" if volume else substance_unit)
         self.plotItem.vb.menu.viewAll.triggered.emit()
 
     def reduce_saturation(self, plot_color):
