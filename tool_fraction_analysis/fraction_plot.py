@@ -1,3 +1,4 @@
+import re
 from qgis.PyQt.QtGui import QColor
 
 import pyqtgraph as pg
@@ -31,12 +32,37 @@ class FractionPlot(pg.PlotWidget):
         for plot in self.item_map[substance]:
             plot.setVisible(model_item.checkState() == Qt.Checked)
 
-    def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool):
+    def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool, volume: bool):
         """
         Retrieve info from model and create plots
         """
         self.clear_plot()
-        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked)
+
+        substance_unit_conversion = 1.0
+
+        if volume:
+            # for known units, we apply basic conversion
+            pattern = r"^(.*)/\s*(m3|l)\s*$"
+            matches = re.findall(pattern, substance_unit, flags=re.IGNORECASE)
+            if len(matches) == 1 and len(matches[0]) == 2:
+                if matches[0][1].lower() == "l":
+                    substance_unit_conversion = 1000.0
+                    processed_substance_unit = matches[0][0].strip()
+                    volume_label = "Load"
+                elif matches[0][1].lower() == "m3":
+                    substance_unit_conversion = 1.0
+                    processed_substance_unit = matches[0][0].strip()
+                    volume_label = "Load"
+            elif substance_unit.strip() == "%":
+                substance_unit_conversion = 1.0
+                processed_substance_unit = "m<sup>3</sup>"
+                volume_label = "Volume"
+            else:  # unknown, take original unit as-is and append x m3
+                substance_unit_conversion = 1.0
+                processed_substance_unit = f"{substance_unit} · m<sup>3</sup>"
+                volume_label = "Load"
+
+        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked, volume, substance_unit_conversion)
         prev_plot = None
         for substance, plot in plots:
             self.item_map[substance] = [plot]
@@ -60,7 +86,7 @@ class FractionPlot(pg.PlotWidget):
 
             prev_plot = plot
 
-        self.setLabel("left", "Concentration", substance_unit)
+        self.setLabel("left", volume_label if volume else "Concentration", processed_substance_unit if volume else substance_unit)
         self.plotItem.vb.menu.viewAll.triggered.emit()
 
     def reduce_saturation(self, plot_color):
