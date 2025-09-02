@@ -4,7 +4,7 @@
 3.25 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added volume/load mode to Fraction Analysis Tool (#1112)
 
 
 3.24 (2025-08-28)
