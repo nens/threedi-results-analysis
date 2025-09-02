@@ -1,3 +1,4 @@
+import re
 from qgis.PyQt.QtGui import QColor
 
 import pyqtgraph as pg
@@ -38,22 +39,25 @@ class FractionPlot(pg.PlotWidget):
         self.clear_plot()
 
         substance_unit_conversion = 1.0
-        # for known units, we apply basic conversion
+
         if volume:
-            clean_substance_unit = substance_unit.replace(" ", "")
-            if clean_substance_unit.endswith("/l"):
-                substance_unit_conversion = 1000.0
-                processed_substance_unit = clean_substance_unit[0:clean_substance_unit.rfind("/l")]
-                volume_label = "Load"
-            elif clean_substance_unit.endswith("/m3"):
-                substance_unit_conversion = 1.0
-                processed_substance_unit = clean_substance_unit[0:clean_substance_unit.rfind("/m3")]
-                volume_label = "Load"
-            elif clean_substance_unit == "%":
+            # for known units, we apply basic conversion
+            pattern = r"^(.*)/\s*(m3|l)\s*$"
+            matches = re.findall(pattern, substance_unit, flags=re.IGNORECASE)
+            if len(matches) == 1 and len(matches[0]) == 2:
+                if matches[0][1].lower() == "l":
+                    substance_unit_conversion = 1000.0
+                    processed_substance_unit = matches[0][0].strip()
+                    volume_label = "Load"
+                elif matches[0][1].lower() == "m3":
+                    substance_unit_conversion = 1.0
+                    processed_substance_unit = matches[0][0].strip()
+                    volume_label = "Load"
+            elif substance_unit.strip() == "%":
                 substance_unit_conversion = 1.0
                 processed_substance_unit = "m<sup>3</sup>"
                 volume_label = "Volume"
-            else:
+            else: # unknown, take original unit as-is and append x m3
                 substance_unit_conversion = 1.0
                 processed_substance_unit = f"{substance_unit} · m<sup>3</sup>"
                 volume_label = "Load"

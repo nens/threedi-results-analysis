@@ -70,6 +70,8 @@ class FractionDockWidget(QDockWidget):
             self.fraction_widget.clear()
             # Also remove retrieved units
             self.substanceUnitsCombobox.clear()
+            self.volumeCheckbox.setChecked(False)
+            self.stackedCheckbox.setChecked(False)
             current_result_removed = True
             self._update_widget_title()
 
