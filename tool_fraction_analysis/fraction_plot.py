@@ -36,7 +36,29 @@ class FractionPlot(pg.PlotWidget):
         Retrieve info from model and create plots
         """
         self.clear_plot()
-        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked, volume)
+
+        substance_unit_conversion = 1.0
+        # for known units, we apply basic conversion
+        if volume:
+            clean_substance_unit = substance_unit.replace(" ", "")
+            if clean_substance_unit.endswith("/l"):
+                substance_unit_conversion = 1000.0
+                processed_substance_unit = clean_substance_unit[0:clean_substance_unit.rfind("/l")]
+                volume_label = "Load"
+            elif clean_substance_unit.endswith("/m3"):
+                substance_unit_conversion = 1.0
+                processed_substance_unit = clean_substance_unit[0:clean_substance_unit.rfind("/m3")]
+                volume_label = "Load"
+            elif clean_substance_unit == "%":
+                substance_unit_conversion = 1.0
+                processed_substance_unit = "m<sup>3</sup>"
+                volume_label = "Volume"
+            else:
+                substance_unit_conversion = 1.0
+                processed_substance_unit = f"{substance_unit} · m<sup>3</sup>"
+                volume_label = "Load"
+
+        plots = self.fraction_model.create_plots(feature_id, time_unit, stacked, volume, substance_unit_conversion)
         prev_plot = None
         for substance, plot in plots:
             self.item_map[substance] = [plot]
@@ -60,7 +82,7 @@ class FractionPlot(pg.PlotWidget):
 
             prev_plot = plot
 
-        self.setLabel("left", "Concentration", "m<sup>3</sup>" if volume else substance_unit)
+        self.setLabel("left", volume_label if volume else "Concentration", processed_substance_unit if volume else substance_unit)
         self.plotItem.vb.menu.viewAll.triggered.emit()
 
     def reduce_saturation(self, plot_color):

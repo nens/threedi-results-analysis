@@ -59,6 +59,7 @@ class FractionWidget(QWidget):
 
     def result_selected(self, result_item: ThreeDiResultItem, substance_units):
         self.current_result_id = result_item.id
+        self.current_feature_id = None
         self.fraction_plot.clear_plot()
         self.fraction_model.set_fraction(result_item, substance_units)
 

@@ -144,7 +144,7 @@ class FractionDockWidget(QDockWidget):
         self.stackedCheckbox = QCheckBox("Stacked plot", self.dockWidgetContent)
         self.buttonBarHLayout.addWidget(self.stackedCheckbox)
         self.volumeCheckbox = QCheckBox("Volume mode", self.dockWidgetContent)
-        self.volumeCheckbox.setToolTip("Multiply percentages by the volume. Available only when units are %")
+        self.volumeCheckbox.setToolTip("Multiply concentrations by volume.")
         self.buttonBarHLayout.addWidget(self.volumeCheckbox)
 
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -171,7 +171,7 @@ class FractionDockWidget(QDockWidget):
         self.setWidget(self.dockWidgetContent)
         self._update_widget_title()
 
-        self.substanceUnitsCombobox.currentTextChanged.connect(self.fraction_widget.substance_units_change)
+        self.substanceUnitsCombobox.currentTextChanged.connect(self.substance_units_change)
         self.stackedCheckbox.stateChanged.connect(self.fraction_widget.stacked_changed)
         self.volumeCheckbox.stateChanged.connect(self.fraction_widget.volume_changed)
 
@@ -192,6 +192,13 @@ class FractionDockWidget(QDockWidget):
     def unset_map_tools(self):
         if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
             self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
+
+    def substance_units_change(self, substance_unit):
+        if substance_unit == "%":
+            self.volumeCheckbox.setText("Volume mode")
+        else:
+            self.volumeCheckbox.setText("Load mode")
+        self.fraction_widget.substance_units_change(substance_unit)
 
     def add_results(self, results):
         current_result = self.current_result()
