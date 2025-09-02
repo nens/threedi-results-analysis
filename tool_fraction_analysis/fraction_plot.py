@@ -57,7 +57,7 @@ class FractionPlot(pg.PlotWidget):
                 substance_unit_conversion = 1.0
                 processed_substance_unit = "m<sup>3</sup>"
                 volume_label = "Volume"
-            else: # unknown, take original unit as-is and append x m3
+            else:  # unknown, take original unit as-is and append x m3
                 substance_unit_conversion = 1.0
                 processed_substance_unit = f"{substance_unit} · m<sup>3</sup>"
                 volume_label = "Load"
