@@ -1,5 +1,6 @@
 from pyqtgraph import AxisItem
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QPainter
 
 
 class RotateLabelAxisItem(AxisItem):
@@ -33,8 +34,8 @@ class RotateLabelAxisItem(AxisItem):
         return super().boundingRect().adjusted(-500, 0, 500, 0)
 
     def drawPicture(self, p, axisSpec, tickSpecs, textSpecs):
-        p.setRenderHint(p.Antialiasing, False)
-        p.setRenderHint(p.TextAntialiasing, True)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+        p.setRenderHint(QPainter.RenderHint.TextAntialiasing, True)
 
         # draw long line along axis
         pen, p1, p2 = axisSpec

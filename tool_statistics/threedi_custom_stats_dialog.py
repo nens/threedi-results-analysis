@@ -188,10 +188,10 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_styling_tab()
 
         self.dialogButtonBoxOKCancel.button(
-            QtWidgets.QDialogButtonBox.Ok
+            QtWidgets.QDialogButtonBox.StandardButton.Ok
         ).setEnabled(False)
         self.dialogButtonBoxOKCancel.button(
-            QtWidgets.QDialogButtonBox.Ok
+            QtWidgets.QDialogButtonBox.StandardButton.Ok
         ).clicked.connect(self.run)
 
     def _populate_results(self) -> None:
