@@ -1,7 +1,7 @@
 from pathlib import Path
 from qgis.core import QgsSettings
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, QItemSelectionModel
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import Qt
@@ -196,4 +196,4 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         # Deselect other grids
         selection_model.clearSelection()
 
-        selection_model.setCurrentIndex(index, selection_model.SelectCurrent)
+        selection_model.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.SelectCurrent)
