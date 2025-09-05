@@ -171,7 +171,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             COLUMN_THRESHOLD_VALUE,
         ]:
             self.tableWidgetAggregations.horizontalHeader().setSectionResizeMode(
-                column_index, QtWidgets.QHeaderView.Stretch
+                column_index, QtWidgets.QHeaderView.ResizeMode.Stretch
             )
 
         # Populate the combobox with the results
