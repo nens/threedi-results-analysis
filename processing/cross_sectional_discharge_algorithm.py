@@ -161,7 +161,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.CROSS_SECTION_LINES_INPUT,
                 self.tr("Cross-section lines"),
-                [QgsProcessing.TypeVectorLine],
+                [QgsProcessing.SourceType.TypeVectorLine],
             )
         )
 
@@ -176,7 +176,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.START_TIME,
                 "Start time (s)",
-                type=QgsProcessingParameterNumber.Integer,
+                type=QgsProcessingParameterNumber.Type.Integer,
                 optional=True,
             )
         )
@@ -185,7 +185,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.END_TIME,
                 "End time (s)",
-                type=QgsProcessingParameterNumber.Integer,
+                type=QgsProcessingParameterNumber.Type.Integer,
                 optional=True,
             )
         )
@@ -219,7 +219,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT_FLOWLINES,
                 self.tr("Output: Intersected flowlines"),
-                type=QgsProcessing.TypeVectorLine,
+                type=QgsProcessing.SourceType.TypeVectorLine,
             )
         )
 
@@ -307,7 +307,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             self.OUTPUT_FLOWLINES,
             context,
             fields=flowlines_sink_fields,
-            geometryType=QgsWkbTypes.LineString,
+            geometryType=QgsWkbTypes.Type.LineString,
             crs=threedi_results_crs,
         )
 
@@ -377,11 +377,11 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
                 qgs_feature = ogr_feature_as_qgis_feature(
                     ogr_feature,
                     flowlines_sink,
-                    tgt_wkb_type=QgsWkbTypes.LineString,
+                    tgt_wkb_type=QgsWkbTypes.Type.LineString,
                     tgt_fields=flowlines_sink_fields,
                 )
                 flowlines_sink.addFeature(
-                    qgs_feature, QgsFeatureSink.FastInsert
+                    qgs_feature, QgsFeatureSink.Flag.FastInsert
                 )
             feedback.setProgress(100 * i / nr_features)
 
@@ -444,7 +444,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             f'"{self.field_name}" is not null'
         )
         cross_section_lines.renderer().symbol()[0].setDataDefinedProperty(
-            QgsSymbolLayer.PropertyLayerEnabled, enable_symbol_layer
+            QgsSymbolLayer.Property.PropertyLayerEnabled, enable_symbol_layer
         )
         context.project().addMapLayer(cross_section_lines)
 

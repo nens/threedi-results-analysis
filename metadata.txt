@@ -43,3 +43,4 @@ plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.2.1
 deprecated=False
 
 
+supportsQt6=True

@@ -43,7 +43,7 @@ class FractionDockWidget(QDockWidget):
             widget=self, canvas=self.iface.mapCanvas(),
         )
         self.map_tool_add_node_cell.setButton(self.addNodeCellButton)
-        self.map_tool_add_node_cell.setCursor(Qt.CrossCursor)
+        self.map_tool_add_node_cell.setCursor(Qt.CursorShape.CrossCursor)
 
         # In case this dock widget becomes (in)visible, we disable the map tools
         self.visibilityChanged.connect(self.unset_map_tools)
@@ -133,7 +133,7 @@ class FractionDockWidget(QDockWidget):
         self._update_widget_title()
 
     def setup_ui(self):
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.dockWidgetContent = QWidget(self)
         self.mainVLayout = QVBoxLayout(self.dockWidgetContent)
         self.dockWidgetContent.setLayout(self.mainVLayout)
@@ -149,7 +149,7 @@ class FractionDockWidget(QDockWidget):
         self.volumeCheckbox.setToolTip("Multiply concentrations by volume.")
         self.buttonBarHLayout.addWidget(self.volumeCheckbox)
 
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
         result_label = QLabel("Simulation result:", self.dockWidgetContent)
         self.buttonBarHLayout.addWidget(result_label)

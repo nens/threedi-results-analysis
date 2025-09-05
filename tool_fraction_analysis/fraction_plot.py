@@ -6,7 +6,7 @@ import pyqtgraph as pg
 
 pg.setConfigOption("background", "w")
 pg.setConfigOption("foreground", "k")
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.tool_fraction_analysis.fraction_model import FractionModel
 
@@ -30,7 +30,7 @@ class FractionPlot(pg.PlotWidget):
     def item_changed(self, model_item):
         substance = model_item.data()
         for plot in self.item_map[substance]:
-            plot.setVisible(model_item.checkState() == Qt.Checked)
+            plot.setVisible(model_item.checkState() == Qt.CheckState.Checked)
 
     def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool, volume: bool):
         """

@@ -26,7 +26,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
-GROUP_NAMES = [("general_information", Qt.AlignLeft), ("volume_balance", Qt.AlignRight), ("volume_balance_of_0d_model", Qt.AlignRight)]
+GROUP_NAMES = [("general_information", Qt.AlignmentFlag.AlignLeft), ("volume_balance", Qt.AlignmentFlag.AlignRight), ("volume_balance_of_0d_model", Qt.AlignmentFlag.AlignRight)]
 
 
 class FlowSummaryTool(ThreeDiPluginTool):
@@ -65,7 +65,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
         self.main_widget.setEnabled(True)
         self.main_widget.hide()
-        self.main_widget.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.main_widget.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
 
         # Add Ok button
         button_widget = QWidget(self.main_widget)
@@ -73,10 +73,10 @@ class FlowSummaryTool(ThreeDiPluginTool):
         reset_button = QPushButton("Reset column widths", button_widget)
         button_widget.layout().addWidget(reset_button)
         reset_button.clicked.connect(self._reset_column_widths)
-        spacer_item = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacer_item = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         button_widget.layout().addItem(spacer_item)
         ok_button = QPushButton("OK", button_widget)
-        button_widget.layout().addWidget(ok_button, alignment=Qt.AlignRight)
+        button_widget.layout().addWidget(ok_button, alignment=Qt.AlignmentFlag.AlignRight)
         self.main_widget.layout().addWidget(button_widget)
         ok_button.clicked.connect(self.main_widget.hide)
 

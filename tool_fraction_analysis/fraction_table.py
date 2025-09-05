@@ -16,7 +16,7 @@ class FractionTable(QTableView):
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
         self.verticalHeader().hide()
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.viewport().installEventFilter(self)
 
     def on_close(self):
@@ -33,14 +33,14 @@ class FractionTable(QTableView):
 
     def eventFilter(self, widget, event):
         if widget is self.viewport():
-            if event.type() == QEvent.MouseMove:
+            if event.type() == QEvent.Type.MouseMove:
                 index = self.indexAt(event.pos())
                 row = index.row()
                 if row != -1:
                     self.hoverEnterRow.emit()
                 else:
                     self.hoverExitAllRows.emit()
-            elif event.type() == QEvent.Leave:
+            elif event.type() == QEvent.Type.Leave:
                 self.hoverExitAllRows.emit()
         return QTableView.eventFilter(self, widget, event)
 

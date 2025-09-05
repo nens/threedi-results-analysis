@@ -58,7 +58,7 @@ class FractionModel(QStandardItemModel):
             if wq_var["unit"] != substance:
                 continue
             color_item = QStandardItem()
-            color_item.setData((Qt.SolidLine, self.get_color()))
+            color_item.setData((Qt.PenStyle.SolidLine, self.get_color()))
             color_item.setEditable(False)
             # Display the "name" if present, otherwise parameter name
             substance_name = wq_var["name"] or wq_var["parameters"]
@@ -67,7 +67,7 @@ class FractionModel(QStandardItemModel):
             check_item = QStandardItem("")
             check_item.setCheckable(True)
             check_item.setEditable(False)
-            check_item.setCheckState(Qt.Checked)
+            check_item.setCheckState(Qt.CheckState.Checked)
             check_item.setData(wq_var["parameters"])
             self.appendRow([check_item, color_item, substance_item])
 

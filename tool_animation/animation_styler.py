@@ -49,7 +49,7 @@ def style_animation_flowline_current(
         max_symbol_size = 2.5
         # make arrow invisible if attribute value for field self.field_name is NULL
         enable_exp = QgsProperty.fromExpression(f'($length /  @map_scale) > 0.0025 AND abs("result{field_postfix}") > 0')
-        symbol.symbolLayers()[1].setDataDefinedProperty(QgsSymbolLayer.PropertyLayerEnabled, enable_exp)
+        symbol.symbolLayers()[1].setDataDefinedProperty(QgsSymbolLayer.Property.PropertyLayerEnabled, enable_exp)
 
     renderer.updateSymbols(symbol)
 

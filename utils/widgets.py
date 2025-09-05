@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QPainter, QPen
+from qgis.PyQt.QtGui import QPainter, QPen
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtCore import Qt
@@ -18,7 +18,7 @@ class PenStyleWidget(QWidget):
         super().__init__(parent)
         self.pen_style = pen_style
         self.pen_color = pen_color
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
     def paintEvent(self, event):
         qp = QPainter(self)

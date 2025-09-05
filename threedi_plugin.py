@@ -234,7 +234,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.init_state_sync()
 
         # Disable warning that scratch layer data will be lost
-        QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
+        QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.Section.App)
 
     def load_result(self, result_path: str, grid_path: str):
         """This function can be used by other plugins to load results into

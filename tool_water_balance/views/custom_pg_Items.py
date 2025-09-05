@@ -52,7 +52,7 @@ class RotateLabelAxisItem(AxisItem):
             p.setFont(self.style["tickFont"])
         p.setPen(self.pen())
 
-        text_flags = Qt.TextDontClip | Qt.AlignLeft | Qt.AlignTop
+        text_flags = Qt.TextFlag.TextDontClip | Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
         for rect, flags, text in textSpecs:
             p.save()
             p.translate(rect.center())
