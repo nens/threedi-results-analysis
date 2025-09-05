@@ -1230,7 +1230,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         logger.info(f"Validated result aggregation inputs. Valid: {valid}")
 
-        self.dialogButtonBoxOKCancel.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(valid)
+        self.dialogButtonBoxOKCancel.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setEnabled(valid)
 
         return valid
 
