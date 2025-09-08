@@ -4,7 +4,7 @@
 3.26 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bumped dependency loadeder.
 
 
 3.25 (2025-09-08)
