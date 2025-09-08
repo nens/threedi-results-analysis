@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.25 (unreleased)
+3.25 (2025-09-08)
 -----------------
 
 - Added volume/load mode to Fraction Analysis Tool (#1112)
