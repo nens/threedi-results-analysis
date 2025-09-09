@@ -167,6 +167,19 @@ def get_wedge_channels():
     return wedge_channels
 
 
+def cross_section_locations_are_equal(reference: CrossSectionLocation, compare: CrossSectionLocation) -> bool:
+    """Compares cross-section locations by properties, except parent and position"""
+    assert reference.bank_level == compare.bank_level
+    assert reference.geometry.wkt == compare.geometry.wkt
+    assert reference.id == compare.id
+    assert reference.max_width == compare.max_width
+    assert np.array_equal(reference.offsets, compare.offsets)
+    assert reference.reference_level == compare.reference_level
+    assert reference.thalweg_y == compare.thalweg_y
+    assert np.array_equal(reference.y_ordinates, compare.y_ordinates)
+    assert np.array_equal(reference.z_ordinates, compare.z_ordinates)
+    return True
+
 # Tests
 def test_parse_cross_section_table():
     # TABULATED RECTANGLE
@@ -439,7 +452,7 @@ def test_channel_properties():
     )
 
     cross_section_loc = CrossSectionLocation(
-        id=1,
+        id=2,
         reference_level=10.0,
         bank_level=12.0,
         y_ordinates=y,
@@ -455,7 +468,7 @@ def test_channel_properties():
     )
 
     cross_section_loc = CrossSectionLocation(
-        id=1,
+        id=3,
         reference_level=10.0,
         bank_level=12.0,
         y_ordinates=y,
@@ -557,7 +570,7 @@ def test_channel_outline():
     )
 
     cross_section_loc = CrossSectionLocation(
-        id=1,
+        id=2,
         reference_level=10.0,
         bank_level=12.0,
         y_ordinates=y,
@@ -698,29 +711,23 @@ def test_channel_split(plot: bool = False):
 
             plt.show()
 
-    # TODO add assertion(s)
-    # - geometry
-    # - cross-section locations
-    # - cross-section location positions
-    # - ID
-    # - connection_node id start
-    # - connection_node id end
     # CASES
+
     # - Split point is at first vertex
     channel = get_test_channel(6)
     split_idx = 0
     split_channel = channel.split(split_idx)
-    assert split_channel == (None, channel)
     if plot:
         plot_it(channel, split_idx, title="Split point is at first vertex")
+    assert split_channel == (None, channel)
 
-    # - Split point is at last vertex
+    # Split point is at last vertex
     channel = get_test_channel(6)
     split_idx = len(channel.geometry.coords) - 1
     split_channel = channel.split(split_idx)
-    assert split_channel == (channel, None)
     if plot:
         plot_it(channel, split_idx, title="Split point is at last vertex")
+    assert split_channel == (channel, None)
 
     # Split point is before the cross-section location
     channel = get_test_channel(6)
@@ -729,16 +736,39 @@ def test_channel_split(plot: bool = False):
     channel.add_cross_section_location(xsec)
     split_idx = 10
     split_channel = channel.split(split_idx)
-    assert all([isinstance(part, Channel) for part in split_channel])
-    # TODO add assertions
-    # - geometry
-    # - cross-section locations
-    # - cross-section location positions
-    # - ID
-    # - connection_node id start
-    # - connection_node id end
     if plot:
         plot_it(channel, split_idx, title="Split point is before the cross-section location")
+    # - output types
+    assert all([isinstance(part, Channel) for part in split_channel])
+
+    # - geometry
+    print([len(part.geometry.coords) for part in split_channel])
+    assert len(split_channel[0].geometry.coords) == split_idx + 1
+    assert len(split_channel[1].geometry.coords) == len(channel.geometry.coords) - split_idx
+
+    # - cross-section locations
+    assert len(split_channel[0].cross_section_locations) == 1
+    assert len(split_channel[1].cross_section_locations) == 1
+    assert cross_section_locations_are_equal(split_channel[0].cross_section_locations[0], xsec)
+    assert cross_section_locations_are_equal(split_channel[1].cross_section_locations[0], xsec)
+
+    # - cross-section location positions
+    assert np.array_equal(split_channel[0].cross_section_location_positions, channel.cross_section_location_positions)
+    assert np.array_equal(
+        split_channel[1].cross_section_location_positions,
+        channel.cross_section_location_positions - split_channel[0].geometry.length
+    )
+
+    # - ID
+    assert split_channel[0].id == channel.id
+    assert split_channel[1].id == (channel.id[0], channel.id[1] + 1)
+
+    # - connection_node id start and connection_node id end
+    assert split_channel[0].connection_node_id_start == channel.connection_node_id_start
+    assert split_channel[0].connection_node_id_end == (channel.connection_node_id_start[0],
+                                                       channel.connection_node_id_start[1] + 1)
+    assert split_channel[1].connection_node_id_start == split_channel[0].connection_node_id_end
+    assert split_channel[1].connection_node_id_end == channel.connection_node_id_end
 
     # - Split point is after the cross-section location
     channel = get_test_channel(6)
@@ -747,48 +777,95 @@ def test_channel_split(plot: bool = False):
     channel.add_cross_section_location(xsec)
     split_idx = 16
     split_channel = channel.split(split_idx)
-    assert all([isinstance(part, Channel) for part in split_channel])
-    # TODO add assertions
-    # - geometry
-    # - cross-section locations
-    # - cross-section location positions
-    # - ID
-    # - connection_node id start
-    # - connection_node id end
+
     if plot:
         plot_it(channel, split_idx, title="Split point is after the cross-section location")
 
-    # - Split point is in between two cross-section locations
+    # - output types
+    assert all([isinstance(part, Channel) for part in split_channel])
+
+    # - geometry
+    assert len(split_channel[0].geometry.coords) == split_idx + 1
+    assert len(split_channel[1].geometry.coords) == len(channel.geometry.coords) - split_idx
+
+    # - cross-section locations
+    assert len(split_channel[0].cross_section_locations) == 1
+    assert len(split_channel[1].cross_section_locations) == 1
+    assert cross_section_locations_are_equal(split_channel[0].cross_section_locations[0], xsec)
+    assert cross_section_locations_are_equal(split_channel[1].cross_section_locations[0], xsec)
+
+    # - cross-section location positions
+    assert np.array_equal(split_channel[0].cross_section_location_positions, channel.cross_section_location_positions)
+    assert np.array_equal(
+        split_channel[1].cross_section_location_positions,
+        channel.cross_section_location_positions - split_channel[0].geometry.length
+    )
+
+    # - ID
+    assert split_channel[0].id == channel.id
+    assert split_channel[1].id == (channel.id[0], channel.id[1] + 1)
+
+    # - connection_node id start and connection_node id end
+    assert split_channel[0].connection_node_id_start == channel.connection_node_id_start
+    assert split_channel[0].connection_node_id_end == (channel.connection_node_id_start[0],
+                                                       channel.connection_node_id_start[1] + 1)
+    assert split_channel[1].connection_node_id_start == split_channel[0].connection_node_id_end
+    assert split_channel[1].connection_node_id_end == channel.connection_node_id_end
+
+    # Split point is in between two cross-section locations
     channel = get_test_channel(6)
-    for idx in [5, 15]:
+    for i, idx in enumerate([5, 15]):
         xsec = get_test_cross_section_location()
         xsec.geometry = Point(channel.geometry.coords[idx])
+        xsec.id = i
         channel.add_cross_section_location(xsec)
     split_idx = 10
     split_channel = channel.split(split_idx)
     assert all([isinstance(part, Channel) for part in split_channel])
-    # TODO add assertions
-    # - geometry
-    # - cross-section locations
-    # - cross-section location positions
-    # - ID
-    # - connection_node id start
-    # - connection_node id end
+
     if plot:
         plot_it(channel, split_idx, title="Split point is in between two cross-section locations")
 
-    # - Two cross-section locations after the split point
-    # - Two cross-section locations before the split point
-    for i in [6]:
-        channel = get_test_channel(6)
+    # - output types
+    assert all([isinstance(part, Channel) for part in split_channel])
 
-        # split_channel = channel.split(0)  # TODO fix this
-        if plot:
-            plot_it(channel, 1)
-    split_channel = channel.split(1)
-    if plot:
-        plot_it(channel, 2)
-    split_channel = channel.split(2)
+    # - geometry
+    assert len(split_channel[0].geometry.coords) == split_idx + 1
+    assert len(split_channel[1].geometry.coords) == len(channel.geometry.coords) - split_idx
+
+    # - cross-section locations
+    assert len(split_channel[0].cross_section_locations) == 2
+    assert len(split_channel[1].cross_section_locations) == 2
+    assert cross_section_locations_are_equal(split_channel[0].cross_section_locations[0],
+                                             channel.cross_section_locations[0])
+    assert cross_section_locations_are_equal(split_channel[0].cross_section_locations[1],
+                                             channel.cross_section_locations[1])
+    assert cross_section_locations_are_equal(split_channel[1].cross_section_locations[0],
+                                             channel.cross_section_locations[0])
+    assert cross_section_locations_are_equal(split_channel[1].cross_section_locations[1],
+                                             channel.cross_section_locations[1])
+
+    # - cross-section location positions
+    # # length of first channel = 120.71
+    assert np.allclose(split_channel[0].cross_section_location_positions, channel.cross_section_location_positions)
+    assert np.allclose(
+        split_channel[1].cross_section_location_positions,
+        channel.cross_section_location_positions - split_channel[0].geometry.length
+    )
+
+    # - ID
+    assert split_channel[0].id == channel.id
+    assert split_channel[1].id == (channel.id[0], channel.id[1] + 1)
+
+    # - connection_node id start and connection_node id end
+    assert split_channel[0].connection_node_id_start == channel.connection_node_id_start
+    assert split_channel[0].connection_node_id_end == (channel.connection_node_id_start[0],
+                                                       channel.connection_node_id_start[1] + 1)
+    assert split_channel[1].connection_node_id_start == split_channel[0].connection_node_id_end
+    assert split_channel[1].connection_node_id_end == channel.connection_node_id_end
+
+    # TODO Two cross-section locations after the split point
+    # TODO Two cross-section locations before the split point
 
 
 def test_two_vertex_channel():
@@ -1308,7 +1385,7 @@ if __name__ == "__main__":
     test_channel_properties()
     test_channel_outline()
     test_channel_parallel_offsets()
-    test_channel_split(plot=True)
+    test_channel_split(plot=False)
     test_two_vertex_channel()
     test_cross_section_starting_at_0_0()
     test_channel_max_width_at()

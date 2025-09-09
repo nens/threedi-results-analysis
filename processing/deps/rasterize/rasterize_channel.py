@@ -638,6 +638,8 @@ class Channel:
         Inserts ``cross_section_location`` in the list of the channel's cross-section locations ordered by their
         position
         """
+        if cross_section_location.id in [xsec.id for xsec in self.cross_section_locations]:
+            raise ValueError("Cannot add multiple cross-section locations with the same ID to the same channel")
         cross_section_location.parent = self
         self.cross_section_locations.append(cross_section_location)
         self.cross_section_locations.sort(key=lambda x: x.position)
