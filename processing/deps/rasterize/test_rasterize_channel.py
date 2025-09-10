@@ -96,6 +96,13 @@ def get_test_channel(nr: int = 0):
             connection_node_id_end=2,
             id=6,
         )
+    elif nr == 7:
+        channel = Channel(
+            geometry=LineString([[20, -100], [-50, -150]]),
+            connection_node_id_start=1,
+            connection_node_id_end=4,
+            id=7,
+        )
     else:
         raise ValueError(f"Invalid value for parameter 'nr': {nr}")
     return channel
@@ -179,6 +186,7 @@ def cross_section_locations_are_equal(reference: CrossSectionLocation, compare: 
     assert np.array_equal(reference.y_ordinates, compare.y_ordinates)
     assert np.array_equal(reference.z_ordinates, compare.z_ordinates)
     return True
+
 
 # Tests
 def test_parse_cross_section_table():
@@ -405,7 +413,6 @@ def test_cross_section_location_z_at():
     # Symmetrical Tabulated Trapezium
     xsec = get_test_cross_section_location()
     z = xsec.z_at(offset=0.0)
-    print(z)
     assert xsec.z_at(offset=0.0) == 10
     assert xsec.z_at(offset=1.0) == 11
     assert xsec.z_at(offset=-1.0) == 11
@@ -630,7 +637,7 @@ def test_channel_parallel_offsets():
     po1 = channel.parallel_offsets[1]
     heights_at_vertices = po1.heights_at_vertices
     assert np.all(heights_at_vertices == np.array([11.0, 11.0]))
-    print([str(point.geom) for point in po1.points])
+    # print([str(point.geom) for point in po1.points])
     assert [str(point.geom) for point in po1.points] == [
         'POINT Z (0.7071067811865475 -0.7071067811865475 11)',
         'POINT Z (2.7071067811865475 1.2928932188134525 11)'
@@ -742,7 +749,7 @@ def test_channel_split(plot: bool = False):
     assert all([isinstance(part, Channel) for part in split_channel])
 
     # - geometry
-    print([len(part.geometry.coords) for part in split_channel])
+    # print([len(part.geometry.coords) for part in split_channel])
     assert len(split_channel[0].geometry.coords) == split_idx + 1
     assert len(split_channel[1].geometry.coords) == len(channel.geometry.coords) - split_idx
 
@@ -821,7 +828,6 @@ def test_channel_split(plot: bool = False):
         channel.add_cross_section_location(xsec)
     split_idx = 10
     split_channel = channel.split(split_idx)
-    assert all([isinstance(part, Channel) for part in split_channel])
 
     if plot:
         plot_it(channel, split_idx, title="Split point is in between two cross-section locations")
@@ -846,7 +852,6 @@ def test_channel_split(plot: bool = False):
                                              channel.cross_section_locations[1])
 
     # - cross-section location positions
-    # # length of first channel = 120.71
     assert np.allclose(split_channel[0].cross_section_location_positions, channel.cross_section_location_positions)
     assert np.allclose(
         split_channel[1].cross_section_location_positions,
@@ -864,8 +869,101 @@ def test_channel_split(plot: bool = False):
     assert split_channel[1].connection_node_id_start == split_channel[0].connection_node_id_end
     assert split_channel[1].connection_node_id_end == channel.connection_node_id_end
 
-    # TODO Two cross-section locations after the split point
-    # TODO Two cross-section locations before the split point
+    # Two cross-section locations after the split point
+    channel = get_test_channel(6)
+    for i, idx in enumerate([5, 15]):
+        xsec = get_test_cross_section_location()
+        xsec.geometry = Point(channel.geometry.coords[idx])
+        xsec.id = i
+        channel.add_cross_section_location(xsec)
+    split_idx = 3
+    split_channel = channel.split(split_idx)
+
+    if plot:
+        plot_it(channel, split_idx, title="Two cross-section locations after the split point")
+
+    # - output types
+    assert all([isinstance(part, Channel) for part in split_channel])
+
+    # - geometry
+    assert len(split_channel[0].geometry.coords) == split_idx + 1
+    assert len(split_channel[1].geometry.coords) == len(channel.geometry.coords) - split_idx
+
+    # - cross-section locations
+    assert len(split_channel[0].cross_section_locations) == 1
+    assert len(split_channel[1].cross_section_locations) == 2
+    assert cross_section_locations_are_equal(split_channel[0].cross_section_locations[0],
+                                             channel.cross_section_locations[0])
+    assert cross_section_locations_are_equal(split_channel[1].cross_section_locations[0],
+                                             channel.cross_section_locations[0])
+    assert cross_section_locations_are_equal(split_channel[1].cross_section_locations[1],
+                                             channel.cross_section_locations[1])
+
+    # - cross-section location positions
+    assert np.allclose(split_channel[0].cross_section_location_positions, channel.cross_section_location_positions[0])
+    assert np.allclose(
+        split_channel[1].cross_section_location_positions,
+        channel.cross_section_location_positions - split_channel[0].geometry.length
+    )
+
+    # - ID
+    assert split_channel[0].id == channel.id
+    assert split_channel[1].id == (channel.id[0], channel.id[1] + 1)
+
+    # - connection_node id start and connection_node id end
+    assert split_channel[0].connection_node_id_start == channel.connection_node_id_start
+    assert split_channel[0].connection_node_id_end == (channel.connection_node_id_start[0],
+                                                       channel.connection_node_id_start[1] + 1)
+    assert split_channel[1].connection_node_id_start == split_channel[0].connection_node_id_end
+    assert split_channel[1].connection_node_id_end == channel.connection_node_id_end
+
+    # Two cross-section locations before the split point
+    channel = get_test_channel(6)
+    for i, idx in enumerate([5, 15]):
+        xsec = get_test_cross_section_location()
+        xsec.geometry = Point(channel.geometry.coords[idx])
+        xsec.id = i
+        channel.add_cross_section_location(xsec)
+    split_idx = 20
+    split_channel = channel.split(split_idx)
+
+    if plot:
+        plot_it(channel, split_idx, title="Two cross-section locations before the split point")
+
+    # - output types
+    assert all([isinstance(part, Channel) for part in split_channel])
+
+    # - geometry
+    assert len(split_channel[0].geometry.coords) == split_idx + 1
+    assert len(split_channel[1].geometry.coords) == len(channel.geometry.coords) - split_idx
+
+    # - cross-section locations
+    assert len(split_channel[0].cross_section_locations) == 2
+    assert len(split_channel[1].cross_section_locations) == 1
+    assert cross_section_locations_are_equal(split_channel[0].cross_section_locations[0],
+                                             channel.cross_section_locations[0])
+    assert cross_section_locations_are_equal(split_channel[0].cross_section_locations[1],
+                                             channel.cross_section_locations[1])
+    assert cross_section_locations_are_equal(split_channel[1].cross_section_locations[0],
+                                             channel.cross_section_locations[1])
+
+    # - cross-section location positions
+    assert np.allclose(split_channel[0].cross_section_location_positions, channel.cross_section_location_positions)
+    assert np.allclose(
+        split_channel[1].cross_section_location_positions,
+        channel.cross_section_location_positions[1] - split_channel[0].geometry.length
+    )
+
+    # - ID
+    assert split_channel[0].id == channel.id
+    assert split_channel[1].id == (channel.id[0], channel.id[1] + 1)
+
+    # - connection_node id start and connection_node id end
+    assert split_channel[0].connection_node_id_start == channel.connection_node_id_start
+    assert split_channel[0].connection_node_id_end == (channel.connection_node_id_start[0],
+                                                       channel.connection_node_id_start[1] + 1)
+    assert split_channel[1].connection_node_id_start == split_channel[0].connection_node_id_end
+    assert split_channel[1].connection_node_id_end == channel.connection_node_id_end
 
 
 def test_two_vertex_channel():
@@ -896,7 +994,7 @@ def test_two_vertex_channel():
     channel.add_cross_section_location(cross_section_loc)
     channel.generate_parallel_offsets()
     channel.fill_parallel_offsets()
-    print([tri.geometry.wkt for tri in channel.triangles])
+    # print([tri.geometry.wkt for tri in channel.triangles])
     assert [tri.geometry.wkt for tri in channel.triangles] == [
         'POLYGON Z ((0.7424621202458749 -0.7424621202458749 10.53, 0.4242640687119285 -0.4242640687119285 10, '
         '10.424264068711928 9.575735931288072 10, 0.7424621202458749 -0.7424621202458749 10.53))',
@@ -911,48 +1009,6 @@ def test_two_vertex_channel():
         'POLYGON Z ((-0.4242640687119285 0.4242640687119285 10, -0.7424621202458749 0.7424621202458749 10.53, '
         '9.257537879754125 10.742462120245875 10.53, -0.4242640687119285 0.4242640687119285 10))'
     ]
-
-
-# TODO: fix this test
-# def test_wedge_on_both_sides():
-#     """Test the situation where a channel has a wedge with the connecting channel at both sides"""
-#     channels = []
-#
-#     wkt_geometries = [
-#         "LineString (20 -1, 10 -1)",
-#         "LineString (10 -1, 0 0)",
-#         "LineString (20 -1, 30 0)",
-#     ]
-#     connection_node_ids = [(1, 2), (2, 3), (1, 4)]
-#     cross_section_location_geoms = [Point(15, -1), Point(5, -0.5), Point(25, -0.5)]
-#     for i in range(len(wkt_geometries)):
-#         channel_geom = wkt.loads(wkt_geometries[i])
-#         channels.append(
-#             Channel(
-#                 geometry=channel_geom,
-#                 connection_node_start_id=connection_node_ids[i][0],
-#                 connection_node_end_id=connection_node_ids[i][1],
-#                 id=i,
-#             )
-#         )
-#
-#         y, z = parse_cross_section_table(
-#             table="0, 1.2\n0.53, 2.1",
-#             cross_section_shape=SupportedShape.TABULATED_TRAPEZIUM.value
-#         )
-#
-#         cross_section_loc = CrossSectionLocation(
-#             id=1,
-#             reference_level=10.0,
-#             bank_level=12.0,
-#             y_ordinates=y,
-#             z_ordinates=z,
-#             geometry=cross_section_location_geoms[i],
-#         )
-#         channels[i].add_cross_section_location(cross_section_loc)
-#         channels[i].generate_parallel_offsets()
-#     fill_wedges(channels)
-#     print(channels[1]._wedge_fill_triangles)
 
 
 def test_cross_section_starting_at_0_0():
@@ -1015,7 +1071,7 @@ def test_channel_max_width_at():
     )
 
     cross_section_loc = CrossSectionLocation(
-        id=1,
+        id=2,
         reference_level=10.0,
         bank_level=12.0,
         y_ordinates=y,
@@ -1062,7 +1118,7 @@ def test_parallel_offset_heights_at_vertices():
     )
 
     cross_section_loc = CrossSectionLocation(
-        id=1,
+        id=2,
         reference_level=4.0,
         bank_level=12.0,
         y_ordinates=y,
@@ -1087,7 +1143,7 @@ def test_fill_wedge(plot: bool = False):
     if plot:
         import matplotlib.pyplot as plt
 
-        def plot_channel_triangles(channels, ax=None, show=True):
+        def plot_channel_triangles(channels, ax=None, show=True, title="", highlight: Channel = None):
             """
             Plot triangles for one or more Channels, distinguishing between
             parallel offset and wedge fill triangles.
@@ -1110,11 +1166,19 @@ def test_fill_wedge(plot: bool = False):
                 fig, ax = plt.subplots(figsize=(8, 8))
 
             for channel in channels:
+                if channel == highlight:
+                    color = "blue"
+                    edgecolor = "black"
+                    facecolor = "lightblue"
+                else:
+                    color = "darkgrey"
+                    edgecolor = "grey"
+                    facecolor = "lightgrey"
                 # Parallel offset triangles
                 for tri in channel._parallel_offset_triangles:
                     poly = tri.geometry
                     x, y = poly.exterior.xy
-                    ax.fill(x, y, alpha=0.5, edgecolor="black", facecolor="lightblue",
+                    ax.fill(x, y, alpha=0.5, edgecolor=edgecolor, facecolor=facecolor,
                             label="Parallel offset")
 
                 # Wedge fill triangles
@@ -1127,10 +1191,17 @@ def test_fill_wedge(plot: bool = False):
                 # Plot channel centerline geometry
                 line = channel.geometry  # shapely LineString
                 x, y = line.xy
-                ax.plot(x, y, color="blue", linewidth=2.5, label="Channel centerline")
+                ax.plot(x, y, color=color, linewidth=2.5, label="Channel centerline")
+
+                # Add an arrow at the end
+                plt.arrow(
+                    x[-2], y[-2],  # start from the second-to-last point
+                    x[-1] - x[-2], y[-1] - y[-2],  # direction vector
+                    shape="full", lw=0, length_includes_head=True, head_width=2.5, color=color
+                )
 
             ax.set_aspect("equal")
-            ax.set_title("Channel Triangles")
+            ax.set_title(title)
 
             # Avoid duplicate legend entries
             handles, labels = ax.get_legend_handles_labels()
@@ -1142,7 +1213,7 @@ def test_fill_wedge(plot: bool = False):
 
     # Channels with same, symmetrical cross-section,
     # tail of channel 1 is connected to head of channel 2 | <--<--
-    # wedge at right side
+    # wedge at left side
     channel_1, channel_2 = get_wedge_channels()
     channel_1.generate_parallel_offsets()
     channel_1.fill_parallel_offsets()
@@ -1151,7 +1222,16 @@ def test_fill_wedge(plot: bool = False):
 
     channel_1.fill_wedge(channel_2)
     if plot:
-        plot_channel_triangles(channels=[channel_1, channel_2])
+        plot_channel_triangles(
+            channels=[
+                channel_1,
+                channel_2
+            ],
+            title="Channels with same, symmetrical cross-section\n"
+                  "tail of channel 1 is connected to head of channel 2 | <--<--\n"
+                  "wedge at left side",
+            highlight=channel_2
+        )
 
     assert len(channel_1._wedge_fill_triangles) == 0
     assert len(channel_2._wedge_fill_triangles) == 3
@@ -1193,17 +1273,85 @@ def test_fill_wedge(plot: bool = False):
     channel_1.fill_wedge(channel_2)
 
     if plot:
-        plot_channel_triangles(channels=[channel_1, channel_2])
+        plot_channel_triangles(
+            channels=[channel_1, channel_2],
+            title = "Channels with same, asymmetrical cross-section\n"
+                    "connected head-to-tail (-->-->)\n"
+                    "wedge at left side",
+            highlight=channel_2
+        )
 
     assert len(channel_1._wedge_fill_triangles) == 0
     assert len(channel_2._wedge_fill_triangles) == 3
-    print([tri.geometry.wkt for tri in channel_2._wedge_fill_triangles])
+    # print([tri.geometry.wkt for tri in channel_2._wedge_fill_triangles])
     assert [tri.geometry.wkt for tri in channel_2._wedge_fill_triangles] == [
         'POLYGON Z ((0 0 10, -1.9611613513818402 0.3922322702763681 11, -1 0 11, 0 0 10))',
         'POLYGON Z ((-1 0 11, -1.9611613513818402 0.3922322702763681 11, -2 0 12, -1 0 11))',
         'POLYGON Z ((-2 0 12, -1.9611613513818402 0.3922322702763681 11, -3.9223227027636804 0.7844645405527362 13, '
         '-2 0 12))'
     ]
+
+    # Channel has a wedge at both sides
+    channel_1, channel_2 = get_wedge_channels()
+    channel_3 = get_test_channel(7)
+
+    y, z = parse_cross_section_table(
+        table="0, 3\n2, 1\n4, 0\n5, 4",
+        cross_section_shape=SupportedShape.YZ.value,
+        wall_displacement=WALL_DISPLACEMENT
+    )
+    cross_section_loc = CrossSectionLocation(
+        id=1,
+        reference_level=10.0,
+        bank_level=12.0,
+        y_ordinates=y,
+        z_ordinates=z,
+        geometry=Point(-50, 0),
+    )
+    channel_1.cross_section_locations = []
+    channel_1.parallel_offsets = []
+    channel_1._wedge_fill_points = []
+    channel_1._wedge_fill_triangles = []
+    channel_1._extra_outline = []
+    channel_1.add_cross_section_location(cross_section_loc)
+    cross_section_loc_channel_3 = CrossSectionLocation.clone(cross_section_loc)
+    cross_section_loc_channel_3.geometry = Point(channel_3.geometry.coords[1])  # put it in the middle
+    channel_3.add_cross_section_location(cross_section_loc_channel_3)
+
+    channel_1.generate_parallel_offsets()
+    channel_1.fill_parallel_offsets()
+    channel_2.generate_parallel_offsets()
+    channel_2.fill_parallel_offsets()
+    channel_3.generate_parallel_offsets()
+    channel_3.fill_parallel_offsets()
+
+    channel_1.fill_wedge(channel_2)
+    channel_2.fill_wedge(channel_3)
+
+    if plot:
+        plot_channel_triangles(
+            channels=[channel_1, channel_2, channel_3],
+            title="Channel has a wedge at both sides",
+            highlight=channel_2
+        )
+
+    assert len(channel_1._wedge_fill_triangles) == 0
+    assert len(channel_2._wedge_fill_triangles) == 6
+    assert len(channel_3._wedge_fill_triangles) == 0
+    # print([tri.geometry.wkt for tri in channel_2._wedge_fill_triangles])
+    assert [tri.geometry.wkt for tri in channel_2._wedge_fill_triangles] == [
+        'POLYGON Z ((0 0 10, -1.9611613513818402 0.3922322702763681 11, -1 0 11, 0 0 10))',
+        'POLYGON Z ((-1 0 11, -1.9611613513818402 0.3922322702763681 11, -2 0 12, -1 0 11))',
+        'POLYGON Z ((-2 0 12, -1.9611613513818402 0.3922322702763681 11, -3.9223227027636804 0.7844645405527362 13, '
+        '-2 0 12))',
+        'POLYGON Z ((20 -100 10, 21.162476387438193 -101.62746694241346 11, 20.928476690885258 -99.62860932364589 11, '
+        '20 -100 10))',
+        'POLYGON Z ((20.928476690885258 -99.62860932364589 11, 21.162476387438193 -101.62746694241346 11, '
+        '21.85695338177052 -99.2572186472918 12, 20.928476690885258 -99.62860932364589 11))',
+        'POLYGON Z ((21.85695338177052 -99.2572186472918 12, 21.162476387438193 -101.62746694241346 11, '
+        '22.324952774876387 -103.25493388482694 13, 21.85695338177052 -99.2572186472918 12))'
+    ]
+
 
     # Case drawn in QGIS that lead to errors
     # Channel 1 head connects to channel 2 tail, wedge at right side
@@ -1222,11 +1370,15 @@ def test_fill_wedge(plot: bool = False):
     channel_1.fill_wedge(channel_2)
 
     if plot:
-        plot_channel_triangles(channels=[channel_1, channel_2])
+        plot_channel_triangles(
+            channels=[channel_1, channel_2],
+            title="Channel 1 head connects to channel 2 tail, wedge at right side",
+            highlight=channel_1
+        )
 
     assert len(channel_1._wedge_fill_triangles) == 1
     assert len(channel_2._wedge_fill_triangles) == 0
-    print([tri.geometry.wkt for tri in channel_1._wedge_fill_triangles])
+    # print([tri.geometry.wkt for tri in channel_1._wedge_fill_triangles])
     assert [tri.geometry.wkt for tri in channel_1._wedge_fill_triangles] == [
         'POLYGON Z ((50.84932298251876 0.166422494958816 10, 52.611203192631464 -0.7800330640682285 13, '
         '50.85569237696996 -1.8335673627190487 13, 50.84932298251876 0.166422494958816 10))'
@@ -1334,8 +1486,8 @@ def test_triangulate_between():
         left_side_points=points_1,
         right_side_points=points_2,
     )]
-    tri_queries = [f"SELECT ST_GeomFromText('{tri.geometry.wkt}') as geom /*:polygon:28992*/" for tri in triangles]
-    print("\nUNION\n".join(tri_queries))
+    # tri_queries = [f"SELECT ST_GeomFromText('{tri.geometry.wkt}') as geom /*:polygon:28992*/" for tri in triangles]
+    # print("\nUNION\n".join(tri_queries))
 
     # Typical wedge: Both sides have > 1 points, start from the same 0 point
     # TODO: add assertions to this case
@@ -1356,8 +1508,8 @@ def test_triangulate_between():
         left_side_points=points_1,
         right_side_points=points_2,
     )]
-    tri_queries = [f"SELECT ST_GeomFromText('{tri.geometry.wkt}') as geom /*:polygon:28992*/" for tri in triangles]
-    print("\nUNION\n".join(tri_queries))
+    # tri_queries = [f"SELECT ST_GeomFromText('{tri.geometry.wkt}') as geom /*:polygon:28992*/" for tri in triangles]
+    # print("\nUNION\n".join(tri_queries))
 
     # Side 1 has only 1 point (corner case)
     points_1 = [IndexedPoint(50, 5, 15, index=8)]
@@ -1385,7 +1537,7 @@ if __name__ == "__main__":
     test_channel_properties()
     test_channel_outline()
     test_channel_parallel_offsets()
-    test_channel_split(plot=False)
+    test_channel_split()
     test_two_vertex_channel()
     test_cross_section_starting_at_0_0()
     test_channel_max_width_at()
