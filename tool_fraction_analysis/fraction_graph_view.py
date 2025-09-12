@@ -44,7 +44,11 @@ class FractionWidget(QWidget):
         self.clear()
 
     def model_item_changed(self, item):
-        self.fraction_plot.item_changed(item)
+        # a plot is toggled or color is changed
+        if item.index().column() == 0:
+            self.fraction_plot.item_checked(item)
+        elif item.index().column() == 1:
+            self.fraction_plot.item_color_changed(item)
 
     def clear(self):
         self.fraction_model.clear()

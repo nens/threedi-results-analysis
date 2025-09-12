@@ -4,6 +4,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QColorDialog
 from threedi_results_analysis.utils.widgets import PenStyleWidget
 
 
@@ -57,6 +58,21 @@ class FractionTable(QTableView):
                     self.hoverExitAllRows.emit()
             elif event.type() == QEvent.Leave:
                 self.hoverExitAllRows.emit()
+            elif event.type() == QEvent.MouseButtonDblClick:
+                if event.button() == Qt.MouseButton.RightButton:
+                    return True
+
+                index = self.indexAt(event.pos())
+                # Check whether the user clicked on the color column
+                if index.column() == 1:
+                    selected_color = QColorDialog.getColor()
+                    if not selected_color.isValid():  # User pressed cancel
+                        return True
+
+                    item = self.model().itemFromIndex(index)
+                    item.setData((Qt.SolidLine, (selected_color.red(), selected_color.green(), selected_color.blue())))
+                    self._update_table_widgets()
+
         return QTableView.eventFilter(self, widget, event)
 
     def setModel(self, model):

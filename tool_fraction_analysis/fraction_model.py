@@ -58,7 +58,7 @@ class FractionModel(QStandardItemModel):
             if wq_var["unit"] != substance:
                 continue
             color_item = QStandardItem()
-            color_item.setData((Qt.SolidLine, self.get_color()))
+            color_item.setData((Qt.SolidLine, self.get_new_color()))
             color_item.setEditable(False)
             # Display the "name" if present, otherwise parameter name
             substance_name = wq_var["name"] or wq_var["parameters"]
@@ -71,7 +71,7 @@ class FractionModel(QStandardItemModel):
             check_item.setData(wq_var["parameters"])
             self.appendRow([check_item, color_item, substance_item])
 
-    def get_color(self) -> QColor:
+    def get_new_color(self) -> QColor:
         return FRACTION_COLOR_LIST[self.rowCount() % len(FRACTION_COLOR_LIST)]
 
     def create_plots(self, feature_id, time_units, stacked, volume, unit_conversion):

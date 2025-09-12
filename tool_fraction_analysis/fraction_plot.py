@@ -27,13 +27,32 @@ class FractionPlot(pg.PlotWidget):
         self.item_map.clear()
         self.setLabel("left", "Concentration", "")
 
-    def item_changed(self, model_item):
+    def item_checked(self, model_item):
         if not self.item_map:  # No plots yet
             return
         substance = model_item.data()
         for plot in self.item_map[substance]:
             plot.setVisible(model_item.checkState() == Qt.Checked)
 
+    def item_color_changed(self, color_model_item):
+        if not self.item_map:  # No plots yet
+            return
+
+        # Retrieve the substance name from the model
+        row = color_model_item.index().row()
+        selected_model_item = color_model_item.model().item(row, 0)
+        substance = selected_model_item.data()
+        
+        style, color = color_model_item.data()
+        pen = pg.mkPen(color=QColor(*color), width=2, style=style)
+        self.item_map[substance][0].setPen(pen)
+
+        if len(self.item_map[substance]) == 2:
+            # there is a fill, also change that color
+            fill_color = self.reduce_saturation(QColor(*color))
+            self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
+            
+ 
     def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool, volume: bool):
         """
         Retrieve info from model and create plots
