@@ -4,7 +4,7 @@
 3.25.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Fraction Analysis Tool: Toggle multiple items with space bar (#1135)
 
 
 3.25.1 (2025-09-08)

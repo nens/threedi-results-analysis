@@ -28,6 +28,8 @@ class FractionPlot(pg.PlotWidget):
         self.setLabel("left", "Concentration", "")
 
     def item_changed(self, model_item):
+        if not self.item_map:  # No plots yet
+            return
         substance = model_item.data()
         for plot in self.item_map[substance]:
             plot.setVisible(model_item.checkState() == Qt.Checked)

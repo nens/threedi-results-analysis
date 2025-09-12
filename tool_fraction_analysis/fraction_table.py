@@ -3,6 +3,7 @@ from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTableView
+from qgis.PyQt.QtCore import Qt
 from threedi_results_analysis.utils.widgets import PenStyleWidget
 
 
@@ -30,6 +31,20 @@ class FractionTable(QTableView):
     def closeEvent(self, event):
         self.on_close()
         event.accept()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Space:
+            # get the current selection
+            selection = self.selectedIndexes()
+
+            # Toggle the selected items
+            for selectedIndex in selection:
+                if selectedIndex.column() == 0:
+                    item = self.model().itemFromIndex(selectedIndex)
+                    if item.checkState() == Qt.CheckState.Checked:
+                        item.setCheckState(Qt.CheckState.Unchecked)
+                    else:
+                        item.setCheckState(Qt.CheckState.Checked)
 
     def eventFilter(self, widget, event):
         if widget is self.viewport():
