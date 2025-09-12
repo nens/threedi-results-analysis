@@ -42,7 +42,7 @@ class FractionPlot(pg.PlotWidget):
         row = color_model_item.index().row()
         selected_model_item = color_model_item.model().item(row, 0)
         substance = selected_model_item.data()
-        
+
         style, color = color_model_item.data()
         pen = pg.mkPen(color=QColor(*color), width=2, style=style)
         self.item_map[substance][0].setPen(pen)
@@ -51,8 +51,7 @@ class FractionPlot(pg.PlotWidget):
             # there is a fill, also change that color
             fill_color = self.reduce_saturation(QColor(*color))
             self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
-            
- 
+
     def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool, volume: bool):
         """
         Retrieve info from model and create plots
