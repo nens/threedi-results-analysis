@@ -84,9 +84,10 @@ class FractionPlot(pg.PlotWidget):
 
         plots = self.fraction_model.create_plots(feature_id, time_unit, stacked, volume, substance_unit_conversion)
         prev_plot = None
-        for substance, plot in plots:
+        for substance, plot, visible in plots:
             self.item_map[substance] = [plot]
             plot.setZValue(100)
+            plot.setVisible(visible)
             self.addItem(plot)
 
             if stacked:
@@ -101,6 +102,7 @@ class FractionPlot(pg.PlotWidget):
                 else:
                     fill = pg.FillBetweenItem(plot, prev_plot, pg.mkBrush(fill_color))
                     fill.setZValue(20)
+                    fill.setVisible(visible)
                     self.addItem(fill)
                     self.item_map[substance].append(fill)
 

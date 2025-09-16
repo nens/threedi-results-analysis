@@ -85,6 +85,7 @@ class FractionModel(QStandardItemModel):
             style, color = self.item(row, 1).data()
             pen = pg.mkPen(color=QColor(*color), width=2, style=style)
             substance = self.item(row, 0).data()
+            visible = (self.item(row, 0).checkState() == Qt.CheckState.Checked)
             ts_table = self.timeseries_table(substance, feature_id, time_units=time_units)
 
             if volume:
@@ -99,7 +100,7 @@ class FractionModel(QStandardItemModel):
                 cumulative_ts_table = ts_table[:, 1]  # Don't sum the timekeys
 
             plot = pg.PlotDataItem(ts_table, pen=pen)
-            plots.append((substance, plot))
+            plots.append((substance, plot, visible))
 
         return plots
 
