@@ -5,6 +5,9 @@
 -------------------
 
 - Fraction Analysis Tool: Toggle multiple items with space bar (#1135)
+- Fraction Analysis Tool: Set color of plot (#1134)
+- Fraction Analysis Tool: Fixed bug: visibility (item checked) is now taken into account when switching stacked/volume mode.
+- Fraction Analysis Tool: substances are listed alphabetically (#1133)
 
 
 3.25.1 (2025-09-08)

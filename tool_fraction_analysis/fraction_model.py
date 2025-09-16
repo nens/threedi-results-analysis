@@ -54,6 +54,9 @@ class FractionModel(QStandardItemModel):
         # Retrieve the substances
         threedi_result = self.result_item.threedi_result
         water_quality_vars = threedi_result.available_water_quality_vars
+
+        # We'll alphabetically sort them
+        water_quality_vars = sorted(water_quality_vars, key=lambda x: x["name"] or x["parameters"])
         for wq_var in water_quality_vars:
             if wq_var["unit"] != substance:
                 continue
