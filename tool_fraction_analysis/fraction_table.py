@@ -58,7 +58,7 @@ class FractionTable(QTableView):
                     self.hoverExitAllRows.emit()
             elif event.type() == QEvent.Type.Leave:
                 self.hoverExitAllRows.emit()
-            elif event.type() == QEvent.MouseButtonDblClick:
+            elif event.type() == QEvent.Type.MouseButtonDblClick:
                 if event.button() == Qt.MouseButton.RightButton:
                     return True
 
