@@ -82,14 +82,14 @@ class MapAnimatorSettingsdialog(QDialog):
         settings_group.layout().addWidget(QLabel("Lower cutoff percentile:"), 0, 0)
         self.lower_cutoff_percentile_lineedit = QLineEdit(str(default_settings.lower_cutoff_percentile), settings_group)
         lower_percentile_validator = QDoubleValidator(0.0, 100.0, 2, self.lower_cutoff_percentile_lineedit)
-        lower_percentile_validator.setNotation(QDoubleValidator.StandardNotation)
+        lower_percentile_validator.setNotation(QDoubleValidator.Notation.StandardNotation)
         self.lower_cutoff_percentile_lineedit.setValidator(lower_percentile_validator)
         settings_group.layout().addWidget(self.lower_cutoff_percentile_lineedit, 0, 1)
 
         settings_group.layout().addWidget(QLabel("Upper cutoff percentile:"), 1, 0)
         self.upper_cutoff_percentile_lineedit = QLineEdit(str(default_settings.upper_cutoff_percentile), settings_group)
         upper_percentile_validator = QDoubleValidator(0.0, 100.0, 2, self.upper_cutoff_percentile_lineedit)
-        upper_percentile_validator.setNotation(QDoubleValidator.StandardNotation)
+        upper_percentile_validator.setNotation(QDoubleValidator.Notation.StandardNotation)
         self.upper_cutoff_percentile_lineedit.setValidator(upper_percentile_validator)
         settings_group.layout().addWidget(self.upper_cutoff_percentile_lineedit, 1, 1)
 
@@ -113,7 +113,7 @@ class MapAnimatorSettingsdialog(QDialog):
 
         layout.addWidget(settings_group)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
@@ -825,9 +825,9 @@ class MapAnimator(QGroupBox):
         line_group.setLayout(QGridLayout())
 
         self.line_parameter_combo_box = QComboBox(line_group)
-        self.line_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.line_parameter_combo_box.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
         self.line_parameter_combo_box.setToolTip("Choose flowline variable to display")
-        line_group.layout().addWidget(self.line_parameter_combo_box, 0, 0, 1, 2, Qt.AlignTop)
+        line_group.layout().addWidget(self.line_parameter_combo_box, 0, 0, 1, 2, Qt.AlignmentFlag.AlignTop)
         equalizer_icon = QIcon(str(PLUGIN_DIR / "icons" / "sliders.svg"))
 
         setting_button_line = QPushButton(equalizer_icon, "", line_group)
@@ -840,7 +840,7 @@ class MapAnimator(QGroupBox):
         node_group = QGroupBox("Node variable", self)
         node_group.setLayout(QGridLayout())
         self.node_parameter_combo_box = QComboBox(node_group)
-        self.node_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.node_parameter_combo_box.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
         self.node_parameter_combo_box.setToolTip("Choose node variable to display")
         node_group.layout().addWidget(self.node_parameter_combo_box, 0, 0, 1, 2)
 

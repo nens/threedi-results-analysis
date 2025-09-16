@@ -420,7 +420,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFile(
                 self.INPUT_HYDX_DIRECTORY,
                 "GWSW HydX directory (local)",
-                behavior=QgsProcessingParameterFile.Folder,
+                behavior=QgsProcessingParameterFile.Behavior.Folder,
                 optional=True,
             )
         )

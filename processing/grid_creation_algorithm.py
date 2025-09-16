@@ -27,7 +27,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
     LAYERS_TO_ADD = OrderedDict()
 
     def flags(self):
-        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+        return super().flags() | QgsProcessingAlgorithm.Flag.FlagNoThreading
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)
@@ -56,7 +56,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFile(
                 self.INPUT_SCHEMATISATION,
                 self.tr("Input schematisation file"),
-                behavior=QgsProcessingParameterFile.File,
+                behavior=QgsProcessingParameterFile.Behavior.File,
                 fileFilter="GeoPackage (*.gpkg);;Spatialite (*.sqlite)",
             )
         )

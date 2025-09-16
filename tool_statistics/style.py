@@ -233,7 +233,7 @@ def style_flow_direction(layer, qml: str, column: str, invert=False):
     )
     data_defined_line_width = QgsProperty.fromExpression(line_width_expression)
     layer.renderer().sourceSymbol()[0].setDataDefinedProperty(
-        QgsSymbolLayer.PropertyStrokeWidth, data_defined_line_width
+        QgsSymbolLayer.Property.PropertyStrokeWidth, data_defined_line_width
     )
 
     # update classes because triggerRepaint alone doesn't do the trick

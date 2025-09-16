@@ -291,7 +291,7 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
         output_param = QgsProcessingParameterFile(
             self.OUTPUT_DIRECTORY,
             self.tr("Destination folder for water depth/level raster"),
-            behavior=QgsProcessingParameterFile.Folder,
+            behavior=QgsProcessingParameterFile.Behavior.Folder,
         )
         self.addParameter(output_param)
         self.addParameter(

@@ -1,7 +1,7 @@
 from pathlib import Path
 from qgis.core import QgsSettings
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, QItemSelectionModel
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import Qt
@@ -61,7 +61,7 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         self.treeView.setStyleSheet(f"""QTreeView::indicator:unchecked {{image: url({closed_eye_logo});}}
                                     QTreeView::indicator:checked {{image: url({open_eye_logo});}}""")
 
-        self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeView.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.treeView.customContextMenuRequested.connect(self.customMenuRequested)
 
         # We'll make the dialog persistent so we can set some signals
@@ -175,14 +175,14 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
             main_window = self.iface.mainWindow()
             right_area_dock_widgets = [
                 d for d in main_window.findChildren(QDockWidget)
-                if main_window.dockWidgetArea(d) == Qt.RightDockWidgetArea
+                if main_window.dockWidgetArea(d) == Qt.DockWidgetArea.RightDockWidgetArea
                 if d.isVisible()
             ] + [self]
             tabify_with = [right_area_dock_widgets[0].objectName()]
             for dock_widget in right_area_dock_widgets:
                 self.iface.removeDockWidget(dock_widget)
                 self.iface.addTabifiedDockWidget(
-                    Qt.RightDockWidgetArea, dock_widget, tabify_with, True
+                    Qt.DockWidgetArea.RightDockWidgetArea, dock_widget, tabify_with, True
                 )
             self.first_show = False
         else:
@@ -196,4 +196,4 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         # Deselect other grids
         selection_model.clearSelection()
 
-        selection_model.setCurrentIndex(index, selection_model.SelectCurrent)
+        selection_model.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.SelectCurrent)

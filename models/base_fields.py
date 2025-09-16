@@ -63,9 +63,9 @@ class RowFieldValue(object):
         if self.field.field_type == CHECKBOX_FIELD:
             if isinstance(value, bool):
                 self._set_value(value)
-            elif value == Qt.Checked:
+            elif value == Qt.CheckState.Checked:
                 self._set_value(True)
-            elif value == Qt.Unchecked:
+            elif value == Qt.CheckState.Unchecked:
                 self._set_value(False)
         else:
             self._set_value(value)
@@ -103,9 +103,9 @@ class RowFieldValue(object):
         """
         if self.field.field_type == CHECKBOX_FIELD:
             if self.value:
-                return Qt.Checked
+                return Qt.CheckState.Checked
             else:
-                return Qt.Unchecked
+                return Qt.CheckState.Unchecked
         elif self.field.field_type == COLOR_FIELD:
             if self.value is not None:
                 return QColor(*self.value)

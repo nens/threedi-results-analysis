@@ -89,7 +89,7 @@ class ThreeDiGraph(ThreeDiPluginTool):
         new_widget.closingWidget.connect(self.on_close_child_widget)
 
         # show the dockwidget
-        self.iface.addDockWidget(Qt.BottomDockWidgetArea, new_widget)
+        self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, new_widget)
 
         # make stack of graph widgets (instead of next to each other)
         if len(self.dock_widgets) > 1:
@@ -107,11 +107,11 @@ class ThreeDiGraph(ThreeDiPluginTool):
         :param item_field:
         """
         available_styles = [
-            Qt.SolidLine,
-            Qt.DashLine,
-            Qt.DotLine,
-            Qt.DashDotLine,
-            Qt.DashDotDotLine,
+            Qt.PenStyle.SolidLine,
+            Qt.PenStyle.DashLine,
+            Qt.PenStyle.DotLine,
+            Qt.PenStyle.DashDotLine,
+            Qt.PenStyle.DashDotDotLine,
         ]
 
         already_used_patterns = []
@@ -128,4 +128,4 @@ class ThreeDiGraph(ThreeDiPluginTool):
                 return style
 
         # No unused styles. Use the solid line style as a default.
-        return Qt.SolidLine
+        return Qt.PenStyle.SolidLine

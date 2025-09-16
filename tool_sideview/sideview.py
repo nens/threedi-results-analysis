@@ -92,7 +92,7 @@ class ThreeDiSideView(ThreeDiPluginTool):
         new_widget.closingWidget.connect(self.on_close_child_widget)
 
         # show the dockwidget
-        self.iface.addDockWidget(Qt.BottomDockWidgetArea, new_widget)
+        self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, new_widget)
 
         # make stack of dock widgets (instead of next to each other)
         if len(self.dock_widgets) > 1:

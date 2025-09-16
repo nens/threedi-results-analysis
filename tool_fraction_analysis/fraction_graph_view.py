@@ -89,7 +89,7 @@ class FractionWidget(QWidget):
         splitterWidget = QSplitter(self)
 
         self.fraction_plot = FractionPlot(self, self.result_model, self.fraction_model)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.fraction_plot.sizePolicy().hasHeightForWidth())
@@ -109,7 +109,7 @@ class FractionWidget(QWidget):
         self.fraction_table = FractionTable(self)
         self.fraction_table.hoverEnterRow.connect(self.highlight_feature)
         self.fraction_table.hoverExitAllRows.connect(self.unhighlight_all_features)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.fraction_table.sizePolicy().hasHeightForWidth())
@@ -122,7 +122,7 @@ class FractionWidget(QWidget):
         mainLayout.setContentsMargins(0, 0, 0, 0)
 
         self.marker = QgsRubberBand(self.iface.mapCanvas())
-        self.marker.setColor(Qt.red)
+        self.marker.setColor(Qt.GlobalColor.red)
         self.marker.setWidth(2)
 
     def time_units_change(self):
@@ -138,19 +138,19 @@ class FractionWidget(QWidget):
             self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def stacked_changed(self, check_state):
-        self.current_stacked = (check_state == Qt.Checked)
+        self.current_stacked = (check_state == Qt.CheckState.Checked)
         if self.current_feature_id:
             self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def volume_changed(self, check_state):
-        self.current_volume = (check_state == Qt.Checked)
+        self.current_volume = (check_state == Qt.CheckState.Checked)
         if self.current_feature_id:
             self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def feature_selected(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
         if not layer.objectName() in ("node", "cell"):
             msg = """Please select results from either the 'nodes' or 'cells' layer."""
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.MessageLevel.Warning, 5.0)
             return False
 
         if len(self.result_model.get_results(checked_only=False)) == 0:

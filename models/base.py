@@ -168,7 +168,7 @@ class BaseModel(QAbstractTableModel):
         """
         return self.createIndex(row_nr, col_nr)
 
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         """Qt function to get data from items for the visible columns"""
 
         if not index.isValid():
@@ -176,21 +176,21 @@ class BaseModel(QAbstractTableModel):
 
         row = self.rows[index.row()]
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             if row[index.column()].field_type == VALUE_FIELD:
                 return row[index.column()].value
-        elif role == Qt.BackgroundRole:
+        elif role == Qt.ItemDataRole.BackgroundRole:
             if row[index.column()].field_type == COLOR_FIELD:
                 return row[index.column()].qvalue
-        elif role == Qt.TextAlignmentRole:
-            return Qt.AlignVCenter
-        elif role == Qt.CheckStateRole:
+        elif role == Qt.ItemDataRole.TextAlignmentRole:
+            return Qt.AlignmentFlag.AlignVCenter
+        elif role == Qt.ItemDataRole.CheckStateRole:
             if row[index.column()].field_type == CHECKBOX_FIELD:
                 return row[index.column()].qvalue
             else:
                 return None
 
-    def headerData(self, col_nr, orientation=Qt.Horizontal, role=Qt.DisplayRole):
+    def headerData(self, col_nr, orientation=Qt.Orientation.Horizontal, role=Qt.ItemDataRole.DisplayRole):
         """
         required Qt function for getting column information
         :param col_nr: column number
@@ -198,12 +198,12 @@ class BaseModel(QAbstractTableModel):
         :param role: Qt Role (DisplayRole, SizeHintRole, etc)
         :return: value of column, given the role
         """
-        if orientation == Qt.Horizontal:
-            if role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal:
+            if role == Qt.ItemDataRole.DisplayRole:
                 return self.columns[col_nr].column_name
         else:
             # give grey balk at start of row a small dimension to select row
-            if Qt.SizeHintRole:
+            if Qt.ItemDataRole.SizeHintRole:
                 return QSize(10, 0)
 
     def setData(self, index, value, role):
@@ -222,9 +222,9 @@ class BaseModel(QAbstractTableModel):
 
     def flags(self, index):
 
-        flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        flags = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         if self.columns[index.column()].field_type == CHECKBOX_FIELD:
-            flags |= Qt.ItemIsUserCheckable | Qt.ItemIsEditable
+            flags |= Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable
 
         return flags
 

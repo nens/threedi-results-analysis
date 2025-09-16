@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 from threedi_results_analysis.tool_graph.graph_model import LocationTimeseriesModel
 
 import unittest
@@ -116,13 +116,13 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         self.assertEqual(collection.rowCount(), 4)
         self.assertEqual(collection.columnCount(), 9)
         self.assertEqual(
-            collection.data(collection.createIndex(0, 0, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(0, 0, None), role=Qt.ItemDataRole.DisplayRole),
             None,
         )
 
         #  Color is displayed as emptry string
         self.assertEqual(
-            collection.data(collection.createIndex(0, 1, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(0, 1, None), role=Qt.ItemDataRole.DisplayRole),
             "",
         )
 
@@ -131,7 +131,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         # )
 
         self.assertEqual(
-            collection.data(collection.createIndex(0, 6, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(0, 6, None), role=Qt.ItemDataRole.DisplayRole),
             "object_1",
         )
 
@@ -148,7 +148,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         self.assertEqual(collection.columnCount(), 9)
 
         self.assertEqual(
-            collection.data(collection.createIndex(7, 6, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(7, 6, None), role=Qt.ItemDataRole.DisplayRole),
             "object_8",
         )
 
@@ -157,12 +157,12 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         self.assertEqual(collection.rowCount(), 4)
 
         self.assertEqual(
-            collection.data(collection.createIndex(1, 6, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(1, 6, None), role=Qt.ItemDataRole.DisplayRole),
             "object_2",
         )
 
         self.assertEqual(
-            collection.data(collection.createIndex(2, 6, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(2, 6, None), role=Qt.ItemDataRole.DisplayRole),
             "object_7",
         )
 
@@ -175,29 +175,29 @@ class TestLocationTimeseriesModel(unittest.TestCase):
 
         # first test checkField
         collection.setData(
-            collection.createIndex(0, 0), Qt.Unchecked, Qt.CheckStateRole
+            collection.createIndex(0, 0), Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole
         )
 
         self.assertEqual(collection.rows[0].active.value, False)
         self.assertEqual(
-            collection.data(collection.createIndex(0, 0, None), role=Qt.CheckStateRole),
-            Qt.Unchecked,
+            collection.data(collection.createIndex(0, 0, None), role=Qt.ItemDataRole.CheckStateRole),
+            Qt.CheckState.Unchecked,
         )
 
-        collection.setData(collection.createIndex(0, 0), Qt.Checked, Qt.CheckStateRole)
+        collection.setData(collection.createIndex(0, 0), Qt.CheckState.Checked, Qt.ItemDataRole.CheckStateRole)
 
         self.assertEqual(collection.rows[0].active.value, True)
         self.assertEqual(
-            collection.data(collection.createIndex(0, 0, None), role=Qt.CheckStateRole),
-            Qt.Checked,
+            collection.data(collection.createIndex(0, 0, None), role=Qt.ItemDataRole.CheckStateRole),
+            Qt.CheckState.Checked,
         )
 
         # test valueField
-        collection.setData(collection.createIndex(0, 5), 8, Qt.DisplayRole)
+        collection.setData(collection.createIndex(0, 5), 8, Qt.ItemDataRole.DisplayRole)
 
         self.assertEqual(collection.rows[0].object_id.value, 8)
         self.assertEqual(
-            collection.data(collection.createIndex(0, 5, None), role=Qt.DisplayRole), 8
+            collection.data(collection.createIndex(0, 5, None), role=Qt.ItemDataRole.DisplayRole), 8
         )
 
     def tearDown(self):

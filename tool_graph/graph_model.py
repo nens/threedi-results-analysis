@@ -45,21 +45,21 @@ class LocationTimeseriesModel(BaseModel):
 
     def flags(self, index):
 
-        flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        flags = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         if self.columns[index.column()].field_type == CHECKBOX_FIELD:
-            flags |= Qt.ItemIsUserCheckable | Qt.ItemIsEditable
+            flags |= Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEditable
         elif index.column() == 2:  # user-defined label
-            flags |= Qt.ItemIsEditable
+            flags |= Qt.ItemFlag.ItemIsEditable
 
         return flags
 
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         """Qt function to get data from items for the visible columns"""
 
         if not index.isValid():
             return None
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             if index.column() == 1:  # color
                 return ""
             elif index.column() == 3:  # grid: take name from result parent

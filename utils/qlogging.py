@@ -86,11 +86,11 @@ class QgisHandler(logging.Handler):
         msg = self.format(record)
 
         if record.levelno >= logging.ERROR:
-            level = Qgis.Critical
+            level = Qgis.MessageLevel.Critical
         elif record.levelno >= logging.WARNING:
-            level = Qgis.Warning
+            level = Qgis.MessageLevel.Warning
         else:
-            level = Qgis.Info
+            level = Qgis.MessageLevel.Info
 
         QgsMessageLog.logMessage(msg, level=level)
 

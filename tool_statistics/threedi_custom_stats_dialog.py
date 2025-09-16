@@ -171,7 +171,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             COLUMN_THRESHOLD_VALUE,
         ]:
             self.tableWidgetAggregations.horizontalHeader().setSectionResizeMode(
-                column_index, QtWidgets.QHeaderView.Stretch
+                column_index, QtWidgets.QHeaderView.ResizeMode.Stretch
             )
 
         # Populate the combobox with the results
@@ -188,10 +188,10 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
         self.set_styling_tab()
 
         self.dialogButtonBoxOKCancel.button(
-            QtWidgets.QDialogButtonBox.Ok
+            QtWidgets.QDialogButtonBox.StandardButton.Ok
         ).setEnabled(False)
         self.dialogButtonBoxOKCancel.button(
-            QtWidgets.QDialogButtonBox.Ok
+            QtWidgets.QDialogButtonBox.StandardButton.Ok
         ).clicked.connect(self.run)
 
     def _populate_results(self) -> None:
@@ -216,7 +216,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             )
             variable_combobox.setItemData(i, variable)
         idx = variable_combobox.findText(
-            aggregation.variable.long_name, Qt.MatchEndsWith
+            aggregation.variable.long_name, Qt.MatchFlag.MatchEndsWith
         )
         variable_combobox.setCurrentIndex(idx)
         variable_combobox.activated.connect(
@@ -520,7 +520,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
             self.nodes_layer_resolution_changed
         )
         self.mQgsFileWidgetRasterFolder.setStorageMode(
-            QgsFileWidget.GetDirectory
+            QgsFileWidget.StorageMode.GetDirectory
         )
         self.mQgsFileWidgetRasterFolder.fileChanged.connect(self.validate)
 
@@ -774,7 +774,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
                 params_widget.setCellWidget(row, 1, param_input_widget)
         if param_values is not None:
             for param, value in param_values.items():
-                row = params_widget.findItems(param, Qt.MatchFixedString)[0].row()
+                row = params_widget.findItems(param, Qt.MatchFlag.MatchFixedString)[0].row()
                 params_input_widget = params_widget.cellWidget(row, 1)
                 idx = params_input_widget.findText(value)
                 params_input_widget.setCurrentIndex(idx)
@@ -1230,7 +1230,7 @@ class ThreeDiCustomStatsDialog(QtWidgets.QDialog, FORM_CLASS):
 
         logger.info(f"Validated result aggregation inputs. Valid: {valid}")
 
-        self.dialogButtonBoxOKCancel.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(valid)
+        self.dialogButtonBoxOKCancel.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setEnabled(valid)
 
         return valid
 
@@ -1321,7 +1321,7 @@ class Aggregate3DiResults(QgsTask):
         output_rasters: bool,
         group_name: str,
     ):
-        super().__init__(description, QgsTask.CanCancel)
+        super().__init__(description, QgsTask.Flag.CanCancel)
         self.exception = None
         self.parent = parent
         self.parent.setEnabled(False)
@@ -1346,7 +1346,7 @@ class Aggregate3DiResults(QgsTask):
         self.parent.iface.messageBar().pushMessage(
             "3Di Statistics",
             "Started aggregating 3Di results",
-            level=Qgis.Info,
+            level=Qgis.MessageLevel.Info,
             duration=3,
         )
         self.parent.iface.mainWindow().repaint()  # to show the message before the task starts
@@ -1494,7 +1494,7 @@ class Aggregate3DiResults(QgsTask):
             self.parent.iface.messageBar().pushMessage(
                 "3Di Result aggregation",
                 "Finished custom aggregation",
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=3,
             )
 
@@ -1503,7 +1503,7 @@ class Aggregate3DiResults(QgsTask):
             self.parent.iface.messageBar().pushMessage(
                 "3Di Result aggregation",
                 "Aggregating 3Di results returned no results",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=3,
             )
 
@@ -1511,7 +1511,7 @@ class Aggregate3DiResults(QgsTask):
         self.parent.iface.messageBar().pushMessage(
             "3Di Result aggregation",
             "Pre-processing simulation results cancelled by user",
-            level=Qgis.Info,
+            level=Qgis.MessageLevel.Info,
             duration=3,
         )
         super().cancel()

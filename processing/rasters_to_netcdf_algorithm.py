@@ -34,7 +34,7 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterMultipleLayers(
                 name=self.INPUT_RASTERS,
                 description="Input rasters",
-                layerType=QgsProcessing.TypeRaster,
+                layerType=QgsProcessing.SourceType.TypeRaster,
             )
         )
 
@@ -49,7 +49,7 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 name=self.INPUT_INTERVAL,
                 description="Interval [s]",
-                type=QgsProcessingParameterNumber.Integer
+                type=QgsProcessingParameterNumber.Type.Integer
             )
         )
 
@@ -57,7 +57,7 @@ class RastersToNetCDFAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 name=self.INPUT_OFFSET,
                 description="Offset [s]",
-                type=QgsProcessingParameterNumber.Integer,
+                type=QgsProcessingParameterNumber.Type.Integer,
                 defaultValue=0
             )
         )
