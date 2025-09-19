@@ -52,6 +52,37 @@ class FractionPlot(pg.PlotWidget):
             fill_color = self.reduce_saturation(QColor(*color))
             self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
 
+    def highlight_plot(self, row):
+        if not self.item_map:  # No plots yet
+            return
+
+        self.unhighlight_plots()
+
+        hovered_model_item = self.fraction_model.item(row, 0)
+        substance = hovered_model_item.data()
+
+        hovered_color_item = self.fraction_model.item(row, 1)
+        style, _ = hovered_color_item.data()
+        highlight_color = QColor(255, 141, 161)
+        pen = pg.mkPen(color=highlight_color, width=4, style=style)
+        self.item_map[substance][0].setPen(pen)
+        if len(self.item_map[substance]) == 2:
+            self.item_map[substance][1].setBrush(pg.mkBrush(highlight_color))
+
+    def unhighlight_plots(self):
+        if not self.item_map:  # No plots yet
+            return
+
+        for row in range(self.fraction_model.rowCount()):
+            substance = self.fraction_model.item(row, 0).data()
+            style, color = self.fraction_model.item(row, 1).data()
+
+            pen = pg.mkPen(color=QColor(*color), width=2, style=style)
+            self.item_map[substance][0].setPen(pen)
+            if len(self.item_map[substance]) == 2:
+                fill_color = self.reduce_saturation(QColor(*color))
+                self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
+
     def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool, volume: bool):
         """
         Retrieve info from model and create plots

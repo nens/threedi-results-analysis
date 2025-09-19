@@ -11,7 +11,7 @@ from threedi_results_analysis.utils.widgets import PenStyleWidget
 class FractionTable(QTableView):
 
     hoverExitAllRows = pyqtSignal()
-    hoverEnterRow = pyqtSignal()
+    hoverEnterRow = pyqtSignal(int)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -53,7 +53,7 @@ class FractionTable(QTableView):
                 index = self.indexAt(event.pos())
                 row = index.row()
                 if row != -1:
-                    self.hoverEnterRow.emit()
+                    self.hoverEnterRow.emit(row)
                 else:
                     self.hoverExitAllRows.emit()
             elif event.type() == QEvent.Type.Leave:

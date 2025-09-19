@@ -9,6 +9,7 @@
 - Fraction Analysis Tool: Fixed bug: visibility (item checked) is now taken into account when switching stacked/volume mode.
 - Fraction Analysis Tool: substances are listed alphabetically (#1133)
 - Prepared for QGIS 4 (Qt 6) (#1144)
+- Fraction Analysis Tool: plot highlighting (#1132)
 
 
 3.25.1 (2025-09-08)
