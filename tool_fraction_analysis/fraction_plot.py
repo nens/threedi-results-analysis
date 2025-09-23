@@ -29,12 +29,25 @@ class FractionPlot(pg.PlotWidget):
         self.getAxis("left").enableAutoSIPrefix(False)
         self.mouseLabel = pg.TextItem(text="", anchor=(1, 1), color=(0, 0, 0))
 
+        self.mouseMarker = pg.ScatterPlotItem(
+            [0], [0],
+            symbol='o',
+            size=12,
+            brush='r',
+            pen='k'
+        )
+        self.mouseMarker.setVisible(False)
+        self.addItem(self.mouseMarker)
+        self.addItem(self.mouseLabel)
+
     def clear_plot(self):
         self.clear()
         self.item_map.clear()
         self.setLabel("left", "Concentration", "")
+        self.addItem(self.mouseMarker)
         self.addItem(self.mouseLabel)
         self.mouseLabel.setText("")
+        self.mouseMarker.setVisible(False)
 
     def item_checked(self, model_item):
         if not self.item_map:  # No plots yet
@@ -72,8 +85,11 @@ class FractionPlot(pg.PlotWidget):
         if closest_substance is not None:
             self.mouseLabel.setText("(%0.1f, %0.1f)" % (closest_data_point[0], closest_data_point[1]))
             self.mouseLabel.setPos(x, y)
+            self.mouseMarker.setVisible(True)
+            self.mouseMarker.setData([closest_data_point[0]], [closest_data_point[1]])
         else:
             self.mouseLabel.setText("")
+            self.mouseMarker.setVisible(False)
 
         self.hover_plot.emit(closest_substance)
 
@@ -92,7 +108,7 @@ class FractionPlot(pg.PlotWidget):
 
         if len(self.item_map[substance]) == 2:
             # there is a fill, also change that color
-            fill_color = self.reduce_saturation(QColor(*color))
+            fill_color = reduce_saturation(QColor(*color))
             self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
 
     def highlight_plot(self, row):

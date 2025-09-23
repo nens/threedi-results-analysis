@@ -25,6 +25,8 @@ def closest_point_on_segment(p, a, b):
         return a
     # https://en.wikipedia.org/wiki/Scalar_projection
     t = max(min(np.dot(ap, ab) / ab_squared, 1), 0)
+    assert t <= 1
+    assert t >= 0
     return a + t * ab
 
 
