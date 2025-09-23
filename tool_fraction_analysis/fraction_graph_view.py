@@ -53,7 +53,7 @@ class FractionWidget(QWidget):
     def clear(self):
         self.fraction_model.clear()
         self.fraction_plot.clear_plot()
-
+        self.marker.reset()
         self.current_result_id = None
         self.current_layer = None
         self.current_substance_unit = None
@@ -67,7 +67,7 @@ class FractionWidget(QWidget):
         self.fraction_plot.clear_plot()
         self.fraction_model.set_fraction(result_item, substance_units)
 
-    def highlight_feature(self, row):
+    def highlight_feature_on_map(self, row):
         if self.current_feature_id and self.current_result_id and self.current_layer:
             result_item = self.result_model.get_result(self.current_result_id)
             for table_name, layer_id in result_item.parent().layer_ids.items():
@@ -81,8 +81,10 @@ class FractionWidget(QWidget):
                         self.marker.setToGeometry(feature.geometry(), lyr)
 
     def highlight_plot(self, row):
+        # user hovered over table
         if self.current_feature_id and self.current_result_id and self.current_layer:
-            self.fraction_plot.highlight_plot(row)
+            # Note that table and plots are connectec via signals
+            self.fraction_model.highlight_row(row)
 
     def unhighlight_all_features(self):
         self.fraction_plot.unhighlight_plots()
@@ -101,6 +103,7 @@ class FractionWidget(QWidget):
         self.fraction_plot.setSizePolicy(sizePolicy)
         self.fraction_plot.setMinimumSize(QSize(250, 250))
         splitterWidget.addWidget(self.fraction_plot)
+        self.fraction_plot.hover_plot.connect(self.fraction_model.highlight_substance)
 
         legendWidget = QWidget(self)
         vLayoutTable = QVBoxLayout(self)
@@ -112,7 +115,7 @@ class FractionWidget(QWidget):
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         vLayoutTable.addWidget(self.ts_units_combo_box)
         self.fraction_table = FractionTable(self)
-        self.fraction_table.hoverEnterRow.connect(self.highlight_feature)
+        self.fraction_table.hoverEnterRow.connect(self.highlight_feature_on_map)
         self.fraction_table.hoverEnterRow.connect(self.highlight_plot)
         self.fraction_table.hoverExitAllRows.connect(self.unhighlight_all_features)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)

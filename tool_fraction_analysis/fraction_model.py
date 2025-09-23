@@ -1,9 +1,10 @@
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtGui import QStandardItem
 from qgis.PyQt.QtGui import QStandardItemModel
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
-
+from threedi_results_analysis.utils.color import increase_value
 import logging
 import numpy as np
 import pyqtgraph as pg
@@ -45,6 +46,37 @@ class FractionModel(QStandardItemModel):
         self.result_item = None
         super().clear()
 
+    @pyqtSlot(str)
+    def highlight_substance(self, substance_name: str):
+        for row in range(self.rowCount()):
+            substance_checked_item = self.item(row, 0)
+            substance = substance_checked_item.data()
+            self._highlight(row, substance == substance_name)
+
+    @pyqtSlot(str)
+    def highlight_row(self, row: int):
+        for row_idx in range(self.rowCount()):
+            self._highlight(row_idx, row_idx == row)
+
+    def _highlight(self, row, highlight: bool):
+        substance_name_item = self.item(row, 2)
+        font = substance_name_item.font()
+
+        # Set to highlight color or original color and width
+        hovered_color_item = self.item(row, 1)
+        if not highlight:
+            style, color, _ = hovered_color_item.data()[1]
+            hovered_color_item.setData(((style, color, 2), (style, color, 2)))
+            font.setBold(False)
+            substance_name_item.setFont(font)
+        else:
+            style, color, _ = hovered_color_item.data()[1]
+            highlight_color = increase_value(QColor(*color))
+            highlight_color = (highlight_color.red(), highlight_color.green(), highlight_color.blue())
+            hovered_color_item.setData(((style, highlight_color, 4), (style, color, 2)))
+            font.setBold(True)
+            substance_name_item.setFont(font)
+
     def set_fraction(self, item: ThreeDiResultItem, substance: str):
         self.clear()
 
@@ -61,7 +93,8 @@ class FractionModel(QStandardItemModel):
             if wq_var["unit"] != substance:
                 continue
             color_item = QStandardItem()
-            color_item.setData((Qt.PenStyle.SolidLine, self.get_new_color()))
+            # store current and original color and width
+            color_item.setData(((Qt.PenStyle.SolidLine, self.get_new_color(), 2), (Qt.PenStyle.SolidLine, self.get_new_color(), 2)))
             color_item.setEditable(False)
             # Display the "name" if present, otherwise parameter name
             substance_name = wq_var["name"] or wq_var["parameters"]
@@ -85,8 +118,8 @@ class FractionModel(QStandardItemModel):
             volume_series = self.timeseries_table("vol", feature_id, time_units=time_units)
 
         for row in range(self.rowCount()):
-            style, color = self.item(row, 1).data()
-            pen = pg.mkPen(color=QColor(*color), width=2, style=style)
+            style, color, width = self.item(row, 1).data()[0]  # current
+            pen = pg.mkPen(color=QColor(*color), width=width, style=style)
             substance = self.item(row, 0).data()
             visible = (self.item(row, 0).checkState() == Qt.CheckState.Checked)
             ts_table = self.timeseries_table(substance, feature_id, time_units=time_units)
