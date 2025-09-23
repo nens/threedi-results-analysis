@@ -41,13 +41,21 @@ class FractionModel(QStandardItemModel):
         self.result_model = result_model
         self.setHorizontalHeaderLabels(["active", "pattern", "substance"])
         self.result_item = None
+        # To prevent tedious updates in model
+        self.none_highlighted = True
 
     def clear(self):
         self.result_item = None
+        self.none_highlighted = True
         super().clear()
 
     @pyqtSlot(str)
     def highlight_substance(self, substance_name: str):
+        if not substance_name and self.none_highlighted:
+            # Nothing needs to be highlight, and nothing needs to be reset
+            return
+        self.none_highlighted = False if substance_name else True
+
         for row in range(self.rowCount()):
             substance_checked_item = self.item(row, 0)
             substance = substance_checked_item.data()

@@ -87,7 +87,7 @@ class FractionWidget(QWidget):
             self.fraction_model.highlight_row(row)
 
     def unhighlight_all_features(self):
-        self.fraction_plot.unhighlight_plots()
+        self.fraction_model.highlight_substance(None)
         self.marker.reset()
 
     def setup_ui(self):

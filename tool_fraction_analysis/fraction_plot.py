@@ -19,7 +19,7 @@ class FractionPlot(pg.PlotWidget):
     def __init__(self, parent, result_model: ThreeDiPluginModel, fraction_model: FractionModel):
         super().__init__(parent)
         self.showGrid(True, True, 0.5)
-        self.scene().sigMouseMoved.connect(self.mouse_moved)
+        self.proxy = pg.SignalProxy(self.scene().sigMouseMoved, rateLimit=10, slot=self.mouse_moved)
         self.fraction_model = fraction_model
         self.result_model = result_model
         # map from substance name to (list of) plot
@@ -28,8 +28,6 @@ class FractionPlot(pg.PlotWidget):
         self.setLabel("left", "Concentration", "")
         self.getAxis("left").enableAutoSIPrefix(False)
         self.mouseLabel = pg.TextItem(text="", anchor=(1, 1), color=(0, 0, 0))
-
-        # self.proxy = pg.SignalProxy(self.scene().sigMouseMoved, rateLimit=20, slot=self.mouse_moved)
 
     def clear_plot(self):
         self.clear()
@@ -47,7 +45,8 @@ class FractionPlot(pg.PlotWidget):
 
     def mouse_moved(self, pos):
         # Translate scene position to plot coordinates
-        mouse_point = self.plotItem.vb.mapSceneToView(pos)
+        # As we are using a ProxySignal, we get a list of events
+        mouse_point = self.plotItem.vb.mapSceneToView(pos[0])
         x = mouse_point.x()
         y = mouse_point.y()
 
@@ -58,7 +57,7 @@ class FractionPlot(pg.PlotWidget):
         for item in self.plotItem.listDataItems():
             x_data, y_data = item.getData()
             dist, data_point = distance_to_polyline(x, y, x_data, y_data)
-            if dist < 0.3:
+            if dist < 1:
                 if dist < min_dist:
                     min_dist = dist
                     # Check which substance this plot corresponds to
@@ -173,7 +172,7 @@ class FractionPlot(pg.PlotWidget):
                 # Add fill between consecutive plots
                 plot_color = plot.opts['pen'].color()
                 # Reduce saturation for fill
-                fill_color = self.reduce_saturation(plot_color)
+                fill_color = reduce_saturation(plot_color)
                 if not prev_plot:
                     # this is the first, just fill downward to axis
                     plot.setFillLevel(0)
