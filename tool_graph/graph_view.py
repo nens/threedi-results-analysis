@@ -378,7 +378,7 @@ class LocationTimeseriesTable(QTableView):
             index = self.model.index(i, 1)
             pen_color = QColor(item.color.value[0], item.color.value[1], item.color.value[2])
             # If index widget A is replaced with index widget B, index widget A will be deleted.
-            patternWidget = PenStyleWidget(item.result.value._pattern, pen_color, self)
+            patternWidget = PenStyleWidget(item.result.value._pattern, pen_color, 2, self)
             # patternWidget.setAutoFillBackground(True)
             patternWidget.setPalette(self.palette())
             self.setIndexWidget(index, patternWidget)

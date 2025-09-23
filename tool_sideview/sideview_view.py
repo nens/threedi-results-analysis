@@ -875,7 +875,7 @@ class SideViewDockWidget(QDockWidget):
 
         # Add a PenStyle display in the table
         index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
-        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, QColor(*color), self.table_view))
+        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, QColor(*color), 2, self.table_view))
 
     def on_route_point_select(self, selected_features, clicked_coordinate):
         """Select and add the closest point from the list of selected features.

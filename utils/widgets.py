@@ -13,17 +13,19 @@ class PenStyleWidget(QWidget):
         self,
         pen_style: Qt.PenStyle,
         pen_color: QColor,
+        pen_width: int,
         parent : QWidget,
     ):
         super().__init__(parent)
         self.pen_style = pen_style
         self.pen_color = pen_color
+        self.pen_width = pen_width
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
     def paintEvent(self, event):
         qp = QPainter(self)
         qp.begin(self)
-        pen = QPen(self.pen_color, 2, self.pen_style)
+        pen = QPen(self.pen_color, self.pen_width, self.pen_style)
         qp.setPen(pen)
         qp.drawLine(round(0.1*self.width()), round(self.height()/2.0), round(0.9*self.width()), round(self.height()/2.0))
         qp.end()

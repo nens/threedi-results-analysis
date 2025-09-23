@@ -70,7 +70,8 @@ class FractionTable(QTableView):
                         return True
 
                     item = self.model().itemFromIndex(index)
-                    item.setData((Qt.SolidLine, (selected_color.red(), selected_color.green(), selected_color.blue())))
+                    item.setData(((Qt.SolidLine, (selected_color.red(), selected_color.green(), selected_color.blue()), 2),
+                                  (Qt.SolidLine, (selected_color.red(), selected_color.green(), selected_color.blue()), 2)))
                     self._update_table_widgets()
 
         return QTableView.eventFilter(self, widget, event)
@@ -87,8 +88,8 @@ class FractionTable(QTableView):
     def _update_table_widgets(self):
         """The PenStyle widget is not part of the model, but explicitely added/overlayed to the table"""
         for row in range(self.model().rowCount()):
-            style, color = self.model().item(row, 1).data()
+            style, color, width = self.model().item(row, 1).data()[0]  # Retrieve current color
             # If index widget A is replaced with index widget B, index widget A will be deleted.
-            patternWidget = PenStyleWidget(style, QColor(*color), self)
+            patternWidget = PenStyleWidget(style, QColor(*color), width, self)
             patternWidget.setPalette(self.palette())
             self.setIndexWidget(self.model().index(row, 1), patternWidget)

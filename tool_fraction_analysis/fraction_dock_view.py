@@ -50,6 +50,7 @@ class FractionDockWidget(QDockWidget):
 
     def on_close(self):
         self.addNodeCellButton.clicked.disconnect(self.add_node_cell_button_clicked)
+        self.fraction_widget.clear()
         self.map_tool_add_node_cell = None
 
     def closeEvent(self, event):
