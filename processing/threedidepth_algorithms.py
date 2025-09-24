@@ -21,6 +21,7 @@ from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterEnum
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
+from qgis.core import QgsProcessingParameterRasterDestination
 from qgis.core import QgsProcessingParameterRasterLayer
 from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsMeshLayer
@@ -70,7 +71,7 @@ class Progress:
             raise CancelError()
 
 
-class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
+class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
     """
     Base processing algorithm wrapping threedidepth functionalities
     """
@@ -130,7 +131,7 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
     def create_algorithm_outputs(self, parameters, context):
         # Not implemented as proper abstractmethod because QgsProcessingAlgorithm already has a metaclass
         # and setting ABCMeta as metaclass creates complicated problems
-        return NotImplementedError("Subclasses must implement this method")
+        pass
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -150,8 +151,9 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
         Create the water depth raster with the provided user inputs
         """
         threedidepth_args = self.get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
-        if self.output_file(parameters, context).is_file():
-            self.output_file(parameters, context).unlink()
+        output_file = self.output_file(parameters, context)
+        if output_file.is_file():
+            output_file.unlink()
 
         try:
             self.threedidepth_method(**threedidepth_args)
@@ -168,10 +170,10 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 )
 
         self.create_algorithm_outputs(parameters, context)
-        return {}
+        return {OUTPUT_FILENAME: str(output_file)}
 
 
-class ThreediDepthSingleTimeStepAlgorithm(ThreediDepthAlgorithm):
+class BaseSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
     Base processing algorithm to get a threedidepth result for a single time step
     """
@@ -188,16 +190,15 @@ class ThreediDepthSingleTimeStepAlgorithm(ThreediDepthAlgorithm):
             )
         )
         result.append(
-            QgsProcessingParameterFileDestination(
+            QgsProcessingParameterRasterDestination(
                 OUTPUT_FILENAME,
-                "Output file",
-                fileFilter="*.tif",
+                "Output raster"
             )
         )
         return result
 
     def output_file(self, parameters, context) -> Path:
-        return Path(self.parameterAsFileOutput(parameters, OUTPUT_FILENAME, context))
+        return Path(self.parameterAsOutputLayer(parameters, OUTPUT_FILENAME, context))
 
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
@@ -210,33 +211,23 @@ class ThreediDepthSingleTimeStepAlgorithm(ThreediDepthAlgorithm):
         return args
 
     def create_algorithm_outputs(self, parameters, context):
-        output_file_path = self.output_file(parameters, context)
-        layer_name = output_file_path.name
-        layer = QgsRasterLayer(str(output_file_path), layer_name)
-        context.temporaryLayerStore().addMapLayer(layer)
-        layer_details = QgsProcessingContext.LayerDetails(
-            layer_name,
-            context.project(),
-            OUTPUT_FILENAME
-        )
-        context.addLayerToLoadOnCompletion(layer.id(), layer_details)
+        pass
 
-
-class ThreediDepthMultipleTimeStepAlgorithm(ThreediDepthAlgorithm):
+class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
     Base processing algorithm to get a threedidepth result for multiple time steps
     """
     pass
 
 
-class ThreediDepthMaxAlgorithm(ThreediDepthAlgorithm):
+class BaseMaxAlgorithm(BaseThreediDepthAlgorithm):
     """
     Base processing algorithm to get a threedidepth result for maximum of a variable
     """
     pass
 
 
-class WaterDepthOrLevelSingleTimeStepAlgorithm(ThreediDepthSingleTimeStepAlgorithm):
+class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
     """
     Calculates water depth or water level from 3Di result NetCDF for a single time step
     """
@@ -270,6 +261,87 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(ThreediDepthSingleTimeStepAlgorit
                 "results_3di_path": parameters[NETCDF_INPUT],
                 "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
                 "waterdepth_path": str(self.output_file(parameters, context)),
+            }
+        )
+        return args
+
+    def createInstance(self):
+        return WaterDepthOrLevelSingleTimeStepAlgorithm()
+
+    def name(self):
+        """Returns the algorithm name, used for identifying the algorithm"""
+        return "waterdepthorlevelsingletimestep"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-visible display of the algorithm name.
+        """
+        return "Water depth/level raster (single time step)"
+
+    def shortHelpString(self):
+        """Returns a localised short helper string for the algorithm"""
+        return """
+            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
+            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
+            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
+            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
+            <h3>Parameters</h3>
+            <h4>Gridadmin file</h4>
+            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
+            <h4>3Di simulation output (.nc)</h4>
+            <p>NetCDF (*.nc) containing the results or aggregated resultes of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+            <h4>DEM</h4>
+            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
+            <h4>Output type</h4>
+            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
+            <h4>Time step</h4>
+            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
+            <h4>Enable multiple time steps export</h4>
+            <p>Check this box if you want outputs for multiple time steps.</p>
+            <h4>Last time step</h4>
+            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
+            <h4>Output file name</h4>
+            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
+            <h4>Output directory</h4>
+            <p>Directory where the output file(s) are to be stored.</p>
+            <h3>Save to NetCDF (experimental)</h3>
+            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
+            """
+
+
+class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
+    """
+    Calculates concentration from 3Di result NetCDF for a single time step
+    """
+    @property
+    def output_modes(self) -> List[Mode]:
+        return [
+            Mode(MODE_LIZARD_VAR, "Interpolated concentrations"),
+            Mode(MODE_CONSTANT_VAR, "Non-interpolated concentrations"),
+        ]
+
+    @property
+    def default_mode(self) -> Mode:
+        return Mode(MODE_LIZARD_VAR, "Interpolated concentrations"),
+
+    @property
+    def parameters(self) -> List:
+        result = super().parameters
+        return result
+
+    @property
+    def threedidepth_method(self):
+        return calculate_water_quality
+
+    def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
+        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        args.update(
+            {
+                "water_quality_results_3di_path": parameters[NETCDF_INPUT],
+                "variable": "",
+                "output_extent": "",
+                "output_path": str(self.output_file(parameters, context)),
             }
         )
         return args
