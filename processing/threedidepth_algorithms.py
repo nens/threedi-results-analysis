@@ -11,8 +11,6 @@
 ***************************************************************************
 """
 from collections import namedtuple
-from processing.gui.wrappers import DIALOG_STANDARD
-from processing.gui.wrappers import WidgetWrapper
 from qgis.core import QgsFeedback
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingContext
@@ -21,169 +19,26 @@ from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterEnum
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
-from qgis.core import QgsProcessingParameterNumber
 from qgis.core import QgsProcessingParameterRasterLayer
 from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsMeshLayer
 from qgis.core import QgsRasterLayer
-from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.PyQt.QtWidgets import QComboBox
 from threedidepth.calculate import calculate_waterdepth
 from threedidepth.calculate import MODE_CONSTANT
 from threedidepth.calculate import MODE_CONSTANT_S1
 from threedidepth.calculate import MODE_LINEAR
 from threedidepth.calculate import MODE_LIZARD
 from threedidepth.calculate import MODE_LIZARD_S1
-from threedi_results_analysis.utils.user_messages import pop_up_info
 
-import h5py
 import logging
-import os
 from pathlib import Path
+
+from processing.widgets.widgets import ProcessingParameterNetcdfNumber
 
 logger = logging.getLogger(__name__)
 plugin_path = Path(__file__).resolve().parent.parent
 Mode = namedtuple("Mode", ["name", "description"])
-
-
-class ProcessingParameterNetcdfNumber(QgsProcessingParameterNumber):
-    def __init__(self, *args, parentParameterName="", optional=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.parentParameterName = parentParameterName
-        self.optional = optional
-        self.setMetadata({"widget_wrapper": {"class": ThreediResultTimeSliderWidget}})
-
-
-class ThreediResultTimeSliderWidget(WidgetWrapper):
-    def createWidget(self):
-        if self.dialogType == DIALOG_STANDARD:
-            if not self.parameterDefinition().optional:
-                self._widget = TimeSliderWidget()
-            else:
-                self._widget = CheckboxTimeSliderWidget()
-        else:
-            self._widget = TimeStepsCombobox()
-        return self._widget
-
-    def value(self):
-        return self._widget.getValue()
-
-    def postInitialize(self, wrappers):
-        # Connect the result-file parameter to the TimeSliderWidget/TimeStepsCombobox
-        for wrapper in wrappers:
-            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
-                wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
-
-
-WIDGET, BASE = uic.loadUiType(plugin_path / "processing" / "ui", "widgetTimeSlider.ui")
-
-
-class TimeSliderWidget(BASE, WIDGET):
-    """
-    Timeslider form widget. Provide a horizontal slider and an LCD connected to the slider.
-    """
-
-    def __init__(self):
-        super(TimeSliderWidget, self).__init__(None)
-        self.setupUi(self)
-        self.horizontalSlider.valueChanged.connect(self.set_lcd_value)
-        self.index = None
-        self.timestamps = None
-        self.reset()
-
-    def getValue(self):
-        return self.index
-
-    def set_timestamps(self, timestamps):
-        self.setDisabled(False)
-        self.horizontalSlider.setMinimum(0)
-        self.horizontalSlider.setMaximum(len(timestamps) - 1)
-        self.timestamps = timestamps
-        self.set_lcd_value(0)  # also sets self.index
-
-    def set_lcd_value(self, index: int):
-        self.index = index
-        if self.timestamps is not None:
-            value = self.timestamps[index]
-        else:
-            value = 0
-        lcd_value = format_timestep_value(value=value, drop_leading_zero=True)
-        self.lcdNumber.display(lcd_value)
-
-    def reset(self):
-        self.setDisabled(True)
-        self.index = None
-        self.timestamps = None
-        self.horizontalSlider.setMinimum(0)
-        self.horizontalSlider.setMaximum(0)
-        self.horizontalSlider.setValue(0)
-
-    def new_file_event(self, file_path):
-        """New file has been selected by the user. Try to read in the timestamps from the file."""
-        if not file_path or not os.path.isfile(file_path):
-            self.reset()
-            return
-
-        try:
-            with h5py.File(file_path, "r") as results:
-                timestamps = results["time"][()]
-                self.set_timestamps(timestamps)
-        except Exception as e:
-            logger.exception(e)
-            pop_up_info(msg="Unable to read the file, see the logging for more information.")
-            self.reset()
-
-
-WIDGET, BASE = uic.loadUiType(plugin_path / "processing" / "ui" / "widgetTimeSliderCheckbox.ui")
-
-
-class CheckboxTimeSliderWidget(TimeSliderWidget, WIDGET, BASE):
-    """Timeslider widget with a checkbox to enable/disable the timeslider"""
-
-    def __init__(self):
-        super().__init__()
-        self.horizontalSlider.setDisabled(not self.checkBox.isChecked())
-        self.checkBox.stateChanged.connect(self.new_check_box_event)
-
-    def getValue(self):
-        if self.checkBox.isChecked():
-            return self.index
-        else:
-            return None
-
-    def new_check_box_event(self, state):
-        self.horizontalSlider.setDisabled(not self.checkBox.isChecked())
-
-
-class TimeStepsCombobox(QComboBox):
-    """Combobox with populated timestep data."""
-
-    def getValue(self):
-        return self.currentIndex()
-
-    def populate_timestamps(self, timestamps):
-        for i, value in enumerate(timestamps):
-            human_readable_value = format_timestep_value(value)
-            if human_readable_value.startswith("0"):
-                human_readable_value = human_readable_value.split(" ", 1)[-1]
-            self.addItem(human_readable_value)
-        self.setCurrentIndex(0)
-
-    def new_file_event(self, file_path):
-        """New file has been selected by the user. Try to read in the timestamps from the file."""
-        if not file_path or not os.path.isfile(file_path):
-            self.clear()
-            return
-
-        try:
-            with h5py.File(file_path, "r") as results:
-                timestamps = results["time"][()]
-                self.populate_timestamps(timestamps)
-        except Exception as e:
-            logger.exception(e)
-            pop_up_info(msg="Unable to read the file, see the logging for more information.")
-            self.clear()
 
 
 class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
@@ -367,16 +222,16 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
         as_netcdf = parameters[self.AS_NETCDF_INPUT]
         raster_extension = "nc" if as_netcdf else "tif"
         raster_filename_with_ext = f"{raster_filename}.{raster_extension}"
-        waterdepth_output_file = os.path.join(output_location, raster_filename_with_ext)
-        if os.path.isfile(waterdepth_output_file):
-            os.remove(waterdepth_output_file)
+        waterdepth_output_file = Path(output_location) / raster_filename_with_ext
+        if waterdepth_output_file.is_file():
+            waterdepth_output_file.unlink()
 
         try:
             calculate_waterdepth(
                 gridadmin_path=gridadmin_path,
                 results_3di_path=results_3di_path,
                 dem_path=dem_filename,
-                waterdepth_path=waterdepth_output_file,
+                waterdepth_path=str(waterdepth_output_file),
                 calculation_steps=timesteps,
                 mode=self.MODES[mode_index].name,
                 progress_func=Progress(feedback),
@@ -392,9 +247,9 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 )
 
         if as_netcdf:
-            layer = QgsMeshLayer(waterdepth_output_file, raster_filename, "mdal")
+            layer = QgsMeshLayer(str(waterdepth_output_file), raster_filename, "mdal")
         else:
-            layer = QgsRasterLayer(waterdepth_output_file, raster_filename)
+            layer = QgsRasterLayer(str(waterdepth_output_file), raster_filename)
         context.temporaryLayerStore().addMapLayer(layer)
         layer_details = QgsProcessingContext.LayerDetails(raster_filename, context.project(), self.WATER_DEPTH_OUTPUT)
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
@@ -541,16 +396,16 @@ class ConcentrationRasterAlgorithm(QgsProcessingAlgorithm):
         as_netcdf = parameters[self.AS_NETCDF_INPUT]
         raster_extension = "nc" if as_netcdf else "tif"
         raster_filename_with_ext = f"{raster_filename}.{raster_extension}"
-        waterdepth_output_file = os.path.join(output_location, raster_filename_with_ext)
-        if os.path.isfile(waterdepth_output_file):
-            os.remove(waterdepth_output_file)
+        waterdepth_output_file = Path(output_location) / raster_filename_with_ext
+        if waterdepth_output_file.is_file():
+            waterdepth_output_file.unlink()
 
         try:
             calculate_waterdepth(
                 gridadmin_path=gridadmin_path,
                 results_3di_path=results_3di_path,
                 dem_path=dem_filename,
-                waterdepth_path=waterdepth_output_file,
+                waterdepth_path=str(waterdepth_output_file),
                 calculation_steps=timesteps,
                 mode=self.MODES[mode_index].name,
                 progress_func=Progress(feedback),
@@ -561,9 +416,9 @@ class ConcentrationRasterAlgorithm(QgsProcessingAlgorithm):
             pass
 
         if as_netcdf:
-            layer = QgsMeshLayer(waterdepth_output_file, raster_filename, "mdal")
+            layer = QgsMeshLayer(str(waterdepth_output_file), raster_filename, "mdal")
         else:
-            layer = QgsRasterLayer(waterdepth_output_file, raster_filename)
+            layer = QgsRasterLayer(str(waterdepth_output_file), raster_filename)
         context.temporaryLayerStore().addMapLayer(layer)
         layer_details = QgsProcessingContext.LayerDetails(raster_filename, context.project(), self.WATER_DEPTH_OUTPUT)
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
@@ -685,21 +540,21 @@ class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
         results_3di_path = parameters[self.RESULTS_3DI_INPUT]
         mode_index = self.parameterAsEnum(parameters, self.MODE_INPUT, context)
 
-        waterdepth_output_file = parameters[self.OUTPUT_FILENAME]
+        waterdepth_output_file = Path(parameters[self.OUTPUT_FILENAME])
         if not waterdepth_output_file:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT_FILENAME))
 
         layer_name = Path(waterdepth_output_file).stem
 
-        if os.path.isfile(waterdepth_output_file):
-            os.remove(waterdepth_output_file)
+        if waterdepth_output_file.is_file():
+            waterdepth_output_file.unlink()
 
         try:
             calculate_waterdepth(
                 gridadmin_path=gridadmin_path,
                 results_3di_path=results_3di_path,
                 dem_path=dem_filename,
-                waterdepth_path=waterdepth_output_file,
+                waterdepth_path=str(waterdepth_output_file),
                 calculate_maximum_waterlevel=True,
                 mode=self.MODES[mode_index].name,
                 progress_func=Progress(feedback),
@@ -713,7 +568,7 @@ class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
                     "Input aggregation NetCDF does not contain maximum water level aggregation (s1_max)."
                 )
 
-        layer = QgsRasterLayer(waterdepth_output_file, layer_name)
+        layer = QgsRasterLayer(str(waterdepth_output_file), layer_name)
         context.temporaryLayerStore().addMapLayer(layer)
         layer_details = QgsProcessingContext.LayerDetails(layer_name, context.project(), self.WATER_DEPTH_OUTPUT)
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
@@ -732,16 +587,3 @@ class Progress:
         self.feedback.setProgress(progress * 100)
         if self.feedback.isCanceled():
             raise CancelError()
-
-
-def format_timestep_value(value: float, drop_leading_zero: bool = False) -> str:
-    days, seconds = divmod(int(value), 24 * 60 * 60)
-    hours, seconds = divmod(seconds, 60 * 60)
-    minutes, seconds = divmod(seconds, 60)
-
-    if days == 0 and drop_leading_zero:
-        formatted_display = "{:02d}:{:02d}".format(hours, minutes)
-        return formatted_display
-
-    formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
-    return formatted_display
