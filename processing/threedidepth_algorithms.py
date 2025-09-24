@@ -76,7 +76,7 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
                 wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
-WIDGET, BASE = uic.loadUiType(plugin_path / "processing" / "ui", "widgetTimeSlider.ui")
+WIDGET, BASE = uic.loadUiType(plugin_path / "processing" / "ui" / "widgetTimeSlider.ui")
 
 
 class TimeSliderWidget(BASE, WIDGET):
