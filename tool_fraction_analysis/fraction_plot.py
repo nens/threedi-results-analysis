@@ -130,7 +130,7 @@ class FractionPlot(pg.PlotWidget):
 
         # Check whether this is the bottom fill
         if self.item_map[substance][0].opts['fillLevel'] == 0:
-                self.item_map[substance][0].setFillBrush(pg.mkBrush(fill_color))
+            self.item_map[substance][0].setFillBrush(pg.mkBrush(fill_color))
 
         if len(self.item_map[substance]) == 2:
             # there is a fill, also change that color
@@ -155,7 +155,7 @@ class FractionPlot(pg.PlotWidget):
 
         # Check whether this is the bottom fill
         if self.item_map[substance][0].opts['fillLevel'] == 0:
-                self.item_map[substance][0].setFillBrush(pg.mkBrush(highlight_color))
+            self.item_map[substance][0].setFillBrush(pg.mkBrush(highlight_color))
 
         # also set fill color
         if len(self.item_map[substance]) == 2:
