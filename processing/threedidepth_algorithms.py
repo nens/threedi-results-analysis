@@ -112,7 +112,7 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
             )
         ]
 
-    def output_file(self, parameters) -> Path:
+    def output_file(self, parameters, context) -> Path:
         return NotImplementedError("Subclasses must implement this method")
 
     @property
@@ -150,8 +150,8 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
         Create the water depth raster with the provided user inputs
         """
         threedidepth_args = self.get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
-        if self.output_file(parameters).is_file():
-            self.output_file(parameters).unlink()
+        if self.output_file(parameters, context).is_file():
+            self.output_file(parameters, context).unlink()
 
         try:
             self.threedidepth_method(**threedidepth_args)
@@ -167,7 +167,7 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
                     "Input aggregation NetCDF does not contain maximum water level aggregation (s1_max)."
                 )
 
-        self.create_algorithm_outputs()
+        self.create_algorithm_outputs(parameters, context)
         return {}
 
 
@@ -196,8 +196,8 @@ class ThreediDepthSingleTimeStepAlgorithm(ThreediDepthAlgorithm):
         )
         return result
 
-    def output_file(self, parameters) -> Path:
-        return Path(parameters[OUTPUT_FILENAME])
+    def output_file(self, parameters, context) -> Path:
+        return Path(self.parameterAsFileOutput(parameters, OUTPUT_FILENAME, context))
 
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
@@ -210,8 +210,9 @@ class ThreediDepthSingleTimeStepAlgorithm(ThreediDepthAlgorithm):
         return args
 
     def create_algorithm_outputs(self, parameters, context):
-        layer_name = self.output_file(parameters).name
-        layer = QgsRasterLayer(str(self.output_file(parameters)), layer_name)
+        output_file_path = self.output_file(parameters, context)
+        layer_name = output_file_path.name
+        layer = QgsRasterLayer(str(output_file_path), layer_name)
         context.temporaryLayerStore().addMapLayer(layer)
         layer_details = QgsProcessingContext.LayerDetails(
             layer_name,
@@ -268,7 +269,7 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(ThreediDepthSingleTimeStepAlgorit
             {
                 "results_3di_path": parameters[NETCDF_INPUT],
                 "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
-                "waterdepth_path": str(self.output_file(parameters)),
+                "waterdepth_path": str(self.output_file(parameters, context)),
             }
         )
         return args

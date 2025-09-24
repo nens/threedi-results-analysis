@@ -48,6 +48,10 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
     def value(self):
         return self._widget.getValue()
 
+    def setValue(self, value):
+        if value is not None:
+            self._widget.setValue(int(value))
+
     def postInitialize(self, wrappers):
         # Connect the result-file parameter to the TimeSliderWidget/TimeStepsCombobox
         for wrapper in wrappers:
@@ -73,6 +77,11 @@ class TimeSliderWidget(BASE, WIDGET):
 
     def getValue(self):
         return self.index
+
+    def setValue(self, value):
+        if value is not None:
+            self.set_lcd_value(int(value))
+            self.horizontalSlider.setValue(int(value))
 
     def set_timestamps(self, timestamps):
         self.setDisabled(False)
