@@ -3,7 +3,7 @@ from qgis.PyQt.QtGui import QColor
 import pyqtgraph as pg
 from qgis.PyQt.QtCore import pyqtSignal, QPointF
 import numpy as np
-from threedi_results_analysis.utils.geo_utils import distance_to_polyline
+from threedi_results_analysis.utils.geo_utils import distance_to_polyline, inbetween_polylines, below_polyline, closest_point_on_polyline
 from threedi_results_analysis.utils.color import reduce_saturation, increase_value
 
 pg.setConfigOption("background", "w")
@@ -61,33 +61,47 @@ class FractionPlot(pg.PlotWidget):
 
     def mouse_moved(self, pos):
         # As we are using a ProxySignal, we get a list of events
-        x = pos[0].x()
-        y = pos[0].y()
-        # find closest plot (if any) in scene coordinates (not data point)
+        mouse_scene_x = pos[0].x()
+        mouse_scene_y = pos[0].y()
+        mouse_point = self.plotItem.vb.mapSceneToView(pos[0])
+
         min_dist = float("inf")
         closest_substance = None
         closest_data_point = None
-        for item in self.plotItem.listDataItems():
-            x_data, y_data = item.getData()
 
-            # Convert data points to scene coordinates
-            scene_points = [self.plotItem.vb.mapViewToScene(QPointF(x, y)) for x, y in zip(x_data, y_data)]
-            # Convert to numpy arrays for distance calculations
-            scene_x_data = np.array([pt.x() for pt in scene_points])
-            scene_y_data = np.array([pt.y() for pt in scene_points])
+        for substance, plots in self.item_map.items():
+            if len(plots) == 2:  # STACKED MODE
+                # There is also a fill, need to check whether point is in trapezoids
+                plot1 = plots[1].curves[0]
+                plot2 = plots[1].curves[1]
+                scene_x1_data, scene_y1_data, x1_data, y1_data = self._getPlotDataInSceneCoordinates(plot1)
+                _, y2_data = plot2.getData()
 
-            dist, data_point = distance_to_polyline(x, y, scene_x_data, scene_y_data)
-            if dist < 10:
-                if dist < min_dist:
-                    min_dist = dist
-                    # Check which substance this plot corresponds to
-                    for substance, plots in self.item_map.items():
-                        for plot in plots:
-                            if plot is item:
-                                closest_substance = substance
-                                closest_data_point = self.plotItem.vb.mapSceneToView(QPointF(data_point[0], data_point[1]))
-                                break
-                assert closest_substance  # We should always find a plot
+                if inbetween_polylines(mouse_point.x(), mouse_point.y(), x1_data, y1_data, y2_data):
+                    closest_substance = substance
+                    # find closest point in scene coordinates of base line
+                    _, _, idx1 = closest_point_on_polyline(mouse_scene_x, mouse_scene_y, scene_x1_data, scene_y1_data)
+                    closest_data_point = QPointF(x1_data[idx1], y1_data[idx1])
+                    break
+            elif len(plots) == 1:  # SINGLE MODE
+                item = plots[0]
+                if item.opts['fillLevel'] == 0:
+                    # this is the bottom plot, filled
+                    scene_x_data, scene_y_data, x_data, y_data = self._getPlotDataInSceneCoordinates(item)
+                    if below_polyline(mouse_point.x(), mouse_point.y(), x_data, y_data):
+                        closest_substance = substance
+                        _, _, idx = closest_point_on_polyline(mouse_scene_x, mouse_scene_y, scene_x_data, scene_y_data)
+                        closest_data_point = QPointF(x_data[idx], y_data[idx])
+                        # find closest point to item in scene coordinates
+                        break
+                else:
+                    scene_x_data, scene_y_data, x_data, y_data = self._getPlotDataInSceneCoordinates(item)
+                    dist, data_point = distance_to_polyline(mouse_scene_x, mouse_scene_y, scene_x_data, scene_y_data)
+                    if dist < 10:
+                        if dist < min_dist:
+                            min_dist = dist
+                            closest_substance = substance
+                            closest_data_point = self.plotItem.vb.mapSceneToView(QPointF(data_point[0], data_point[1]))
 
         if closest_substance is not None:
             self.mouseLabel.setText("(%0.1f, %0.1f)" % (closest_data_point.x(), closest_data_point.y()))
@@ -211,3 +225,11 @@ class FractionPlot(pg.PlotWidget):
 
         self.setLabel("left", volume_label if volume else "Concentration", processed_substance_unit if volume else substance_unit)
         self.plotItem.vb.menu.viewAll.triggered.emit()
+
+    def _getPlotDataInSceneCoordinates(self, plot):
+        x_data, y_data = plot.getData()
+        scene_points = [self.plotItem.vb.mapViewToScene(QPointF(x, y)) for x, y in zip(x_data, y_data)]
+        # Convert to numpy arrays for distance calculations
+        scene_x_data = np.array([pt.x() for pt in scene_points])
+        scene_y_data = np.array([pt.y() for pt in scene_points])
+        return scene_x_data, scene_y_data, x_data, y_data

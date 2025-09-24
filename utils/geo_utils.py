@@ -45,3 +45,26 @@ def distance_to_polyline(px, py, x_data, y_data):
             min_dist = dist
             closest = a if np.linalg.norm(point-a) < np.linalg.norm(point-b) else b
     return min_dist, closest
+
+
+def inbetween_polylines(px, py, x_data, y1_data, y2_data):
+    if px < x_data[0] or px > x_data[-1]:
+        return False
+
+    y1 = np.interp(px, x_data, y1_data)
+    y2 = np.interp(px, x_data, y2_data)
+    return (min(y1, y2) <= py <= max(y1, y2))
+
+
+def below_polyline(px, py, x_data, y_data):
+    if px < x_data[0] or px > x_data[-1]:
+        return False
+
+    y = np.interp(px, x_data, y_data)
+    return py < y
+
+
+def closest_point_on_polyline(px, py, x_data, y_data):
+    dists = (x_data - px)**2 + (y_data - py)**2
+    idx = np.argmin(dists)
+    return x_data[idx], y_data[idx], idx
