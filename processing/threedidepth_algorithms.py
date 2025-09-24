@@ -363,6 +363,175 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
         return {}
 
 
+class ConcentrationRasterAlgorithm(QgsProcessingAlgorithm):
+    """
+    Calculates concentration raster from 3Di water quality result NetCDF
+    """
+
+    MODES = [
+        Mode(MODE_LIZARD, "Interpolated concentration"),
+        Mode(MODE_CONSTANT, "Non-interpolated concentration"),
+    ]
+
+    GRIDADMIN_INPUT = "GRIDADMIN_INPUT"
+    WQ_RESULTS_3DI_INPUT = "WQ_RESULTS_3DI_INPUT"
+    MODE_INPUT = "MODE_INPUT"
+    CALCULATION_STEP_INPUT = "CALCULATION_STEP_INPUT"
+    AS_NETCDF_INPUT = "AS_NETCDF_INPUT"
+    CALCULATION_STEP_END_INPUT = "CALCULATION_STEP_END_INPUT"
+    OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME"
+    OUTPUT_DIRECTORY = "OUTPUT_DIRECTORY"
+    OUTPUT = "OUTPUT"
+
+    def tr(self, string):
+        """
+        Returns a translatable string with the self.tr() function.
+        """
+        return QCoreApplication.translate("Processing", string)
+
+    def createInstance(self):
+        return ThreediDepthAlgorithm()
+
+    def name(self):
+        """Returns the algorithm name, used for identifying the algorithm"""
+        return "concentration_raster"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-visible display of the algorithm name.
+        """
+        return self.tr("Concentration raster")
+
+    def group(self):
+        """Returns the name of the group this algorithm belongs to"""
+        return self.tr("Post-process results")
+
+    def groupId(self):
+        """Returns the unique ID of the group this algorithm belongs to"""
+        return "postprocessing"
+
+    def shortHelpString(self):
+        """Returns a localised short helper string for the algorithm"""
+        return self.tr("Calculate concentration raster for specified time step")
+
+    def initAlgorithm(self, config=None):
+        """Here we define the inputs and output of the algorithm"""
+        # Input parameters
+        self.addParameter(
+            QgsProcessingParameterFile(self.GRIDADMIN_INPUT, self.tr("Gridadmin.h5 file"), extension="h5")
+        )
+        self.addParameter(
+            QgsProcessingParameterFile(self.RESULTS_3DI_INPUT, self.tr("Water quality results file"), extension="nc")
+        )
+        self.addParameter(QgsProcessingParameterRasterLayer(self.DEM_INPUT, self.tr("DEM")))
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                name=self.MODE_INPUT,
+                description=self.tr("Interpolation mode"),
+                options=[m.description for m in self.MODES],
+                defaultValue=MODE_LINEAR,
+            )
+        )
+        self.addParameter(
+            ProcessingParameterNetcdfNumber(
+                name=self.CALCULATION_STEP_INPUT,
+                description=self.tr("The timestep in the simulation for which you want to generate a raster"),
+                defaultValue=-1,
+                parentParameterName=self.RESULTS_3DI_INPUT,
+            )
+        )
+        self.addParameter(
+            ProcessingParameterNetcdfNumber(
+                name=self.CALCULATION_STEP_END_INPUT,
+                description=self.tr("Last timestep (for multiple timesteps export)"),
+                defaultValue=-2,
+                parentParameterName=self.RESULTS_3DI_INPUT,
+                optional=True,
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterString(
+                self.WATER_DEPTH_LEVEL_NAME,
+                self.tr("Water depth/level raster name"),
+                defaultValue="water_depth_level",
+            )
+        )
+        output_param = QgsProcessingParameterFile(
+            self.OUTPUT_DIRECTORY,
+            self.tr("Destination folder for water depth/level raster"),
+            behavior=QgsProcessingParameterFile.Folder,
+        )
+        self.addParameter(output_param)
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.AS_NETCDF_INPUT,
+                description="Export the water depth/level as a NetCDF file (experimental)",
+                defaultValue=False,
+            )
+        )
+
+    def processAlgorithm(self, parameters, context, feedback):
+        """
+        Create the water depth raster with the provided user inputs
+        """
+        dem_filename = self.parameterAsRasterLayer(parameters, self.DEM_INPUT, context).source()
+        gridadmin_path = parameters[self.GRIDADMIN_INPUT]
+        results_3di_path = parameters[self.RESULTS_3DI_INPUT]
+        mode_index = self.parameterAsEnum(parameters, self.MODE_INPUT, context)
+        step = parameters[self.CALCULATION_STEP_INPUT]
+        endstep = parameters[self.CALCULATION_STEP_END_INPUT]
+        if endstep:
+            if endstep <= step:
+                feedback.reportError(
+                    "The last timestep should be larger than the first timestep.",
+                    fatalError=True,
+                )
+                return {}
+            timesteps = list(range(step, endstep))
+        else:
+            timesteps = [step]
+
+        raster_filename = parameters[self.WATER_DEPTH_LEVEL_NAME]
+        if not raster_filename:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.WATER_DEPTH_LEVEL_NAME))
+
+        output_location = parameters[self.OUTPUT_DIRECTORY]
+        if not output_location:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT_DIRECTORY))
+
+        as_netcdf = parameters[self.AS_NETCDF_INPUT]
+        raster_extension = "nc" if as_netcdf else "tif"
+        raster_filename_with_ext = f"{raster_filename}.{raster_extension}"
+        waterdepth_output_file = os.path.join(output_location, raster_filename_with_ext)
+        if os.path.isfile(waterdepth_output_file):
+            os.remove(waterdepth_output_file)
+
+        try:
+            calculate_waterdepth(
+                gridadmin_path=gridadmin_path,
+                results_3di_path=results_3di_path,
+                dem_path=dem_filename,
+                waterdepth_path=waterdepth_output_file,
+                calculation_steps=timesteps,
+                mode=self.MODES[mode_index].name,
+                progress_func=Progress(feedback),
+                netcdf=as_netcdf,
+            )
+        except CancelError:
+            # When the process is cancelled, we just show the intermediate product
+            pass
+
+        if as_netcdf:
+            layer = QgsMeshLayer(waterdepth_output_file, raster_filename, "mdal")
+        else:
+            layer = QgsRasterLayer(waterdepth_output_file, raster_filename)
+        context.temporaryLayerStore().addMapLayer(layer)
+        layer_details = QgsProcessingContext.LayerDetails(raster_filename, context.project(), self.WATER_DEPTH_OUTPUT)
+        context.addLayerToLoadOnCompletion(layer.id(), layer_details)
+        return {}
+
+
 class ThreediMaxDepthAlgorithm(QgsProcessingAlgorithm):
     """
     Calculates maximum water depth or water level rasters from 3Di result NetCDF
