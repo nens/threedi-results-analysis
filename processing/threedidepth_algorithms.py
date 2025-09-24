@@ -43,7 +43,7 @@ import os
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
-pluginPath = os.path.split(os.path.dirname(__file__))[0]
+plugin_path = Path(__file__).resolve().parent.parent
 Mode = namedtuple("Mode", ["name", "description"])
 
 
@@ -76,7 +76,7 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
                 wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
-WIDGET, BASE = uic.loadUiType(os.path.join(pluginPath, "processing", "ui", "widgetTimeSlider.ui"))
+WIDGET, BASE = uic.loadUiType(plugin_path / "processing" / "ui", "widgetTimeSlider.ui")
 
 
 class TimeSliderWidget(BASE, WIDGET):
@@ -135,7 +135,7 @@ class TimeSliderWidget(BASE, WIDGET):
             self.reset()
 
 
-WIDGET, BASE = uic.loadUiType(os.path.join(pluginPath, "processing", "ui", "widgetTimeSliderCheckbox.ui"))
+WIDGET, BASE = uic.loadUiType(plugin_path / "processing" / "ui" / "widgetTimeSliderCheckbox.ui")
 
 
 class CheckboxTimeSliderWidget(TimeSliderWidget, WIDGET, BASE):
