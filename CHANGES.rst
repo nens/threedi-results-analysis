@@ -4,13 +4,13 @@
 3.25.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add support for aggregate_results_3di.nc files in threedidepth processing algorithms
 
 
 3.25.1 (2025-09-08)
 -------------------
 
-- Bumped dependency loadeder.
+- Bumped dependency loader.
 
 
 3.25 (2025-09-08)
