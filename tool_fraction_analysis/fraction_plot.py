@@ -4,7 +4,7 @@ import pyqtgraph as pg
 from qgis.PyQt.QtCore import pyqtSignal, QPointF
 import numpy as np
 from threedi_results_analysis.utils.geo_utils import distance_to_polyline, inbetween_polylines, below_polyline, closest_point_on_polyline
-from threedi_results_analysis.utils.color import reduce_saturation, increase_value
+from threedi_results_analysis.utils.color import reduce_saturation
 
 pg.setConfigOption("background", "w")
 pg.setConfigOption("foreground", "k")
@@ -118,68 +118,22 @@ class FractionPlot(pg.PlotWidget):
         if not self.item_map:  # No plots yet
             return
 
-        # Retrieve the substance name from the model
         row = color_model_item.index().row()
-        selected_model_item = color_model_item.model().item(row, 0)
-        substance = selected_model_item.data()
+        substance = self.fraction_model.item(row, 0).data()
+        # Take current color
+        style, color, width = self.fraction_model.item(row, 1).data()[0]
 
-        style, color, width = color_model_item.data()[0]
+        fill_color = reduce_saturation(QColor(*color))
+
         pen = pg.mkPen(color=QColor(*color), width=width, style=style)
         self.item_map[substance][0].setPen(pen)
-        fill_color = reduce_saturation(QColor(*color))
 
         # Check whether this is the bottom fill
         if self.item_map[substance][0].opts['fillLevel'] == 0:
             self.item_map[substance][0].setFillBrush(pg.mkBrush(fill_color))
 
         if len(self.item_map[substance]) == 2:
-            # there is a fill, also change that color
             self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
-
-    def highlight_plot(self, row):
-
-        if not self.item_map:  # No plots yet
-            return
-
-        self.unhighlight_plots()
-
-        hovered_model_item = self.fraction_model.item(row, 0)
-        substance = hovered_model_item.data()
-
-        hovered_color_item = self.fraction_model.item(row, 1)
-        # Original color
-        style, color, width = hovered_color_item.data()[1]
-        highlight_color = increase_value(QColor(*color))
-        pen = pg.mkPen(color=highlight_color, width=width, style=style)
-        self.item_map[substance][0].setPen(pen)
-
-        # Check whether this is the bottom fill
-        if self.item_map[substance][0].opts['fillLevel'] == 0:
-            self.item_map[substance][0].setFillBrush(pg.mkBrush(highlight_color))
-
-        # also set fill color
-        if len(self.item_map[substance]) == 2:
-            self.item_map[substance][1].setBrush(pg.mkBrush(highlight_color))
-
-    def unhighlight_plots(self):
-        if not self.item_map:  # No plots yet
-            return
-
-        for row in range(self.fraction_model.rowCount()):
-            substance = self.fraction_model.item(row, 0).data()
-            # original color
-            style, color, width = self.fraction_model.item(row, 1).data()[1]
-
-            pen = pg.mkPen(color=QColor(*color), width=width, style=style)
-            self.item_map[substance][0].setPen(pen)
-
-            fill_color = reduce_saturation(QColor(*color))
-            # Check whether this is the bottom fill
-            if self.item_map[substance][0].opts['fillLevel'] == 0:
-                self.item_map[substance][0].setFillBrush(pg.mkBrush(fill_color))
-
-            if len(self.item_map[substance]) == 2:
-                self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
 
     def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool, volume: bool):
         """
