@@ -34,6 +34,8 @@ from threedidepth.calculate import MODE_LINEAR
 from threedidepth.calculate import MODE_LIZARD
 from threedidepth.calculate import MODE_LIZARD_VAR
 
+from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
+
 import logging
 from pathlib import Path
 
@@ -47,6 +49,7 @@ Mode = namedtuple("Mode", ["name", "description"])
 GRIDADMIN_INPUT = "GRIDADMIN_INPUT"
 NETCDF_INPUT = "NETCDF_INPUT"
 DEM_INPUT = "DEM_INPUT"
+SUBSTANCE_INPUT = "SUBSTANCE_INPUT"
 MODE_INPUT = "MODE_INPUT"
 CALCULATION_STEP_INPUT = "CALCULATION_STEP_INPUT"
 AS_NETCDF_INPUT = "AS_NETCDF_INPUT"
@@ -128,10 +131,10 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 "progress_func": Progress(feedback),
             }
 
-    def create_algorithm_outputs(self, parameters, context):
+    def output_layer_name(self, parameters, context):
         # Not implemented as proper abstractmethod because QgsProcessingAlgorithm already has a metaclass
         # and setting ABCMeta as metaclass creates complicated problems
-        pass
+        return "Output raster"
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -169,7 +172,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                     "Input aggregation NetCDF does not contain maximum water level aggregation (s1_max)."
                 )
 
-        self.create_algorithm_outputs(parameters, context)
+        feedback.setOutputLayerName(OUTPUT_FILENAME, self.output_layer_name(parameters, context))
         return {OUTPUT_FILENAME: str(output_file)}
 
 
@@ -209,9 +212,6 @@ class BaseSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
             }
         )
         return args
-
-    def create_algorithm_outputs(self, parameters, context):
-        pass
 
 class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
@@ -264,6 +264,10 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
             }
         )
         return args
+
+    def output_layer_name(self, parameters, context) -> str:
+        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
+        return self.output_modes[mode_index].description
 
     def createInstance(self):
         return WaterDepthOrLevelSingleTimeStepAlgorithm()
@@ -328,6 +332,13 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
     @property
     def parameters(self) -> List:
         result = super().parameters
+        result.insert(
+            2,
+            QgsProcessingParameterString(
+                SUBSTANCE_INPUT,
+                "Substance",
+            )
+        )
         return result
 
     @property
@@ -336,29 +347,34 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
 
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], parameters[NETCDF_INPUT])
+        substances = {getattr(gwq, substance_key).name: substance_key for substance_key in gwq.substances}
+        variable = substances[self.parameterAsString(parameters, SUBSTANCE_INPUT, context)]
+        # TODO handle KeyError
+
         args.update(
             {
                 "water_quality_results_3di_path": parameters[NETCDF_INPUT],
-                "variable": "",
-                "output_extent": "",
+                "variable": variable,
+                "output_extent": gwq.get_model_extent(),  # TODO make this separate input?
                 "output_path": str(self.output_file(parameters, context)),
             }
         )
         return args
 
     def createInstance(self):
-        return WaterDepthOrLevelSingleTimeStepAlgorithm()
+        return ConcentrationSingleTimeStepAlgorithm()
 
     def name(self):
         """Returns the algorithm name, used for identifying the algorithm"""
-        return "waterdepthorlevelsingletimestep"
+        return "concentrationsingletimestep"
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return "Water depth/level raster (single time step)"
+        return "Concentration raster (single time step)"
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
