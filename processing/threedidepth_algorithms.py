@@ -36,7 +36,7 @@ from threedidepth.calculate import MODE_LIZARD_VAR
 import logging
 from pathlib import Path
 
-from processing.widgets.widgets import ProcessingParameterNetcdfNumber
+from threedi_results_analysis.processing.widgets.widgets import ProcessingParameterNetcdfNumber
 
 logger = logging.getLogger(__name__)
 plugin_path = Path(__file__).resolve().parent.parent
@@ -149,9 +149,9 @@ class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
         """
         Create the water depth raster with the provided user inputs
         """
-        threedidepth_args = self.get_threedidepth_args(parameters, context, feedback)
-        if self.output_file.is_file():
-            self.output_file.unlink()
+        threedidepth_args = self.get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        if self.output_file(parameters).is_file():
+            self.output_file(parameters).unlink()
 
         try:
             self.threedidepth_method(**threedidepth_args)
@@ -182,7 +182,7 @@ class ThreediDepthSingleTimeStepAlgorithm(ThreediDepthAlgorithm):
         result.append(
             ProcessingParameterNetcdfNumber(
                 name=CALCULATION_STEP_INPUT,
-                description=self.tr("Time step"),
+                description="Time step",
                 defaultValue=-1,
                 parentParameterName=NETCDF_INPUT,
             )
@@ -200,7 +200,7 @@ class ThreediDepthSingleTimeStepAlgorithm(ThreediDepthAlgorithm):
         return Path(parameters[OUTPUT_FILENAME])
 
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
-        args = super().get_threedidepth_args(parameters, context, feedback)
+        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
         args.update(
             {
                 "calculation_steps": [parameters[CALCULATION_STEP_INPUT]],
@@ -262,9 +262,8 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(ThreediDepthSingleTimeStepAlgorit
     def threedidepth_method(self):
         return calculate_waterdepth
 
-    @property
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
-        args = super().get_threedidepth_args(parameters, context, feedback)
+        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
         args.update(
             {
                 "results_3di_path": parameters[NETCDF_INPUT],
@@ -290,8 +289,7 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(ThreediDepthSingleTimeStepAlgorit
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
-        return self.tr(
-            """
+        return """
             <h3>Calculate water depth or level raster for specified timestep(s)</h3>
             <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
             <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
@@ -318,7 +316,6 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(ThreediDepthSingleTimeStepAlgorit
             <h3>Save to NetCDF (experimental)</h3>
             <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
             """
-        )
 
 
 # class ORIGINAL_ALGORITHM(QgsProcessingAlgorithm):

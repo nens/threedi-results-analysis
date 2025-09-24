@@ -10,7 +10,7 @@ from threedi_results_analysis.utils.user_messages import pop_up_info
 import h5py
 
 logger = logging.getLogger(__name__)
-plugin_path = Path(__file__).resolve().parent.parent
+plugin_path = Path(__file__).resolve().parent.parent.parent
 
 
 def format_timestep_value(value: float, drop_leading_zero: bool = False) -> str:
