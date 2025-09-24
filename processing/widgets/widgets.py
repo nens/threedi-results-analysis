@@ -163,4 +163,3 @@ class TimeStepsCombobox(QComboBox):
             logger.exception(e)
             pop_up_info(msg="Unable to read the file, see the logging for more information.")
             self.clear()
-

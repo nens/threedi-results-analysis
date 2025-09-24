@@ -32,10 +32,7 @@ from threedi_results_analysis.processing.structure_control_action_algorithms imp
     StructureControlActionAlgorithm,
 )
 from threedi_results_analysis.processing.threedidepth_algorithms import (
-    ThreediDepthAlgorithm,
-)
-from threedi_results_analysis.processing.threedidepth_algorithms import (
-    ThreediMaxDepthAlgorithm,
+    WaterDepthOrLevelSingleTimeStepAlgorithm,
 )
 from threedi_results_analysis.processing.water_depth_difference_algorithm import (
     WaterDepthDiffAlgorithm,
@@ -49,8 +46,7 @@ class ThreediProvider(QgsProcessingProvider):
     """Loads the Processing Toolbox algorithms for 3Di"""
 
     def loadAlgorithms(self, *args, **kwargs):
-        self.addAlgorithm(ThreediDepthAlgorithm())
-        self.addAlgorithm(ThreediMaxDepthAlgorithm())
+        self.addAlgorithm(WaterDepthOrLevelSingleTimeStepAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
