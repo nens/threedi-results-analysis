@@ -126,10 +126,14 @@ class FractionPlot(pg.PlotWidget):
         style, color, width = color_model_item.data()[0]
         pen = pg.mkPen(color=QColor(*color), width=width, style=style)
         self.item_map[substance][0].setPen(pen)
+        fill_color = reduce_saturation(QColor(*color))
+
+        # Check whether this is the bottom fill
+        if self.item_map[substance][0].opts['fillLevel'] == 0:
+                self.item_map[substance][0].setFillBrush(pg.mkBrush(fill_color))
 
         if len(self.item_map[substance]) == 2:
             # there is a fill, also change that color
-            fill_color = reduce_saturation(QColor(*color))
             self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
 
     def highlight_plot(self, row):
@@ -148,6 +152,11 @@ class FractionPlot(pg.PlotWidget):
         highlight_color = increase_value(QColor(*color))
         pen = pg.mkPen(color=highlight_color, width=width, style=style)
         self.item_map[substance][0].setPen(pen)
+
+        # Check whether this is the bottom fill
+        if self.item_map[substance][0].opts['fillLevel'] == 0:
+                self.item_map[substance][0].setFillBrush(pg.mkBrush(highlight_color))
+
         # also set fill color
         if len(self.item_map[substance]) == 2:
             self.item_map[substance][1].setBrush(pg.mkBrush(highlight_color))
@@ -163,8 +172,13 @@ class FractionPlot(pg.PlotWidget):
 
             pen = pg.mkPen(color=QColor(*color), width=width, style=style)
             self.item_map[substance][0].setPen(pen)
+
+            fill_color = reduce_saturation(QColor(*color))
+            # Check whether this is the bottom fill
+            if self.item_map[substance][0].opts['fillLevel'] == 0:
+                self.item_map[substance][0].setFillBrush(pg.mkBrush(fill_color))
+
             if len(self.item_map[substance]) == 2:
-                fill_color = reduce_saturation(QColor(*color))
                 self.item_map[substance][1].setBrush(pg.mkBrush(fill_color))
 
     def fraction_selected(self, feature_id, substance_unit: str, time_unit: str, stacked: bool, volume: bool):

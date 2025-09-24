@@ -75,6 +75,8 @@ class FractionModel(QStandardItemModel):
     @pyqtSlot(str)
     def highlight_row(self, row: int):
         for row_idx in range(self.rowCount()):
+            if row_idx == row:
+                self.highlighted_row = row
             self._highlight(row_idx, row_idx == row)
 
     def _highlight(self, row, highlight: bool):
