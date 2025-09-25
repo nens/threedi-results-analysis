@@ -56,6 +56,7 @@ Mode = namedtuple("Mode", ["name", "description"])
 AS_NETCDF_INPUT = "AS_NETCDF_INPUT"
 CALCULATION_STEP_END_INPUT = "CALCULATION_STEP_END_INPUT"
 CALCULATION_STEP_INPUT = "CALCULATION_STEP_INPUT"
+CALCULATION_STEP_START_INPUT = "CALCULATION_STEP_START_INPUT"
 COLOR_INPUT = "COLOR_INPUT"
 DEM_INPUT = "DEM_INPUT"
 GRIDADMIN_INPUT = "GRIDADMIN_INPUT"
@@ -226,11 +227,61 @@ class BaseSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         )
         return args
 
+
 class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
     Base processing algorithm to get a threedidepth result for multiple time steps
     """
-    pass
+    @property
+    def parameters(self) -> List:
+        result = super().parameters
+        # result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
+        result.append(
+            ProcessingParameterNetcdfNumber(
+                name=CALCULATION_STEP_START_INPUT,
+                description="First time step",
+                defaultValue=0,
+                parentParameterName=NETCDF_INPUT,
+            )
+        )
+        result.append(
+            ProcessingParameterNetcdfNumber(
+                name=CALCULATION_STEP_END_INPUT,
+                description="Last time step",
+                defaultValue=-1,
+                parentParameterName=NETCDF_INPUT,
+            )
+        )
+        result.append(
+            QgsProcessingParameterFile(
+                OUTPUT_DIRECTORY,
+                "Output directory",
+                behavior=QgsProcessingParameterFile.Folder,
+            )
+        )
+        return result
+
+    def output_file(self, parameters, context) -> Path:
+        return Path(parameters[OUTPUT_DIRECTORY])
+
+    def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
+        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        calculation_step_start = parameters[CALCULATION_STEP_START_INPUT]
+        calculation_step_end = parameters[CALCULATION_STEP_END_INPUT]
+        if calculation_step_end <= calculation_step_start:
+            feedback.reportError(
+                "The last timestep should be larger than the first timestep.",
+                fatalError=True,
+            )
+            return {}
+        calculation_steps = list(range(calculation_step_start, calculation_step_end))
+        args.update(
+            {
+                "calculation_steps": calculation_steps,
+                "netcdf": False
+            }
+        )
+        return args
 
 
 class BaseMaxAlgorithm(BaseThreediDepthAlgorithm):
@@ -295,6 +346,95 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         user-visible display of the algorithm name.
         """
         return "Water depth/level raster (single time step)"
+
+    def shortHelpString(self):
+        """Returns a localised short helper string for the algorithm"""
+        return """
+            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
+            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
+            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
+            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
+            <h3>Parameters</h3>
+            <h4>Gridadmin file</h4>
+            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
+            <h4>3Di simulation output (.nc)</h4>
+            <p>NetCDF (*.nc) containing the results or aggregated resultes of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+            <h4>DEM</h4>
+            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
+            <h4>Output type</h4>
+            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
+            <h4>Time step</h4>
+            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
+            <h4>Enable multiple time steps export</h4>
+            <p>Check this box if you want outputs for multiple time steps.</p>
+            <h4>Last time step</h4>
+            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
+            <h4>Output file name</h4>
+            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
+            <h4>Output directory</h4>
+            <p>Directory where the output file(s) are to be stored.</p>
+            <h3>Save to NetCDF (experimental)</h3>
+            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
+            """
+
+
+class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseMultipleTimeStepAlgorithm):
+    """
+    Calculates water depth or water level from 3Di result NetCDF for multiple time steps
+    """
+    # TODO: zo aanpassen dat rekening wordt gehouden met dat er één file uitkomt en dat dat ook een netcdf kan zijn
+    # TODO: styling
+    @property
+    def output_modes(self) -> List[Mode]:
+        return [
+            Mode(MODE_LIZARD, "Interpolated water depth"),
+            Mode(MODE_LIZARD_VAR, "Interpolated water level"),
+            Mode(MODE_CONSTANT, "Non-interpolated water depth"),
+            Mode(MODE_CONSTANT_VAR, "Non-interpolated water level"),
+        ]
+
+    @property
+    def default_mode(self) -> Mode:
+        return Mode(MODE_LIZARD, "Interpolated water depth")
+
+    @property
+    def parameters(self) -> List:
+        result = super().parameters
+        result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
+        return result
+
+    @property
+    def threedidepth_method(self):
+        return calculate_waterdepth
+
+    def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
+        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        args.update(
+            {
+                "results_3di_path": parameters[NETCDF_INPUT],
+                "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
+                "waterdepth_path": str(self.output_file(parameters, context) / "water depth.tif"),
+            }
+        )
+        return args
+
+    def output_layer_name(self, parameters, context) -> str:
+        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
+        return self.output_modes[mode_index].description
+
+    def createInstance(self):
+        return WaterDepthOrLevelMultipleTimeStepAlgorithm()
+
+    def name(self):
+        """Returns the algorithm name, used for identifying the algorithm"""
+        return "waterdepthorlevelmultipletimestep"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-visible display of the algorithm name.
+        """
+        return "Water depth/level raster (multiple time steps)"
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
