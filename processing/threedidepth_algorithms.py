@@ -17,16 +17,21 @@ from qgis.core import QgsFeedback
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingContext
 from qgis.core import QgsProcessingException
+from qgis.core import QgsProcessingOutputLayerDefinition
 from qgis.core import QgsProcessingParameterBoolean
+from qgis.core import QgsProcessingParameterColor
 from qgis.core import QgsProcessingParameterEnum
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
 from qgis.core import QgsProcessingParameterRasterDestination
 from qgis.core import QgsProcessingParameterRasterLayer
 from qgis.core import QgsProcessingParameterString
+from qgis.core import QgsProcessingUtils
+from qgis.core import QgsRasterBandStats
 from qgis.core import QgsMeshLayer
 from qgis.core import QgsRasterLayer
 from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtGui import QColor
 from threedidepth.calculate import calculate_waterdepth, calculate_water_quality
 from threedidepth.calculate import MODE_CONSTANT
 from threedidepth.calculate import MODE_CONSTANT_VAR
@@ -40,24 +45,28 @@ import logging
 from pathlib import Path
 
 from threedi_results_analysis.processing.widgets.widgets import ProcessingParameterNetcdfNumber
+from threedi_results_analysis.processing.deps.concentration.mask import mask
+from threedi_results_analysis.processing.deps.concentration.styling import apply_transparency_gradient
 
 logger = logging.getLogger(__name__)
 plugin_path = Path(__file__).resolve().parent.parent
 Mode = namedtuple("Mode", ["name", "description"])
 
 
-GRIDADMIN_INPUT = "GRIDADMIN_INPUT"
-NETCDF_INPUT = "NETCDF_INPUT"
-DEM_INPUT = "DEM_INPUT"
-SUBSTANCE_INPUT = "SUBSTANCE_INPUT"
-MODE_INPUT = "MODE_INPUT"
-CALCULATION_STEP_INPUT = "CALCULATION_STEP_INPUT"
 AS_NETCDF_INPUT = "AS_NETCDF_INPUT"
 CALCULATION_STEP_END_INPUT = "CALCULATION_STEP_END_INPUT"
-WATER_DEPTH_LEVEL_NAME = "WATER_DEPTH_LEVEL_NAME"
+CALCULATION_STEP_INPUT = "CALCULATION_STEP_INPUT"
+COLOR_INPUT = "COLOR_INPUT"
+DEM_INPUT = "DEM_INPUT"
+GRIDADMIN_INPUT = "GRIDADMIN_INPUT"
+MODE_INPUT = "MODE_INPUT"
+NETCDF_INPUT = "NETCDF_INPUT"
 OUTPUT_DIRECTORY = "OUTPUT_DIRECTORY"
-WATER_DEPTH_OUTPUT = "WATER_DEPTH_OUTPUT"
 OUTPUT_FILENAME = "OUTPUT_FILENAME"
+SUBSTANCE_INPUT = "SUBSTANCE_INPUT"
+WATER_DEPTH_INPUT = "WATERDEPTH_INPUT"
+WATER_DEPTH_LEVEL_NAME = "WATER_DEPTH_LEVEL_NAME"
+WATER_DEPTH_OUTPUT = "WATER_DEPTH_OUTPUT"
 
 
 class CancelError(Exception):
@@ -172,7 +181,11 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                     "Input aggregation NetCDF does not contain maximum water level aggregation (s1_max)."
                 )
 
-        feedback.setOutputLayerName(OUTPUT_FILENAME, self.output_layer_name(parameters, context))
+        # TODO Customize layer name
+        # output_def = QgsProcessingOutputLayerDefinition()
+        # output_def.destination = output_file
+        # output_def.name = self.output_layer_name(parameters=parameters, context=context)
+
         return {OUTPUT_FILENAME: str(output_file)}
 
 
@@ -334,9 +347,25 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         result = super().parameters
         result.insert(
             2,
+            QgsProcessingParameterRasterLayer(
+                WATER_DEPTH_INPUT,
+                "Water depth (mask layer)",
+                optional=True
+            )
+        )
+        result.insert(
+            3,
             QgsProcessingParameterString(
                 SUBSTANCE_INPUT,
                 "Substance",
+            )
+        )
+        result.insert(
+            4,
+            QgsProcessingParameterColor(
+                COLOR_INPUT,
+                "Color",
+                defaultValue=QColor("brown")
             )
         )
         return result
@@ -349,18 +378,68 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
         gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], parameters[NETCDF_INPUT])
         substances = {getattr(gwq, substance_key).name: substance_key for substance_key in gwq.substances}
-        variable = substances[self.parameterAsString(parameters, SUBSTANCE_INPUT, context)]
-        # TODO handle KeyError
+        variable = substances[self.parameterAsString(parameters, SUBSTANCE_INPUT, context)]  # TODO handle KeyError
+        mask_layer = self.parameterAsRasterLayer(parameters, WATER_DEPTH_INPUT, context)
+        if mask_layer:
+            extent = mask_layer.extent()  # QgsRectangle
+            output_extent = (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum())
+        else:
+            output_extent = gwq.get_model_extent()
 
         args.update(
             {
                 "water_quality_results_3di_path": parameters[NETCDF_INPUT],
                 "variable": variable,
-                "output_extent": gwq.get_model_extent(),  # TODO make this separate input?
+                "output_extent": output_extent,  # TODO make this separate input?
                 "output_path": str(self.output_file(parameters, context)),
             }
         )
         return args
+
+    def output_layer_name(self, parameters, context) -> str:
+        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
+        mode_description = self.output_modes[mode_index].description
+        substance_name = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
+        return f"{substance_name}: {mode_description}"
+
+    def processAlgorithm(self, parameters, context, feedback):
+        """
+        Create the water depth raster with the provided user inputs
+        """
+        mask_layer = self.parameterAsRasterLayer(parameters, WATER_DEPTH_INPUT, context)
+        result_file_name = self.output_file(parameters, context)
+        if mask_layer:
+            parameters[OUTPUT_FILENAME] = QgsProcessingUtils.generateTempFilename("non_masked.tif")
+        non_masked_file_name = super().processAlgorithm(parameters, context, feedback)[OUTPUT_FILENAME]
+        if mask_layer:
+            mask(source=non_masked_file_name, mask=mask_layer.source(), output=result_file_name)
+        output_layer = QgsProcessingUtils.mapLayerFromString(str(result_file_name), context)
+        self.output_layer_id = output_layer.id()
+        context.temporaryLayerStore().addMapLayer(output_layer)
+        output_layer_name = self.output_layer_name(parameters, context)
+        layer_details = QgsProcessingContext.LayerDetails(
+            output_layer_name,
+            context.project(),
+            output_layer_name
+        )
+        context.addLayerToLoadOnCompletion(self.output_layer_id, layer_details)
+        self.color = self.parameterAsColor(parameters, COLOR_INPUT, context)
+        return {OUTPUT_FILENAME: result_file_name}
+
+    def postProcessAlgorithm(self, context, feedback):
+        output_layer = context.getMapLayer(self.output_layer_id)
+        stats = output_layer.dataProvider().bandStatistics(
+            1,
+            QgsRasterBandStats.Min | QgsRasterBandStats.Max
+        )
+        apply_transparency_gradient(
+            layer=output_layer,
+            color=self.color,
+            min_value=stats.minimumValue,
+            max_value=stats.maximumValue,
+        )
+        context.project().addMapLayer(output_layer)
+        return {OUTPUT_FILENAME: output_layer.source()}
 
     def createInstance(self):
         return ConcentrationSingleTimeStepAlgorithm()
