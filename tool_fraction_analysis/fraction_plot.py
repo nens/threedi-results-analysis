@@ -68,6 +68,7 @@ class FractionPlot(pg.PlotWidget):
         min_dist = float("inf")
         closest_substance = None
         closest_data_point = None
+        closest_color = None
 
         for substance, plots in self.item_map.items():
             if len(plots) == 2:  # STACKED MODE
@@ -82,6 +83,7 @@ class FractionPlot(pg.PlotWidget):
                     # find closest point in scene coordinates of base line
                     _, _, idx1 = closest_point_on_polyline(mouse_scene_x, mouse_scene_y, scene_x1_data, scene_y1_data)
                     closest_data_point = QPointF(x1_data[idx1], y1_data[idx1])
+                    closest_color = plot1.opts['pen'].color()
                     break
             elif len(plots) == 1:  # SINGLE MODE
                 item = plots[0]
@@ -92,6 +94,7 @@ class FractionPlot(pg.PlotWidget):
                         closest_substance = substance
                         _, _, idx = closest_point_on_polyline(mouse_scene_x, mouse_scene_y, scene_x_data, scene_y_data)
                         closest_data_point = QPointF(x_data[idx], y_data[idx])
+                        closest_color = item.opts['pen'].color()
                         # find closest point to item in scene coordinates
                         break
                 else:
@@ -101,13 +104,15 @@ class FractionPlot(pg.PlotWidget):
                         if dist < min_dist:
                             min_dist = dist
                             closest_substance = substance
+                            closest_color = item.opts['pen'].color()
                             closest_data_point = self.plotItem.vb.mapSceneToView(QPointF(data_point[0], data_point[1]))
 
         if closest_substance is not None:
-            self.mouseLabel.setText("(%0.1f, %0.1f)" % (closest_data_point.x(), closest_data_point.y()))
+            self.mouseLabel.setText("(%0.3f, %0.3f)" % (closest_data_point.x(), closest_data_point.y()))
             self.mouseLabel.setPos(closest_data_point.x(), closest_data_point.y())
             self.mouseMarker.setVisible(True)
             self.mouseMarker.setData([closest_data_point.x()], [closest_data_point.y()])
+            self.mouseMarker.setBrush(closest_color)
         else:
             self.mouseLabel.setText("")
             self.mouseMarker.setVisible(False)
