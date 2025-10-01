@@ -10,12 +10,13 @@
 - Fraction Analysis Tool: substances are listed alphabetically (#1133)
 - Prepared for QGIS 4 (Qt 6) (#1144)
 - Fraction Analysis Tool: plot highlighting (#1132)
+- Add support for aggregate_results_3di.nc files in threedidepth processing algorithms
 
 
 3.25.1 (2025-09-08)
 -------------------
 
-- Bumped dependency loadeder.
+- Bumped dependency loader.
 
 
 3.25 (2025-09-08)
