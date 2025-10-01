@@ -4,7 +4,7 @@
 3.25.3 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Some fixed for Qt6 upgrade.
 
 
 3.25.2 (2025-10-01)

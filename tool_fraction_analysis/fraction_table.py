@@ -34,7 +34,7 @@ class FractionTable(QTableView):
         event.accept()
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Space:
+        if event.key() == Qt.Key.Key_Space:
             # get the current selection
             selection = self.selectedIndexes()
 
@@ -70,8 +70,8 @@ class FractionTable(QTableView):
                         return True
 
                     item = self.model().itemFromIndex(index)
-                    item.setData(((Qt.SolidLine, (selected_color.red(), selected_color.green(), selected_color.blue()), 2),
-                                  (Qt.SolidLine, (selected_color.red(), selected_color.green(), selected_color.blue()), 2)))
+                    item.setData(((Qt.PenStyle.SolidLine, (selected_color.red(), selected_color.green(), selected_color.blue()), 2),
+                                  (Qt.PenStyle.SolidLine, (selected_color.red(), selected_color.green(), selected_color.blue()), 2)))
                     self._update_table_widgets()
 
         return QTableView.eventFilter(self, widget, event)
