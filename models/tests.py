@@ -29,9 +29,9 @@ def test_row_field_value_qvalue2():
     # For checkbox fields, we want the proper QT version of true/false.
     field.field_type = base_fields.CHECKBOX_FIELD
     row_field_value = base_fields.RowFieldValue(row, field, True)
-    assert row_field_value.qvalue == Qt.Checked
+    assert row_field_value.qvalue == Qt.CheckState.Checked
     row_field_value = base_fields.RowFieldValue(row, field, False)
-    assert row_field_value.qvalue == Qt.Unchecked
+    assert row_field_value.qvalue == Qt.CheckState.Unchecked
 
 
 def test_row_field_value_qvalue3():

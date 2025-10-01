@@ -146,10 +146,10 @@ def wb_polygon():
     polygon = QgsGeometry.fromPolygonXY([polygon_points])
     tr = QgsCoordinateTransform(
         QgsCoordinateReferenceSystem(
-            4326, QgsCoordinateReferenceSystem.PostgisCrsId
+            4326, QgsCoordinateReferenceSystem.CrsType.PostgisCrsId
         ),
         QgsCoordinateReferenceSystem(
-            28992, QgsCoordinateReferenceSystem.PostgisCrsId
+            28992, QgsCoordinateReferenceSystem.CrsType.PostgisCrsId
         ),
         QgsProject.instance(),
     )
@@ -163,7 +163,7 @@ def wb_calculation(three_di_result_item, wb_polygon):
     three_di_result_item
     ensure_qgis_app_is_initialized()
     mapcrs = QgsCoordinateReferenceSystem(
-        4326, QgsCoordinateReferenceSystem.PostgisCrsId
+        4326, QgsCoordinateReferenceSystem.CrsType.PostgisCrsId
     )
     wb_calculation = WaterBalanceCalculation(
         result=three_di_result_item,

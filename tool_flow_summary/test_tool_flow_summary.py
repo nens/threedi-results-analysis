@@ -79,7 +79,7 @@ class TestFlowSummaryTool(unittest.TestCase):
         )
 
     def test_result_addition_removal(self):
-        table = VariableTable(Qt.AlignRight, None)
+        table = VariableTable(Qt.AlignmentFlag.AlignRight, None)
         assert table.columnCount() == 1
         assert table.rowCount() == 0
 
