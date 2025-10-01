@@ -69,6 +69,8 @@ WATER_DEPTH_INPUT = "WATERDEPTH_INPUT"
 WATER_DEPTH_LEVEL_NAME = "WATER_DEPTH_LEVEL_NAME"
 WATER_DEPTH_OUTPUT = "WATER_DEPTH_OUTPUT"
 
+STYLE_DIR = Path(__file__).parent / "styles"
+
 
 class CancelError(Exception):
     """Error which gets raised when a user presses the 'cancel' button"""
@@ -163,30 +165,24 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         """
         Create the water depth raster with the provided user inputs
         """
-        threedidepth_args = self.get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        self.threedidepth_args = self.get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
         output_file = self.output_file(parameters, context)
         if output_file.is_file():
             output_file.unlink()
-
         try:
-            self.threedidepth_method(**threedidepth_args)
+            self.threedidepth_method(**self.threedidepth_args)
         except CancelError:
             # When the process is cancelled, we just show the intermediate product
             pass
         except KeyError as e:
             netcdf_path = (
-                    threedidepth_args.get("results_3di_path") or threedidepth_args.get("water_quality_results_3di_path")
+                    self.threedidepth_args.get("results_3di_path") or
+                    self.threedidepth_args.get("water_quality_results_3di_path")
             )
             if Path(netcdf_path).name == "aggregate_results_3di.nc" and e.args[0] == "s1_max":
                 raise QgsProcessingException(
                     "Input aggregation NetCDF does not contain maximum water level aggregation (s1_max)."
                 )
-
-        # TODO Customize layer name
-        # output_def = QgsProcessingOutputLayerDefinition()
-        # output_def.destination = output_file
-        # output_def.name = self.output_layer_name(parameters=parameters, context=context)
-
         return {OUTPUT_FILENAME: str(output_file)}
 
 
@@ -253,16 +249,16 @@ class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
             )
         )
         result.append(
-            QgsProcessingParameterFile(
-                OUTPUT_DIRECTORY,
-                "Output directory",
-                behavior=QgsProcessingParameterFile.Folder,
+            QgsProcessingParameterFileDestination(
+                OUTPUT_FILENAME,
+                "Output file",
+                fileFilter="GeoTIFF (*.tif)"
             )
         )
         return result
 
     def output_file(self, parameters, context) -> Path:
-        return Path(parameters[OUTPUT_DIRECTORY])
+        return Path(self.parameterAsFileOutput(parameters, OUTPUT_FILENAME, context))
 
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
@@ -282,6 +278,24 @@ class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
             }
         )
         return args
+
+    def processAlgorithm(self, parameters, context, feedback):
+        output_file = super().processAlgorithm(parameters, context, feedback)[OUTPUT_FILENAME]
+        self.output_layer_ids = dict()
+        for time_step in self.threedidepth_args["calculation_steps"]:
+            output_layer = QgsProcessingUtils.mapLayerFromString(str(output_file), context)
+            self.output_layer_ids[time_step] = output_layer.id()
+            context.temporaryLayerStore().addMapLayer(output_layer)
+            output_layer_name = self.output_layer_name(parameters, context)
+            output_layer.setName(f"output_layer_name ({time_step})")
+            layer_details = QgsProcessingContext.LayerDetails(
+                output_layer_name,
+                context.project(),
+                output_layer_name
+            )
+            context.addLayerToLoadOnCompletion(output_layer.id(), layer_details)
+        self._results = {OUTPUT_FILENAME: output_file}
+        return self._results
 
 
 class BaseMaxAlgorithm(BaseThreediDepthAlgorithm):
@@ -413,10 +427,22 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseMultipleTimeStepAlgorithm):
             {
                 "results_3di_path": parameters[NETCDF_INPUT],
                 "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
-                "waterdepth_path": str(self.output_file(parameters, context) / "water depth.tif"),
+                "waterdepth_path": str(self.output_file(parameters, context)),
             }
         )
         return args
+
+    def postProcessAlgorithm(self, context, feedback):
+        output_file = self._results[OUTPUT_FILENAME]
+        output_layers=[]
+        for i, time_step in enumerate(self.threedidepth_args["calculation_steps"]):
+            output_layers.append(QgsRasterLayer(output_file, f"Water depth ({time_step})", "gdal"))
+            output_layers[i].loadNamedStyle(str(STYLE_DIR / "water_depth.qml"))
+            output_layers[i].renderer().setBand(i+1)
+            output_layers[i].setName(f"Water depth ({i+1})")
+            context.project().addMapLayer(output_layers[i])
+        return {}
+        # TODO: zorgen dat oorspronkelijke multiband niet wordt toegevoegd
 
     def output_layer_name(self, parameters, context) -> str:
         mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)

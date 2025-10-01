@@ -14,6 +14,7 @@ def apply_transparency_gradient(
     color: QColor,
     min_value: float,
     max_value: float,
+    band: int = 1,
 ):
     # Create shader function
     shader = QgsRasterShader()
@@ -37,8 +38,8 @@ def apply_transparency_gradient(
     color_ramp_shader.setMaximumValue(max_value)
     shader.setRasterShaderFunction(color_ramp_shader)
 
-    # Create renderer (assuming band 1)
-    renderer = QgsSingleBandPseudoColorRenderer(layer.dataProvider(), 1, shader)
+    # Create renderer
+    renderer = QgsSingleBandPseudoColorRenderer(layer.dataProvider(), band, shader)
 
     # Apply renderer to layer
     layer.setRenderer(renderer)
