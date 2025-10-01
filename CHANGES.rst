@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.25.2 (unreleased)
+3.25.2 (2025-10-01)
 -------------------
 
 - Fraction Analysis Tool: Toggle multiple items with space bar (#1135)
