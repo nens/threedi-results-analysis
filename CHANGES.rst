@@ -4,7 +4,8 @@
 3.25.3 (unreleased)
 -------------------
 
-- Some fixed for Qt6 upgrade.
+- Some fixes for Qt6 upgrade. (#1144)
+- Flow Summary Tool: Tool no longer covers Load Simulation dialogs (#1139)
 
 
 3.25.2 (2025-10-01)

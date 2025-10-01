@@ -47,7 +47,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
     def setup_ui(self) -> None:
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_summary.png")
         self.menu_text = "Flow summary tool"
-        self.main_widget = QDialog(None)
+        self.main_widget = QDialog(self.iface.mainWindow())
         self.main_widget.setWindowTitle("Flow summary")
         self.main_widget.setLayout(QGridLayout())
 
@@ -65,7 +65,7 @@ class FlowSummaryTool(ThreeDiPluginTool):
 
         self.main_widget.setEnabled(True)
         self.main_widget.hide()
-        self.main_widget.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
+        self.main_widget.setWindowFlags(Qt.WindowType.Tool)
 
         # Add Ok button
         button_widget = QWidget(self.main_widget)
