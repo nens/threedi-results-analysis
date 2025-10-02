@@ -12,7 +12,7 @@
 """
 from collections import namedtuple
 from datetime import datetime, timedelta
-from typing import List, Dict
+from typing import List, Dict, Callable
 
 import numpy as np
 from osgeo import gdal
@@ -187,13 +187,24 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             raster: str | Path,
             formatting: str = '%Y-%m-%d %H:%M:%S'
     ):
-        indices = self.threedidepth_args["calculation_steps"]
-        dt_timestamps = np.array(self.results_reader.nodes.dt_timestamps)[indices]
         ds = gdal.Open(str(raster), gdal.GA_Update)
-        for i in range(ds.RasterCount):
-            dt = datetime.fromisoformat(str(dt_timestamps[i]))
-            formatted = dt.strftime(formatting)
-            ds.GetRasterBand(i + 1).SetDescription(formatted)
+        if (
+                self.threedidepth_args.get("calculate_maximum_waterlevel")
+                or self.threedidepth_args.get("calculate_maximum_concentration")
+        ):
+            ds.GetRasterBand(1).SetDescription("Maximum")
+        else:
+            indices = self.threedidepth_args["calculation_steps"]
+            reader = self.results_reader
+            if isinstance(reader, (GridH5WaterQualityResultAdmin, CustomizedWaterQualityResultAdmin)):
+                # all substances have the same timestamps and there is always a substance1
+                dt_timestamps = np.array(reader.substance1.dt_timestamps)[indices]
+            else:
+                dt_timestamps = np.array(reader.nodes.dt_timestamps)[indices]
+            for i in range(ds.RasterCount):
+                dt = datetime.fromisoformat(str(dt_timestamps[i]))
+                formatted = dt.strftime(formatting)
+                ds.GetRasterBand(i + 1).SetDescription(formatted)
 
     @property
     def timestamps_seconds(self) -> List[int]:
@@ -201,7 +212,19 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         Get the timestamps in seconds since start of simulation for the requested output time steps
         """
         indices = self.threedidepth_args["calculation_steps"]
-        return self.results_reader.nodes.timestamps[indices]
+        reader = self.results_reader
+        if isinstance(reader, (GridH5WaterQualityResultAdmin, CustomizedWaterQualityResultAdmin)):
+            # all substances have the same timestamps and there is always a substance1
+            return reader.substance1.timestamps[indices]
+        else:
+            return reader.nodes.timestamps[indices]
+
+    def output_layer_name_from_parameters(self, parameters, context):
+        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
+        return self.output_modes[mode_index].description
+
+    def apply_style(self, layer):
+        pass
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -222,10 +245,6 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         Create the water depth raster with the provided user inputs
         """
 
-        # set output layer name
-        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
-        self.output_layer_name = self.output_modes[mode_index].description
-
         self.threedidepth_args = self.get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
         output_file = self.output_file(parameters, context)
         if output_file.is_file():
@@ -240,7 +259,30 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 raise QgsProcessingException(
                     "Input aggregation NetCDF does not contain maximum water level aggregation (s1_max)."
                 )
-        return {OUTPUT_FILENAME: str(output_file)}
+        try:
+            self.set_timestamps_as_band_descriptions(
+                raster=str(output_file)
+            )
+        except ValueError:
+            # occurs when water quality results have missing time units, known issue (2025-10-02)
+            pass
+        self.output_layer_name = self.output_layer_name_from_parameters(parameters, context)
+        self._results = {OUTPUT_FILENAME: str(output_file)}
+        return self._results
+
+    def postProcessAlgorithm(self, context, feedback):
+        output_file = self._results[OUTPUT_FILENAME]
+        output_layers = []
+        timestamps_seconds = self.timestamps_seconds
+        for i, time_step in enumerate(self.threedidepth_args["calculation_steps"]):
+            timestamp_seconds = str(timedelta(seconds=int(timestamps_seconds[i])))
+            layer_name = f"{self.output_layer_name}: ({timestamp_seconds})"
+            output_layers.append(QgsRasterLayer(output_file, layer_name, "gdal"))
+            self.apply_style(output_layers[i])
+            output_layers[i].renderer().setBand(i+1)
+            output_layers[i].setName(layer_name)
+            context.project().addMapLayer(output_layers[i])
+        return {}
 
 
 class BaseSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
@@ -342,14 +384,6 @@ class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
             }
         )
         return args
-
-    def processAlgorithm(self, parameters, context, feedback):
-        self._results = super().processAlgorithm(parameters, context, feedback)
-        self.set_timestamps_as_band_descriptions(
-            raster=self._results[OUTPUT_FILENAME],
-        )
-        return self._results
-
 
 class BaseMaxAlgorithm(BaseThreediDepthAlgorithm):
     """
@@ -485,22 +519,8 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseMultipleTimeStepAlgorithm):
         )
         return args
 
-    def processAlgorithm(self, parameters, context, feedback):
-        result = super().processAlgorithm(parameters, context, feedback)
-        return {}
-
-    def postProcessAlgorithm(self, context, feedback):
-        output_file = self._results[OUTPUT_FILENAME]
-        output_layers = []
-        timestamps_seconds = self.timestamps_seconds
-        for i, time_step in enumerate(self.threedidepth_args["calculation_steps"]):
-            output_layers.append(QgsRasterLayer(output_file, f"Water depth ({time_step})", "gdal"))
-            output_layers[i].loadNamedStyle(str(STYLE_DIR / "water_depth.qml"))
-            output_layers[i].renderer().setBand(i+1)
-            timestamp_seconds = str(timedelta(seconds=int(timestamps_seconds[i])))
-            output_layers[i].setName(f"{self.output_layer_name}: ({timestamp_seconds})")
-            context.project().addMapLayer(output_layers[i])
-        return {}
+    def apply_style(self, layer):
+        layer.loadNamedStyle(str(STYLE_DIR / "water_depth.qml"))
 
     def createInstance(self):
         return WaterDepthOrLevelMultipleTimeStepAlgorithm()
@@ -616,11 +636,22 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         )
         return args
 
-    def output_layer_name(self, parameters, context) -> str:
-        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
-        mode_description = self.output_modes[mode_index].description
+    def output_layer_name_from_parameters(self, parameters, context) -> str:
+        mode_description = super().output_layer_name_from_parameters(parameters, context)
         substance_name = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
         return f"{substance_name}: {mode_description}"
+
+    def apply_style(self, layer):
+        stats = layer.dataProvider().bandStatistics(
+            1,
+            QgsRasterBandStats.Min | QgsRasterBandStats.Max
+        )
+        apply_transparency_gradient(
+            layer=layer,
+            color=self.color,
+            min_value=stats.minimumValue,
+            max_value=stats.maximumValue,
+        )
 
     def processAlgorithm(self, parameters, context, feedback):
         """
@@ -633,33 +664,8 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         non_masked_file_name = super().processAlgorithm(parameters, context, feedback)[OUTPUT_FILENAME]
         if mask_layer:
             mask(source=non_masked_file_name, mask=mask_layer.source(), output=result_file_name)
-        output_layer = QgsProcessingUtils.mapLayerFromString(str(result_file_name), context)
-        self.output_layer_id = output_layer.id()
-        context.temporaryLayerStore().addMapLayer(output_layer)
-        output_layer_name = self.output_layer_name(parameters, context)
-        layer_details = QgsProcessingContext.LayerDetails(
-            output_layer_name,
-            context.project(),
-            output_layer_name
-        )
-        context.addLayerToLoadOnCompletion(self.output_layer_id, layer_details)
         self.color = self.parameterAsColor(parameters, COLOR_INPUT, context)
         return {OUTPUT_FILENAME: result_file_name}
-
-    def postProcessAlgorithm(self, context, feedback):
-        output_layer = context.getMapLayer(self.output_layer_id)
-        stats = output_layer.dataProvider().bandStatistics(
-            1,
-            QgsRasterBandStats.Min | QgsRasterBandStats.Max
-        )
-        apply_transparency_gradient(
-            layer=output_layer,
-            color=self.color,
-            min_value=stats.minimumValue,
-            max_value=stats.maximumValue,
-        )
-        context.project().addMapLayer(output_layer)
-        return {OUTPUT_FILENAME: output_layer.source()}
 
     def createInstance(self):
         return ConcentrationSingleTimeStepAlgorithm()
