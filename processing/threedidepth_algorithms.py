@@ -11,8 +11,11 @@
 ***************************************************************************
 """
 from collections import namedtuple
+from datetime import datetime, timedelta
 from typing import List, Dict
 
+import numpy as np
+from osgeo import gdal
 from qgis.core import QgsFeedback
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingContext
@@ -20,6 +23,7 @@ from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingOutputLayerDefinition
 from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterColor
+from qgis.core import QgsProcessingParameterDefinition
 from qgis.core import QgsProcessingParameterEnum
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
@@ -40,6 +44,10 @@ from threedidepth.calculate import MODE_LIZARD
 from threedidepth.calculate import MODE_LIZARD_VAR
 
 from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
+from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
+from threedigrid.admin.gridresultadmin import CustomizedResultAdmin
+from threedigrid.admin.gridresultadmin import CustomizedWaterQualityResultAdmin
 
 import logging
 from pathlib import Path
@@ -135,6 +143,13 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
     def threedidepth_method(self):
         return NotImplementedError("Subclasses must implement this method")
 
+    @property
+    def netcdf_path(self) -> Path:
+        return Path(
+            self.threedidepth_args.get("results_3di_path") or
+            self.threedidepth_args.get("water_quality_results_3di_path")
+        )
+
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
         return {
@@ -143,10 +158,50 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 "progress_func": Progress(feedback),
             }
 
-    def output_layer_name(self, parameters, context):
-        # Not implemented as proper abstractmethod because QgsProcessingAlgorithm already has a metaclass
-        # and setting ABCMeta as metaclass creates complicated problems
-        return "Output raster"
+    @property
+    def results_reader(self):
+        """Get the correct GridH5...Admin"""
+        reader_classes = {
+            "water_quality_results_3di.nc": GridH5WaterQualityResultAdmin,
+            "results_3di.nc": GridH5ResultAdmin,
+            "aggregate_results_3di.nc": GridH5AggregateResultAdmin,
+            "customized_results_3di.nc": CustomizedResultAdmin,
+            "customized_water_quality_results_3di.nc": CustomizedWaterQualityResultAdmin,
+        }
+        reader_class = reader_classes[Path(self.netcdf_path).name]
+        reader = reader_class(str(self.threedidepth_args["gridadmin_path"]), str(self.netcdf_path))
+        return reader
+
+    def get_formatted_datetime_timestamps(self, formatting: str = '%Y-%m-%d %H:%M:%S') -> List[str]:
+        indices = self.threedidepth_args["calculation_steps"]
+        dt_timestamps = np.array(self.results_reader.nodes.dt_timestamps)[indices]
+        result = []
+        for dt_timestamp in dt_timestamps:
+            dt = datetime.fromisoformat(dt_timestamp)
+            formatted = dt.strftime(formatting)
+            result.append(formatted)
+        return result
+
+    def set_timestamps_as_band_descriptions(
+            self,
+            raster: str | Path,
+            formatting: str = '%Y-%m-%d %H:%M:%S'
+    ):
+        indices = self.threedidepth_args["calculation_steps"]
+        dt_timestamps = np.array(self.results_reader.nodes.dt_timestamps)[indices]
+        ds = gdal.Open(str(raster), gdal.GA_Update)
+        for i in range(ds.RasterCount):
+            dt = datetime.fromisoformat(str(dt_timestamps[i]))
+            formatted = dt.strftime(formatting)
+            ds.GetRasterBand(i + 1).SetDescription(formatted)
+
+    @property
+    def timestamps_seconds(self) -> List[int]:
+        """
+        Get the timestamps in seconds since start of simulation for the requested output time steps
+        """
+        indices = self.threedidepth_args["calculation_steps"]
+        return self.results_reader.nodes.timestamps[indices]
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -158,6 +213,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         """Add parameters that apply to all subclasses"""
+        self.output_layer_name = "Output raster"
         for param in self.parameters:
             self.addParameter(param)
 
@@ -165,6 +221,11 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         """
         Create the water depth raster with the provided user inputs
         """
+
+        # set output layer name
+        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
+        self.output_layer_name = self.output_modes[mode_index].description
+
         self.threedidepth_args = self.get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
         output_file = self.output_file(parameters, context)
         if output_file.is_file():
@@ -175,11 +236,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             # When the process is cancelled, we just show the intermediate product
             pass
         except KeyError as e:
-            netcdf_path = (
-                    self.threedidepth_args.get("results_3di_path") or
-                    self.threedidepth_args.get("water_quality_results_3di_path")
-            )
-            if Path(netcdf_path).name == "aggregate_results_3di.nc" and e.args[0] == "s1_max":
+            if Path(self.netcdf_path).name == "aggregate_results_3di.nc" and e.args[0] == "s1_max":
                 raise QgsProcessingException(
                     "Input aggregation NetCDF does not contain maximum water level aggregation (s1_max)."
                 )
@@ -255,6 +312,13 @@ class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
                 fileFilter="GeoTIFF (*.tif)"
             )
         )
+        output_param = QgsProcessingParameterRasterDestination(
+            OUTPUT_FILENAME,
+            "Output multiband raster"
+        )
+        # Prevent QGIS from auto-adding it to the project
+        output_param.setFlags(output_param.flags() | QgsProcessingParameterDefinition.FlagHidden)
+        result.append(output_param)
         return result
 
     def output_file(self, parameters, context) -> Path:
@@ -280,21 +344,10 @@ class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         return args
 
     def processAlgorithm(self, parameters, context, feedback):
-        output_file = super().processAlgorithm(parameters, context, feedback)[OUTPUT_FILENAME]
-        self.output_layer_ids = dict()
-        for time_step in self.threedidepth_args["calculation_steps"]:
-            output_layer = QgsProcessingUtils.mapLayerFromString(str(output_file), context)
-            self.output_layer_ids[time_step] = output_layer.id()
-            context.temporaryLayerStore().addMapLayer(output_layer)
-            output_layer_name = self.output_layer_name(parameters, context)
-            output_layer.setName(f"output_layer_name ({time_step})")
-            layer_details = QgsProcessingContext.LayerDetails(
-                output_layer_name,
-                context.project(),
-                output_layer_name
-            )
-            context.addLayerToLoadOnCompletion(output_layer.id(), layer_details)
-        self._results = {OUTPUT_FILENAME: output_file}
+        self._results = super().processAlgorithm(parameters, context, feedback)
+        self.set_timestamps_as_band_descriptions(
+            raster=self._results[OUTPUT_FILENAME],
+        )
         return self._results
 
 
@@ -432,21 +485,22 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseMultipleTimeStepAlgorithm):
         )
         return args
 
+    def processAlgorithm(self, parameters, context, feedback):
+        result = super().processAlgorithm(parameters, context, feedback)
+        return {}
+
     def postProcessAlgorithm(self, context, feedback):
         output_file = self._results[OUTPUT_FILENAME]
-        output_layers=[]
+        output_layers = []
+        timestamps_seconds = self.timestamps_seconds
         for i, time_step in enumerate(self.threedidepth_args["calculation_steps"]):
             output_layers.append(QgsRasterLayer(output_file, f"Water depth ({time_step})", "gdal"))
             output_layers[i].loadNamedStyle(str(STYLE_DIR / "water_depth.qml"))
             output_layers[i].renderer().setBand(i+1)
-            output_layers[i].setName(f"Water depth ({i+1})")
+            timestamp_seconds = str(timedelta(seconds=int(timestamps_seconds[i])))
+            output_layers[i].setName(f"{self.output_layer_name}: ({timestamp_seconds})")
             context.project().addMapLayer(output_layers[i])
         return {}
-        # TODO: zorgen dat oorspronkelijke multiband niet wordt toegevoegd
-
-    def output_layer_name(self, parameters, context) -> str:
-        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
-        return self.output_modes[mode_index].description
 
     def createInstance(self):
         return WaterDepthOrLevelMultipleTimeStepAlgorithm()
