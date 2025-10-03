@@ -44,6 +44,9 @@ from threedi_results_analysis.processing.threedidepth_algorithms import (
     ConcentrationSingleTimeStepAlgorithm,
 )
 from threedi_results_analysis.processing.threedidepth_algorithms import (
+    ConcentrationMultipleTimeStepAlgorithm,
+)
+from threedi_results_analysis.processing.threedidepth_algorithms import (
     ConcentrationMaximumAlgorithm,
 )
 from threedi_results_analysis.processing.water_depth_difference_algorithm import (
@@ -62,6 +65,7 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(WaterDepthOrLevelMultipleTimeStepAlgorithm())
         self.addAlgorithm(WaterDepthOrLevelMaximumAlgorithm())
         self.addAlgorithm(ConcentrationSingleTimeStepAlgorithm())
+        self.addAlgorithm(ConcentrationMultipleTimeStepAlgorithm())
         self.addAlgorithm(ConcentrationMaximumAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())

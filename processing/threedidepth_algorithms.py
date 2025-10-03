@@ -497,7 +497,6 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             # occurs when water quality results have missing time units, known issue (2025-10-02)
             pass
 
-
         # Save data to be used in postProcessAlgorithm
         self.output_layer_name = self.output_layer_name_from_parameters(parameters, context)
         self._results = {OUTPUT_FILENAME: str(final_output)}
@@ -771,7 +770,7 @@ class ConcentrationMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     @property
     def data_type(self) -> str:
         """
-        WATER_QUANITTY or WATER_QUALITY
+        WATER_QUANTITY or WATER_QUALITY
         """
         return WATER_QUALITY
 
@@ -780,18 +779,18 @@ class ConcentrationMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         return MULTIPLE
 
     def createInstance(self):
-        return ConcentrationSingleTimeStepAlgorithm()
+        return ConcentrationMultipleTimeStepAlgorithm()
 
     def name(self):
         """Returns the algorithm name, used for identifying the algorithm"""
-        return "concentrationsingletimestep"
+        return "concentrationmultipletimestep"
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return "Concentration raster (single time step)"
+        return "Concentration raster (multiple time steps)"
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
