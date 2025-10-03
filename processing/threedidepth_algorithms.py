@@ -12,7 +12,7 @@
 """
 from collections import namedtuple
 from datetime import datetime, timedelta
-from typing import List, Dict, Callable
+from typing import List, Dict, Callable, Tuple
 
 import numpy as np
 from osgeo import gdal
@@ -54,14 +54,17 @@ from pathlib import Path
 
 from threedi_results_analysis.processing.widgets.widgets import ProcessingParameterNetcdfNumber
 from threedi_results_analysis.processing.deps.concentration.mask import mask
-from threedi_results_analysis.processing.deps.concentration.styling import apply_transparency_gradient
+from threedi_results_analysis.processing.deps.concentration.styling import (
+    apply_transparency_gradient,
+    apply_gradient_ramp,
+)
+from threedi_results_analysis.utils.color import color_ramp_from_data, COLOR_RAMP_OCEAN_HALINE
 
 logger = logging.getLogger(__name__)
 plugin_path = Path(__file__).resolve().parent.parent
 Mode = namedtuple("Mode", ["name", "description"])
 
 
-AS_NETCDF_INPUT = "AS_NETCDF_INPUT"
 CALCULATION_STEP_END_INPUT = "CALCULATION_STEP_END_INPUT"
 CALCULATION_STEP_INPUT = "CALCULATION_STEP_INPUT"
 CALCULATION_STEP_START_INPUT = "CALCULATION_STEP_START_INPUT"
@@ -77,7 +80,29 @@ WATER_DEPTH_INPUT = "WATERDEPTH_INPUT"
 WATER_DEPTH_LEVEL_NAME = "WATER_DEPTH_LEVEL_NAME"
 WATER_DEPTH_OUTPUT = "WATER_DEPTH_OUTPUT"
 
+WATER_QUALITY = "WATER_QUALITY"
+WATER_QUANTITY = "WATER_QUANTITY"
+
 STYLE_DIR = Path(__file__).parent / "styles"
+
+
+def multiband_raster_min_max(layer) -> Tuple[float, float]:
+    """Return the min and max values across all bands"""
+    provider = layer.dataProvider()
+    band_count = provider.bandCount()
+
+    global_min = float("inf")
+    global_max = float("-inf")
+
+    for band in range(1, band_count + 1):
+        stats = provider.bandStatistics(
+            band,
+            QgsRasterBandStats.Min | QgsRasterBandStats.Max
+        )
+        global_min = min(global_min, stats.minimumValue)
+        global_max = max(global_max, stats.maximumValue)
+
+    return global_min, global_max
 
 
 class CancelError(Exception):
@@ -116,6 +141,13 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         return NotImplementedError("Subclasses must implement this method")
 
     @property
+    def data_type(self) -> str:
+        """
+        WATER_QUANITTY or WATER_QUALITY
+        """
+        return NotImplementedError("Subclasses must implement this method")
+
+    @property
     def parameters(self) -> List:
         return [
             QgsProcessingParameterFile(
@@ -133,15 +165,25 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 description="Output type",
                 options=[m.description for m in self.output_modes],
                 defaultValue=self.default_mode,
-            )
+            ),
+            QgsProcessingParameterRasterDestination(
+                name=OUTPUT_FILENAME,
+                description="Output raster"
+            ),
+            # # Prevent QGIS from auto-adding it to the project
+            # output_param.setFlags(output_param.flags() | QgsProcessingParameterDefinition.FlagHidden)
+            # result.append(output_param)
         ]
 
     def output_file(self, parameters, context) -> Path:
-        return NotImplementedError("Subclasses must implement this method")
+        return Path(self.parameterAsFileOutput(parameters, OUTPUT_FILENAME, context))
 
     @property
     def threedidepth_method(self):
-        return NotImplementedError("Subclasses must implement this method")
+        if self.data_type == WATER_QUANTITY:
+            return calculate_waterdepth
+        elif self.data_type == WATER_QUALITY:
+            return calculate_water_quality
 
     @property
     def netcdf_path(self) -> Path:
@@ -151,10 +193,9 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         )
 
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
-        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
         return {
                 "gridadmin_path": parameters[GRIDADMIN_INPUT],
-                "mode": self.output_modes[mode_index].name,
+                "mode": self.output_mode.name,
                 "progress_func": Progress(feedback),
             }
 
@@ -224,7 +265,34 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         return self.output_modes[mode_index].description
 
     def apply_style(self, layer):
-        pass
+        if self.data_type == WATER_QUALITY:
+            min_value, max_value = multiband_raster_min_max(layer)
+            apply_transparency_gradient(
+                layer=layer,
+                color=self.color,
+                min_value=min_value,
+                max_value=max_value,
+            )
+
+        elif self.data_type == WATER_QUANTITY:
+            if self.output_mode.name in [
+                MODE_CONSTANT_VAR, MODE_LIZARD_VAR
+            ]:
+                # Water level styling
+                min_value, max_value = multiband_raster_min_max(layer)
+                color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)
+                apply_gradient_ramp(
+                    layer=layer,
+                    color_ramp=color_ramp,
+                    min_value=min_value,
+                    max_value=max_value,
+                    band=1
+                )
+            elif self.output_mode.name in [
+                MODE_CONSTANT, MODE_LIZARD
+            ]:
+                # Water depth styling
+                layer.loadNamedStyle(str(STYLE_DIR / "water_depth.qml"))
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -244,7 +312,8 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         """
         Create the water depth raster with the provided user inputs
         """
-
+        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
+        self.output_mode = self.output_modes[mode_index]
         self.threedidepth_args = self.get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
         output_file = self.output_file(parameters, context)
         if output_file.is_file():
@@ -266,6 +335,8 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         except ValueError:
             # occurs when water quality results have missing time units, known issue (2025-10-02)
             pass
+
+        # Save data to be used in postProcessAlgorithm
         self.output_layer_name = self.output_layer_name_from_parameters(parameters, context)
         self._results = {OUTPUT_FILENAME: str(output_file)}
         return self._results
@@ -279,120 +350,14 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             layer_name = f"{self.output_layer_name}: ({timestamp_seconds})"
             output_layers.append(QgsRasterLayer(output_file, layer_name, "gdal"))
             self.apply_style(output_layers[i])
-            output_layers[i].renderer().setBand(i+1)
+            if hasattr(output_layers[i].renderer(), "setBand"):
+                output_layers[i].renderer().setBand(i+1)
             output_layers[i].setName(layer_name)
             context.project().addMapLayer(output_layers[i])
         return {}
 
 
-class BaseSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
-    """
-    Base processing algorithm to get a threedidepth result for a single time step
-    """
-    @property
-    def parameters(self) -> List:
-        result = super().parameters
-        # result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
-        result.append(
-            ProcessingParameterNetcdfNumber(
-                name=CALCULATION_STEP_INPUT,
-                description="Time step",
-                defaultValue=-1,
-                parentParameterName=NETCDF_INPUT,
-            )
-        )
-        result.append(
-            QgsProcessingParameterRasterDestination(
-                OUTPUT_FILENAME,
-                "Output raster"
-            )
-        )
-        return result
-
-    def output_file(self, parameters, context) -> Path:
-        return Path(self.parameterAsOutputLayer(parameters, OUTPUT_FILENAME, context))
-
-    def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
-        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
-        args.update(
-            {
-                "calculation_steps": [parameters[CALCULATION_STEP_INPUT]],
-                "netcdf": False
-            }
-        )
-        return args
-
-
-class BaseMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
-    """
-    Base processing algorithm to get a threedidepth result for multiple time steps
-    """
-    @property
-    def parameters(self) -> List:
-        result = super().parameters
-        # result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
-        result.append(
-            ProcessingParameterNetcdfNumber(
-                name=CALCULATION_STEP_START_INPUT,
-                description="First time step",
-                defaultValue=0,
-                parentParameterName=NETCDF_INPUT,
-            )
-        )
-        result.append(
-            ProcessingParameterNetcdfNumber(
-                name=CALCULATION_STEP_END_INPUT,
-                description="Last time step",
-                defaultValue=-1,
-                parentParameterName=NETCDF_INPUT,
-            )
-        )
-        result.append(
-            QgsProcessingParameterFileDestination(
-                OUTPUT_FILENAME,
-                "Output file",
-                fileFilter="GeoTIFF (*.tif)"
-            )
-        )
-        output_param = QgsProcessingParameterRasterDestination(
-            OUTPUT_FILENAME,
-            "Output multiband raster"
-        )
-        # Prevent QGIS from auto-adding it to the project
-        output_param.setFlags(output_param.flags() | QgsProcessingParameterDefinition.FlagHidden)
-        result.append(output_param)
-        return result
-
-    def output_file(self, parameters, context) -> Path:
-        return Path(self.parameterAsFileOutput(parameters, OUTPUT_FILENAME, context))
-
-    def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
-        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
-        calculation_step_start = parameters[CALCULATION_STEP_START_INPUT]
-        calculation_step_end = parameters[CALCULATION_STEP_END_INPUT]
-        if calculation_step_end <= calculation_step_start:
-            feedback.reportError(
-                "The last timestep should be larger than the first timestep.",
-                fatalError=True,
-            )
-            return {}
-        calculation_steps = list(range(calculation_step_start, calculation_step_end))
-        args.update(
-            {
-                "calculation_steps": calculation_steps,
-                "netcdf": False
-            }
-        )
-        return args
-
-class BaseMaxAlgorithm(BaseThreediDepthAlgorithm):
-    """
-    Base processing algorithm to get a threedidepth result for maximum of a variable
-    """
-    pass
-
-
-class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
+class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
     Calculates water depth or water level from 3Di result NetCDF for a single time step
     """
@@ -410,14 +375,26 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         return Mode(MODE_LIZARD, "Interpolated water depth")
 
     @property
-    def parameters(self) -> List:
-        result = super().parameters
-        result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
-        return result
+    def data_type(self) -> str:
+        """
+        WATER_QUANITTY or WATER_QUALITY
+        """
+        return WATER_QUANTITY
 
     @property
-    def threedidepth_method(self):
-        return calculate_waterdepth
+    def parameters(self) -> List:
+        result = super().parameters
+        result.insert(
+            -1,
+            ProcessingParameterNetcdfNumber(
+                name=CALCULATION_STEP_INPUT,
+                description="Time step",
+                defaultValue=-1,
+                parentParameterName=NETCDF_INPUT,
+            )
+        )
+        result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
+        return result
 
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
@@ -426,6 +403,7 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
                 "results_3di_path": parameters[NETCDF_INPUT],
                 "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
                 "waterdepth_path": str(self.output_file(parameters, context)),
+                "calculation_steps": [parameters[CALCULATION_STEP_INPUT]],
             }
         )
         return args
@@ -479,7 +457,7 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
             """
 
 
-class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseMultipleTimeStepAlgorithm):
+class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
     Calculates water depth or water level from 3Di result NetCDF for multiple time steps
     """
@@ -499,19 +477,50 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseMultipleTimeStepAlgorithm):
         return Mode(MODE_LIZARD, "Interpolated water depth")
 
     @property
+    def data_type(self) -> str:
+        """
+        WATER_QUANITTY or WATER_QUALITY
+        """
+        return WATER_QUANTITY
+
+    @property
     def parameters(self) -> List:
         result = super().parameters
+        result.insert(
+            -1,
+            ProcessingParameterNetcdfNumber(
+                name=CALCULATION_STEP_START_INPUT,
+                description="First time step",
+                defaultValue=0,
+                parentParameterName=NETCDF_INPUT,
+            )
+        )
+        result.insert(
+            -1,
+            ProcessingParameterNetcdfNumber(
+                name=CALCULATION_STEP_END_INPUT,
+                description="Last time step",
+                defaultValue=-1,
+                parentParameterName=NETCDF_INPUT,
+            )
+        )
         result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
         return result
 
-    @property
-    def threedidepth_method(self):
-        return calculate_waterdepth
-
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        calculation_step_start = parameters[CALCULATION_STEP_START_INPUT]
+        calculation_step_end = parameters[CALCULATION_STEP_END_INPUT]
+        if calculation_step_end <= calculation_step_start:
+            feedback.reportError(
+                "The last timestep should be larger than the first timestep.",
+                fatalError=True,
+            )
+            return {}
+        calculation_steps = list(range(calculation_step_start, calculation_step_end))
         args.update(
             {
+                "calculation_steps": calculation_steps,
                 "results_3di_path": parameters[NETCDF_INPUT],
                 "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
                 "waterdepth_path": str(self.output_file(parameters, context)),
@@ -520,6 +529,7 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseMultipleTimeStepAlgorithm):
         return args
 
     def apply_style(self, layer):
+        # TODO apply different style for water level
         layer.loadNamedStyle(str(STYLE_DIR / "water_depth.qml"))
 
     def createInstance(self):
@@ -567,7 +577,7 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseMultipleTimeStepAlgorithm):
             """
 
 
-class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
+class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
     Calculates concentration from 3Di result NetCDF for a single time step
     """
@@ -583,8 +593,24 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         return Mode(MODE_LIZARD_VAR, "Interpolated concentrations"),
 
     @property
+    def data_type(self) -> str:
+        """
+        WATER_QUANITTY or WATER_QUALITY
+        """
+        return WATER_QUALITY
+
+    @property
     def parameters(self) -> List:
         result = super().parameters
+        result.insert(
+            -1,
+            ProcessingParameterNetcdfNumber(
+                name=CALCULATION_STEP_INPUT,
+                description="Time step",
+                defaultValue=-1,
+                parentParameterName=NETCDF_INPUT,
+            )
+        )
         result.insert(
             2,
             QgsProcessingParameterRasterLayer(
@@ -610,10 +636,6 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         )
         return result
 
-    @property
-    def threedidepth_method(self):
-        return calculate_water_quality
-
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
         gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], parameters[NETCDF_INPUT])
@@ -632,6 +654,7 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
                 "variable": variable,
                 "output_extent": output_extent,  # TODO make this separate input?
                 "output_path": str(self.output_file(parameters, context)),
+                "calculation_steps": [parameters[CALCULATION_STEP_INPUT]],
             }
         )
         return args
@@ -640,18 +663,6 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         mode_description = super().output_layer_name_from_parameters(parameters, context)
         substance_name = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
         return f"{substance_name}: {mode_description}"
-
-    def apply_style(self, layer):
-        stats = layer.dataProvider().bandStatistics(
-            1,
-            QgsRasterBandStats.Min | QgsRasterBandStats.Max
-        )
-        apply_transparency_gradient(
-            layer=layer,
-            color=self.color,
-            min_value=stats.minimumValue,
-            max_value=stats.maximumValue,
-        )
 
     def processAlgorithm(self, parameters, context, feedback):
         """
@@ -665,6 +676,7 @@ class ConcentrationSingleTimeStepAlgorithm(BaseSingleTimeStepAlgorithm):
         if mask_layer:
             mask(source=non_masked_file_name, mask=mask_layer.source(), output=result_file_name)
         self.color = self.parameterAsColor(parameters, COLOR_INPUT, context)
+        self._results = {OUTPUT_FILENAME: str(result_file_name)}
         return {OUTPUT_FILENAME: result_file_name}
 
     def createInstance(self):

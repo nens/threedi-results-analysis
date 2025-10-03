@@ -1,13 +1,14 @@
-from typing import Tuple
 from qgis.core import (
     QgsProject,
     QgsRasterLayer,
     QgsRasterShader,
     QgsColorRampShader,
-    QgsSingleBandPseudoColorRenderer
+    QgsGradientColorRamp,
+    QgsSingleBandPseudoColorRenderer,
 )
 from PyQt5.QtGui import QColor
 
+# TODO move to utils/styling.py
 
 def apply_transparency_gradient(
     layer: QgsRasterLayer,
@@ -42,5 +43,45 @@ def apply_transparency_gradient(
     renderer = QgsSingleBandPseudoColorRenderer(layer.dataProvider(), band, shader)
 
     # Apply renderer to layer
+    layer.setRenderer(renderer)
+    layer.triggerRepaint()
+
+
+def apply_gradient_ramp(
+        layer: QgsRasterLayer,
+        color_ramp: QgsGradientColorRamp,
+        min_value: float,
+        max_value: float,
+        band: int = 1
+):
+    """
+    Apply a gradient color ramp to a raster layer, stretched over given min/max values.
+
+    Parameters
+    ----------
+    layer : QgsRasterLayer
+        The raster layer to style.
+    color_ramp : QgsGradientColorRamp
+        The gradient color ramp to apply.
+    min_value : float
+        The minimum value to be used when stretching the color map over the data
+    max_value : float
+        The maximum value to be used when stretching the color map over the data
+    band : int
+        Raster band index (default=1).
+    """
+
+    # Define the color ramp shader
+    color_ramp_shader = QgsColorRampShader()
+    color_ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
+    color_ramp_shader.setColorRamp(color_ramp)
+    color_ramp_shader.setMinimumValue(min_value)
+    color_ramp_shader.setMaximumValue(max_value)
+
+    shader = QgsRasterShader()
+    shader.setRasterShaderFunction(color_ramp_shader)
+
+    # Apply renderer
+    renderer = QgsSingleBandPseudoColorRenderer(layer.dataProvider(), band, shader)
     layer.setRenderer(renderer)
     layer.triggerRepaint()
