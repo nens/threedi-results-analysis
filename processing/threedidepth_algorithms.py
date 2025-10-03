@@ -248,10 +248,13 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 ds.GetRasterBand(i + 1).SetDescription(formatted)
 
     @property
-    def timestamps_seconds(self) -> List[int]:
+    def timestamps_seconds(self) -> List[int | None]:
         """
         Get the timestamps in seconds since start of simulation for the requested output time steps
         """
+        calculation_steps = self.threedidepth_args.get("calculation_steps")
+        if not calculation_steps:
+            return [None]
         indices = self.threedidepth_args["calculation_steps"]
         reader = self.results_reader
         if isinstance(reader, (GridH5WaterQualityResultAdmin, CustomizedWaterQualityResultAdmin)):
@@ -293,10 +296,6 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             ]:
                 # Water depth styling
                 layer.loadNamedStyle(str(STYLE_DIR / "water_depth.qml"))
-
-    @property
-    def layer_name_suffix(self):
-        return ""
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -353,10 +352,10 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         threedidepth_calculation_steps = self.threedidepth_args.get("calculation_steps") or [None]
         for i, time_step in enumerate(threedidepth_calculation_steps):
             if isinstance(time_step, int):
-                layer_name_suffix = str(timedelta(seconds=int(timestamps_seconds[i])))
+                layer_name_suffix = f" ({str(timedelta(seconds=int(timestamps_seconds[i])))})"
             else:
-                layer_name_suffix = self.layer_name_suffix
-            layer_name = f"{self.output_layer_name}: {layer_name_suffix}"
+                layer_name_suffix = ""
+            layer_name = f"{self.output_layer_name}{layer_name_suffix}"
             output_layers.append(QgsRasterLayer(output_file, layer_name, "gdal"))
             self.apply_style(output_layers[i])
             if hasattr(output_layers[i].renderer(), "setBand"):
@@ -500,14 +499,12 @@ class WaterDepthOrLevelMaximumAlgorithm(BaseThreediDepthAlgorithm):
                 "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
                 "waterdepth_path": str(self.output_file(parameters, context)),
                 "calculate_maximum_waterlevel": True,
-                "calculation_steps": None,
             }
         )
         return args
 
-    @property
-    def layer_name_suffix(self):
-        return "Maximum"
+    def output_layer_name_from_parameters(self, parameters, context):
+        return super().output_layer_name_from_parameters(parameters, context) + " (Maximum)"
 
     def createInstance(self):
         return WaterDepthOrLevelMaximumAlgorithm()
@@ -789,6 +786,145 @@ class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         user-visible display of the algorithm name.
         """
         return "Concentration raster (single time step)"
+
+    def shortHelpString(self):
+        """Returns a localised short helper string for the algorithm"""
+        return """
+            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
+            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
+            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
+            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
+            <h3>Parameters</h3>
+            <h4>Gridadmin file</h4>
+            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
+            <h4>3Di simulation output (.nc)</h4>
+            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+            <h4>DEM</h4>
+            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
+            <h4>Output type</h4>
+            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
+            <h4>Time step</h4>
+            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
+            <h4>Enable multiple time steps export</h4>
+            <p>Check this box if you want outputs for multiple time steps.</p>
+            <h4>Last time step</h4>
+            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
+            <h4>Output file name</h4>
+            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
+            <h4>Output directory</h4>
+            <p>Directory where the output file(s) are to be stored.</p>
+            <h3>Save to NetCDF (experimental)</h3>
+            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
+            """
+
+
+class ConcentrationMaximumAlgorithm(BaseThreediDepthAlgorithm):
+    """
+    Calculates maximum concentration raster from 3Di result NetCDF
+    """
+    @property
+    def output_modes(self) -> List[Mode]:
+        return [
+            Mode(MODE_LIZARD_VAR, "Interpolated concentrations"),
+            Mode(MODE_CONSTANT_VAR, "Non-interpolated concentrations"),
+        ]
+
+    @property
+    def default_mode(self) -> Mode:
+        return Mode(MODE_LIZARD_VAR, "Interpolated concentrations"),
+
+    @property
+    def data_type(self) -> str:
+        """
+        WATER_QUANITTY or WATER_QUALITY
+        """
+        return WATER_QUALITY
+
+    @property
+    def parameters(self) -> List:
+        result = super().parameters
+        result.insert(
+            2,
+            QgsProcessingParameterRasterLayer(
+                WATER_DEPTH_INPUT,
+                "Water depth (mask layer)",
+                optional=True
+            )
+        )
+        # TODO: make this a combobox that is filled from the input netcdf
+        result.insert(
+            3,
+            QgsProcessingParameterString(
+                SUBSTANCE_INPUT,
+                "Substance",
+            )
+        )
+        result.insert(
+            4,
+            QgsProcessingParameterColor(
+                COLOR_INPUT,
+                "Color",
+                defaultValue=QColor("brown")
+            )
+        )
+        return result
+
+    def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
+        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], parameters[NETCDF_INPUT])
+        substances = {getattr(gwq, substance_key).name: substance_key for substance_key in gwq.substances}
+        variable = substances[self.parameterAsString(parameters, SUBSTANCE_INPUT, context)]  # TODO handle KeyError
+        mask_layer = self.parameterAsRasterLayer(parameters, WATER_DEPTH_INPUT, context)
+        if mask_layer:
+            extent = mask_layer.extent()  # QgsRectangle
+            output_extent = (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum())
+        else:
+            output_extent = gwq.get_model_extent()
+
+        args.update(
+            {
+                "water_quality_results_3di_path": parameters[NETCDF_INPUT],
+                "variable": variable,
+                "output_extent": output_extent,  # TODO make this separate input?
+                "output_path": str(self.output_file(parameters, context)),
+                "calculate_maximum_concentration": True,
+            }
+        )
+        return args
+
+    def output_layer_name_from_parameters(self, parameters, context) -> str:
+        mode_description = super().output_layer_name_from_parameters(parameters, context)
+        substance_name = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
+        return f"{substance_name}: {mode_description} (Maximum)"
+
+    def processAlgorithm(self, parameters, context, feedback):
+        """
+        Create the concentration raster with the provided user inputs
+        """
+        mask_layer = self.parameterAsRasterLayer(parameters, WATER_DEPTH_INPUT, context)
+        result_file_name = self.output_file(parameters, context)
+        if mask_layer:
+            parameters[OUTPUT_FILENAME] = QgsProcessingUtils.generateTempFilename("non_masked.tif")
+        non_masked_file_name = super().processAlgorithm(parameters, context, feedback)[OUTPUT_FILENAME]
+        if mask_layer:
+            mask(source=non_masked_file_name, mask=mask_layer.source(), output=result_file_name)
+        self.color = self.parameterAsColor(parameters, COLOR_INPUT, context)
+        self._results = {OUTPUT_FILENAME: str(result_file_name)}
+        return {OUTPUT_FILENAME: result_file_name}
+
+    def createInstance(self):
+        return ConcentrationMaximumAlgorithm()
+
+    def name(self):
+        """Returns the algorithm name, used for identifying the algorithm"""
+        return "concentrationmaximum"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-visible display of the algorithm name.
+        """
+        return "Concentration raster (maximum)"
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
