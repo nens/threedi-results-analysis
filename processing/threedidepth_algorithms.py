@@ -294,6 +294,10 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 # Water depth styling
                 layer.loadNamedStyle(str(STYLE_DIR / "water_depth.qml"))
 
+    @property
+    def layer_name_suffix(self):
+        return ""
+
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
         return "Post-process results"
@@ -319,6 +323,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         if output_file.is_file():
             output_file.unlink()
         try:
+            feedback.pushInfo(f"threedidepth_args: {self.threedidepth_args}")
             self.threedidepth_method(**self.threedidepth_args)
         except CancelError:
             # When the process is cancelled, we just show the intermediate product
@@ -345,9 +350,13 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         output_file = self._results[OUTPUT_FILENAME]
         output_layers = []
         timestamps_seconds = self.timestamps_seconds
-        for i, time_step in enumerate(self.threedidepth_args["calculation_steps"]):
-            timestamp_seconds = str(timedelta(seconds=int(timestamps_seconds[i])))
-            layer_name = f"{self.output_layer_name}: ({timestamp_seconds})"
+        threedidepth_calculation_steps = self.threedidepth_args.get("calculation_steps") or [None]
+        for i, time_step in enumerate(threedidepth_calculation_steps):
+            if isinstance(time_step, int):
+                layer_name_suffix = str(timedelta(seconds=int(timestamps_seconds[i])))
+            else:
+                layer_name_suffix = self.layer_name_suffix
+            layer_name = f"{self.output_layer_name}: {layer_name_suffix}"
             output_layers.append(QgsRasterLayer(output_file, layer_name, "gdal"))
             self.apply_style(output_layers[i])
             if hasattr(output_layers[i].renderer(), "setBand"):
@@ -408,10 +417,6 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         )
         return args
 
-    def output_layer_name(self, parameters, context) -> str:
-        mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
-        return self.output_modes[mode_index].description
-
     def createInstance(self):
         return WaterDepthOrLevelSingleTimeStepAlgorithm()
 
@@ -437,7 +442,99 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
             <h4>Gridadmin file</h4>
             <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
             <h4>3Di simulation output (.nc)</h4>
-            <p>NetCDF (*.nc) containing the results or aggregated resultes of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+            <h4>DEM</h4>
+            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
+            <h4>Output type</h4>
+            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
+            <h4>Time step</h4>
+            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
+            <h4>Enable multiple time steps export</h4>
+            <p>Check this box if you want outputs for multiple time steps.</p>
+            <h4>Last time step</h4>
+            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
+            <h4>Output file name</h4>
+            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
+            <h4>Output directory</h4>
+            <p>Directory where the output file(s) are to be stored.</p>
+            <h3>Save to NetCDF (experimental)</h3>
+            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
+            """
+
+
+class WaterDepthOrLevelMaximumAlgorithm(BaseThreediDepthAlgorithm):
+    """
+    Calculates maximum water depth or water level from 3Di result NetCDF
+    """
+    @property
+    def output_modes(self) -> List[Mode]:
+        return [
+            Mode(MODE_LIZARD, "Interpolated water depth"),
+            Mode(MODE_LIZARD_VAR, "Interpolated water level"),
+            Mode(MODE_CONSTANT, "Non-interpolated water depth"),
+            Mode(MODE_CONSTANT_VAR, "Non-interpolated water level"),
+        ]
+
+    @property
+    def default_mode(self) -> Mode:
+        return Mode(MODE_LIZARD, "Interpolated water depth")
+
+    @property
+    def data_type(self) -> str:
+        """
+        WATER_QUANITTY or WATER_QUALITY
+        """
+        return WATER_QUANTITY
+
+    @property
+    def parameters(self) -> List:
+        result = super().parameters
+        result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
+        return result
+
+    def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
+        args = super().get_threedidepth_args(parameters=parameters, context=context, feedback=feedback)
+        args.update(
+            {
+                "results_3di_path": parameters[NETCDF_INPUT],
+                "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
+                "waterdepth_path": str(self.output_file(parameters, context)),
+                "calculate_maximum_waterlevel": True,
+                "calculation_steps": None,
+            }
+        )
+        return args
+
+    @property
+    def layer_name_suffix(self):
+        return "Maximum"
+
+    def createInstance(self):
+        return WaterDepthOrLevelMaximumAlgorithm()
+
+    def name(self):
+        """Returns the algorithm name, used for identifying the algorithm"""
+        return "waterdepthorlevelmaximum"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-   visible display of the algorithm name.
+        """
+        return "Water depth/level raster (maximum)"
+
+    def shortHelpString(self):
+        """Returns a localised short helper string for the algorithm"""
+        return """
+            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
+            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
+            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
+            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
+            <h3>Parameters</h3>
+            <h4>Gridadmin file</h4>
+            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
+            <h4>3Di simulation output (.nc)</h4>
+            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
             <h4>DEM</h4>
             <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
             <h4>Output type</h4>
@@ -557,7 +654,7 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
             <h4>Gridadmin file</h4>
             <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
             <h4>3Di simulation output (.nc)</h4>
-            <p>NetCDF (*.nc) containing the results or aggregated resultes of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
             <h4>DEM</h4>
             <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
             <h4>Output type</h4>
@@ -704,7 +801,7 @@ class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
             <h4>Gridadmin file</h4>
             <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
             <h4>3Di simulation output (.nc)</h4>
-            <p>NetCDF (*.nc) containing the results or aggregated resultes of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
             <h4>DEM</h4>
             <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
             <h4>Output type</h4>
@@ -791,7 +888,7 @@ class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
 #             <h4>Gridadmin file</h4>
 #             <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
 #             <h4>3Di simulation output (.nc)</h4>
-#             <p>NetCDF (*.nc) containing the results or aggregated resultes of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+#             <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
 #             <h4>DEM</h4>
 #             <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
 #             <h4>Output type</h4>
@@ -1172,7 +1269,7 @@ class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
 #             <h4>Gridadmin file</h4>
 #             <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
 #             <h4>3Di simulation output</h4>
-#             <p>NetCDF (*.nc) containing the results or aggregated resultes of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
+#             <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
 #             <h4>DEM</h4>
 #             <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
 #             <h4>Output type</h4>
