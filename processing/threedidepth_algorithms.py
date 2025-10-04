@@ -90,6 +90,11 @@ MAXIMUM = "MAXIMUM"
 
 STYLE_DIR = Path(__file__).parent / "styles"
 
+# TODO: test in batch mode and graphical modeller
+# TODO: shortHelpStrings
+# TODO: clean up, move utility functions to utils
+# TODO: clean up imports
+
 
 def multiband_raster_min_max(layer) -> Tuple[float, float]:
     """Return the min and max values across all bands"""
