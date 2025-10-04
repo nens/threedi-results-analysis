@@ -53,6 +53,7 @@ import logging
 from pathlib import Path
 
 from threedi_results_analysis.processing.widgets.widgets import ProcessingParameterNetcdfNumber
+from threedi_results_analysis.processing.widgets.widgets import ProcessingParameterNetcdfString
 from threedi_results_analysis.processing.deps.concentration.mask import mask
 from threedi_results_analysis.processing.deps.concentration.styling import (
     apply_transparency_gradient,
@@ -252,13 +253,12 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                     optional=True
                 )
             )
-            result.insert(
-                3,
-                QgsProcessingParameterString(
-                    SUBSTANCE_INPUT,
-                    "Substance",
-                )
+            substance_param = ProcessingParameterNetcdfString(
+                SUBSTANCE_INPUT,
+                "Substance",
+                parentParameterName=NETCDF_INPUT,
             )
+            result.insert(3, substance_param)
             result.insert(
                 4,
                 QgsProcessingParameterColor(
@@ -303,8 +303,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             )
         elif self.data_type == WATER_QUALITY:
             gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], parameters[NETCDF_INPUT])
-            substances = {getattr(gwq, substance_key).name: substance_key for substance_key in gwq.substances}
-            variable = substances[self.parameterAsString(parameters, SUBSTANCE_INPUT, context)]  # TODO handle KeyError
+            variable = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
             mask_layer = self.parameterAsRasterLayer(parameters, WATER_DEPTH_INPUT, context)
             if mask_layer:
                 extent = mask_layer.extent()  # QgsRectangle
@@ -390,7 +389,9 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         mode_index = self.parameterAsEnum(parameters, MODE_INPUT, context)
         output_layer_name = self.output_modes[mode_index].description
         if self.data_type == WATER_QUALITY:
-            substance_name = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
+            gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], parameters[NETCDF_INPUT])
+            substance_id = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
+            substance_name = getattr(gwq, substance_id).name
             output_layer_name = f"{substance_name}: {output_layer_name}"
         if self.time_step_type == MAXIMUM:
             output_layer_name += " (Maximum)"

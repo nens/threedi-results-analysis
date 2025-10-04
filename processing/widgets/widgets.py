@@ -1,10 +1,11 @@
 import logging
 from pathlib import Path
+from typing import Dict
 
 from processing.gui.wrappers import DIALOG_STANDARD
 from processing.gui.wrappers import WidgetWrapper
 from qgis.core import QgsProcessingParameterNumber
-from qgis.gui import QgsAbstractProcessingParameterWidgetWrapper
+from qgis.core import QgsProcessingParameterString
 from qgis.gui import QgsProcessingParameterWidgetFactoryInterface
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QComboBox
@@ -36,6 +37,14 @@ class ProcessingParameterNetcdfNumber(QgsProcessingParameterNumber):
         self.parentParameterName = parentParameterName
         self.optional = optional
         self.setMetadata({"widget_wrapper": {"class": ThreediResultTimeSliderWidget}})
+
+
+class ProcessingParameterNetcdfString(QgsProcessingParameterString):
+    def __init__(self, *args, parentParameterName="", optional=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parentParameterName = parentParameterName
+        self.optional = optional
+        self.setMetadata({"widget_wrapper": {"class": SubstanceWidgetWrapper}})
 
 
 class ThreediResultTimeSliderWidget(WidgetWrapper):
@@ -172,6 +181,92 @@ class TimeStepsCombobox(QComboBox):
             with h5py.File(file_path, "r") as results:
                 timestamps = results["time"][()]
                 self.populate_timestamps(timestamps)
+        except Exception as e:
+            logger.exception(e)
+            pop_up_info(msg="Unable to read the file, see the logging for more information.")
+            self.clear()
+
+
+# class SubstanceWidgetFactory(QgsProcessingParameterWidgetFactoryInterface):
+#     def parameterType(self):
+#         return QgsProcessingParameterString.typeName()
+#
+#     # def canCreateWrapperFor(self, param):
+#     #     return param.metadata().get("widget_wrapper") == "SubstanceWidgetWrapper"
+#
+#     def createWidgetWrapper(self, parameter):
+#         return SubstanceWidgetWrapper(parameter)
+
+
+class SubstanceWidgetWrapper(WidgetWrapper):
+    def createWidget(self):
+        self._widget = SubstanceCombobox()
+        return self._widget
+
+    def value(self):
+        return self._widget.getValue()
+
+    def setValue(self, value):
+        if value is not None:
+            self._widget.setValue(str(value))
+
+    def postInitialize(self, wrappers):
+        # Connect the result-file parameter to the SubstanceCombobox
+        for wrapper in wrappers:
+            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
+                wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
+
+
+class SubstanceCombobox(QComboBox):
+    """
+    Combobox with populated substance data.
+    Displayed texts are the substance names ("Chloride", "Phosphate", etc.).
+    The user data behind it are the substance IDs ("substance1", "substance2", etc.)
+    """
+
+    def getValue(self):
+        return self.currentData()
+
+    def setValue(self, value: str):
+        """Set combobox to the item whose substance ID (e.g. "substance1") matches the given value."""
+        for i in range(self.count()):
+            if self.itemData(i) == value:
+                self.setCurrentIndex(i)
+                return
+
+    def populate(self, data: Dict[str, str]):
+        """
+        Populates the widget from a {substance id: substance name} Dict
+        """
+        self.clear()
+        for substance_id, substance_name in data.items():
+            self.addItem(substance_name, substance_id)
+        if data:
+            self.setCurrentIndex(0)
+
+    @staticmethod
+    def substances_from_netcdf(netcdf: str | Path) -> Dict[str, str]:
+        """
+        Get a {substance id: substance name} Dict for a water_quality_results_3di.nc file
+        """
+        f = h5py.File(netcdf)
+        substances = {}
+        for key in f.keys():
+            if key.startswith("substance"):
+                substance_id = key.split("_")[0]
+                substance_name = f[key].attrs["substance_name"]
+                substances[substance_id] = substance_name
+        return substances
+
+    def new_file_event(self, file_path):
+        """New file has been selected by the user. Try to read in the substance data from the file."""
+        if not file_path or not Path(file_path).is_file():
+            self.clear()
+            return
+
+        try:
+            substance_data = self.substances_from_netcdf(file_path)
+            self.populate(substance_data)
         except Exception as e:
             logger.exception(e)
             pop_up_info(msg="Unable to read the file, see the logging for more information.")
