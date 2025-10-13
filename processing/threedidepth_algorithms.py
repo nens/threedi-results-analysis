@@ -12,7 +12,7 @@
 """
 from collections import namedtuple
 from datetime import datetime, timedelta
-from typing import List, Dict, Callable, Tuple
+from typing import List, Dict, Tuple
 
 import numpy as np
 from osgeo import gdal
