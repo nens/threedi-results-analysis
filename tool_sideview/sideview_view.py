@@ -543,7 +543,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         for row_number in range(self.sideview_result_model.rowCount()):
             # Get checkbox item (this contains result object id)
             check_item = self.sideview_result_model.item(row_number, 0)
-            if check_item.checkState() != Qt.Checked:
+            if check_item.checkState() != Qt.CheckState.Checked:
                 continue
 
             result_id = check_item.data()
@@ -595,7 +595,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         for row_number in range(self.sideview_result_model.rowCount()):
             # Get checkbox item (this contains result object)
             check_item = self.sideview_result_model.item(row_number, 0)
-            if check_item.checkState() != Qt.Checked:
+            if check_item.checkState() != Qt.CheckState.Checked:
                 continue
 
             result_id = check_item.data()
@@ -859,14 +859,14 @@ class SideViewDockWidget(QDockWidget):
         checkbox_table_item = QStandardItem("")
         checkbox_table_item.setData(result_item.id)
         checkbox_table_item.setCheckable(True)
-        checkbox_table_item.setCheckState(Qt.Checked)
+        checkbox_table_item.setCheckState(Qt.CheckState.Checked)
         checkbox_table_item.setEditable(False)
 
         result_table_item = QStandardItem(result_item.text())
         result_table_item.setEditable(False)
 
         # pick new pattern
-        pattern = Qt.SolidLine
+        pattern = Qt.PenStyle.SolidLine
         color = COLOR_LIST[self.sideview_result_model.rowCount() % len(COLOR_LIST)]
         pattern_table_item = QStandardItem("")
         pattern_table_item.setEditable(False)
@@ -875,7 +875,7 @@ class SideViewDockWidget(QDockWidget):
 
         # Add a PenStyle display in the table
         index = self.sideview_result_model.index(self.sideview_result_model.rowCount()-1, 1)
-        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, QColor(*color), self.table_view))
+        self.table_view.setIndexWidget(index, PenStyleWidget(pattern, QColor(*color), 2, self.table_view))
 
     def on_route_point_select(self, selected_features, clicked_coordinate):
         """Select and add the closest point from the list of selected features.
@@ -925,7 +925,7 @@ class SideViewDockWidget(QDockWidget):
 
     def update_dots(self, state):
         # Just redraw the whole thing for now
-        self.side_view_plot_widget.show_dots = (state == Qt.Checked)
+        self.side_view_plot_widget.show_dots = (state == Qt.CheckState.Checked)
         self.side_view_plot_widget.set_sideprofile(self.route.path, self.model.get_grid(self.current_grid_id))
 
     def on_close(self):
@@ -950,7 +950,7 @@ class SideViewDockWidget(QDockWidget):
 
     def setup_ui(self):
 
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.setWindowTitle(f"3Di Side view {self.nr}: ")
 
         self.dock_widget_content = QWidget(self)
@@ -971,7 +971,7 @@ class SideViewDockWidget(QDockWidget):
         self.show_nodes_checkbox.setChecked(True)
         self.show_nodes_checkbox.stateChanged.connect(self.update_dots)
         self.button_bar_hlayout.addWidget(self.show_nodes_checkbox)
-        spacer_item = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacer_item = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
         self.button_bar_hlayout.addWidget(QLabel("Computational grid: ", self.dock_widget_content))
         self.select_grid_combobox = QComboBox(self.dock_widget_content)
@@ -991,9 +991,9 @@ class SideViewDockWidget(QDockWidget):
         self.table_view.setModel(self.sideview_result_model)
         self.table_view.horizontalHeader().setStretchLastSection(True)
         self.table_view.verticalHeader().hide()
-        self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table_view.resizeColumnsToContents()
-        self.table_view.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.table_view.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         plotContainerWidget.addWidget(self.table_view)
         plotContainerWidget.setStretchFactor(0, 8)
         plotContainerWidget.setStretchFactor(1, 1)

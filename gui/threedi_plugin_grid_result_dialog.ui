@@ -118,9 +118,6 @@
          <property name="filter">
           <string>HDF5 or GeoPackage (*.h5 *.gpkg)</string>
          </property>
-         <property name="options">
-          <set>QFileDialog::ReadOnly</set>
-         </property>
         </widget>
        </item>
        <item row="5" column="1">
@@ -157,9 +154,6 @@
          </property>
          <property name="filter">
           <string>NetCDF (*.nc)</string>
-         </property>
-         <property name="options">
-          <set>QFileDialog::ReadOnly</set>
          </property>
         </widget>
        </item>

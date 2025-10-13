@@ -3,6 +3,7 @@
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsProject
+import numpy as np
 
 
 def get_coord_transformation_instance(src_epsg, dest_epsg):
@@ -13,3 +14,57 @@ def get_coord_transformation_instance(src_epsg, dest_epsg):
     src_crs = QgsCoordinateReferenceSystem(int(src_epsg))
     dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
     return QgsCoordinateTransform(src_crs, dest_crs, QgsProject.instance())
+
+
+def closest_point_on_segment(p, a, b):
+    ap = p - a
+    ab = b - a
+    ab_squared = np.dot(ab, ab)
+    # Length ab vector is zero, or: segment is a point
+    if ab_squared == 0:
+        return a
+    # https://en.wikipedia.org/wiki/Scalar_projection
+    t = max(min(np.dot(ap, ab) / ab_squared, 1), 0)
+    assert t <= 1
+    assert t >= 0
+    return a + t * ab
+
+
+def distance_to_polyline(px, py, x_data, y_data):
+    # Closest projected point
+    min_dist = float('inf')
+    # Closest data point
+    closest = None
+    point = np.array([px, py])
+    for i in range(len(x_data) - 1):
+        a = np.array([x_data[i], y_data[i]])
+        b = np.array([x_data[i+1], y_data[i+1]])
+        proj = closest_point_on_segment(point, a, b)
+        dist = np.linalg.norm(proj - point)
+        if dist < min_dist:
+            min_dist = dist
+            closest = a if np.linalg.norm(point-a) < np.linalg.norm(point-b) else b
+    return min_dist, closest
+
+
+def inbetween_polylines(px, py, x_data, y1_data, y2_data):
+    if px < x_data[0] or px > x_data[-1]:
+        return False
+
+    y1 = np.interp(px, x_data, y1_data)
+    y2 = np.interp(px, x_data, y2_data)
+    return (min(y1, y2) <= py <= max(y1, y2))
+
+
+def below_polyline(px, py, x_data, y_data):
+    if px < x_data[0] or px > x_data[-1]:
+        return False
+
+    y = np.interp(px, x_data, y_data)
+    return py < y
+
+
+def closest_point_on_polyline(px, py, x_data, y_data):
+    dists = (x_data - px)**2 + (y_data - py)**2
+    idx = np.argmin(dists)
+    return x_data[idx], y_data[idx], idx

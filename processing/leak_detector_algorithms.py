@@ -87,7 +87,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSource(
                 self.INPUT_OBSTACLES,
                 "Linear obstacles",
-                [QgsProcessing.TypeVectorLine],
+                [QgsProcessing.SourceType.TypeVectorLine],
                 optional=True
             )
         )
@@ -96,7 +96,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSource(
                 self.INPUT_FLOWLINES,
                 "Flowlines",
-                [QgsProcessing.TypeVectorLine],
+                [QgsProcessing.SourceType.TypeVectorLine],
                 optional=True
             )
         )
@@ -104,7 +104,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
         min_obstacle_height_param = QgsProcessingParameterNumber(
             self.INPUT_MIN_OBSTACLE_HEIGHT,
             "Minimum obstacle height (m)",
-            type=QgsProcessingParameterNumber.Double
+            type=QgsProcessingParameterNumber.Type.Double
         )
         min_obstacle_height_param.setMetadata({"widget_wrapper": {"decimals": 3}})
         self.addParameter(min_obstacle_height_param)
@@ -113,7 +113,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT_EDGES,
                 "Output: Obstacle on cell edge",
-                type=QgsProcessing.TypeVectorLine
+                type=QgsProcessing.SourceType.TypeVectorLine
             )
         )
 
@@ -121,7 +121,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT_OBSTACLES,
                 "Output: Obstacle in DEM",
-                type=QgsProcessing.TypeVectorLine
+                type=QgsProcessing.SourceType.TypeVectorLine
             )
         )
 
@@ -168,7 +168,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
             geometry = QgsGeometry()
             geometry.fromWkb(feature_data["geometry"].wkb)
             feature.setGeometry(geometry)
-            sink.addFeature(feature, QgsFeatureSink.FastInsert)
+            sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert)
 
     def read_parameters(self, parameters, context, feedback):
         self.gridadmin_fn = self.parameterAsFile(parameters, self.INPUT_GRIDADMIN, context)
@@ -191,7 +191,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
             self.OUTPUT_EDGES,
             context,
             fields=self.sink_fields,
-            geometryType=QgsWkbTypes.LineString,
+            geometryType=QgsWkbTypes.Type.LineString,
             crs=crs
         )
         self.obstacles_sink, self.obstacles_sink_dest_id = self.parameterAsSink(
@@ -199,7 +199,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
             self.OUTPUT_OBSTACLES,
             context,
             fields=self.sink_fields,
-            geometryType=QgsWkbTypes.LineString,
+            geometryType=QgsWkbTypes.Type.LineString,
             crs=crs
         )
 
@@ -351,7 +351,7 @@ class DetectLeakingObstaclesWithDischargeThresholdAlgorithm(DetectLeakingObstacl
         min_discharge_param = QgsProcessingParameterNumber(
             self.INPUT_MIN_DISCHARGE,
             "Minimum cumulative discharge (m3)",
-            type=QgsProcessingParameterNumber.Double
+            type=QgsProcessingParameterNumber.Type.Double
         )
         min_discharge_param.setMetadata({"widget_wrapper": {"decimals": 3}})
         self.addParameter(min_discharge_param)

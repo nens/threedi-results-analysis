@@ -17,7 +17,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
     LAYERS_TO_ADD = OrderedDict()
 
     def flags(self):
-        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+        return super().flags() | QgsProcessingAlgorithm.Flag.FlagNoThreading
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)

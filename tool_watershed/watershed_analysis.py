@@ -148,7 +148,7 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 self.dock_widget = WatershedAnalystDockWidget(self.iface, self.model, self.preloaded_layers)
 
             self.dock_widget.closingWidget.connect(self.on_close_child_widget)
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
+            self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_widget)
 
         self.dock_widget.show()
         self._active = True

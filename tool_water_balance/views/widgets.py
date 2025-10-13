@@ -57,12 +57,12 @@ logger = logging.getLogger(__name__)
 MSG_TITLE = "Water balance tool"
 QCOLOR_RED = QColor(255, 0, 0)
 POLYGON_TYPES = {
-    QgsWkbTypes.MultiPolygon,
-    QgsWkbTypes.MultiPolygonZ,
-    QgsWkbTypes.MultiPolygon25D,
-    QgsWkbTypes.Polygon,
-    QgsWkbTypes.PolygonZ,
-    QgsWkbTypes.Polygon25D,
+    QgsWkbTypes.Type.MultiPolygon,
+    QgsWkbTypes.Type.MultiPolygonZ,
+    QgsWkbTypes.Type.MultiPolygon25D,
+    QgsWkbTypes.Type.Polygon,
+    QgsWkbTypes.Type.PolygonZ,
+    QgsWkbTypes.Type.Polygon25D,
 }
 VOLUME_CHANGE_SERIE_NAMES = {
     "volume change 2D",
@@ -259,7 +259,7 @@ class WaterbalanceItemTable(QTableView):
         self.setMouseTracking(True)
         self.verticalHeader().hide()
         self.horizontalHeader().setStretchLastSection(True)
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.model = None
 
         self._last_hovered_row = -1
@@ -286,10 +286,10 @@ class WaterbalanceItemTable(QTableView):
         if widget is not self.viewport():
             return result
 
-        if event.type() == QEvent.Leave:
+        if event.type() == QEvent.Type.Leave:
             self.hoverExitAllRows.emit()
             new_row = -1
-        elif event.type() == QEvent.MouseMove:
+        elif event.type() == QEvent.Type.MouseMove:
             new_row = self.indexAt(event.pos()).row()
         else:
             return result
@@ -389,7 +389,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                             y=not_cum_serie,
                             connect="finite",
                             pen=pg.mkPen(
-                                color=QColor(*pen_color), width=4, style=Qt.DashDotLine
+                                color=QColor(*pen_color), width=4, style=Qt.PenStyle.DashDotLine
                             ),
                         )
                         # only get 1 line (the sum of 'in' and 'out')
@@ -463,7 +463,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
             plots["outfill"].setBrush(pg.mkBrush(item.fill_color.value))
         if "sum" in plots:
             plots["sum"].setPen(
-                color=item.pen_color.value, width=4, style=Qt.DashDotLine
+                color=item.pen_color.value, width=4, style=Qt.PenStyle.DashDotLine
             )
 
     def hover_exit_plot_highlight(self, name):
@@ -479,7 +479,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
             plots["outfill"].setBrush(pg.mkBrush(item.fill_color.value))
         if "sum" in plots:
             plots["sum"].setPen(
-                color=item.pen_color.value, width=4, style=Qt.DashDotLine
+                color=item.pen_color.value, width=4, style=Qt.PenStyle.DashDotLine
             )
 
 
@@ -641,10 +641,10 @@ class WaterBalanceWidget(QDockWidget):
             standard_out_brush = QBrush(QColor(255, 128, 0))
 
             domain_exchange_in_brush = QBrush(
-                QColor(0, 122, 204), style=Qt.BDiagPattern
+                QColor(0, 122, 204), style=Qt.BrushStyle.BDiagPattern
             )  # Qt.BDiagPattern
             domain_exchange_in_brush.setTransform(QTransform().scale(0.01, 0.01))
-            domain_exchange_out_brush = QBrush(QColor(255, 128, 0), style=Qt.BDiagPattern)
+            domain_exchange_out_brush = QBrush(QColor(255, 128, 0), style=Qt.BrushStyle.BDiagPattern)
             domain_exchange_out_brush.setTransform(QTransform().scale(0.01, 0.01))
             change_storage_brush = QBrush(QColor("grey"))
 
@@ -998,7 +998,7 @@ class WaterBalanceWidget(QDockWidget):
         """
 
         dock_widget.setObjectName("dock_widget")
-        dock_widget.setAttribute(Qt.WA_DeleteOnClose)
+        dock_widget.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.dock_widget_content = QWidget(self)
         self.dock_widget_content.setObjectName("dockWidgetContent")
@@ -1021,17 +1021,17 @@ class WaterBalanceWidget(QDockWidget):
 
         # now first add a QSpacerItem so that the QPushButton (added sub-
         # sequently) are aligned on the right-side of the button_bar_hlayout
-        spacer_item = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacer_item = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
 
         self.activate_all_button = QPushButton(self)
         self.button_bar_hlayout.addWidget(
-            self.activate_all_button, alignment=Qt.AlignRight
+            self.activate_all_button, alignment=Qt.AlignmentFlag.AlignRight
         )
 
         self.deactivate_all_button = QPushButton(self)
         self.button_bar_hlayout.addWidget(
-            self.deactivate_all_button, alignment=Qt.AlignRight
+            self.deactivate_all_button, alignment=Qt.AlignmentFlag.AlignRight
         )
 
         self.main_vlayout.addLayout(self.button_bar_hlayout)
@@ -1070,7 +1070,7 @@ class WaterBalanceWidget(QDockWidget):
             widget=self, canvas=self.iface.mapCanvas(),
         )
         self.map_tool_select_polygon.setButton(self.select_polygon_button)
-        self.map_tool_select_polygon.setCursor(Qt.CrossCursor)
+        self.map_tool_select_polygon.setCursor(Qt.CursorShape.CrossCursor)
 
     def add_result(self, result, update=True):
         if not self.manager.add_result(result):
@@ -1156,9 +1156,9 @@ class SelectionVisualisation(object):
 
     @functools.cached_property
     def rb_line(self):
-        rb_line = QgsRubberBand(self.canvas, QgsWkbTypes.LineGeometry)
+        rb_line = QgsRubberBand(self.canvas, QgsWkbTypes.GeometryType.LineGeometry)
         rb_line.setColor(self.color)
-        rb_line.setLineStyle(Qt.DotLine)
+        rb_line.setLineStyle(Qt.PenStyle.DotLine)
         rb_line.setWidth(3)
         return rb_line
 
@@ -1170,13 +1170,13 @@ class SelectionVisualisation(object):
         for p in self.points:
             marker = QgsVertexMarker(self.canvas)
             marker.setCenter(p)
-            marker.setIconType(QgsVertexMarker.ICON_BOX)
+            marker.setIconType(QgsVertexMarker.IconType.ICON_BOX)
             marker.setColor(self.color)
             marker.setVisible(True)
             self.vertex_markers.append(marker)
 
     def reset(self):
-        self.rb_line.reset(QgsWkbTypes.LineGeometry)
+        self.rb_line.reset(QgsWkbTypes.GeometryType.LineGeometry)
         for m in self.vertex_markers:
             m.setVisible(False)
             # rubber bands are owned by the canvas, so we must explictly
@@ -1222,7 +1222,7 @@ class SelectPolygonTool(QgsMapToolIdentify):
         )
         if not identify_results:
             msg = 'No polygons found in this location.'
-            messagebar_message(MSG_TITLE, msg, Qgis.Warning, 3)
+            messagebar_message(MSG_TITLE, msg, Qgis.MessageLevel.Warning, 3)
             return
 
         identify_result = identify_results[0]
@@ -1232,7 +1232,7 @@ class SelectPolygonTool(QgsMapToolIdentify):
         polygon = feature.geometry()
         if not polygon.wkbType() in POLYGON_TYPES:
             msg = 'Not a (suitable) polygon.'
-            messagebar_message(MSG_TITLE, msg, Qgis.Warning, 3)
+            messagebar_message(MSG_TITLE, msg, Qgis.MessageLevel.Warning, 3)
             return
 
         self.widget.set_wb_polygon(polygon=polygon, layer=layer)

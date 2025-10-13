@@ -115,3 +115,11 @@ COLOR_LIST = [
     (226, 88, 34),
     (43, 61, 38),
 ]
+
+
+def reduce_saturation(plot_color: QColor):
+    return QColor.fromHsvF(plot_color.hueF(), plot_color.saturationF()/2.0, plot_color.valueF())
+
+
+def increase_value(plot_color: QColor):
+    return QColor.fromHsvF(plot_color.hueF(), plot_color.saturationF(), min(2*plot_color.valueF(), 1.0))

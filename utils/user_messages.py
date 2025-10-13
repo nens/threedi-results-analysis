@@ -43,7 +43,7 @@ def messagebar_message(title, msg, level=None, duration=0):
     if iface is None:
         return
     if not level:
-        level = Qgis.Info
+        level = Qgis.MessageLevel.Info
     iface.messageBar().pushMessage(title, msg, level, duration)
 
 
@@ -61,10 +61,10 @@ def pop_up_question(msg="", title="", parent=None):
         True if 'Yes' was clicked, or False if 'No' was clicked.
     """
     reply = QMessageBox.question(
-        parent, title, msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        parent, title, msg, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No
     )
 
-    return reply == QMessageBox.Yes
+    return reply == QMessageBox.StandardButton.Yes
 
 
 class StatusProgressBar(object):
@@ -75,11 +75,11 @@ class StatusProgressBar(object):
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setMaximum(maximum)
-        self.progress_bar.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.progress_bar.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
         self.message_bar.layout().addWidget(self.progress_bar)
         if iface is not None:
-            iface.messageBar().pushWidget(self.message_bar, Qgis.Info)
+            iface.messageBar().pushWidget(self.message_bar, Qgis.MessageLevel.Info)
 
         self.progress = 0
         iface.mainWindow().repaint()

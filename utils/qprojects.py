@@ -17,9 +17,9 @@ def set_read_only(layer: QgsVectorLayer, enable: bool) -> bool:
         return False
 
     if enable:
-        layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable)
+        layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
     else:
-        layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable | QgsMapLayer.Removable)
+        layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable | QgsMapLayer.LayerFlag.Removable)
 
     return True
 

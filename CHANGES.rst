@@ -1,9 +1,22 @@
 3Di Results Analysis changelog
 ========================
 
-3.25.2 (unreleased)
+3.25.3 (unreleased)
 -------------------
 
+- Some fixes for Qt6 upgrade. (#1144)
+- Flow Summary Tool: Tool no longer covers Load Simulation dialogs (#1139)
+
+
+3.25.2 (2025-10-01)
+-------------------
+
+- Fraction Analysis Tool: Toggle multiple items with space bar (#1135)
+- Fraction Analysis Tool: Set color of plot (#1134)
+- Fraction Analysis Tool: Fixed bug: visibility (item checked) is now taken into account when switching stacked/volume mode.
+- Fraction Analysis Tool: substances are listed alphabetically (#1133)
+- Prepared for QGIS 4 (Qt 6) (#1144)
+- Fraction Analysis Tool: plot highlighting (#1132)
 - Add support for aggregate_results_3di.nc files in threedidepth processing algorithms
 
 
