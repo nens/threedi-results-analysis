@@ -3,7 +3,6 @@ from qgis.core import QgsMapLayer
 from qgis.core import QgsPathResolver
 from qgis.core import QgsProject
 from qgis.core import QgsSettings
-from qgis.gui import QgsGui
 from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction

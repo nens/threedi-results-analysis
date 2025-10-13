@@ -6,11 +6,9 @@ from processing.gui.wrappers import DIALOG_STANDARD
 from processing.gui.wrappers import WidgetWrapper
 from qgis.core import QgsProcessingParameterNumber
 from qgis.core import QgsProcessingParameterString
-from qgis.gui import QgsProcessingParameterWidgetFactoryInterface
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QComboBox
 import h5py
-from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
 
 from threedi_results_analysis.utils.user_messages import pop_up_info
 

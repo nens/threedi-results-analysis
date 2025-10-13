@@ -18,28 +18,19 @@ import numpy as np
 from osgeo import gdal
 from qgis.core import QgsFeedback
 from qgis.core import QgsProcessingAlgorithm
-from qgis.core import QgsProcessingContext
 from qgis.core import QgsProcessingException
-from qgis.core import QgsProcessingOutputLayerDefinition
-from qgis.core import QgsProcessingParameterBoolean
 from qgis.core import QgsProcessingParameterColor
-from qgis.core import QgsProcessingParameterDefinition
 from qgis.core import QgsProcessingParameterEnum
 from qgis.core import QgsProcessingParameterFile
-from qgis.core import QgsProcessingParameterFileDestination
 from qgis.core import QgsProcessingParameterRasterDestination
 from qgis.core import QgsProcessingParameterRasterLayer
-from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProcessingUtils
 from qgis.core import QgsRasterBandStats
-from qgis.core import QgsMeshLayer
 from qgis.core import QgsRasterLayer
-from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QColor
 from threedidepth.calculate import calculate_waterdepth, calculate_water_quality
 from threedidepth.calculate import MODE_CONSTANT
 from threedidepth.calculate import MODE_CONSTANT_VAR
-from threedidepth.calculate import MODE_LINEAR
 from threedidepth.calculate import MODE_LIZARD
 from threedidepth.calculate import MODE_LIZARD_VAR
 
@@ -1421,5 +1412,3 @@ class ConcentrationMaximumAlgorithm(BaseThreediDepthAlgorithm):
 #         layer_details = QgsProcessingContext.LayerDetails(layer_name, context.project(), self.WATER_DEPTH_OUTPUT)
 #         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
 #         return {}
-
-
