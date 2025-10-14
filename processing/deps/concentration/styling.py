@@ -10,6 +10,7 @@ from PyQt5.QtGui import QColor
 
 # TODO move to utils/styling.py
 
+
 def apply_transparency_gradient(
     layer: QgsRasterLayer,
     color: QColor,
@@ -37,10 +38,14 @@ def apply_transparency_gradient(
     color_ramp_shader.setColorRampItemList(items)
     color_ramp_shader.setMinimumValue(min_value)
     color_ramp_shader.setMaximumValue(max_value)
+    color_ramp = QgsGradientColorRamp(color1=min_color, color2=max_color, stops=[])
+    color_ramp_shader.setSourceColorRamp(color_ramp)
     shader.setRasterShaderFunction(color_ramp_shader)
 
     # Create renderer
     renderer = QgsSingleBandPseudoColorRenderer(layer.dataProvider(), band, shader)
+    renderer.setClassificationMin(min_value)
+    renderer.setClassificationMax(max_value)
 
     # Apply renderer to layer
     layer.setRenderer(renderer)
