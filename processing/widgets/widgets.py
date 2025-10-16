@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Dict
 
-from processing.gui.wrappers import DIALOG_BATCH, DIALOG_STANDARD
+from processing.gui.wrappers import DIALOG_BATCH, DIALOG_STANDARD, DIALOG_MODELER
 from processing.gui.wrappers import WidgetWrapper
 from qgis.core import QgsProcessingContext
 from qgis.gui import QgsGui
@@ -12,6 +12,7 @@ from qgis.PyQt.QtWidgets import QComboBox, QSpinBox
 import h5py
 
 from threedi_results_analysis.utils.user_messages import pop_up_info
+from threedi_results_analysis.processing.deps.concentration.utils import substances_from_netcdf
 
 logger = logging.getLogger(__name__)
 plugin_path = Path(__file__).resolve().parent.parent.parent
@@ -60,12 +61,15 @@ class ThreediResultTimeSliderWidgetWrapper(WidgetWrapper):
                 self.parameterDefinition(),
                 QgsProcessingGui.WidgetType.Modeler
             )
-            print(f"dir(self): {dir(self)}")
-            self._widget = default_wrapper.createWrappedWidget(QgsProcessingContext())
+            self._widget = default_wrapper.createWidget()
         return self._widget
 
     def value(self):
-        return self._widget.getValue()
+        if self.dialogType in (DIALOG_STANDARD, DIALOG_BATCH):
+            return self._widget.getValue()
+        else:
+            # widget is a QSpinBox
+            return self._widget.value()
 
     def setValue(self, value):
         if value is not None:
@@ -73,9 +77,12 @@ class ThreediResultTimeSliderWidgetWrapper(WidgetWrapper):
 
     def postInitialize(self, wrappers):
         # Connect the result-file parameter to the TimeSliderWidget/TimeStepsCombobox
-        for wrapper in wrappers:
-            if wrapper.parameterDefinition().name() == self.param.metadata().get("parentParameterName"):
-                wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
+        if self.dialogType in (DIALOG_STANDARD, DIALOG_BATCH):
+            for wrapper in wrappers:
+                # logger.debug(f"wrapper.parameterDefinition().name(): {wrapper.parameterDefinition().name()}")
+                # logger.debug(f"self.param.metadata().get('parentParameterName'): {self.param.metadata().get('parentParameterName')}")
+                if wrapper.parameterDefinition().name() == self.param.metadata().get("parentParameterName"):
+                    wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
 WIDGET, BASE = uic.loadUiType(plugin_path / "processing" / "ui" / "widgetTimeSlider.ui")
@@ -210,21 +217,37 @@ class TimeStepsCombobox(QComboBox):
 
 class SubstanceWidgetWrapper(WidgetWrapper):
     def createWidget(self):
-        self._widget = SubstanceCombobox()
+        if self.dialogType in (DIALOG_STANDARD, DIALOG_BATCH):
+            self._widget = SubstanceCombobox()
+        else:
+            registry = QgsGui.instance().processingGuiRegistry()
+            default_wrapper = registry.createParameterWidgetWrapper(
+                self.parameterDefinition(),
+                QgsProcessingGui.WidgetType.Modeler
+            )
+            self._widget = default_wrapper.createWidget()
         return self._widget
 
     def value(self):
-        return self._widget.getValue()
+        if self.dialogType in (DIALOG_STANDARD, DIALOG_BATCH):
+            return self._widget.getValue()
+        else:
+            # Widget is a QLineEdit
+            return self._widget.text()
 
     def setValue(self, value):
         if value is not None:
-            self._widget.setValue(str(value))
+            if self.dialogType in (DIALOG_STANDARD, DIALOG_BATCH):
+                self._widget.setValue(str(value))
+            else:
+                self._widget.setText(str(value))
 
     def postInitialize(self, wrappers):
         # Connect the result-file parameter to the SubstanceCombobox
-        for wrapper in wrappers:
-            if wrapper.parameterDefinition().name() == self.param.metadata().get("parentParameterName"):
-                wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
+        if self.dialogType in (DIALOG_STANDARD, DIALOG_BATCH):
+            for wrapper in wrappers:
+                if wrapper.parameterDefinition().name() == self.param.metadata().get("parentParameterName"):
+                    wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
 class SubstanceCombobox(QComboBox):
@@ -254,20 +277,6 @@ class SubstanceCombobox(QComboBox):
         if data:
             self.setCurrentIndex(0)
 
-    @staticmethod
-    def substances_from_netcdf(netcdf: str | Path) -> Dict[str, str]:
-        """
-        Get a {substance id: substance name} Dict for a water_quality_results_3di.nc file
-        """
-        f = h5py.File(netcdf)
-        substances = {}
-        for key in f.keys():
-            if key.startswith("substance"):
-                substance_id = key.split("_")[0]
-                substance_name = f[key].attrs["substance_name"]
-                substances[substance_id] = substance_name
-        return substances
-
     def new_file_event(self, file_path):
         """New file has been selected by the user. Try to read in the substance data from the file."""
         if not file_path or not Path(file_path).is_file():
@@ -275,7 +284,7 @@ class SubstanceCombobox(QComboBox):
             return
 
         try:
-            substance_data = self.substances_from_netcdf(file_path)
+            substance_data = substances_from_netcdf(file_path)
             self.populate(substance_data)
         except Exception as e:
             logger.exception(e)

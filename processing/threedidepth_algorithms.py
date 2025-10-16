@@ -48,6 +48,7 @@ from pathlib import Path
 from threedi_results_analysis.processing.widgets.widgets import ThreediResultTimeSliderWidgetWrapper
 from threedi_results_analysis.processing.widgets.widgets import SubstanceWidgetWrapper
 from threedi_results_analysis.processing.deps.concentration.mask import mask
+from threedi_results_analysis.processing.deps.concentration.utils import substances_from_netcdf
 from threedi_results_analysis.processing.deps.concentration.styling import (
     apply_transparency_gradient,
     apply_gradient_ramp,
@@ -307,6 +308,20 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             self.threedidepth_args.get("water_quality_results_3di_path")
         )
 
+    def get_substance_id(self, parameters, context):
+        netcdf_input = self.parameterAsFile(parameters, NETCDF_INPUT, context)
+        substance_id = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
+        substances = substances_from_netcdf(netcdf_input)
+        if substance_id not in substances:
+            # Perhaps the substance name was given as input instead of the substance id
+            for substance_id, substance_name in substances.items():
+                if substance_name == substance_id:
+                    substance_id = substance_id
+                    break
+        if substance_id not in substances:
+            raise QgsProcessingException(f"Substance {substance_id} not found in file {netcdf_input}")
+        return substance_id
+
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = {
                 "gridadmin_path": parameters[GRIDADMIN_INPUT],
@@ -323,8 +338,9 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 }
             )
         elif self.data_type == WATER_QUALITY:
-            gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], parameters[NETCDF_INPUT])
-            variable = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
+            netcdf_input = self.parameterAsFile(parameters, NETCDF_INPUT, context)
+            gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], netcdf_input)
+            variable = self.get_substance_id(parameters, context)
             mask_layer = self.parameterAsRasterLayer(parameters, WATER_DEPTH_INPUT, context)
             if mask_layer:
                 extent = mask_layer.extent()  # QgsRectangle
@@ -411,7 +427,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         output_layer_name = self.output_modes[mode_index].description
         if self.data_type == WATER_QUALITY:
             gwq = GridH5WaterQualityResultAdmin(parameters[GRIDADMIN_INPUT], parameters[NETCDF_INPUT])
-            substance_id = self.parameterAsString(parameters, SUBSTANCE_INPUT, context)
+            substance_id = self.get_substance_id(parameters, context)
             substance_name = getattr(gwq, substance_id).name
             output_layer_name = f"{substance_name}: {output_layer_name}"
         if self.time_step_type == MAXIMUM:
