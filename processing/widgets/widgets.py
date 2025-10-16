@@ -2,12 +2,13 @@ import logging
 from pathlib import Path
 from typing import Dict
 
-from processing.gui.wrappers import DIALOG_STANDARD
+from processing.gui.wrappers import DIALOG_BATCH, DIALOG_STANDARD
 from processing.gui.wrappers import WidgetWrapper
-from qgis.core import QgsProcessingParameterNumber
-from qgis.core import QgsProcessingParameterString
+from qgis.core import QgsProcessingContext
+from qgis.gui import QgsGui
+from qgis.gui import QgsProcessingGui
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QComboBox, QSpinBox
 import h5py
 
 from threedi_results_analysis.utils.user_messages import pop_up_info
@@ -29,31 +30,38 @@ def format_timestep_value(value: float, drop_leading_zero: bool = False) -> str:
     return formatted_display
 
 
-class ProcessingParameterNetcdfNumber(QgsProcessingParameterNumber):
-    def __init__(self, *args, parentParameterName="", optional=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.parentParameterName = parentParameterName
-        self.optional = optional
-        self.setMetadata({"widget_wrapper": {"class": ThreediResultTimeSliderWidget}})
+# class ProcessingParameterNetcdfNumber(QgsProcessingParameterNumber):
+#     def __init__(self, *args, parentParameterName="", optional=False, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.parentParameterName = parentParameterName
+#         self.optional = optional
+#         self.setMetadata({"widget_wrapper": {"class": ThreediResultTimeSliderWidget}})
 
 
-class ProcessingParameterNetcdfString(QgsProcessingParameterString):
-    def __init__(self, *args, parentParameterName="", optional=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.parentParameterName = parentParameterName
-        self.optional = optional
-        self.setMetadata({"widget_wrapper": {"class": SubstanceWidgetWrapper}})
+# class ProcessingParameterNetcdfString(QgsProcessingParameterString):
+#     def __init__(self, *args, parentParameterName="", **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.parentParameterName = parentParameterName
+#         self.setMetadata({"widget_wrapper": {"class": SubstanceWidgetWrapper}})
 
 
-class ThreediResultTimeSliderWidget(WidgetWrapper):
+class ThreediResultTimeSliderWidgetWrapper(WidgetWrapper):
     def createWidget(self):
         if self.dialogType == DIALOG_STANDARD:
-            if not self.parameterDefinition().optional:
+            if not self.param.metadata().get("optional"):
                 self._widget = TimeSliderWidget()
             else:
                 self._widget = CheckboxTimeSliderWidget()
-        else:
+        elif self.dialogType == DIALOG_BATCH:
             self._widget = TimeStepsCombobox()
+        else:
+            registry = QgsGui.instance().processingGuiRegistry()
+            default_wrapper = registry.createParameterWidgetWrapper(
+                self.parameterDefinition(),
+                QgsProcessingGui.WidgetType.Modeler
+            )
+            print(f"dir(self): {dir(self)}")
+            self._widget = default_wrapper.createWrappedWidget(QgsProcessingContext())
         return self._widget
 
     def value(self):
@@ -66,7 +74,7 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
     def postInitialize(self, wrappers):
         # Connect the result-file parameter to the TimeSliderWidget/TimeStepsCombobox
         for wrapper in wrappers:
-            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
+            if wrapper.parameterDefinition().name() == self.param.metadata().get("parentParameterName"):
                 wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
@@ -161,6 +169,10 @@ class TimeStepsCombobox(QComboBox):
     def getValue(self):
         return self.currentIndex()
 
+    def setValue(self, value: int):
+        self.setCurrentIndex(value)
+        pass
+
     def populate_timestamps(self, timestamps):
         for i, value in enumerate(timestamps):
             human_readable_value = format_timestep_value(value)
@@ -211,7 +223,7 @@ class SubstanceWidgetWrapper(WidgetWrapper):
     def postInitialize(self, wrappers):
         # Connect the result-file parameter to the SubstanceCombobox
         for wrapper in wrappers:
-            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
+            if wrapper.parameterDefinition().name() == self.param.metadata().get("parentParameterName"):
                 wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 

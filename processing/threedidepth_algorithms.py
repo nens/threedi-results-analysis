@@ -22,8 +22,10 @@ from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingParameterColor
 from qgis.core import QgsProcessingParameterEnum
 from qgis.core import QgsProcessingParameterFile
+from qgis.core import QgsProcessingParameterNumber
 from qgis.core import QgsProcessingParameterRasterDestination
 from qgis.core import QgsProcessingParameterRasterLayer
+from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProcessingUtils
 from qgis.core import QgsRasterBandStats
 from qgis.core import QgsRasterLayer
@@ -43,8 +45,8 @@ from threedigrid.admin.gridresultadmin import CustomizedWaterQualityResultAdmin
 import logging
 from pathlib import Path
 
-from threedi_results_analysis.processing.widgets.widgets import ProcessingParameterNetcdfNumber
-from threedi_results_analysis.processing.widgets.widgets import ProcessingParameterNetcdfString
+from threedi_results_analysis.processing.widgets.widgets import ThreediResultTimeSliderWidgetWrapper
+from threedi_results_analysis.processing.widgets.widgets import SubstanceWidgetWrapper
 from threedi_results_analysis.processing.deps.concentration.mask import mask
 from threedi_results_analysis.processing.deps.concentration.styling import (
     apply_transparency_gradient,
@@ -210,33 +212,51 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             ),
         ]
         if self.time_step_type == SINGLE:
+            calculation_step_input_param = QgsProcessingParameterNumber(
+                name=CALCULATION_STEP_INPUT,
+                description="Time step",
+                defaultValue=-1,
+            )
+            calculation_step_input_param.setMetadata(
+                {
+                    "widget_wrapper": {"class": ThreediResultTimeSliderWidgetWrapper},
+                    "parentParameterName": NETCDF_INPUT
+                }
+            )
             result.insert(
                 -1,
-                ProcessingParameterNetcdfNumber(
-                    name=CALCULATION_STEP_INPUT,
-                    description="Time step",
-                    defaultValue=-1,
-                    parentParameterName=NETCDF_INPUT,
-                )
+                calculation_step_input_param
             )
         elif self.time_step_type == MULTIPLE:
-            result.insert(
-                -1,
-                ProcessingParameterNetcdfNumber(
+            calculation_step_start_input_param = QgsProcessingParameterNumber(
                     name=CALCULATION_STEP_START_INPUT,
                     description="First time step",
                     defaultValue=0,
-                    parentParameterName=NETCDF_INPUT,
                 )
+            calculation_step_start_input_param.setMetadata(
+                {
+                    "widget_wrapper": {"class": ThreediResultTimeSliderWidgetWrapper},
+                    "parentParameterName": NETCDF_INPUT
+                }
             )
             result.insert(
                 -1,
-                ProcessingParameterNetcdfNumber(
+                calculation_step_start_input_param
+            )
+            calculation_step_end_input_param = QgsProcessingParameterNumber(
                     name=CALCULATION_STEP_END_INPUT,
                     description="Last time step",
                     defaultValue=-1,
-                    parentParameterName=NETCDF_INPUT,
                 )
+            calculation_step_end_input_param.setMetadata(
+                {
+                    "widget_wrapper": {"class": ThreediResultTimeSliderWidgetWrapper},
+                    "parentParameterName": NETCDF_INPUT
+                }
+            )
+            result.insert(
+                -1,
+                calculation_step_end_input_param
             )
         if self.data_type == WATER_QUANTITY:
             result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
@@ -249,10 +269,15 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                     optional=True
                 )
             )
-            substance_param = ProcessingParameterNetcdfString(
+            substance_param = QgsProcessingParameterString(
                 SUBSTANCE_INPUT,
                 "Substance",
-                parentParameterName=NETCDF_INPUT,
+            )
+            substance_param.setMetadata(
+                {
+                    "widget_wrapper": {"class": SubstanceWidgetWrapper},
+                    "parentParameterName": NETCDF_INPUT
+                }
             )
             result.insert(3, substance_param)
             result.insert(
