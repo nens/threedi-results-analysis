@@ -67,9 +67,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         """
         self.provider = ThreediProvider()
         QgsApplication.processingRegistry().addProvider(self.provider)
-        # QgsGui.instance().processingGuiRegistry().addParameterWidgetFactory(
-        #     SubstanceWidgetFactory()
-        # )
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI.

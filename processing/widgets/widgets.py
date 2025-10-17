@@ -4,7 +4,6 @@ from typing import Dict
 
 from processing.gui.wrappers import DIALOG_BATCH, DIALOG_STANDARD, DIALOG_MODELER
 from processing.gui.wrappers import WidgetWrapper
-from qgis.core import QgsProcessingContext
 from qgis.gui import QgsGui
 from qgis.gui import QgsProcessingGui
 from qgis.PyQt import uic
@@ -29,21 +28,6 @@ def format_timestep_value(value: float, drop_leading_zero: bool = False) -> str:
 
     formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
     return formatted_display
-
-
-# class ProcessingParameterNetcdfNumber(QgsProcessingParameterNumber):
-#     def __init__(self, *args, parentParameterName="", optional=False, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.parentParameterName = parentParameterName
-#         self.optional = optional
-#         self.setMetadata({"widget_wrapper": {"class": ThreediResultTimeSliderWidget}})
-
-
-# class ProcessingParameterNetcdfString(QgsProcessingParameterString):
-#     def __init__(self, *args, parentParameterName="", **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.parentParameterName = parentParameterName
-#         self.setMetadata({"widget_wrapper": {"class": SubstanceWidgetWrapper}})
 
 
 class ThreediResultTimeSliderWidgetWrapper(WidgetWrapper):
@@ -79,8 +63,6 @@ class ThreediResultTimeSliderWidgetWrapper(WidgetWrapper):
         # Connect the result-file parameter to the TimeSliderWidget/TimeStepsCombobox
         if self.dialogType in (DIALOG_STANDARD, DIALOG_BATCH):
             for wrapper in wrappers:
-                # logger.debug(f"wrapper.parameterDefinition().name(): {wrapper.parameterDefinition().name()}")
-                # logger.debug(f"self.param.metadata().get('parentParameterName'): {self.param.metadata().get('parentParameterName')}")
                 if wrapper.parameterDefinition().name() == self.param.metadata().get("parentParameterName"):
                     wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
@@ -92,7 +74,6 @@ class TimeSliderWidget(BASE, WIDGET):
     """
     Timeslider form widget. Provide a horizontal slider and an LCD connected to the slider.
     """
-
     def __init__(self):
         super(TimeSliderWidget, self).__init__(None)
         self.setupUi(self)
@@ -204,17 +185,6 @@ class TimeStepsCombobox(QComboBox):
             self.clear()
 
 
-# class SubstanceWidgetFactory(QgsProcessingParameterWidgetFactoryInterface):
-#     def parameterType(self):
-#         return QgsProcessingParameterString.typeName()
-#
-#     # def canCreateWrapperFor(self, param):
-#     #     return param.metadata().get("widget_wrapper") == "SubstanceWidgetWrapper"
-#
-#     def createWidgetWrapper(self, parameter):
-#         return SubstanceWidgetWrapper(parameter)
-
-
 class SubstanceWidgetWrapper(WidgetWrapper):
     def createWidget(self):
         if self.dialogType in (DIALOG_STANDARD, DIALOG_BATCH):
@@ -256,7 +226,6 @@ class SubstanceCombobox(QComboBox):
     Displayed texts are the substance names ("Chloride", "Phosphate", etc.).
     The user data behind it are the substance IDs ("substance1", "substance2", etc.)
     """
-
     def getValue(self):
         return self.currentData()
 
