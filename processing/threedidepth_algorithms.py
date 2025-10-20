@@ -178,7 +178,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             description="Gridadmin file",
             extension="h5"
         )
-        gridadmin_param.setMetaData(
+        gridadmin_param.setMetadata(
             {"shortHelpString": "HDF5 file (*.h5) containing the computational grid of a 3Di model"}
         )
         result.append(gridadmin_param)
@@ -199,7 +199,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             short_help_string = (
                 "NetCDF (*.nc) containing the water quality results of a 3Di simulation. "
             )
-        netcdf_input_param.setMetaData(
+        netcdf_input_param.setMetadata(
             {"shortHelpString": short_help_string}
         )
         result.append(netcdf_input_param)
@@ -220,7 +220,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             short_help_string = (
                 "Use this setting to switch spatial interpolation on or off."
             )
-        output_type_param.setMetaData(
+        output_type_param.setMetadata(
             {"shortHelpString": short_help_string}
         )
         result.append(output_type_param)
@@ -230,7 +230,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             name=OUTPUT_FILENAME,
             description="Output raster"
         )
-        output_filename_param.setMetaData(
+        output_filename_param.setMetadata(
             {"shortHelpString": "File name for the output file."}
         )
         result.append(output_filename_param)
@@ -291,7 +291,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             )
         if self.data_type == WATER_QUANTITY:
             dem_param = QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM")
-            dem_param.setMetaData(
+            dem_param.setMetadata(
                 {"shortHelpString": (
                     "Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. "
                     "Using a different DEM in this tool than in the simulation may give unexpected results."
@@ -324,7 +324,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                     "⚠ Note that the maximum water depth and the maximum concentration are not likely to occur at the "
                     "same time. Masking a maximum concentration raster may therefore not always be meaningful."
                 )
-            water_depth_input_param.setMetaData({"shortHelpString": short_help_string})
+            water_depth_input_param.setMetadata({"shortHelpString": short_help_string})
             result.insert(
                 2,
                 water_depth_input_param
@@ -346,7 +346,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                     "Color",
                     defaultValue=QColor("brown")
                 )
-            color_param.setMetaData(
+            color_param.setMetadata(
                 {
                     "shortHelpString": (
                         "Color to be used when styling the output. The transparency of the output layer will be scaled "
