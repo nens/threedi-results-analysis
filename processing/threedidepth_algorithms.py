@@ -84,8 +84,8 @@ MAXIMUM = "MAXIMUM"
 
 STYLE_DIR = Path(__file__).parent / "styles"
 
-# TODO: shortHelpStrings
 # TODO: tests
+# TODO: shortHelpStrings
 
 
 class CancelError(Exception):

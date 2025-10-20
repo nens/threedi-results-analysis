@@ -2,12 +2,12 @@ import logging
 from pathlib import Path
 from typing import Dict
 
-from processing.gui.wrappers import DIALOG_BATCH, DIALOG_STANDARD, DIALOG_MODELER
+from processing.gui.wrappers import DIALOG_BATCH, DIALOG_STANDARD
 from processing.gui.wrappers import WidgetWrapper
 from qgis.gui import QgsGui
 from qgis.gui import QgsProcessingGui
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QComboBox, QSpinBox
+from qgis.PyQt.QtWidgets import QComboBox
 import h5py
 
 from threedi_results_analysis.utils.user_messages import pop_up_info

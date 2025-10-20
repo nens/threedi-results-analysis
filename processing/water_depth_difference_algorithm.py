@@ -10,15 +10,13 @@ from qgis.core import (
     QgsProcessingUtils,
 )
 
-gdal.UseExceptions()
-osr.UseExceptions()
-
-from threedi_results_analysis.utils.utils import get_authority_code
 from threedi_results_analysis.utils.geo_utils import (
     get_arrays,
     replace_no_data_values,
-    check_raster_properties_are_equal
 )
+
+gdal.UseExceptions()
+osr.UseExceptions()
 
 STYLE_DIR = Path(__file__).parent / "styles"
 

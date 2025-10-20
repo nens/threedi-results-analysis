@@ -1,5 +1,4 @@
 from qgis.core import (
-    QgsProject,
     QgsRasterLayer,
     QgsRasterShader,
     QgsColorRampShader,
