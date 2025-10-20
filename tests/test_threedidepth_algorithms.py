@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from qgis.core import QgsProcessingContext, QgsProcessingFeedback
 from threedi_results_analysis.processing.threedidepth_algorithms import WaterDepthOrLevelSingleTimeStepAlgorithm
 from threedi_results_analysis.tests.utilities import TMP_DIR
@@ -15,12 +17,12 @@ DATA_DIR = PLUGIN_DIR / "tests" / "data" / "water_quality_results"
 # }
 
 water_depth_single_time_step_algorithm_inputs = {
-    'GRIDADMIN_INPUT': DATA_DIR / "gridadmin.h5",
-    'NETCDF_INPUT': DATA_DIR / "results_3di.nc",
-    'DEM_INPUT': DATA_DIR / "schematisation" / "rasters" / "dem.tif",
+    'GRIDADMIN_INPUT': str(DATA_DIR / "gridadmin.h5"),
+    'NETCDF_INPUT': str(DATA_DIR / "results_3di.nc"),
+    'DEM_INPUT': str(DATA_DIR / "schematisation" / "rasters" / "dem.tif"),
     'MODE_INPUT': 0,
     'CALCULATION_STEP_INPUT': 3,
-    'OUTPUT_FILENAME': TMP_DIR / "water_depth_single_time_step.tif"
+    'OUTPUT_FILENAME': str(Path(TMP_DIR) / "water_depth_single_time_step.tif")
 }
 
 
