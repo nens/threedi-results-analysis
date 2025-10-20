@@ -22,7 +22,7 @@ water_depth_single_time_step_algorithm_inputs = {
     'DEM_INPUT': str(DATA_DIR / "schematisation" / "rasters" / "dem.tif"),
     'MODE_INPUT': 0,
     'CALCULATION_STEP_INPUT': 3,
-    'OUTPUT_FILENAME': str(Path(TMP_DIR) / "water_depth_single_time_step.tif")
+    'OUTPUT_FILENAME': str(Path(TMP_DIR.name) / "water_depth_single_time_step.tif")
 }
 
 
