@@ -327,7 +327,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             water_depth_input_param.setMetaData({"shortHelpString": short_help_string})
             result.insert(
                 2,
-
+                water_depth_input_param
             )
             substance_param = QgsProcessingParameterString(
                 SUBSTANCE_INPUT,
@@ -336,17 +336,27 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             substance_param.setMetadata(
                 {
                     "widget_wrapper": {"class": SubstanceWidgetWrapper},
-                    "parentParameterName": NETCDF_INPUT
+                    "parentParameterName": NETCDF_INPUT,
+                    "shortHelpString": "Name of the substance for which to generate a raster."
                 }
             )
             result.insert(3, substance_param)
-            result.insert(
-                4,
-                QgsProcessingParameterColor(
+            color_param = QgsProcessingParameterColor(
                     COLOR_INPUT,
                     "Color",
                     defaultValue=QColor("brown")
                 )
+            color_param.setMetaData(
+                {
+                    "shortHelpString": (
+                        "Color to be used when styling the output. The transparency of the output layer will be scaled "
+                        "with the range of concentrations found in the water quality results NetCDF."
+                    )
+                }
+            )
+            result.insert(
+                4,
+                color_param
             )
         return result
 
