@@ -11,7 +11,7 @@ from qgis.PyQt.QtWidgets import QComboBox
 import h5py
 
 from threedi_results_analysis.utils.user_messages import pop_up_info
-from threedi_results_analysis.processing.deps.concentration.utils import substances_from_netcdf
+from threedi_results_analysis.utils.netcdf import substances_from_netcdf
 
 logger = logging.getLogger(__name__)
 plugin_path = Path(__file__).resolve().parent.parent.parent
