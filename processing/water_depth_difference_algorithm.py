@@ -14,54 +14,13 @@ gdal.UseExceptions()
 osr.UseExceptions()
 
 from threedi_results_analysis.utils.utils import get_authority_code
+from threedi_results_analysis.utils.geo_utils import (
+    get_arrays,
+    replace_no_data_values,
+    check_raster_properties_are_equal
+)
 
 STYLE_DIR = Path(__file__).parent / "styles"
-
-
-def get_extent(raster):
-    gt = raster.GetGeoTransform()
-    ulx = gt[0]
-    uly = gt[3]
-    lrx = gt[0] + (raster.RasterXSize * gt[1])
-    lry = gt[3] + (raster.RasterYSize * gt[5])  # '+' because gt[5] is negative
-    return [ulx, uly, lrx, lry]
-
-
-def get_shared_extent(extent1, extent2):
-    ulx = max(extent1[0], extent2[0])
-    uly = min(extent1[1], extent2[1])
-    lrx = min(extent1[2], extent2[2])
-    lry = max(extent1[3], extent2[3])
-
-    return [ulx, uly, lrx, lry]
-
-
-def get_arrays(raster1, raster2):
-    raster1_extend = get_extent(raster1)
-    raster2_extend = get_extent(raster2)
-    if raster1_extend == raster2_extend:
-        raster1_array = raster1.ReadAsArray()
-        raster2_array = raster2.ReadAsArray()
-        gt = raster1.GetGeoTransform()
-    else:
-        shared_extent = get_shared_extent(raster1_extend, raster2_extend)
-        raster1_shared_extent = gdal.Translate('', raster1, format='MEM', projWin=shared_extent)
-        raster1_array = raster1_shared_extent.ReadAsArray()
-        raster1_shared_extent = None
-        raster2_shared_extent = gdal.Translate('', raster2, format='MEM', projWin=shared_extent)
-        raster2_array = raster2_shared_extent.ReadAsArray()
-        raster2_shared_extent = None
-        gt = list(raster1.GetGeoTransform())  # (upper_left_x, x_resolution, x_skew, upper_left_y, y_skew, y_resolution)
-        gt[0] = shared_extent[0]
-        gt[3] = shared_extent[1]
-        gt = tuple(gt)
-    return raster1_array, raster2_array, gt
-
-
-def replace_no_data_values(raster, raster_array):
-    ndv = raster.GetRasterBand(1).GetNoDataValue()
-    raster_array[np.where(raster_array == ndv)] = 0
-    return raster_array
 
 
 def water_depth_diff(reference: Path | str, compare: Path | str, output: Path | str):
@@ -76,23 +35,6 @@ def water_depth_diff(reference: Path | str, compare: Path | str, output: Path | 
 
     reference_raster = gdal.Open(reference)
     compare_raster = gdal.Open(compare)
-
-    # raise error if pixel sizes differ
-    if not (reference_raster.GetGeoTransform()[1] == compare_raster.GetGeoTransform()[1] and
-            reference_raster.GetGeoTransform()[5] == compare_raster.GetGeoTransform()[5]):
-        raise ValueError("Input rasters have different pixel sizes")
-
-    # raise error if pixel skews differ
-    if not (reference_raster.GetGeoTransform()[2] == compare_raster.GetGeoTransform()[2] and
-            reference_raster.GetGeoTransform()[4] == compare_raster.GetGeoTransform()[4]):
-        raise ValueError("Input rasters have different pixel skew")
-
-    # raise error if projections differ
-    # compare on EPSG code to prevent errors from insignificant differences between the projections
-    authority_code_reference = get_authority_code(reference_raster)
-    authority_code_compare = get_authority_code(compare_raster)
-    if not authority_code_reference == authority_code_compare:
-        raise ValueError(f"Input rasters have different CRS ({authority_code_reference} vs {authority_code_compare}")
 
     # Clip rasters if they do not have the same extent
     reference_array, compare_array, gt = get_arrays(reference_raster, compare_raster)

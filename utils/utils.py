@@ -10,7 +10,6 @@ from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VAR
 from typing import List
 from typing import Sequence
 from uuid import uuid4
-from osgeo import gdal, osr
 
 import logging
 import numpy as np
@@ -217,28 +216,3 @@ def pretty(x: Sequence, n: int) -> np.ndarray:
     ns = np.floor(lo / u + 1e-10)
     nu = np.ceil(up / u - 1e-10)
     return np.arange(ns * u, (nu + 1) * u, u)
-
-
-def get_authority_code(raster: gdal.Dataset) -> str | None:
-    """
-    Return authority code (e.g. EPSG:28992) for given raster
-    Returns None if no projection is defined
-    """
-    wkt = raster.GetProjection()
-    if not wkt:
-        return None  # no projection defined
-
-    srs = osr.SpatialReference()
-    srs.ImportFromWkt(wkt)
-
-    if srs.IsGeographic():
-        key = "GEOGCS"
-    else:
-        key = "PROJCS"
-
-    code = srs.GetAuthorityCode(key)
-    auth = srs.GetAuthorityName(key)
-
-    if code and auth:
-        return f"{auth}:{code}"
-    return None

@@ -8,8 +8,6 @@ from qgis.core import (
 )
 from PyQt5.QtGui import QColor
 
-# TODO move to utils/styling.py
-
 
 def apply_transparency_gradient(
     layer: QgsRasterLayer,

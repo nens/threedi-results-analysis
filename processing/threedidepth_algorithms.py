@@ -12,7 +12,7 @@
 """
 from collections import namedtuple
 from datetime import datetime, timedelta
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 import numpy as np
 from osgeo import gdal
@@ -27,7 +27,6 @@ from qgis.core import QgsProcessingParameterRasterDestination
 from qgis.core import QgsProcessingParameterRasterLayer
 from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProcessingUtils
-from qgis.core import QgsRasterBandStats
 from qgis.core import QgsRasterLayer
 from qgis.PyQt.QtGui import QColor
 from threedidepth.calculate import calculate_waterdepth, calculate_water_quality
@@ -47,13 +46,14 @@ from pathlib import Path
 
 from threedi_results_analysis.processing.widgets.widgets import ThreediResultTimeSliderWidgetWrapper
 from threedi_results_analysis.processing.widgets.widgets import SubstanceWidgetWrapper
-from threedi_results_analysis.processing.deps.concentration.mask import mask
-from threedi_results_analysis.processing.deps.concentration.utils import substances_from_netcdf
-from threedi_results_analysis.processing.deps.concentration.styling import (
+
+from threedi_results_analysis.utils.color import color_ramp_from_data, COLOR_RAMP_OCEAN_HALINE
+from threedi_results_analysis.utils.geo_utils import mask, multiband_raster_min_max
+from threedi_results_analysis.utils.netcdf import substances_from_netcdf
+from threedi_results_analysis.utils.styling import (
     apply_transparency_gradient,
     apply_gradient_ramp,
 )
-from threedi_results_analysis.utils.color import color_ramp_from_data, COLOR_RAMP_OCEAN_HALINE
 
 logger = logging.getLogger(__name__)
 plugin_path = Path(__file__).resolve().parent.parent
@@ -85,27 +85,7 @@ MAXIMUM = "MAXIMUM"
 STYLE_DIR = Path(__file__).parent / "styles"
 
 # TODO: shortHelpStrings
-# TODO: clean up, move utility functions to utils
-# TODO: clean up imports
-
-
-def multiband_raster_min_max(layer) -> Tuple[float, float]:
-    """Return the min and max values across all bands"""
-    provider = layer.dataProvider()
-    band_count = provider.bandCount()
-
-    global_min = float("inf")
-    global_max = float("-inf")
-
-    for band in range(1, band_count + 1):
-        stats = provider.bandStatistics(
-            band,
-            QgsRasterBandStats.Min | QgsRasterBandStats.Max
-        )
-        global_min = min(global_min, stats.minimumValue)
-        global_max = max(global_max, stats.maximumValue)
-
-    return global_min, global_max
+# TODO: tests
 
 
 class CancelError(Exception):
