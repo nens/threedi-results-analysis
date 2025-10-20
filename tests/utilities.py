@@ -1,6 +1,8 @@
 # coding=utf-8
 """Common functionality used by regression tests."""
 from contextlib import contextmanager
+from pathlib import Path
+
 from qgis.core import QgsApplication
 
 import logging
@@ -13,6 +15,10 @@ osr.UseExceptions()
 
 logger = logging.getLogger(__name__)
 _singletons = {}
+
+TMP_DIR = tempfile.TemporaryDirectory()
+OUT_DIR = tempfile.TemporaryDirectory()
+OFFSET_X, OFFSET_Y = 140000, 460000
 
 
 def ensure_qgis_app_is_initialized():
@@ -79,3 +85,29 @@ def create_test_raster(output_path, array_data, origin_x, origin_y, pixel_width=
     band.FlushCache()
     out_raster = None
     return str(output_path)
+
+
+def create_test_raster_with_defaults(
+        filename,
+        array_data,
+        origin_x=OFFSET_X,
+        origin_y=OFFSET_Y,
+        pixel_width=10,
+        pixel_height=-10,
+        epsg_code=28992,
+        no_data_value=-9999,
+        x_skew=0,
+        y_skew=0
+):
+    output_path = str(Path(TMP_DIR.name) / filename)
+    return create_test_raster(
+        output_path=output_path,
+        array_data=array_data,
+        origin_x=origin_x,
+        origin_y=origin_y,
+        pixel_width=pixel_width,
+        pixel_height=pixel_height,
+        epsg_code=epsg_code,
+        no_data_value=no_data_value,
+        x_skew=x_skew,
+        y_skew=y_skew)
