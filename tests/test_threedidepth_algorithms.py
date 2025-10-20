@@ -40,4 +40,3 @@ def test_water_depth_algorithm(tmp_path):
     # Assertions
     assert result is not None
     assert water_depth_single_time_step_algorithm_inputs["OUTPUT_FILENAME"].exists()
-
