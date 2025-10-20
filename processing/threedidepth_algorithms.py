@@ -84,10 +84,9 @@ MAXIMUM = "MAXIMUM"
 
 STYLE_DIR = Path(__file__).parent / "styles"
 
-# Fix TEMPORARY FILE
 # TODO: tests
 # TODO: shortHelpStrings
-
+# Replace two sliders with qgsrangeslider
 
 class CancelError(Exception):
     """Error which gets raised when a user presses the 'cancel' button"""
@@ -170,28 +169,71 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
 
     @property
     def parameters(self) -> List:
-        result = [
-            QgsProcessingParameterFile(
-                name=GRIDADMIN_INPUT,
-                description="Gridadmin file",
-                extension="h5"
-            ),
-            QgsProcessingParameterFile(
-                name=NETCDF_INPUT,
-                description="3Di simulation output (.nc)",
-                extension="nc"
-            ),
-            QgsProcessingParameterEnum(
-                name=MODE_INPUT,
-                description="Output type",
-                options=[m.description for m in self.output_modes],
-                defaultValue=self.default_mode,
-            ),
-            QgsProcessingParameterRasterDestination(
-                name=OUTPUT_FILENAME,
-                description="Output raster"
-            ),
-        ]
+        result = []
+
+        # Gridadmin input
+        gridadmin_param = QgsProcessingParameterFile(
+            name=GRIDADMIN_INPUT,
+            description="Gridadmin file",
+            extension="h5"
+        )
+        gridadmin_param.setMetaData(
+            {"shortHelpString": "HDF5 file (*.h5) containing the computational grid of a 3Di model"}
+        )
+        result.append(gridadmin_param)
+
+        # NetCDF input
+        netcdf_input_param = QgsProcessingParameterFile(
+            name=NETCDF_INPUT,
+            description="3Di simulation output (.nc)",
+            extension="nc"
+        )
+        if self.data_type == WATER_QUANTITY:
+            short_help_string = (
+                "NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. "
+                "When using aggregated results (aggregate_results_3di.nc), make sure to use 'maximum water level' "
+                "as one of the aggregation variables in the simulation."
+            )
+        elif self.data_type == WATER_QUALITY:
+            short_help_string = (
+                "NetCDF (*.nc) containing the water quality results of a 3Di simulation. "
+            )
+        netcdf_input_param.setMetaData(
+            {"shortHelpString": short_help_string}
+        )
+        result.append(netcdf_input_param)
+
+        # Output type
+        output_type_param = QgsProcessingParameterEnum(
+            name=MODE_INPUT,
+            description="Output type",
+            options=[m.description for m in self.output_modes],
+            defaultValue=self.default_mode,
+        )
+        if self.data_type == WATER_QUANTITY:
+            short_help_string = (
+                "Choose between water depth (m above the surface) and water level (m MSL), "
+                "with or without spatial interpolation."
+            )
+        elif self.data_type == WATER_QUALITY:
+            short_help_string = (
+                "Use this setting to switch spatial interpolation on or off."
+            )
+        output_type_param.setMetaData(
+            {"shortHelpString": short_help_string}
+        )
+        result.append(output_type_param)
+
+        # Output filename
+        output_filename_param = QgsProcessingParameterRasterDestination(
+            name=OUTPUT_FILENAME,
+            description="Output raster"
+        )
+        output_filename_param.setMetaData(
+            {"shortHelpString": "File name for the output file."}
+        )
+        result.append(output_filename_param)
+
         if self.time_step_type == SINGLE:
             calculation_step_input_param = QgsProcessingParameterNumber(
                 name=CALCULATION_STEP_INPUT,
@@ -201,7 +243,8 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             calculation_step_input_param.setMetadata(
                 {
                     "widget_wrapper": {"class": ThreediResultTimeSliderWidgetWrapper},
-                    "parentParameterName": NETCDF_INPUT
+                    "parentParameterName": NETCDF_INPUT,
+                    "shortHelpString": "The time step in the simulation for which you want to generate a raster."
                 }
             )
             result.insert(
@@ -217,7 +260,10 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             calculation_step_start_input_param.setMetadata(
                 {
                     "widget_wrapper": {"class": ThreediResultTimeSliderWidgetWrapper},
-                    "parentParameterName": NETCDF_INPUT
+                    "parentParameterName": NETCDF_INPUT,
+                    "shortHelpString": (
+                        "The start of the time step range for which you want to generate rasters."
+                    )
                 }
             )
             result.insert(
@@ -232,7 +278,10 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             calculation_step_end_input_param.setMetadata(
                 {
                     "widget_wrapper": {"class": ThreediResultTimeSliderWidgetWrapper},
-                    "parentParameterName": NETCDF_INPUT
+                    "parentParameterName": NETCDF_INPUT,
+                    "shortHelpString": (
+                        "The end of the time step range for which you want to generate rasters."
+                    )
                 }
             )
             result.insert(
@@ -240,15 +289,29 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 calculation_step_end_input_param
             )
         if self.data_type == WATER_QUANTITY:
+            dem_param = QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM")
+            dem_param.setMetaData(
+                {"shortHelpString": (
+                    "Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. "
+                    "Using a different DEM in this tool than in the simulation may give unexpected results."
+                )}
+            )
             result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
         elif self.data_type == WATER_QUALITY:
-            result.insert(
-                2,
-                QgsProcessingParameterRasterLayer(
+            water_depth_input_param = QgsProcessingParameterRasterLayer(
                     WATER_DEPTH_INPUT,
                     "Water depth (mask layer)",
                     optional=True
                 )
+            water_depth_input_param.setMetaData(
+                {"shortHelpString": (
+                    "Water depth raster to be used as a mask layer for the output. "
+                    "All 'no data' pixels in the water depth raster will be set to 'no data' in the output raster."
+                )}
+            )
+            result.insert(
+                2,
+
             )
             substance_param = QgsProcessingParameterString(
                 SUBSTANCE_INPUT,
@@ -304,7 +367,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
 
     def get_threedidepth_args(self, parameters, context, feedback) -> Dict:
         args = {
-                "gridadmin_path": parameters[GRIDADMIN_INPUT],
+                "gridadmin_path": self.parameterAsFile(parameters, GRIDADMIN_INPUT, context),
                 "calculation_steps": self.calculation_steps(parameters, feedback),
                 "mode": self.output_mode.name,
                 "progress_func": Progress(feedback),
@@ -312,7 +375,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         if self.data_type == WATER_QUANTITY:
             args.update(
                 {
-                    "results_3di_path": parameters[NETCDF_INPUT],
+                    "results_3di_path": self.parameterAsFile(parameters, NETCDF_INPUT, context),
                     "dem_path": self.parameterAsRasterLayer(parameters, DEM_INPUT, context).source(),
                     "waterdepth_path": str(self.output_file(parameters, context)),
                 }
@@ -329,7 +392,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 output_extent = gwq.get_model_extent()
             args.update(
                 {
-                    "water_quality_results_3di_path": parameters[NETCDF_INPUT],
+                    "water_quality_results_3di_path": self.parameterAsFile(parameters, NETCDF_INPUT, context),
                     "variable": variable,
                     "output_extent": output_extent,  # TODO make this separate input?
                     "output_path": str(self.output_file(parameters, context)),
