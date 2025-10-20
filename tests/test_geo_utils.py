@@ -10,7 +10,6 @@ from threedi_results_analysis.tests.utilities import (
     create_test_raster_with_defaults,
     OFFSET_X,
     OFFSET_Y,
-    OUT_DIR,
 )
 from threedi_results_analysis.utils.geo_utils import (
     get_coord_transformation_instance,
@@ -119,4 +118,3 @@ def test_replace_no_data_values():
     expected_data[1, 1] = -9999
     expected_data[3, 3] = 0
     np.testing.assert_array_equal(data, expected_data)
-

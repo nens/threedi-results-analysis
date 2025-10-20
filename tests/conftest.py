@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pytest
 from osgeo import gdal
@@ -12,6 +10,7 @@ from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initiali
 @pytest.fixture(autouse=True)
 def qgis_app_initialized():
     ensure_qgis_app_is_initialized()
+
 
 @pytest.fixture(scope='session')
 def raster_zeros_file():

@@ -1,5 +1,4 @@
 import pytest
-import tempfile
 from pathlib import Path
 from osgeo import gdal
 import numpy as np
@@ -7,8 +6,6 @@ from threedi_results_analysis import PLUGIN_DIR
 import threedi_results_analysis.processing.water_depth_difference_algorithm as wdda
 from threedi_results_analysis.tests.utilities import (
     create_test_raster_with_defaults,
-    OFFSET_X,
-    OFFSET_Y,
     OUT_DIR,
 )
 
