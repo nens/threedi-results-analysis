@@ -88,6 +88,7 @@ STYLE_DIR = Path(__file__).parent / "styles"
 # TODO: shortHelpStrings
 # Replace two sliders with qgsrangeslider
 
+
 class CancelError(Exception):
     """Error which gets raised when a user presses the 'cancel' button"""
 
@@ -303,12 +304,27 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                     "Water depth (mask layer)",
                     optional=True
                 )
-            water_depth_input_param.setMetaData(
-                {"shortHelpString": (
+            if self.time_step_type == SINGLE:
+                short_help_string = (
                     "Water depth raster to be used as a mask layer for the output. "
                     "All 'no data' pixels in the water depth raster will be set to 'no data' in the output raster."
-                )}
-            )
+                )
+            elif self.time_step_type == MULTIPLE:
+                short_help_string = (
+                    "Multiband water depth raster to be used as a mask layer for the output. "
+                    "All 'no data' pixels in the water depth raster will be set to 'no data' in the output raster."
+                    "The water depth mask layer must have a band for each time step for which a concentration raster "
+                    "is generated. Generate this multiband water depth raster with the processing algorithm 'Calculate "
+                    "water depth/level raster (multiple time steps)'"
+                )
+            elif self.time_step_type == MAXIMUM:
+                short_help_string = (
+                    "Water depth raster to be used as a mask layer for the output. "
+                    "All 'no data' pixels in the water depth raster will be set to 'no data' in the output raster."
+                    "⚠ Note that the maximum water depth and the maximum concentration are not likely to occur at the "
+                    "same time. Masking a maximum concentration raster may therefore not always be meaningful."
+                )
+            water_depth_input_param.setMetaData({"shortHelpString": short_help_string})
             result.insert(
                 2,
 
