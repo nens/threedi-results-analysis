@@ -33,10 +33,7 @@ def format_timestep_value(value: float, drop_leading_zero: bool = False) -> str:
 class ThreediResultTimeSliderWidgetWrapper(WidgetWrapper):
     def createWidget(self):
         if self.dialogType == DIALOG_STANDARD:
-            if not self.param.metadata().get("optional"):
-                self._widget = TimeSliderWidget()
-            else:
-                self._widget = CheckboxTimeSliderWidget()
+            self._widget = TimeSliderWidget()
         elif self.dialogType == DIALOG_BATCH:
             self._widget = TimeStepsCombobox()
         else:
@@ -128,27 +125,6 @@ class TimeSliderWidget(BASE, WIDGET):
             logger.exception(e)
             pop_up_info(msg="Unable to read the file, see the logging for more information.")
             self.reset()
-
-
-WIDGET, BASE = uic.loadUiType(plugin_path / "processing" / "ui" / "widgetTimeSliderCheckbox.ui")
-
-
-class CheckboxTimeSliderWidget(TimeSliderWidget, WIDGET, BASE):
-    """Time slider widget with a checkbox to enable/disable the time slider"""
-
-    def __init__(self):
-        super().__init__()
-        self.horizontalSlider.setDisabled(not self.checkBox.isChecked())
-        self.checkBox.stateChanged.connect(self.new_check_box_event)
-
-    def getValue(self):
-        if self.checkBox.isChecked():
-            return self.index
-        else:
-            return None
-
-    def new_check_box_event(self, state):
-        self.horizontalSlider.setDisabled(not self.checkBox.isChecked())
 
 
 class TimeStepsCombobox(QComboBox):
