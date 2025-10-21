@@ -84,9 +84,7 @@ MAXIMUM = "MAXIMUM"
 
 STYLE_DIR = Path(__file__).parent / "styles"
 
-# TODO: tests
-# TODO: shortHelpStrings
-# Replace two sliders with qgsrangeslider
+# TODO: Replace two sliders with qgsrangeslider
 
 
 class CancelError(Exception):

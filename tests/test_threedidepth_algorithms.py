@@ -52,7 +52,7 @@ concentration_raster_single_time_step_algorithm_inputs = {
     'COLOR_INPUT': QColor(165, 42, 42),
     'MODE_INPUT': 1,
     'CALCULATION_STEP_INPUT': 3,
-    'OUTPUT_FILENAME': str(TMP_DIR / "concentration_raster_single_time_step.tif")
+    'OUTPUT_FILENAME': str(Path(TMP_DIR.name) / "concentration_raster_single_time_step.tif")
 }
 
 concentration_raster_multiple_time_step_algorithm_inputs = {
@@ -64,7 +64,7 @@ concentration_raster_multiple_time_step_algorithm_inputs = {
     'MODE_INPUT': 1,
     'CALCULATION_STEP_START_INPUT': 0,
     'CALCULATION_STEP_END_INPUT': 4,
-    'OUTPUT_FILENAME': str(TMP_DIR / "concentration_raster_multiple_time_step.tif")
+    'OUTPUT_FILENAME': str(Path(TMP_DIR.name) / "concentration_raster_multiple_time_step.tif")
 }
 
 concentration_raster_maximum_algorithm_inputs = {
@@ -74,7 +74,7 @@ concentration_raster_maximum_algorithm_inputs = {
     'SUBSTANCE_INPUT': 'Rain (label)',
     'COLOR_INPUT': QColor(165, 42, 42),
     'MODE_INPUT': 1,
-    'OUTPUT_FILENAME': str(TMP_DIR / "concentration_raster_maximum.tif")
+    'OUTPUT_FILENAME': str(Path(TMP_DIR.name) / "concentration_raster_maximum.tif")
 }
 
 
