@@ -569,9 +569,9 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         if Path(output_file_generic_part).is_file():
             Path(output_file_generic_part).unlink()
         if self.data_type == WATER_QUALITY:
-            self.threedidepth_args["output_path"] = output_file_generic_part
+            self.threedidepth_args["output_path"] = str(output_file_generic_part)
         elif self.data_type == WATER_QUANTITY:
-            self.threedidepth_args["waterdepth_path"] = output_file_generic_part
+            self.threedidepth_args["waterdepth_path"] = str(output_file_generic_part)
         try:
             self.threedidepth_method(**self.threedidepth_args)
         except CancelError:
