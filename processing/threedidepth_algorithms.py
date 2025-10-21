@@ -293,11 +293,11 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             dem_param = QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM")
             dem_param.setMetadata(
                 {"shortHelpString": (
-                    "Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. "
+                    "Digital elevation model (.tif) that was used for the simulation. "
                     "Using a different DEM in this tool than in the simulation may give unexpected results."
                 )}
             )
-            result.insert(2, QgsProcessingParameterRasterLayer(DEM_INPUT, "DEM"))
+            result.insert(2, dem_param)
         elif self.data_type == WATER_QUALITY:
             water_depth_input_param = QgsProcessingParameterRasterLayer(
                     WATER_DEPTH_INPUT,
@@ -321,8 +321,8 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
                 short_help_string = (
                     "Water depth raster to be used as a mask layer for the output. "
                     "All 'no data' pixels in the water depth raster will be set to 'no data' in the output raster."
-                    "⚠ Note that the maximum water depth and the maximum concentration are not likely to occur at the "
-                    "same time. Masking a maximum concentration raster may therefore not always be meaningful."
+                    "</p><p>⚠ Note that the maximum water depth and the maximum concentration are not likely to occur "
+                    "at the same time. Masking a maximum concentration raster may therefore not always be meaningful."
                 )
             water_depth_input_param.setMetadata({"shortHelpString": short_help_string})
             result.insert(
@@ -630,14 +630,57 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
 
     def short_help_string_leader(self) -> str:
         """Title and leader of the documentation shortHelpString"""
-        return ""
+        # Data type
+        if self.data_type == WATER_QUANTITY:
+            title = "Calculate water depth or level raster"
+            leader_paragraphs = [
+                "The 3Di simulation result contains a single water level for each cell, for each time step. However, "
+                "the water <i>depth</i> is different for each pixel within the cell. "
+                "To calculate water depths from water levels, the DEM needs to be subtracted from the water level. "
+                "This results in a raster with a water depth value for each pixel.",
+
+                "For some applications, it is useful to have water <i>levels</i> as a raster file. "
+                "For example, to use them as <i>initial water levels</i> in the next simulation.",
+
+                "It is often preferable to spatially interpolate the water levels. This is recommended to use if the "
+                "water level gradients are large, e.g. in sloping areas.",
+            ]
+        elif self.data_type == WATER_QUALITY:
+            title = "Calculate concentration/fraction raster"
+            leader_paragraphs = [
+                "The 3Di water quality simulation result contains a single concentration (or fraction) for each cell, "
+                "for each time step, for each substance. This tool allows you to make a raster of this data.",
+
+                "To get a smoother result, use the option to spatially interpolate the concentrations.",
+
+                "To show concentrations or fractions only where there is water on the surface instead of in the whole "
+                "cell, use the water depth layer as mask layer.",
+            ]
+
+        # Time step type
+        if self.time_step_type == SINGLE:
+            title += " for specified time step"
+        elif self.time_step_type == MULTIPLE:
+            title += " for specified range of time steps"
+        elif self.time_step_type == MAXIMUM:
+            title += " for the maximum value that occurs over time per cell"
+            leader_paragraphs.append(
+                "⚠ Note that the maximum may occur at different time steps in different cells. "
+                "Therefore, the map that that this tool calculates may never have occurred as "
+                "such during the simulation."
+            )
+        # Formatting
+        title = f"<h3>{title}</h3>"
+        leader_paragraphs = [f"<p>{paragraph}</p>" for paragraph in leader_paragraphs]
+        leader = "\n".join(leader_paragraphs)
+        return title + leader
 
     def shortHelpString(self):
         """Documentation as shown in the help panel"""
         result = self.short_help_string_leader()
         for parameter in self.parameters:
             heading = f"<h4>{parameter.description()}</h4>"
-            paragraph = f"<p>{parameter.metaData()['shortHelpString']}</p>"
+            paragraph = f"<p>{parameter.metadata().get('shortHelpString') or ''}</p>"
             result += heading
             result += paragraph
         return result
@@ -673,22 +716,6 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         """
         return "Water depth/level raster (single time step)"
 
-    def short_help_string_leader(self) -> str:
-        """
-        Title and leader of the documentation shortHelpString
-        """
-        return (
-            "<h3>Calculate water depth or level raster for specified timestep(s)</h3>"
-            "<p>The 3Di simulation result contains a single water level for each cell, for each time step. However, "
-            "the water depth is different for each pixel within the cell. To calculate water depths from water levels,"
-            " the DEM needs to be subtracted from the water level. This results in a raster with a water depth value "
-            "for each pixel.</p>"
-            "<p>For some applications, it is useful to have water levels as a raster file. For example, to use them as "
-            "<i>Initial water levels</i> in the next simulation.</p>"
-            "<p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the "
-            "water level gradients are large, e.g. in sloping areas.</p>"
-        )
-
 
 class WaterDepthOrLevelMaximumAlgorithm(BaseThreediDepthAlgorithm):
     """
@@ -718,36 +745,6 @@ class WaterDepthOrLevelMaximumAlgorithm(BaseThreediDepthAlgorithm):
         user-visible display of the algorithm name.
         """
         return "Water depth/level raster (maximum)"
-
-    def shortHelpString(self):
-        """Returns a localised short helper string for the algorithm"""
-        return """
-            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
-            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
-            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
-            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
-            <h3>Parameters</h3>
-            <h4>Gridadmin file</h4>
-            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
-            <h4>3Di simulation output (.nc)</h4>
-            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
-            <h4>DEM</h4>
-            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
-            <h4>Output type</h4>
-            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
-            <h4>Time step</h4>
-            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
-            <h4>Enable multiple time steps export</h4>
-            <p>Check this box if you want outputs for multiple time steps.</p>
-            <h4>Last time step</h4>
-            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
-            <h4>Output file name</h4>
-            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
-            <h4>Output directory</h4>
-            <p>Directory where the output file(s) are to be stored.</p>
-            <h3>Save to NetCDF (experimental)</h3>
-            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
-            """
 
 
 class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
@@ -779,36 +776,6 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         """
         return "Water depth/level raster (multiple time steps)"
 
-    def shortHelpString(self):
-        """Returns a localised short helper string for the algorithm"""
-        return """
-            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
-            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
-            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
-            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
-            <h3>Parameters</h3>
-            <h4>Gridadmin file</h4>
-            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
-            <h4>3Di simulation output (.nc)</h4>
-            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
-            <h4>DEM</h4>
-            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
-            <h4>Output type</h4>
-            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
-            <h4>Time step</h4>
-            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
-            <h4>Enable multiple time steps export</h4>
-            <p>Check this box if you want outputs for multiple time steps.</p>
-            <h4>Last time step</h4>
-            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
-            <h4>Output file name</h4>
-            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
-            <h4>Output directory</h4>
-            <p>Directory where the output file(s) are to be stored.</p>
-            <h3>Save to NetCDF (experimental)</h3>
-            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
-            """
-
 
 class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
@@ -838,36 +805,6 @@ class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         user-visible display of the algorithm name.
         """
         return "Concentration raster (single time step)"
-
-    def shortHelpString(self):
-        """Returns a localised short helper string for the algorithm"""
-        return """
-            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
-            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
-            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
-            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
-            <h3>Parameters</h3>
-            <h4>Gridadmin file</h4>
-            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
-            <h4>3Di simulation output (.nc)</h4>
-            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
-            <h4>DEM</h4>
-            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
-            <h4>Output type</h4>
-            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
-            <h4>Time step</h4>
-            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
-            <h4>Enable multiple time steps export</h4>
-            <p>Check this box if you want outputs for multiple time steps.</p>
-            <h4>Last time step</h4>
-            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
-            <h4>Output file name</h4>
-            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
-            <h4>Output directory</h4>
-            <p>Directory where the output file(s) are to be stored.</p>
-            <h3>Save to NetCDF (experimental)</h3>
-            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
-            """
 
 
 class ConcentrationMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
@@ -899,36 +836,6 @@ class ConcentrationMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
         """
         return "Concentration raster (multiple time steps)"
 
-    def shortHelpString(self):
-        """Returns a localised short helper string for the algorithm"""
-        return """
-            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
-            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
-            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
-            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
-            <h3>Parameters</h3>
-            <h4>Gridadmin file</h4>
-            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
-            <h4>3Di simulation output (.nc)</h4>
-            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
-            <h4>DEM</h4>
-            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
-            <h4>Output type</h4>
-            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
-            <h4>Time step</h4>
-            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
-            <h4>Enable multiple time steps export</h4>
-            <p>Check this box if you want outputs for multiple time steps.</p>
-            <h4>Last time step</h4>
-            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
-            <h4>Output file name</h4>
-            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
-            <h4>Output directory</h4>
-            <p>Directory where the output file(s) are to be stored.</p>
-            <h3>Save to NetCDF (experimental)</h3>
-            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
-            """
-
 
 class ConcentrationMaximumAlgorithm(BaseThreediDepthAlgorithm):
     """
@@ -958,33 +865,3 @@ class ConcentrationMaximumAlgorithm(BaseThreediDepthAlgorithm):
         user-visible display of the algorithm name.
         """
         return "Concentration raster (maximum)"
-
-    def shortHelpString(self):
-        """Returns a localised short helper string for the algorithm"""
-        return """
-            <h3>Calculate water depth or level raster for specified timestep(s)</h3>
-            <p>The 3Di simulation result contains a single water level for each cell, for each time step. However, the water depth is different for each pixel within the cell. To calculate water depths from water levels, the DEM needs to be subtracted from the water level. This results in a raster with a water depth value for each pixel.</p>
-            <p>For some applications, it is useful to have water levels as a raster file. For example, to use them as <i>Initial water levels</i> in the next simulation.</p>
-            <p>It is often preferable to spatially interpolate the water levels. This is recommended to use if the water level gradients are large, such as is often the case in sloping areas.</p>
-            <h3>Parameters</h3>
-            <h4>Gridadmin file</h4>
-            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
-            <h4>3Di simulation output (.nc)</h4>
-            <p>NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. When using aggregated results (aggregate_results_3di.nc), make sure to use "maximum water level" as one of the aggregation variables in the simulation.</p>
-            <h4>DEM</h4>
-            <p>Digital elevation model (.tif) that was used as input for the 3Di model used for this simulation. Using a different DEM in this tool than in the simulation may give unexpected results.</p>
-            <h4>Output type</h4>
-            <p>Choose between water depth (m above the surface) and water level (m MSL), with or without spatial interpolation.</p>
-            <h4>Time step</h4>
-            <p>The time step in the simulation for which you want to generate a raster. If you want outputs for multiple time steps, this is the first time step.</p>
-            <h4>Enable multiple time steps export</h4>
-            <p>Check this box if you want outputs for multiple time steps.</p>
-            <h4>Last time step</h4>
-            <p>If you want outputs for multiple time steps, specify the last time step here.</p>
-            <h4>Output file name</h4>
-            <p>File name for the output file. If multiple output rasters are generated, a time stamp will be added to each file name.</p>
-            <h4>Output directory</h4>
-            <p>Directory where the output file(s) are to be stored.</p>
-            <h3>Save to NetCDF (experimental)</h3>
-            <h4>Write the output of the processing algorithm to a NetCDF instead of to (multiple) GeoTIFF files. This is mainly useful when output for multiple time steps is enabled.</h4>
-            """
