@@ -1,8 +1,8 @@
 3Di Results Analysis changelog
 ========================
 
-3.25.3 (unreleased)
--------------------
+3.26 (2025-10-22)
+-----------------
 
 - Some fixes for Qt6 upgrade. (#1144)
 - Flow Summary Tool: Tool no longer covers Load Simulation dialogs (#1139)
