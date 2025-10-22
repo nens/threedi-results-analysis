@@ -9,6 +9,7 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.PyQt.QtXml import QDomElement
 from qgis.utils import iface
+
 from threedi_results_analysis.gui.threedi_plugin_dockwidget import (
     ThreeDiPluginDockWidget,
 )

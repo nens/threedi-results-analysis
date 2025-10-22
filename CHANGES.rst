@@ -6,7 +6,12 @@
 
 - Some fixes for Qt6 upgrade. (#1144)
 - Flow Summary Tool: Tool no longer covers Load Simulation dialogs (#1139)
-
+- Water depth/level raster algorithm has been split into two algorithms: single and multiple time steps (#958)
+- Appropriately style and name water depth/level algorithm outputs.
+- New processing algorithm: Concentration raster (single time step)
+- New processing algorithm: Concentration raster (multiple time steps)
+- New processing algorithm: Concentration raster (maximum)
+- Bugfix: Processing algorithm "Maximum water depth/level" no longer fails when writing to a temporary result (#945)
 
 3.25.2 (2025-10-01)
 -------------------
@@ -17,7 +22,7 @@
 - Fraction Analysis Tool: substances are listed alphabetically (#1133)
 - Prepared for QGIS 4 (Qt 6) (#1144)
 - Fraction Analysis Tool: plot highlighting (#1132)
-- Add support for aggregate_results_3di.nc files in threedidepth processing algorithms
+- Add support for aggregate_results_3di.nc files in threedidepth processing algorithms (#874)
 
 
 3.25.1 (2025-09-08)
