@@ -59,13 +59,13 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.tabWidget.currentChanged.connect(self._tabChanged)
         self.model = QStandardItemModel()
-        self.current_sort_order = Qt.AscendingOrder
+        self.current_sort_order = Qt.SortOrder.AscendingOrder
         self.proxy_model = QSortFilterProxyModel(self)
         self.proxy_model.setSourceModel(self.model)
-        self.proxy_model.setSortRole(Qt.DisplayRole)
+        self.proxy_model.setSortRole(Qt.ItemDataRole.DisplayRole)
         self.tableView.setModel(self.proxy_model)
-        self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.tableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tableView.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.header_labels = ["Schematisation", "Revision", "Simulation"]
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.tableView.horizontalHeader().setSortIndicatorShown(True)
@@ -82,9 +82,9 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot(int)
     def on_header_clicked(self, logicalIndex):
         if self.proxy_model.sortColumn() == logicalIndex:
-            self.current_sort_order = Qt.DescendingOrder if self.current_sort_order == Qt.AscendingOrder else Qt.AscendingOrder
+            self.current_sort_order = Qt.SortOrder.DescendingOrder if self.current_sort_order == Qt.SortOrder.AscendingOrder else Qt.SortOrder.AscendingOrder
         else:
-            self.current_sort_order = Qt.AscendingOrder
+            self.current_sort_order = Qt.SortOrder.AscendingOrder
         self.proxy_model.sort(logicalIndex, self.current_sort_order)
 
     @pyqtSlot(str)
@@ -237,7 +237,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))
-                    revision_item.setData(revision_number, Qt.DisplayRole)
+                    revision_item.setData(revision_number, Qt.ItemDataRole.DisplayRole)
                     revision_item.setEditable(False)
                     # We'll store the grid folder with the revision item for fast retrieval
                     revision_item.setData(local_revision.grid_dir)
@@ -252,7 +252,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))
-                    revision_item.setData(revision_number, Qt.DisplayRole)
+                    revision_item.setData(revision_number, Qt.ItemDataRole.DisplayRole)
                     revision_item.setEditable(False)
                     # We'll store the grid folder with the revision item for fast retrieval
                     revision_item.setData(local_revision.grid_dir)
@@ -260,7 +260,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # Sort table rows by schematisation name and
         # then by revision number using the DisplayRole
-        rows.sort(key=lambda x: (x[0].text(), x[1].data(Qt.DisplayRole)))
+        rows.sort(key=lambda x: (x[0].text(), x[1].data(Qt.ItemDataRole.DisplayRole)))
         for row in rows:
             self.model.appendRow(row)
 

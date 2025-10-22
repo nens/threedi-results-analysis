@@ -1,11 +1,11 @@
 from qgis.PyQt.QtCore import Qt
 
 available_styles = [
-        Qt.SolidLine,
-        Qt.DashLine,
-        Qt.DotLine,
-        Qt.DashDotLine,
-        Qt.DashDotDotLine,
+        Qt.PenStyle.SolidLine,
+        Qt.PenStyle.DashLine,
+        Qt.PenStyle.DotLine,
+        Qt.PenStyle.DashDotLine,
+        Qt.PenStyle.DashDotDotLine,
     ]
 
 

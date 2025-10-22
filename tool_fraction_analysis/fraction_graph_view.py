@@ -44,24 +44,30 @@ class FractionWidget(QWidget):
         self.clear()
 
     def model_item_changed(self, item):
-        self.fraction_plot.item_changed(item)
+        # a plot is toggled or color is changed
+        if item.index().column() == 0:
+            self.fraction_plot.item_checked(item)
+        elif item.index().column() == 1:
+            self.fraction_plot.item_color_changed(item)
 
     def clear(self):
         self.fraction_model.clear()
         self.fraction_plot.clear_plot()
-
+        self.marker.reset()
         self.current_result_id = None
         self.current_layer = None
         self.current_substance_unit = None
         self.current_feature_id = None
         self.current_stacked = False
+        self.current_volume = False
 
     def result_selected(self, result_item: ThreeDiResultItem, substance_units):
         self.current_result_id = result_item.id
+        self.current_feature_id = None
         self.fraction_plot.clear_plot()
         self.fraction_model.set_fraction(result_item, substance_units)
 
-    def highlight_feature(self):
+    def highlight_feature_on_map(self, row):
         if self.current_feature_id and self.current_result_id and self.current_layer:
             result_item = self.result_model.get_result(self.current_result_id)
             for table_name, layer_id in result_item.parent().layer_ids.items():
@@ -74,7 +80,14 @@ class FractionWidget(QWidget):
                     for feature in features:
                         self.marker.setToGeometry(feature.geometry(), lyr)
 
+    def highlight_plot(self, row):
+        # user hovered over table
+        if self.current_feature_id and self.current_result_id and self.current_layer:
+            # Note that table and plots are connectec via signals
+            self.fraction_model.highlight_row(row)
+
     def unhighlight_all_features(self):
+        self.fraction_model.highlight_substance(None)
         self.marker.reset()
 
     def setup_ui(self):
@@ -83,13 +96,14 @@ class FractionWidget(QWidget):
         splitterWidget = QSplitter(self)
 
         self.fraction_plot = FractionPlot(self, self.result_model, self.fraction_model)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.fraction_plot.sizePolicy().hasHeightForWidth())
         self.fraction_plot.setSizePolicy(sizePolicy)
         self.fraction_plot.setMinimumSize(QSize(250, 250))
         splitterWidget.addWidget(self.fraction_plot)
+        self.fraction_plot.hover_plot.connect(self.fraction_model.highlight_substance)
 
         legendWidget = QWidget(self)
         vLayoutTable = QVBoxLayout(self)
@@ -101,9 +115,10 @@ class FractionWidget(QWidget):
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         vLayoutTable.addWidget(self.ts_units_combo_box)
         self.fraction_table = FractionTable(self)
-        self.fraction_table.hoverEnterRow.connect(self.highlight_feature)
+        self.fraction_table.hoverEnterRow.connect(self.highlight_feature_on_map)
+        self.fraction_table.hoverEnterRow.connect(self.highlight_plot)
         self.fraction_table.hoverExitAllRows.connect(self.unhighlight_all_features)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.fraction_table.sizePolicy().hasHeightForWidth())
@@ -116,30 +131,35 @@ class FractionWidget(QWidget):
         mainLayout.setContentsMargins(0, 0, 0, 0)
 
         self.marker = QgsRubberBand(self.iface.mapCanvas())
-        self.marker.setColor(Qt.red)
+        self.marker.setColor(Qt.GlobalColor.red)
         self.marker.setWidth(2)
 
     def time_units_change(self):
         self.fraction_plot.setLabel("bottom", "Time", self.ts_units_combo_box.currentText())
         if self.current_feature_id and self.current_substance_unit:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def substance_units_change(self, substance_unit):
         self.current_substance_unit = substance_unit
         if self.current_result_id:
             self.fraction_model.set_fraction(self.result_model.get_result(self.current_result_id), self.current_substance_unit)
         if self.current_feature_id:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def stacked_changed(self, check_state):
-        self.current_stacked = (check_state == Qt.Checked)
+        self.current_stacked = (check_state == Qt.CheckState.Checked)
         if self.current_feature_id:
-            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
+
+    def volume_changed(self, check_state):
+        self.current_volume = (check_state == Qt.CheckState.Checked)
+        if self.current_feature_id:
+            self.fraction_plot.fraction_selected(self.current_feature_id, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
 
     def feature_selected(self, layer: QgsVectorLayer, feature: QgsFeature) -> bool:
         if not layer.objectName() in ("node", "cell"):
             msg = """Please select results from either the 'nodes' or 'cells' layer."""
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.MessageLevel.Warning, 5.0)
             return False
 
         if len(self.result_model.get_results(checked_only=False)) == 0:
@@ -153,7 +173,7 @@ class FractionWidget(QWidget):
         for result_item in result_items:
             # Check whether this layer belongs to the selected grid
             if layer.id() in result_item.parent().layer_ids.values():
-                self.fraction_plot.fraction_selected(new_idx, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked)
+                self.fraction_plot.fraction_selected(new_idx, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
                 self.current_result_id = result_item.id
                 self.current_layer = layer.objectName()
                 break

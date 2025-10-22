@@ -33,7 +33,7 @@ jobs:
       - name: Submit coverage to coveralls.io
         # current directory must be marked as safe, or git rev-parse --abbrev-ref HEAD will complain of dubious ownership
         # this causes coveralls to raise an exception
-        run: docker compose run qgis-desktop bash -c 'git config --global --add safe.directory $(pwd) && coveralls'
+        run: docker compose run qgis-desktop bash -c 'git config --global --add safe.directory $(pwd) && coveralls || true'
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 

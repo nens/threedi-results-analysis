@@ -32,11 +32,27 @@ from threedi_results_analysis.processing.structure_control_action_algorithms imp
     StructureControlActionAlgorithm,
 )
 from threedi_results_analysis.processing.threedidepth_algorithms import (
-    ThreediDepthAlgorithm,
+    WaterDepthOrLevelSingleTimeStepAlgorithm,
 )
 from threedi_results_analysis.processing.threedidepth_algorithms import (
-    ThreediMaxDepthAlgorithm,
+    WaterDepthOrLevelMultipleTimeStepAlgorithm,
 )
+from threedi_results_analysis.processing.threedidepth_algorithms import (
+    WaterDepthOrLevelMaximumAlgorithm,
+)
+from threedi_results_analysis.processing.threedidepth_algorithms import (
+    ConcentrationSingleTimeStepAlgorithm,
+)
+from threedi_results_analysis.processing.threedidepth_algorithms import (
+    ConcentrationMultipleTimeStepAlgorithm,
+)
+from threedi_results_analysis.processing.threedidepth_algorithms import (
+    ConcentrationMaximumAlgorithm,
+)
+from threedi_results_analysis.processing.water_depth_difference_algorithm import (
+    WaterDepthDiffAlgorithm,
+)
+
 
 import os
 
@@ -45,8 +61,12 @@ class ThreediProvider(QgsProcessingProvider):
     """Loads the Processing Toolbox algorithms for 3Di"""
 
     def loadAlgorithms(self, *args, **kwargs):
-        self.addAlgorithm(ThreediDepthAlgorithm())
-        self.addAlgorithm(ThreediMaxDepthAlgorithm())
+        self.addAlgorithm(WaterDepthOrLevelSingleTimeStepAlgorithm())
+        self.addAlgorithm(WaterDepthOrLevelMultipleTimeStepAlgorithm())
+        self.addAlgorithm(WaterDepthOrLevelMaximumAlgorithm())
+        self.addAlgorithm(ConcentrationSingleTimeStepAlgorithm())
+        self.addAlgorithm(ConcentrationMultipleTimeStepAlgorithm())
+        self.addAlgorithm(ConcentrationMaximumAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
@@ -57,6 +77,7 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(RastersToNetCDFAlgorithm())
         self.addAlgorithm(StructureControlActionAlgorithm())
         self.addAlgorithm(ImportHydXAlgorithm())
+        self.addAlgorithm(WaterDepthDiffAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.

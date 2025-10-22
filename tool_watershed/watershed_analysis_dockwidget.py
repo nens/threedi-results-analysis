@@ -404,9 +404,9 @@ class Graph3DiQgsConnector:
                 logger.error("Unable to update result sets")
 
             result_marker = QgsVertexMarker(self.iface.mapCanvas())
-            result_marker.setIconType(QgsVertexMarker.ICON_BOX)
-            result_marker.setColor(Qt.yellow)
-            result_marker.setFillColor(Qt.black)
+            result_marker.setIconType(QgsVertexMarker.IconType.ICON_BOX)
+            result_marker.setColor(Qt.GlobalColor.yellow)
+            result_marker.setFillColor(Qt.GlobalColor.black)
             result_marker.setPenWidth(3)
             result_marker.setCenter(feat.geometry().asPoint())
             self._result_markers[result_set] = result_marker
@@ -736,9 +736,9 @@ class Graph3DiQgsConnector:
             max_progress -= 1
 
         progress.setMaximum(max_progress)
-        progress.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        progress.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         progress_message_bar.layout().addWidget(progress)
-        self.iface.messageBar().pushWidget(progress_message_bar, Qgis.Info)
+        self.iface.messageBar().pushWidget(progress_message_bar, Qgis.MessageLevel.Info)
         self.iface.mainWindow().repaint()  # to show the message before the task starts
 
         result_set = self.new_result_set_id()
@@ -765,7 +765,7 @@ class Graph3DiQgsConnector:
                 self.find_impervious_surfaces(node_ids=list(upstream_node_ids), result_set=result_set)
             except FindImperviousSurfaceError:
                 self.iface.messageBar().pushMessage(
-                    MESSAGE_CATEGORY, "Something went wrong when finding impervious surfaces", Qgis.Warning
+                    MESSAGE_CATEGORY, "Something went wrong when finding impervious surfaces", Qgis.MessageLevel.Warning
                 )
             current_progress += 1
             progress.setValue(current_progress)
@@ -918,7 +918,7 @@ class CatchmentMapTool(QgsMapToolIdentify):
         identify_results = self.identify(x=int(x), y=int(y), layerList=[self.gq.target_node_layer])
         if len(identify_results) == 0:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Please click on a target node", level=Qgis.Info
+                MESSAGE_CATEGORY, "Please click on a target node", level=Qgis.MessageLevel.Info
             )
         else:
             target_node_id = identify_results[0].mFeature.id()
@@ -944,7 +944,7 @@ class CatchmentMapTool(QgsMapToolIdentify):
 
     def set_cursor(self):
         cursor = QtGui.QCursor()
-        cursor.setShape(Qt.CrossCursor)
+        cursor.setShape(Qt.CursorShape.CrossCursor)
         self.canvas().setCursor(cursor)
 
 
@@ -986,7 +986,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             description="Preprocess 3Di Results for Network Analysis", parent=self, gr=gr
         )
         self.iface.messageBar().pushMessage(
-            MESSAGE_CATEGORY, "Started pre-processing simulation results", Qgis.Info
+            MESSAGE_CATEGORY, "Started pre-processing simulation results", Qgis.MessageLevel.Info
         )
         self.tm.addTask(update_gr_task)
         self.iface.mainWindow().repaint()  # to show the message before the task starts
@@ -1061,7 +1061,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             schema.set_spatial_indexes()
         except errors.MigrationMissingError:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Please update the 3Di schematisation to latest version first", level=Qgis.Warning
+                MESSAGE_CATEGORY, "Please update the 3Di schematisation to latest version first", level=Qgis.MessageLevel.Warning
             )
             self.QgsFileWidgetSchematisation.setFilePath("")
             return
@@ -1070,11 +1070,11 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if surface_layer.isValid():
             self.gq.schematisation = self.QgsFileWidgetSchematisation.filePath()
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Succesfully added impervious surfaces from model", level=Qgis.Success
+                MESSAGE_CATEGORY, "Succesfully added impervious surfaces from model", level=Qgis.MessageLevel.Success
             )
         else:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Invalid 3Di schematisation selected", level=Qgis.Warning
+                MESSAGE_CATEGORY, "Invalid 3Di schematisation selected", level=Qgis.MessageLevel.Warning
             )
             self.QgsFileWidgetSchematisation.setFilePath("")
 
@@ -1113,7 +1113,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         if len(selected_node_ids) == 0:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Please first select one or more target nodes", level=Qgis.Warning
+                MESSAGE_CATEGORY, "Please first select one or more target nodes", level=Qgis.MessageLevel.Warning
             )
         else:
             if self.gq.graph_3di.isready:
@@ -1125,7 +1125,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 )
             else:
                 self.iface.messageBar().pushMessage(
-                    MESSAGE_CATEGORY, "Please select 3Di results first", level=Qgis.Warning
+                    MESSAGE_CATEGORY, "Please select 3Di results first", level=Qgis.MessageLevel.Warning
                 )
 
     def pushbutton_catchment_for_polygons_clicked(self):
@@ -1213,7 +1213,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def setUpUI(self):
         self.setupUi(self)
-        self.mMapLayerComboBoxTargetPolygons.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.mMapLayerComboBoxTargetPolygons.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
         self.QgsFileWidgetSchematisation.fileChanged.connect(self.schematisation_selected)
         self.QgsFileWidgetSchematisation.setEnabled(False)
         self.doubleSpinBoxThreshold.valueChanged.connect(self.threshold_changed)
@@ -1240,14 +1240,14 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 class UpdateGridAdminTask(QgsTask):
     def __init__(self, description: str, parent: WatershedAnalystDockWidget, gr: GridH5ResultAdmin):
-        super().__init__(description, QgsTask.CanCancel)
+        super().__init__(description, QgsTask.Flag.CanCancel)
         self.exception = None
         self.parent = parent
         if not isinstance(gr, GridH5ResultAdmin):
             raise TypeError
         self.gr = gr
         self.parent.setEnabled(False)
-        QgsMessageLog.logMessage("Started pre-processing simulation results", MESSAGE_CATEGORY, level=Qgis.Info)
+        QgsMessageLog.logMessage("Started pre-processing simulation results", MESSAGE_CATEGORY, level=Qgis.MessageLevel.Info)
 
     def run(self):
         try:
@@ -1288,14 +1288,14 @@ class UpdateGridAdminTask(QgsTask):
                 self.parent.gq.result_catchment_layer.featuresDeleted.connect(self.parent.result_sets_count_changed)
 
             self.parent.setEnabled(True)
-            QgsMessageLog.logMessage("Finished pre-processing simulation results", MESSAGE_CATEGORY, level=Qgis.Success)
+            QgsMessageLog.logMessage("Finished pre-processing simulation results", MESSAGE_CATEGORY, level=Qgis.MessageLevel.Success)
 
         else:
             self.parent.setEnabled(True)
-            QgsMessageLog.logMessage("Failed pre-processing simulation results", MESSAGE_CATEGORY, level=Qgis.Critical)
+            QgsMessageLog.logMessage("Failed pre-processing simulation results", MESSAGE_CATEGORY, level=Qgis.MessageLevel.Critical)
 
     def cancel(self):
         QgsMessageLog.logMessage(
-            "Pre-processing simulation results cancelled by user", MESSAGE_CATEGORY, level=Qgis.Info
+            "Pre-processing simulation results cancelled by user", MESSAGE_CATEGORY, level=Qgis.MessageLevel.Info
         )
         super().cancel()

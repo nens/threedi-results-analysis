@@ -55,7 +55,7 @@ class Route(object):
 
         # A search graph is constructed using a so-called Director.
         # Don't use information about road direction from attributes, all edges are treated as two-ways
-        self.director = QgsVectorLayerDirector(self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth)
+        self.director = QgsVectorLayerDirector(self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.Direction.DirectionBoth)
         self.id_field = "id"
         self.id_field_index = self.graph_layer.fields().lookupField(self.id_field)
 
@@ -270,7 +270,7 @@ class Route(object):
         self._virtual_tree_layer.commitChanges()
         self._virtual_tree_layer.updateExtents()
         self._virtual_tree_layer.triggerRepaint()
-        self._virtual_tree_layer.setFlags(QgsMapLayer.Private)
+        self._virtual_tree_layer.setFlags(QgsMapLayer.LayerFlag.Private)
 
     def get_virtual_tree_layer(self):
         """
@@ -359,11 +359,11 @@ class RouteMapTool(QgsMapTool):
             self.callback_on_select(selected_points, transformed_point)
 
     def activate(self):
-        self.canvas.setCursor(QCursor(Qt.CrossCursor))
+        self.canvas.setCursor(QCursor(Qt.CursorShape.CrossCursor))
 
     def deactivate(self):
         self.deactivated.emit()
-        self.canvas.setCursor(QCursor(Qt.ArrowCursor))
+        self.canvas.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
 
     def isZoomTool(self):
         return False

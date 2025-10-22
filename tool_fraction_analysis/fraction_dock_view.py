@@ -43,13 +43,14 @@ class FractionDockWidget(QDockWidget):
             widget=self, canvas=self.iface.mapCanvas(),
         )
         self.map_tool_add_node_cell.setButton(self.addNodeCellButton)
-        self.map_tool_add_node_cell.setCursor(Qt.CrossCursor)
+        self.map_tool_add_node_cell.setCursor(Qt.CursorShape.CrossCursor)
 
         # In case this dock widget becomes (in)visible, we disable the map tools
         self.visibilityChanged.connect(self.unset_map_tools)
 
     def on_close(self):
         self.addNodeCellButton.clicked.disconnect(self.add_node_cell_button_clicked)
+        self.fraction_widget.clear()
         self.map_tool_add_node_cell = None
 
     def closeEvent(self, event):
@@ -70,6 +71,8 @@ class FractionDockWidget(QDockWidget):
             self.fraction_widget.clear()
             # Also remove retrieved units
             self.substanceUnitsCombobox.clear()
+            self.volumeCheckbox.setChecked(False)
+            self.stackedCheckbox.setChecked(False)
             current_result_removed = True
             self._update_widget_title()
 
@@ -131,7 +134,7 @@ class FractionDockWidget(QDockWidget):
         self._update_widget_title()
 
     def setup_ui(self):
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.dockWidgetContent = QWidget(self)
         self.mainVLayout = QVBoxLayout(self.dockWidgetContent)
         self.dockWidgetContent.setLayout(self.mainVLayout)
@@ -143,8 +146,11 @@ class FractionDockWidget(QDockWidget):
         self.buttonBarHLayout.addWidget(self.addNodeCellButton)
         self.stackedCheckbox = QCheckBox("Stacked plot", self.dockWidgetContent)
         self.buttonBarHLayout.addWidget(self.stackedCheckbox)
+        self.volumeCheckbox = QCheckBox("Volume mode", self.dockWidgetContent)
+        self.volumeCheckbox.setToolTip("Multiply concentrations by volume.")
+        self.buttonBarHLayout.addWidget(self.volumeCheckbox)
 
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
         result_label = QLabel("Simulation result:", self.dockWidgetContent)
         self.buttonBarHLayout.addWidget(result_label)
@@ -168,8 +174,9 @@ class FractionDockWidget(QDockWidget):
         self.setWidget(self.dockWidgetContent)
         self._update_widget_title()
 
-        self.substanceUnitsCombobox.currentTextChanged.connect(self.fraction_widget.substance_units_change)
+        self.substanceUnitsCombobox.currentTextChanged.connect(self.substance_units_change)
         self.stackedCheckbox.stateChanged.connect(self.fraction_widget.stacked_changed)
+        self.volumeCheckbox.stateChanged.connect(self.fraction_widget.volume_changed)
 
         # populate the combobox, with wq results, select first
         for result in self.model.get_results(checked_only=False):
@@ -188,6 +195,13 @@ class FractionDockWidget(QDockWidget):
     def unset_map_tools(self):
         if self.iface.mapCanvas().mapTool() is self.map_tool_add_node_cell:
             self.iface.mapCanvas().unsetMapTool(self.map_tool_add_node_cell)
+
+    def substance_units_change(self, substance_unit):
+        if substance_unit == "%":
+            self.volumeCheckbox.setText("Volume mode")
+        else:
+            self.volumeCheckbox.setText("Load mode")
+        self.fraction_widget.substance_units_change(substance_unit)
 
     def add_results(self, results):
         current_result = self.current_result()

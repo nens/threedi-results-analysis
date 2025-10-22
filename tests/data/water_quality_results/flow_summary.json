@@ -1,0 +1,118 @@
+{
+    "general_information": {
+        "calculation_node_with_max_volume_error": 23,
+        "default_timestep": {
+            "units": "s",
+            "value": 1.0
+        },
+        "maximum_timestep": {
+            "units": "s",
+            "value": 1.0
+        },
+        "minimum_timestep": {
+            "units": "s",
+            "value": 1.0
+        },
+        "model_id": 74607,
+        "model_name": "threedidepth-testmodel-2",
+        "model_type": "2D",
+        "revision_id": 67804,
+        "schematisation_id": 11909,
+        "simulation_id": 336781,
+        "simulation_start": "2000-01-01 12:00:00",
+        "simulation_time": {
+            "units": "s",
+            "value": 14400.0
+        }
+    },
+    "volume_balance": {
+        "0D_inflow": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "boundaries_inflow": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "boundaries_outflow": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "drained_volume_by_pumps": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "exfiltration": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "infiltration": {
+            "units": "m3",
+            "value": 2518.679
+        },
+        "initial_interception": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "initial_storage_1D": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "initial_storage_2D_groundwater_domain": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "initial_storage_2D_surface_domain": {
+            "units": "m3",
+            "value": 4490530.2272
+        },
+        "initial_stored_infiltration": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "interception": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "laterals_1D_inflow": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "laterals_2D_groundwater_inflow": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "laterals_2D_surface_water_inflow": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "maximum_volume_error": {
+            "units": "m3",
+            "value": 1.0598e-06
+        },
+        "rain_2D": {
+            "units": "m3",
+            "value": 11138.1501
+        },
+        "storage_1D_end_of_simulation": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "storage_2D_in_groundwater_domain_end_of_simulation": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "storage_2D_in_surface_water_domain_end_of_simulation": {
+            "units": "m3",
+            "value": 4499149.6983
+        },
+        "volume_due_to_surface_source_and_sink_discharges": {
+            "units": "m3",
+            "value": 0.0
+        },
+        "volume_from_leakage": {
+            "units": "m3",
+            "value": 0.0
+        }
+    }
+}

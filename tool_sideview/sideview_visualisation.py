@@ -18,8 +18,8 @@ class SideViewMapVisualisation(object):
 
         self.graph_layer_crs = graph_layer_crs
 
-        self.rb = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.LineGeometry)
-        self.rb.setColor(Qt.red)
+        self.rb = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.GeometryType.LineGeometry)
+        self.rb.setColor(Qt.GlobalColor.red)
         self.rb.setWidth(2)
 
         self.point_markers = []
@@ -27,8 +27,8 @@ class SideViewMapVisualisation(object):
         self.last_path = None
 
         self.hover_marker = QgsVertexMarker(self.iface.mapCanvas())
-        self.hover_marker.setIconType(QgsVertexMarker.ICON_X)
-        self.hover_marker.setColor(Qt.red)
+        self.hover_marker.setIconType(QgsVertexMarker.IconType.ICON_X)
+        self.hover_marker.setColor(Qt.GlobalColor.red)
         self.hover_marker.setPenWidth(6)
 
         self.dist_calc = QgsDistanceArea()
@@ -55,8 +55,8 @@ class SideViewMapVisualisation(object):
         for point, point_id, dist in route.path_points:
 
             marker = QgsVertexMarker(self.iface.mapCanvas())
-            marker.setIconType(QgsVertexMarker.ICON_CIRCLE)
-            marker.setColor(Qt.red)
+            marker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
+            marker.setColor(Qt.GlobalColor.red)
             marker.setPenWidth(4)
             marker.setCenter(transform.transform(point))
             self.point_markers.append(marker)

@@ -15,14 +15,14 @@ class VariableTable(QTableWidget):
         super().__init__(0, 1, parent)
         self.variable_alignment = variable_alignment
         self.setHorizontalHeaderLabels([""])
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
 
         self.verticalHeader().hide()
         self.setSortingEnabled(False)
-        self.setSelectionMode(QAbstractItemView.ContiguousSelection)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.ContiguousSelection)
 
         # for proper aligning, we always need to reserve space for the scrollbar
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.horizontalHeader().setStretchLastSection(True)
 
         # The list of parameters shown in the summary, idx corresponding to row idx in the table
@@ -47,17 +47,17 @@ class VariableTable(QTableWidget):
                 assert param_index == self.rowCount()
                 self.insertRow(param_index)
                 item = QTableWidgetItem(param_name)
-                item.setFlags(item.flags() ^ Qt.ItemIsEditable)
-                item.setTextAlignment(Qt.AlignLeft)
+                item.setFlags(item.flags() ^ Qt.ItemFlag.ItemIsEditable)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignLeft)
                 self.setItem(param_index, 0, item)
 
             item = QTableWidgetItem(param_value)
             item.setTextAlignment(self.variable_alignment)
-            item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+            item.setFlags(item.flags() ^ Qt.ItemFlag.ItemIsEditable)
             self.setItem(param_index, self.columnCount()-1, item)
 
         for idx in range(0, self.columnCount()):
-            self.horizontalHeader().setSectionResizeMode(idx, QHeaderView.Interactive)
+            self.horizontalHeader().setSectionResizeMode(idx, QHeaderView.ResizeMode.Interactive)
 
     def resizeEvent(self, event):
         self.resizeRowsToContents()
@@ -65,7 +65,7 @@ class VariableTable(QTableWidget):
 
     def keyPressEvent(self, event):
         # https://stackoverflow.com/questions/1230222/selected-rows-in-qtableview-copy-to-qclipboard/24133289#24133289
-        if event.key() == Qt.Key_C and event.modifiers() & Qt.ControlModifier:
+        if event.key() == Qt.Key.Key_C and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
 
             indexes = self.selectedIndexes()
             current_text = ""

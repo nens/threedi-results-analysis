@@ -265,11 +265,11 @@ class LocationTimeseriesTable(QTableView):
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
         self.verticalHeader().hide()
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.model = None
 
         self._last_hovered_row = None
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.customMenuRequested)
         self.viewport().installEventFilter(self)
 
@@ -299,9 +299,9 @@ class LocationTimeseriesTable(QTableView):
 
     def eventFilter(self, widget, event):
         if widget is self.viewport():
-            if event.type() == QEvent.MouseButtonDblClick:
+            if event.type() == QEvent.Type.MouseButtonDblClick:
 
-                if event.button() == Qt.RightButton:
+                if event.button() == Qt.MouseButton.RightButton:
                     return True
                 # map mouse position to index
                 column = self.indexAt(event.pos()).column()
@@ -316,12 +316,12 @@ class LocationTimeseriesTable(QTableView):
 
                 return QTableView.eventFilter(self, widget, event)
 
-            elif event.type() == QEvent.MouseMove:
+            elif event.type() == QEvent.Type.MouseMove:
                 row = self.indexAt(event.pos()).row()
                 if row == 0 and self.model and row > self.model.rowCount():
                     row = None
 
-            elif event.type() == QEvent.Leave:
+            elif event.type() == QEvent.Type.Leave:
                 row = None
                 self.hoverExitAllRows.emit()
             else:
@@ -378,7 +378,7 @@ class LocationTimeseriesTable(QTableView):
             index = self.model.index(i, 1)
             pen_color = QColor(item.color.value[0], item.color.value[1], item.color.value[2])
             # If index widget A is replaced with index widget B, index widget A will be deleted.
-            patternWidget = PenStyleWidget(item.result.value._pattern, pen_color, self)
+            patternWidget = PenStyleWidget(item.result.value._pattern, pen_color, 2, self)
             # patternWidget.setAutoFillBackground(True)
             patternWidget.setPalette(self.palette())
             self.setIndexWidget(index, patternWidget)
@@ -391,7 +391,7 @@ class GraphWidget(QWidget):
         model: ThreeDiPluginModel = None,
         parameter_config=[],
         name="",
-        geometry_type=QgsWkbTypes.Point,
+        geometry_type=QgsWkbTypes.Type.Point,
     ):
         super().__init__(parent)
 
@@ -418,7 +418,7 @@ class GraphWidget(QWidget):
         self.set_parameter_list(parameter_config)
 
         self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
-        self.marker.setColor(Qt.red)
+        self.marker.setColor(Qt.GlobalColor.red)
         self.marker.setWidth(2)
 
     def _removeRows(self, index_list):
@@ -429,7 +429,7 @@ class GraphWidget(QWidget):
             self.location_model.removeRows(row, 1)
 
     def _updateHiddenColumns(self, state):
-        if state == Qt.Unchecked:
+        if state == Qt.CheckState.Unchecked:
             for i in range(3, 7):
                 self.location_timeseries_table.setColumnHidden(i, True)
         else:
@@ -523,7 +523,7 @@ class GraphWidget(QWidget):
 
         # add plot
         self.graph_plot = GraphPlot(self)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.graph_plot.sizePolicy().hasHeightForWidth())
@@ -547,7 +547,7 @@ class GraphWidget(QWidget):
         self.location_timeseries_table = LocationTimeseriesTable(self)
         self.location_timeseries_table.hoverEnterRow.connect(self.highlight_feature)
         self.location_timeseries_table.hoverExitAllRows.connect(self.unhighlight_all_features)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.location_timeseries_table.sizePolicy().hasHeightForWidth())
@@ -557,10 +557,10 @@ class GraphWidget(QWidget):
 
         # add button below table
         hLayoutButtons = QHBoxLayout(self)
-        hLayoutButtons.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        hLayoutButtons.addItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
         self.showFullLegendCheckbox = QCheckBox("Show full legend", self)
-        self.showFullLegendCheckbox.setCheckState(Qt.Unchecked)
+        self.showFullLegendCheckbox.setCheckState(Qt.CheckState.Unchecked)
         hLayoutButtons.addWidget(self.showFullLegendCheckbox)
 
         vLayoutTable.addLayout(hLayoutButtons)
@@ -651,7 +651,7 @@ class GraphWidget(QWidget):
         if not is_threedi_layer(layer):
             msg = """Please select results from either the 'flowlines', 'nodes', 'cells' or
             'pumplines' layer."""
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.MessageLevel.Warning, 5.0)
             return False
 
         if len(self.model.get_results(checked_only=False)) == 0:
@@ -727,10 +727,10 @@ class GraphWidget(QWidget):
                 "take a while. Do you want to continue?" % len(new_items)
             )
             reply = QMessageBox.question(
-                self, "Add objects", msg, QMessageBox.Yes, QMessageBox.No
+                self, "Add objects", msg, QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No
             )
 
-            if reply == QMessageBox.No:
+            if reply == QMessageBox.StandardButton.No:
                 return False
 
         self.location_model.insertRows(new_items)
@@ -776,14 +776,14 @@ class GraphDockWidget(QDockWidget):
             self.model,
             parameter_config["q"],
             "Flowlines && pumps",
-            QgsWkbTypes.LineString,
+            QgsWkbTypes.Type.LineString,
         )
         self.h_graph_widget = GraphWidget(
             self,
             self.model,
             parameter_config["h"],
             "Nodes && cells",
-            QgsWkbTypes.Point,
+            QgsWkbTypes.Type.Point,
         )
         self.graphTabWidget.addTab(self.q_graph_widget, self.q_graph_widget.name)
         self.graphTabWidget.addTab(self.h_graph_widget, self.h_graph_widget.name)
@@ -797,12 +797,12 @@ class GraphDockWidget(QDockWidget):
             widget=self, canvas=self.iface.mapCanvas(),
         )
         self.map_tool_add_flowline_pump.setButton(self.addFlowlinePumpButton)
-        self.map_tool_add_flowline_pump.setCursor(Qt.CrossCursor)
+        self.map_tool_add_flowline_pump.setCursor(Qt.CursorShape.CrossCursor)
         self.map_tool_add_node_cell = AddNodeCellMapTool(
             widget=self, canvas=self.iface.mapCanvas(),
         )
         self.map_tool_add_node_cell.setButton(self.addNodeCellButton)
-        self.map_tool_add_node_cell.setCursor(Qt.CrossCursor)
+        self.map_tool_add_node_cell.setCursor(Qt.CursorShape.CrossCursor)
 
         # In case this dock widget becomes (in)visible, we disable the route tools
         self.visibilityChanged.connect(self.unset_map_tools)
@@ -891,14 +891,14 @@ class GraphDockWidget(QDockWidget):
 
     def on_btnAbsoluteState(self, state):
         """Toggle ``absolute`` state of the GraphPlots."""
-        checked = (state == Qt.Checked)
+        checked = (state == Qt.CheckState.Checked)
         self.q_graph_widget.graph_plot.set_absolute(checked)
         self.h_graph_widget.graph_plot.set_absolute(checked)
 
     def setup_ui(self):
 
         self.setObjectName("dock_widget")
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         self.dockWidgetContent = QWidget(self)
         self.dockWidgetContent.setObjectName("dockWidgetContent")
@@ -937,14 +937,14 @@ class GraphDockWidget(QDockWidget):
         self.addFlowlinePumpButton = QToolButton(parent=self.dockWidgetContent)
         self.addFlowlinePumpButton.setCheckable(True)
         self.addFlowlinePumpButton.setText("Pick flowlines/pumps")
-        self.addFlowlinePumpButton.setPopupMode(QToolButton.MenuButtonPopup)
+        self.addFlowlinePumpButton.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         self.addFlowlinePumpButton.setMenu(selection_flowline_pump_menu)
         self.buttonBarHLayout.addWidget(self.addFlowlinePumpButton)
 
         self.addNodeCellButton = QToolButton(parent=self.dockWidgetContent)
         self.addNodeCellButton.setText("Pick nodes/cells")
         self.addNodeCellButton.setCheckable(True)
-        self.addNodeCellButton.setPopupMode(QToolButton.MenuButtonPopup)
+        self.addNodeCellButton.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         self.addNodeCellButton.setMenu(selection_node_cell_menu)
         self.buttonBarHLayout.addWidget(self.addNodeCellButton)
 
@@ -953,14 +953,14 @@ class GraphDockWidget(QDockWidget):
         self.absoluteCheckbox.stateChanged.connect(self.on_btnAbsoluteState)
         self.buttonBarHLayout.addWidget(self.absoluteCheckbox)
 
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
 
         self.mainVLayout.addItem(self.buttonBarHLayout)
 
         # add tabWidget for graphWidgets
         self.graphTabWidget = QTabWidget(self.dockWidgetContent)
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(6)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
