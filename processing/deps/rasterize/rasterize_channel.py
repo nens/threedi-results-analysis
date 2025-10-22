@@ -348,6 +348,12 @@ class Triangle:
         return yes, no
 
     def is_between(self, left_side_line: Union[Point, LineString], right_side_line: Union[Point, LineString]):
+        """
+        Returns True if the triangle 'touches' both lines but does not cross any of the sides
+        'Touches' is defined here as:
+        - Touches in the conventional sense (one vertex is touched); or
+        - A triangle side is fully contained within one of the sides
+        """
         # case 0: one or both of the lines are a Point
         if isinstance(left_side_line, Point) or isinstance(right_side_line, Point):
             return True
@@ -374,7 +380,11 @@ class Triangle:
                 return result
 
         # case 2.2: two sides of the triangle are within one of the sides
-        if len(shared_sides_left) == 2:
+        if len(shared_sides_left) == 1 and \
+                len(shared_sides_right) == 1 and \
+                shared_sides_left[0] != shared_sides_right[0]:
+            return True
+        elif len(shared_sides_left) == 2:
             check_point = non_shared_sides_left[0].interpolate(distance=0.5, normalized=True)
             return is_left_of_line(check_point, shared_sides_left[0]) is False and \
                 is_left_of_line(check_point, shared_sides_left[0]) is False
@@ -383,7 +393,8 @@ class Triangle:
             check_point = non_shared_sides_right[0].interpolate(distance=0.5, normalized=True)
             return is_left_of_line(check_point, shared_sides_right[0]) and \
                 is_left_of_line(check_point, shared_sides_right[0])
-
+        else:
+            raise ValueError("Unexpected situation encountered, I do not know if the triangle is between the lines")
 
 class CrossSectionLocation:
     def __init__(

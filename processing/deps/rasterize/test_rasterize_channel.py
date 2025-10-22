@@ -1449,22 +1449,19 @@ def test_triangle(plot: bool = False):
                                  "Case 2.1: one side shared, opposite point does not touch other line")
     assert not tri.is_between(line_1, line_2)
 
-    # TODO: Fix this (in the code, the test is ok)
-    # # --- Case 2.2: two sides shared ---
-    # # Sharing both (0,0)-(1,1) and (1,1)-(2,0), leaving (0,0)-(2,0) as non-shared
-    # line_1 = LineString([(-10, -10), (1, 1)])
-    # line_2 = LineString([(1, 1), (12, -10)])
-    # if plot:
-    #     plot_triangle_with_lines(tri, line_1, line_2, "Case 2.2: two sides shared")
-    # assert tri.is_between(line_1, line_2)
-
-    # TODO: Add case where two sides of the triangle are within one of the sides
+    # --- Case 2.2: two sides shared ---
+    # Sharing both (0,0)-(1,1) and (1,1)-(2,0), leaving (0,0)-(2,0) as non-shared
+    line_1 = LineString([(-10, -10), (1, 1)])
+    line_2 = LineString([(1, 1), (12, -10)])
+    if plot:
+        plot_triangle_with_lines(tri, line_1, line_2, "Case 2.2: two sides shared")
+    assert tri.is_between(line_1, line_2)
 
     # --- Lines not next to each other ---
     line_1 = LineString([(-10, -10), (10, 10)])
     line_2 = LineString([(15, 15), (35, 35)])
     if plot:
-        plot_triangle_with_lines(tri, line_1, line_2, "Negative case: lines too far apart")
+        plot_triangle_with_lines(tri, line_1, line_2, "Lines not next to each other")
     assert not tri.is_between(line_1, line_2)
 
 

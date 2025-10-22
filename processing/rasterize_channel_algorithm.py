@@ -19,7 +19,6 @@ from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.core import (
     Qgis,
     QgsApplication,
-    QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsGeometry,
     QgsMesh,
@@ -254,7 +253,7 @@ def rasterize(
                     np.array([tri.geometry.area for tri in triangles_dict.values()])
                 )
                 if DEBUG_MODE:
-                    feedback.pushInfo(f"Missing triangles:")
+                    feedback.pushInfo("Missing triangles:")
                     tri_queries = [f"SELECT ST_GeomFromText('{tri.geometry.wkt}') as geom /*:polygon:28992*/" for tri in
                                    triangles_dict.values()]
                     feedback.pushInfo("\nUNION\n".join(tri_queries))
@@ -532,7 +531,7 @@ class RasterizeChannelsAlgorithm(QgsProcessingAlgorithm):
             pixel_size = user_pixel_size
         else:
             feedback.reportError(
-                f"Either 'Digital Elevation Model' or 'Pixel size' has to be specified", fatalError=True
+                "Either 'Digital Elevation Model' or 'Pixel size' has to be specified", fatalError=True
             )
             raise QgsProcessingException()
 
