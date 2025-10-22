@@ -110,14 +110,14 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         """
         WATER_QUANTITY or WATER_QUALITY
         """
-        return NotImplementedError("Subclasses must implement this method")
+        return NotImplementedError("Subclasses must implement this property")
 
     @property
     def time_step_type(self) -> str:
         """
         SINGLE, MULTIPLE, or MAXIMUM
         """
-        return NotImplementedError("Subclasses must implement this method")
+        return NotImplementedError("Subclasses must implement this property")
 
     @property
     # Not implemented as proper abstractmethod because QgsProcessingAlgorithm already has a metaclass
