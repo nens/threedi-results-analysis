@@ -1,5 +1,4 @@
 import numpy as np
-import shapely
 from shapely.geometry import LineString, Point
 from shapely import wkt, wkb
 from shapely import __version__ as shapely_version, geos_version
@@ -1792,7 +1791,7 @@ if __name__ == "__main__":
     test_cross_section_location_z_at()
     test_channel_vertex_positions()
     test_channel_properties()
-    test_channel_outline(True)
+    test_channel_outline()
     test_channel_parallel_offsets()
     test_channel_split()
     test_two_vertex_channel()

@@ -152,7 +152,8 @@ def merge_rasters(
     output_nodatavalue: float,
     feedback=None,
 ):
-    """Assumes that all input rasters have the same SRS, resolution, skew, and pixels are
+    """
+    Assumes that all input rasters have the same SRS, resolution, skew, and pixels are
     aligned (as in gdal.Warp's targetAlignedPixels)
 
     tile_size in pixels
