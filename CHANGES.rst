@@ -1,5 +1,5 @@
-3Di Results Analysis changelog
-========================
+Rana Results Analysis changelog
+===============================
 
 3.27 (unreleased)
 -----------------

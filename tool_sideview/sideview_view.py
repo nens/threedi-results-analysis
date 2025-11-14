@@ -639,7 +639,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
 
 class SideViewDockWidget(QDockWidget):
-    """Main Dock Widget for showing 3Di results in Graphs"""
+    """Main Dock Widget for showing Rana simulation results in Graphs"""
 
     # todo:
     # detecteer dichtsbijzijnde punt in plaats van willekeurige binnen gebied
@@ -722,7 +722,7 @@ class SideViewDockWidget(QDockWidget):
         self.select_grid_combobox.setItemText(idx, item.text())
         item_id = self.select_grid_combobox.itemData(idx)
         if self.current_grid_id == item_id:
-            self.setWindowTitle(f"3Di Side View {self.nr}: {item.text()}")
+            self.setWindowTitle(f"Side view {self.nr}: {item.text()}")
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_added(self, item: ThreeDiGridItem):
@@ -741,7 +741,7 @@ class SideViewDockWidget(QDockWidget):
             self.deinitialize_route()
             # Removes all plots from table
             self.sideview_result_model.clear()
-            self.setWindowTitle(f"3Di Side View {self.nr}:")
+            self.setWindowTitle(f"Side view {self.nr}:")
 
         self.select_grid_combobox.removeItem(idx)
 
@@ -755,7 +755,7 @@ class SideViewDockWidget(QDockWidget):
         grid = self.model.get_grid(item_id)
         assert grid
         self.initialize_route(grid)
-        self.setWindowTitle(f"3Di Side view {self.nr}: {grid.text()}")
+        self.setWindowTitle(f"Side view {self.nr}: {grid.text()}")
 
     def result_item_toggled(self, _: QStandardItem):
         # For now, just rebuild and redraw the whole sideview, taking into account new checks, but no autoscaling
@@ -951,7 +951,7 @@ class SideViewDockWidget(QDockWidget):
     def setup_ui(self):
 
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-        self.setWindowTitle(f"3Di Side view {self.nr}: ")
+        self.setWindowTitle(f"Side view {self.nr}: ")
 
         self.dock_widget_content = QWidget(self)
 

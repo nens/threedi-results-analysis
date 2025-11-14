@@ -272,7 +272,7 @@ class DetectLeakingObstaclesBase(QgsProcessingAlgorithm):
 
 class DetectLeakingObstaclesAlgorithm(DetectLeakingObstaclesBase):
     """
-    Detect obstacle lines in the DEM that are ignored by 3Di due to its location relative to cell edges
+    Detect obstacle lines in the DEM that are ignored by the Rana hydrodynamic calculation core due to its location relative to cell edges
     """
     def postProcessAlgorithm(self, context, feedback):
         """Set styling of output vector layers"""
@@ -307,7 +307,7 @@ class DetectLeakingObstaclesAlgorithm(DetectLeakingObstaclesBase):
                 <p>This processing algorithm detects such cases. Please inspect the locations where the algorithm identifies leaking obstacles and add grid refinement and/or obstacles to the schematisation to solve the issue if needed.</p>
                 <h3>Parameters</h3>
                 <h4>Gridadmin file</h4>
-                <p>HDF5-file (*.h5) containing a 3Di computational grid. Note that gridadmin files generated on the server contain exchange levels for 2D flowlines, whereas locally generated gridadmin files do not. In the latter case, the processing algorithm will analyse the DEM to obtain these values.</p>
+                <p>HDF5-file (*.h5) containing a computational grid. Note that gridadmin files generated on the server contain exchange levels for 2D flowlines, whereas locally generated gridadmin files do not. In the latter case, the processing algorithm will analyse the DEM to obtain these values.</p>
                 <h4>Digital elevation model</h4>
                 <p>Raster of the schematisation's digital elevation model (DEM).</p>
                 <h4>Linear obstacles</h4>
@@ -344,7 +344,7 @@ class DetectLeakingObstaclesWithDischargeThresholdAlgorithm(DetectLeakingObstacl
         super().initAlgorithm(config)
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT_RESULTS_THREEDI, "3Di Results file", extension="nc"
+                self.INPUT_RESULTS_THREEDI, "Rana simulation results file", extension="nc"
             )
         )
 

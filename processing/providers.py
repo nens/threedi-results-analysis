@@ -58,7 +58,7 @@ import os
 
 
 class ThreediProvider(QgsProcessingProvider):
-    """Loads the Processing Toolbox algorithms for 3Di"""
+    """Loads the Processing Toolbox algorithms for Rana results analysis"""
 
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(WaterDepthOrLevelSingleTimeStepAlgorithm())
@@ -93,7 +93,7 @@ class ThreediProvider(QgsProcessingProvider):
         This string should be as short as possible (e.g. "Lastools", not
         "Lastools version 1.0.1 64-bit") and localised.
         """
-        return self.tr("3Di")
+        return self.tr("Rana results analysis")
 
     def icon(self):
         """Should return a QIcon which is used for your provider inside

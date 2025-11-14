@@ -199,7 +199,7 @@ class Graph3Di:
 
     def upstream_nodes(self, target_node_ids):
         """
-        Calculate the upstream area(s) of a set of nodes in a 3Di result
+        Calculate the upstream area(s) of a set of nodes in a Rana simulation result
 
         :param target_node_ids: catchment pour point node id's (iterable of integers)
         :returns: ids of the upstream nodes
@@ -209,7 +209,7 @@ class Graph3Di:
 
     def downstream_nodes(self, target_node_ids):
         """
-        Calculate the downstream area(s) of a set of nodes in a 3Di result
+        Calculate the downstream area(s) of a set of nodes in a Rana simulation result
 
         :param target_node_ids: catchment pour point node id's (iterable of integers)
         :returns: ids of the upstream nodes

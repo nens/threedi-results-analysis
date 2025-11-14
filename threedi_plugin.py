@@ -45,6 +45,7 @@ from threedi_results_analysis.utils.qprojects import ProjectStateMixin
 
 import logging
 
+PLUGIN_MENU_NAME = "Rana &Results Analysis"
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Declare instance attributes
         self.actions = []
-        self.menu = "&3Di Results Analysis"
+        self.menu = PLUGIN_MENU_NAME
 
         assert not hasattr(self, "dockwidget")  # Should be destroyed on unload
         self.dockwidget = ThreeDiPluginDockWidget(None, iface)
@@ -311,7 +312,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
         for action in self.actions:
-            self.iface.removePluginMenu("&3Di Results Analysis", action)
+            self.iface.removePluginMenu(PLUGIN_MENU_NAME, action)
             self.iface.removeToolBarIcon(action)
 
         for tool, _ in self.tools:
