@@ -4,7 +4,7 @@
 3.27 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bump dependency loader to 1.2.5.
 
 
 3.26 (2025-10-22)
