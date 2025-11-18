@@ -1,8 +1,8 @@
 3Di Results Analysis changelog
 ========================
 
-3.27 (unreleased)
------------------
+3.26.1 (2025-11-18)
+-------------------
 
 - Bump dependency loader to 1.2.5.
 
