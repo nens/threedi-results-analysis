@@ -4,7 +4,7 @@
 3.26.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Bump dependency loader to 1.2.6.
 
 
 3.26.1 (2025-11-18)
