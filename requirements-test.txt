@@ -1,6 +1,7 @@
 SQLAlchemy
 GeoAlchemy2
 pyqtgraph
+colorama
 Mako
 cftime
 alembic
