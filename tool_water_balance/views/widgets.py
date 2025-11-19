@@ -688,7 +688,7 @@ class WaterBalanceWidget(QDockWidget):
             # # Logo #
             # # ######
 
-            path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
+            path_3di_logo = str(PLUGIN_DIR / "icons" / "icon_rana.svg")
             logo_3di = QPixmap(path_3di_logo)
             logo_3di = logo_3di.scaledToHeight(40)
             label_3di = QLabel()

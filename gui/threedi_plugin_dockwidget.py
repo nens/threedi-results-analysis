@@ -50,7 +50,7 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         self.alignStartsCheckBox.stateChanged.connect(self._align_starts_clicked)
 
         # Set logo
-        path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
+        path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.svg")
         logo_3di = QPixmap(path_3di_logo)
         logo_3di = logo_3di.scaledToHeight(30)
         self.logo.setPixmap(logo_3di)

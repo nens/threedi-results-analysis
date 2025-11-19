@@ -99,5 +99,5 @@ class ThreediProvider(QgsProcessingProvider):
         """Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon.png")
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon.svg")
         return QIcon(icon_path)

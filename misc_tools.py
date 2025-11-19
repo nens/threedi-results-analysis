@@ -21,7 +21,7 @@ class About(ThreeDiPluginTool):
     def __init__(self, iface):
         super().__init__()
         self.iface = iface
-        self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon.png")
+        self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon.svg")
         self.menu_text = "About Rana Results Analysis"
 
     def run(self):
