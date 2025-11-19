@@ -2,7 +2,7 @@
 name=Rana Results Analysis
 qgisMinimumVersion=3.22
 description=Rana Results Analysis
-version=3.27
+version=3.26.3
 author=Nelen & Schuurmans
 email=servicedesk@nelen-schuurmans.nl
 
@@ -37,7 +37,7 @@ category=Plugins
 icon=icons/icon.svg
 experimental=False
 hasProcessingProvider=yes
-plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.2.3
+plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.2.6
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

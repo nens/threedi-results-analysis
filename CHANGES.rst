@@ -1,10 +1,22 @@
 Rana Results Analysis changelog
 ===============================
 
-3.27 (unreleased)
------------------
+3.26.3 (unreleased)
+-------------------
 
 - Nothing changed yet.
+
+
+3.26.2 (2025-11-18)
+-------------------
+
+- Bump dependency loader to 1.2.6.
+
+
+3.26.1 (2025-11-18)
+-------------------
+
+- Bump dependency loader to 1.2.5.
 
 
 3.26 (2025-10-22)
