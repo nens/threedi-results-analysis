@@ -30,9 +30,9 @@ from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from qgis.PyQt.QtSvg import QSvgRenderer
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
+from threedi_results_analysis.utils.icons import pixmap_from_svg
 from threedi_results_analysis.utils.user_messages import messagebar_message, StatusProgressBar
 
 from ..utils import PolygonWithCRS
@@ -689,22 +689,8 @@ class WaterBalanceWidget(QDockWidget):
             # # Logo #
             # # ######
 
-            path_3di_logo = str(PLUGIN_DIR / "icons" / "icon_rana.svg")
-            renderer = QSvgRenderer(path_3di_logo)
-
-            # Create a transparent pixmap (40px height, width auto-calculated)
-            height = 40
-            width = int(height * 1.0)  # adjust if you know the aspect ratio
-
-            pixmap = QPixmap(width, height)
-            pixmap.fill(Qt.transparent)
-
-            # Render SVG into pixmap
-            painter = QPainter(pixmap)
-            renderer.render(painter)
-            painter.end()
-
-            # Put into QLabel
+            path_rana_logo = PLUGIN_DIR / "icons" / "icon_rana.svg"
+            pixmap = pixmap_from_svg(svg_path=path_rana_logo, width=40, height=40)
             label_3di = QLabel()
             label_3di.setPixmap(pixmap)
 
