@@ -219,7 +219,7 @@ class FractionDockWidget(QDockWidget):
                     return  # Only add a single item
 
     def _update_widget_title(self):
-        title = f"3Di Fraction analysis {self.nr}: "
+        title = f"Fraction analysis {self.nr}: "
         if self.fraction_widget.current_result_id:
             result = self.model.get_result(self.fraction_widget.current_result_id)
             title += f"{result.text()} ({result.parent().text()})"

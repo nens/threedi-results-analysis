@@ -223,7 +223,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         threedi_working_dir = QgsSettings().value("threedi/working_dir", "")
         self.messageLabel.setText("")
         if not threedi_working_dir:
-            self.messageLabel.setText("Please set your 3Di working directory in the 3Di Models & Simulations settings to be able to load computational grids and results from your 3Di working directory.")
+            self.messageLabel.setText("Please set your Rana modelling directory in the Rana settings to be able to load computational grids and results from your Rana modelling directory.")
             return
 
         rows = []

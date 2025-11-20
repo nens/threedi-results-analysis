@@ -1,4 +1,4 @@
-TOOLBOX_QGIS_GROUP_NAME = "3Di Results"
+TOOLBOX_QGIS_GROUP_NAME = "Rana simulation results"
 TOOLBOX_XML_ELEMENT_ROOT = "threediPluginModel"
 TOOLBOX_QGIS_SETTINGS_GROUP = "ThreeDiResults"
-TOOLBOX_MESSAGE_TITLE = "3Di Results Manager"
+TOOLBOX_MESSAGE_TITLE = "Rana Results Manager"

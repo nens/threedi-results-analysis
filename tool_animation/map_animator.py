@@ -178,7 +178,7 @@ def threedi_result_legend_class_bounds(
     method: str = "Pretty Breaks",
 ) -> List[float]:
     """
-    Calculate percentile values given variable in a 3Di results netcdf
+    Calculate percentile values given variable in a Rana simulation results netcdf
 
     If variable is water level and relative_to_t0 = True,
     nodatavalues in the water level timeseries (i.e., dry nodes)

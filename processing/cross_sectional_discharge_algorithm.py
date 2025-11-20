@@ -152,7 +152,7 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFile(
                 self.RESULTS_3DI_INPUT,
-                self.tr("Results 3Di file"),
+                self.tr("Rana simulation results file"),
                 extension="nc",
             )
         )
@@ -480,11 +480,11 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             <p>The sign (positive/negative) of the output values depends on the drawing direction of the cross-section line. Positive values indicate flow from the left-hand side of the cross-section line to the right-hand side. Negative values indicate flow from right to left.</p>
             <h3>Parameters</h3>
             <h4>Gridadmin file</h4>
-            <p>HDF5 file (*.h5) containing the computational grid of a 3Di model</p>
+            <p>HDF5 file (*.h5) containing the computational grid of a Rana model</p>
             <h4>Gridadmin geopackage file</h4>
-            <p>GeoPackage file (*.gpkg) containing the spatial data associated with the computational grid of a 3Di model</p>
-            <h4>Results 3Di file</h4>
-            <p>NetCDF (*.nc) containing the results of a 3Di simulation</p>
+            <p>GeoPackage file (*.gpkg) containing the spatial data associated with the computational grid of a Rana model</p>
+            <h4>Rana simulation results file</h4>
+            <p>NetCDF (*.nc) containing the results of a Rana simulation</p>
             <h4>Cross-section lines</h4>
             <p>Lines for which to calculate the total net discharge passing that line</p>
             <h4>Start time</h4>

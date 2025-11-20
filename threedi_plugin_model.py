@@ -67,7 +67,7 @@ class ThreeDiGridItem(ThreeDiModelItem):
 
 class ThreeDiResultItem(ThreeDiModelItem):
     """
-    A model item for 3Di results.
+    A model item for Rana simulation results.
     """
     def __init__(self, path: Path, id: str = None, *args, **kwargs):
         """

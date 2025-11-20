@@ -75,7 +75,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>3Di results:</string>
+              <string>Rana simulation results:</string>
              </property>
             </widget>
            </item>
@@ -104,7 +104,7 @@
               <string>Required only when analysing (impervious) surfaces (0D inflow)</string>
              </property>
              <property name="text">
-              <string>3Di schematisation (optional):</string>
+              <string>Rana schematisation (optional):</string>
              </property>
             </widget>
            </item>

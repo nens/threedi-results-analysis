@@ -1258,7 +1258,7 @@ def aggregate_threedi_results(
                     )
                 except AttributeError:
                     warnings.warn(
-                        "Demanded aggregation of variable that is not included in these 3Di results"
+                        "Demanded aggregation of variable that is not included in these Rana simulation results"
                     )
                     line_results[new_column_name] = np.full(
                         len(line_results["id"]),
@@ -1289,7 +1289,7 @@ def aggregate_threedi_results(
                     )
                 except AttributeError:
                     warnings.warn(
-                        "Demanded aggregation of variable that is not included in these 3Di results"
+                        "Demanded aggregation of variable that is not included in these Rana simulation results"
                     )
                     node_results[new_column_name] = np.full(
                         len(node_results["id"]),
@@ -1310,7 +1310,7 @@ def aggregate_threedi_results(
                     )
                 except AttributeError:
                     warnings.warn(
-                        "Demanded aggregation of variable that is not included in these 3Di results"
+                        "Demanded aggregation of variable that is not included in these Rana simulation results"
                     )
                     node_results[new_column_name] = np.full(
                         len(node_results["id"]),

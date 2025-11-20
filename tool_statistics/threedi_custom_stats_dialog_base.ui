@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>3Di result aggregation</string>
+   <string>Rana result aggregation</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -45,7 +45,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>3Di result:</string>
+          <string>Rana simulation result:</string>
          </property>
         </widget>
        </item>

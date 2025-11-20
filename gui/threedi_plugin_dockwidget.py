@@ -5,7 +5,6 @@ from qgis.PyQt.QtCore import pyqtSignal, QItemSelectionModel
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QPixmap
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QMenu
@@ -16,6 +15,7 @@ from threedi_results_analysis.gui.threedi_plugin_grid_result_dialog import (
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
+from threedi_results_analysis.utils.icons import pixmap_from_svg
 
 import logging
 
@@ -50,10 +50,9 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         self.alignStartsCheckBox.stateChanged.connect(self._align_starts_clicked)
 
         # Set logo
-        path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
-        logo_3di = QPixmap(path_3di_logo)
-        logo_3di = logo_3di.scaledToHeight(30)
-        self.logo.setPixmap(logo_3di)
+        path_rana_logo = PLUGIN_DIR / "icons" / "icon_rana.svg"
+        pixmap = pixmap_from_svg(svg_path=path_rana_logo, width=40, height=40)
+        self.logo.setPixmap(pixmap)
 
         # Replace any backslashes with slash to make QGIS happy when accessing a Windows network location.
         open_eye_logo = str(PLUGIN_DIR / "icons" / "open.png").replace("\\", "/")

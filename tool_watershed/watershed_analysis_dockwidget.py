@@ -272,7 +272,7 @@ class Graph3DiQgsConnector:
         self.parent_dock.result_sets_count_changed()
 
     def gr_updated(self):
-        """Executed when a new 3Di result is selected (self.gr is changed)"""
+        """Executed when a new Rana simulation result is selected (self.gr is changed)"""
         if isinstance(self.graph_3di.gr, GridH5ResultAdmin):
 
             # prepare caching of result item layers
@@ -290,7 +290,7 @@ class Graph3DiQgsConnector:
 
     def add_to_layer_tree_group(self, layer):
         """
-        Add a layer to the 3Di Network Analysis layer tree group
+        Add a layer to the watershed analysis layer tree group
         """
         project = QgsProject.instance()
         project.addMapLayer(layer, addToLegend=False)
@@ -722,7 +722,7 @@ class Graph3DiQgsConnector:
                 raise FindImperviousSurfaceError()
 
     def upstream_downstream_analysis(self, target_node_ids: Iterable, upstream: bool, downstream: bool, smoothing: bool):
-        progress_message_bar = self.iface.messageBar().createMessage("3Di Network Analysis is being performed...")
+        progress_message_bar = self.iface.messageBar().createMessage("Watershed analysis is being performed...")
         progress = QtWidgets.QProgressBar()
         current_progress = 0
         max_progress = 2
@@ -983,7 +983,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             self.gq.threshold = DEFAULT_THRESHOLD
         update_gr_task = UpdateGridAdminTask(
-            description="Preprocess 3Di Results for Network Analysis", parent=self, gr=gr
+            description="Preprocess Rana simulation results for watershed analysis", parent=self, gr=gr
         )
         self.iface.messageBar().pushMessage(
             MESSAGE_CATEGORY, "Started pre-processing simulation results", Qgis.MessageLevel.Info
@@ -1030,7 +1030,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def connect_gq(self, result_item: ThreeDiResultItem, preloaded_layers):
         self.gq = Graph3DiQgsConnector(result_item=result_item, model=self.model, parent_dock=self, preloaded_layers=preloaded_layers)
         self.gq.start_time = 0  # initial value of widget is 0, so valueChanged() signal will not be emitted when ...
-        # ... a 3Di result is loaded for the first time
+        # ... a Rana simulation result is loaded for the first time
 
     def disconnect_gq(self):
         if not self.gq:
@@ -1061,7 +1061,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             schema.set_spatial_indexes()
         except errors.MigrationMissingError:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Please update the 3Di schematisation to latest version first", level=Qgis.MessageLevel.Warning
+                MESSAGE_CATEGORY, "Please migrate the Rana schematisation to latest schema version first", level=Qgis.MessageLevel.Warning
             )
             self.QgsFileWidgetSchematisation.setFilePath("")
             return
@@ -1074,7 +1074,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             )
         else:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY, "Invalid 3Di schematisation selected", level=Qgis.MessageLevel.Warning
+                MESSAGE_CATEGORY, "Invalid Rana schematisation selected", level=Qgis.MessageLevel.Warning
             )
             self.QgsFileWidgetSchematisation.setFilePath("")
 
@@ -1125,7 +1125,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 )
             else:
                 self.iface.messageBar().pushMessage(
-                    MESSAGE_CATEGORY, "Please select 3Di results first", level=Qgis.MessageLevel.Warning
+                    MESSAGE_CATEGORY, "Please select Rana simulation results first", level=Qgis.MessageLevel.Warning
                 )
 
     def pushbutton_catchment_for_polygons_clicked(self):

@@ -15,7 +15,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QBrush
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtGui import QPalette
-from qgis.PyQt.QtGui import QPixmap
+from qgis.PyQt.QtGui import QPixmap, QPainter
 from qgis.PyQt.QtGui import QTransform
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QComboBox
@@ -32,6 +32,7 @@ from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
+from threedi_results_analysis.utils.icons import pixmap_from_svg
 from threedi_results_analysis.utils.user_messages import messagebar_message, StatusProgressBar
 
 from ..utils import PolygonWithCRS
@@ -688,11 +689,10 @@ class WaterBalanceWidget(QDockWidget):
             # # Logo #
             # # ######
 
-            path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
-            logo_3di = QPixmap(path_3di_logo)
-            logo_3di = logo_3di.scaledToHeight(40)
+            path_rana_logo = PLUGIN_DIR / "icons" / "icon_rana.svg"
+            pixmap = pixmap_from_svg(svg_path=path_rana_logo, width=40, height=40)
             label_3di = QLabel()
-            label_3di.setPixmap(logo_3di)
+            label_3di.setPixmap(pixmap)
 
             path_topsector_logo = str(PLUGIN_DIR / "icons" / "topsector_small.png")
             logo_topsector = QPixmap(path_topsector_logo)
@@ -706,7 +706,7 @@ class WaterBalanceWidget(QDockWidget):
             label_deltares = QLabel()
             label_deltares.setPixmap(logo_deltares)
 
-            logo_label_text = QLabel("Powered by 3Di, Topsector Water and Deltares")
+            logo_label_text = QLabel("Powered by Rana, Topsector Water and Deltares")
 
             powered_by_widget = QWidget()
             pallete = QPalette(QColor("white"))

@@ -37,7 +37,7 @@ PY_FILES = __init__.py
 
 UI_FILES = ui/*.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt icon.svg
 
 HELP = help/build/html
 

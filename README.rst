@@ -1,13 +1,13 @@
-3Di Results Analysis
+Rana Results Analysis
 ====================
 
-A QGIS plugin for analyzing 3Di results and visualize computational grids in the 3Di Modeller Interface.
+A QGIS plugin for analyzing Rana simulation results and visualize computational grids in the Rana Desktop Client.
 
-.. _`3Di`: https://3diwatermanagement.com/
+.. _`Rana`: https://www.ranawaterintelligence.com/
 
 The tools that this plugin provides allow you to:
 
-- Make (maximum) water depth or water level rasters from raw 3Di simulation results.
+- Make (maximum) water depth or water level rasters from raw Rana simulation results.
 - Visualize results on the map canvas for a specific timestep
 - Plot timeseries of discharge, water level or any other variable in a graph
 - Make side view plots of water levels and water level gradients at any time during the simulation
@@ -40,7 +40,7 @@ Getting the plugin
 
 - In QGIS, goto "Plugins > Manage And Install Plugins... > Settings"
 - Add ``https://plugins.lizard.net/plugins.xml`` and reload
-- Install the plugin by selecting ``3Di Results Analysis``
+- Install the plugin by selecting ``Rana Results Analysis``
 
 
 Installation notes

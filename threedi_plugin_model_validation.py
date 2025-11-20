@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class ThreeDiPluginModelValidator(QObject):
     """
-    This class validates 3Di computation grid and result files. When
+    This class validates Rana computational grid and result files. When
     a grid or result is valid, a signal is emited
     so listeners can handle accordingly.
     """
@@ -73,7 +73,7 @@ class ThreeDiPluginModelValidator(QObject):
                 self.grid_invalid.emit(ThreeDiGridItem(Path(grid_file), ""))
                 return grid_item
 
-        # Note that in the 3Di M&S working directory setup, each results
+        # Note that in the Rana modelling directory setup, each results
         # folder in the revision can contain the same gridadmin file. Check
         # whether there is a grid loaded from one of these result folders.
         folder = Path(grid_file).parent
@@ -159,7 +159,7 @@ class ThreeDiPluginModelValidator(QObject):
 
         # Any modern enough calc core adds a 'threedicore_version' atribute
         if "threedicore_version" not in results_h5.attrs:
-            return fail("Result file is too old and cannot be opened with 3Di Result Analysis.")
+            return fail("Result file is too old and cannot be opened with Rana Results Analysis.")
 
         # Check whether corresponding grid item belongs to same model as result
         result_model_slug = ThreeDiPluginModelValidator.get_result_slug(result_item.path)
@@ -169,7 +169,7 @@ class ThreeDiPluginModelValidator(QObject):
         logger.info(f"Comparing grid slug: {grid_model_slug} to result slug: {result_model_slug}")
 
         if not grid_model_slug or not result_model_slug:
-            msg = "No grid or result slug available, unable to validate to which 3Di model this computational grid or result belongs"
+            msg = "No grid or result slug available, unable to validate to which Rana model this computational grid or result belongs"
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.MessageLevel.Warning, 5)
         elif result_model_slug != grid_model_slug:
             # Really wrong grid, find a grid with the right slug, if not available, abort with pop-up
