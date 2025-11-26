@@ -3,7 +3,6 @@
 Miscellaneous tools.
 """
 from qgis.PyQt.QtCore import pyqtSignal
-from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.utils.qlogging import FileHandler
 from threedi_results_analysis.utils.user_messages import pop_up_info
 from threedi_results_analysis.threedi_plugin_tool import ThreeDiPluginTool

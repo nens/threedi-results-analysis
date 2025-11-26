@@ -11,7 +11,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtSvg import QSvgWidget
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QDockWidget
-from qgis.PyQt.QtWidgets import QMenu, QPushButton, QHBoxLayout
+from qgis.PyQt.QtWidgets import QMenu
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.gui.threedi_plugin_grid_result_dialog import (
     ThreeDiPluginGridResultDialog,

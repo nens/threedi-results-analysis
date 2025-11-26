@@ -14,14 +14,11 @@ from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QBrush
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtGui import QPalette
-from qgis.PyQt.QtGui import QPixmap, QPainter
 from qgis.PyQt.QtGui import QTransform
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
-from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
@@ -30,9 +27,7 @@ from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
-from threedi_results_analysis.utils.icons import pixmap_from_svg
 from threedi_results_analysis.utils.user_messages import messagebar_message, StatusProgressBar
 
 from ..utils import PolygonWithCRS
@@ -673,7 +668,7 @@ class WaterBalanceWidget(QDockWidget):
             )
             axis_net = RotateLabelAxisItem(25, "bottom")
             net_plot = layout.addPlot(
-                row=1, col=0, colspan=2, axisItems={"bottom": axis_net}
+                row=1, col=0, colspan=3, axisItems={"bottom": axis_net}
             )
             net_plot.addItem(bg_net_in)
             net_plot.addItem(bg_net_out)
@@ -684,52 +679,6 @@ class WaterBalanceWidget(QDockWidget):
             y_axis = net_plot.getAxis("left")
             y_axis.setLabel("volume (m³)")
             net_plot.getViewBox().setLimits(xMin=-1, xMax=max(bm_net.x) + 2)
-
-            # # ######
-            # # Logo #
-            # # ######
-
-            path_rana_logo = PLUGIN_DIR / "icons" / "banner.svg"
-            # TODO replace with real SVG widget
-            pixmap = pixmap_from_svg(svg_path=path_rana_logo, width=150, height=25)
-            label_3di = QLabel()
-            label_3di.setPixmap(pixmap)
-
-            path_topsector_logo = str(PLUGIN_DIR / "icons" / "topsector_small.png")
-            logo_topsector = QPixmap(path_topsector_logo)
-            logo_topsector = logo_topsector.scaledToHeight(40)
-            label_topsector = QLabel()
-            label_topsector.setPixmap(logo_topsector)
-
-            path_deltares_logo = str(PLUGIN_DIR / "icons" / "deltares_small.png")
-            logo_deltares = QPixmap(path_deltares_logo)
-            logo_deltares = logo_deltares.scaledToHeight(40)
-            label_deltares = QLabel()
-            label_deltares.setPixmap(logo_deltares)
-
-            logo_label_text = QLabel("Powered by Rana, Topsector Water and Deltares")
-
-            powered_by_widget = QWidget()
-            pallete = QPalette(QColor("white"))
-            powered_by_widget.setAutoFillBackground(True)
-            powered_by_widget.setPalette(pallete)
-            powered_by_layout = QVBoxLayout()
-            powered_by_widget.setMaximumHeight(130)
-
-            logo_container = QWidget()
-            logo_container.setMaximumWidth(300)
-            logo_container_layout = QHBoxLayout()
-            logo_container_layout.addWidget(label_3di)
-            logo_container_layout.addWidget(label_topsector)
-            logo_container_layout.addWidget(label_deltares)
-            logo_container.setLayout(logo_container_layout)
-
-            powered_by_layout.addWidget(logo_label_text)
-            powered_by_layout.addWidget(logo_container)
-
-            powered_by_widget.setLayout(powered_by_layout)
-            logo_ProxyWidget = layout.scene().addWidget(powered_by_widget)
-            layout.addItem(logo_ProxyWidget, row=1, col=2)
 
             # # ####
             # # 2D #
@@ -868,7 +817,7 @@ class WaterBalanceWidget(QDockWidget):
 
             self.wb_tabbed_view.addTab(wb_barchart_widget, tab_label)
 
-        self.wb_tabbed_view.setWindowTitle("Waterbalance")
+        self.wb_tabbed_view.setWindowTitle("Water balance")
         self.wb_tabbed_view.resize(1000, 600)
         self.wb_tabbed_view.show()
 
