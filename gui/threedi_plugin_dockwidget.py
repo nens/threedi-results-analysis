@@ -3,6 +3,7 @@ from typing import Optional
 
 from qgis.core import QgsSettings
 from qgis.PyQt import uic
+from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import pyqtSignal, QItemSelectionModel
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QModelIndex
@@ -30,16 +31,6 @@ FORM_CLASS, _ = uic.loadUiType(
 )
 
 
-def set_svg_icon_for_button(button: QPushButton, svg_path: Path | str, width: int, height: int):
-    layout = QHBoxLayout(button)
-    layout.setContentsMargins(0, 0, 0, 0)
-
-    svg = QSvgWidget(str(svg_path))
-    svg.setFixedSize(width, height)
-
-    layout.addWidget(svg)
-
-
 class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
     result_grid_file_selected = pyqtSignal([str, str])
@@ -58,8 +49,8 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         self.first_show = True
 
         self.setupUi(self)
-        self.pushButton_Add.clicked.connect(self._add_clicked)
-        self.pushButton_RemoveItem.clicked.connect(self._remove_current_index_clicked)
+        self.toolButton_Add.clicked.connect(self._add_clicked)
+        self.toolButton_RemoveItem.clicked.connect(self._remove_current_index_clicked)
         self.alignStartsCheckBox.stateChanged.connect(self._align_starts_clicked)
 
         # Set logo
@@ -68,10 +59,10 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
 
         # Set button SVGs
         svg_path_icon_add = PLUGIN_DIR / "icons" / "icon_add.svg"
-        set_svg_icon_for_button(button=self.pushButton_Add, svg_path=svg_path_icon_add, width=22, height=20)
+        self.toolButton_Add.setIcon(QIcon(str(svg_path_icon_add)))
 
         svg_path_icon_remove = PLUGIN_DIR / "icons" / "icon_remove.svg"
-        set_svg_icon_for_button(button=self.pushButton_RemoveItem, svg_path=svg_path_icon_remove, width=22, height=20)
+        self.toolButton_RemoveItem.setIcon(QIcon(str(svg_path_icon_remove)))
 
         # Replace any backslashes with slash to make QGIS happy when accessing a Windows network location.
         open_eye_logo = str(PLUGIN_DIR / "icons" / "open.png").replace("\\", "/")
