@@ -64,7 +64,7 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
 
         # Set logo
         path_rana_logo = PLUGIN_DIR / "icons" / "banner.svg"
-        self.replace_logo(svg_path=path_rana_logo, width=100)
+        self.replace_logo(svg_path=path_rana_logo, width=150)
 
         # Set button SVGs
         svg_path_icon_add = PLUGIN_DIR / "icons" / "icon_add.svg"
