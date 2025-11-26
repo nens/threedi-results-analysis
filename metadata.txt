@@ -34,7 +34,7 @@ tags=analysis, catchment, drainage, flood, flooding, graph, grid, groundwater, h
 
 homepage=https://www.ranawaterintelligence.com
 category=Plugins
-icon=icons/icon.svg
+icon=icons/rana_blue_on_transparent.svg
 experimental=False
 hasProcessingProvider=yes
 plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.2.6

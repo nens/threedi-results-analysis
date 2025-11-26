@@ -689,8 +689,9 @@ class WaterBalanceWidget(QDockWidget):
             # # Logo #
             # # ######
 
-            path_rana_logo = PLUGIN_DIR / "icons" / "icon_rana.svg"
-            pixmap = pixmap_from_svg(svg_path=path_rana_logo, width=40, height=40)
+            path_rana_logo = PLUGIN_DIR / "icons" / "banner.svg"
+            # TODO replace with real SVG widget
+            pixmap = pixmap_from_svg(svg_path=path_rana_logo, width=150, height=25)
             label_3di = QLabel()
             label_3di.setPixmap(pixmap)
 

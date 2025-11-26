@@ -37,7 +37,7 @@ PY_FILES = __init__.py
 
 UI_FILES = ui/*.ui
 
-EXTRAS = metadata.txt icon.svg
+EXTRAS = metadata.txt rana_blue_on_transparent.svg
 
 HELP = help/build/html
 

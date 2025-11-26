@@ -93,11 +93,11 @@ class ThreediProvider(QgsProcessingProvider):
         This string should be as short as possible (e.g. "Lastools", not
         "Lastools version 1.0.1 64-bit") and localised.
         """
-        return self.tr("Rana results analysis")
+        return self.tr("Rana Results Analysis")
 
     def icon(self):
         """Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon.svg")
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "rana_blue_on_transparent.svg")
         return QIcon(icon_path)
