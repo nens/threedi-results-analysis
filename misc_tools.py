@@ -15,26 +15,6 @@ import os
 logger = logging.getLogger(__name__)
 
 
-class About(ThreeDiPluginTool):
-    """Add Rana Results Analysis logo and about info."""
-
-    def __init__(self, iface):
-        super().__init__()
-        self.iface = iface
-        self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon.svg")
-        self.menu_text = "About Rana Results Analysis"
-
-    def run(self):
-        """Shows dialog with version information."""
-        # TODO: add link to sites
-        version_file = PLUGIN_DIR / "version.rst"
-        version = version_file.read_text().rstrip()
-
-        pop_up_info(
-            "Rana Results Analysis version %s" % version, "About", self.iface.mainWindow()
-        )
-
-
 class ShowLogfile(ThreeDiPluginTool):
     """Show link to the logfile."""
 

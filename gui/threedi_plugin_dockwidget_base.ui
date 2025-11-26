@@ -169,10 +169,6 @@
                 <property name="styleSheet">
                  <string notr="true"/>
                 </property>
-                <property name="icon">
-                 <iconset>
-                  <normaloff>:images/themes/default/mActionAdd.svg</normaloff>:images/themes/default/mActionAdd.svg</iconset>
-                </property>
                </widget>
               </item>
               <item>
@@ -182,10 +178,6 @@
                 </property>
                 <property name="text">
                  <string/>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normaloff>:images/themes/default/mActionRemove.svg</normaloff>:images/themes/default/mActionRemove.svg</iconset>
                 </property>
                </widget>
               </item>

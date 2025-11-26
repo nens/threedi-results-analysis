@@ -13,7 +13,6 @@ from qgis.utils import iface
 from threedi_results_analysis.gui.threedi_plugin_dockwidget import (
     ThreeDiPluginDockWidget,
 )
-from threedi_results_analysis.misc_tools import About
 from threedi_results_analysis.misc_tools import ShowLogfile
 from threedi_results_analysis.misc_tools import ToggleResultsManager
 from threedi_results_analysis.processing.providers import ThreediProvider
@@ -95,7 +94,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar.setObjectName("ThreeDiResultAnalysisToolBar")
 
         # Init the rest of the tools
-        self.about_tool = About(iface)
         self.toggle_results_manager = ToggleResultsManager(iface)
         self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self.model)
@@ -108,23 +106,22 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.fraction_analysis = FractionAnalysis(iface, self.model)
 
         self.tools = [  # second item indicates enabled on startup
-            (self.about_tool, True),
-            (self.toggle_results_manager, True),
-            (self.flow_summary_tool, False),
-            (self.graph_tool, False),
-            (self.sideview_tool, False),
-            (self.stats_tool, False),
-            (self.water_balance_tool, False),
-            (self.watershed_tool, False),
-            (self.fraction_analysis, False),
-            (self.logfile_tool, True)
+            (self.toggle_results_manager, True, True),
+            (self.flow_summary_tool, False, True),
+            (self.graph_tool, False, True),
+            (self.sideview_tool, False, True),
+            (self.stats_tool, False, True),
+            (self.water_balance_tool, False, True),
+            (self.watershed_tool, False, True),
+            (self.fraction_analysis, False, True),
+            (self.logfile_tool, True, False)
         ]
 
         # Styling (TODO: can this be moved to where it is used?)
         for color_ramp in color.COLOR_RAMPS:
             color.add_color_ramp(color_ramp)
 
-        for tool, enabled in self.tools:
+        for tool, enabled, add_to_toolbar in self.tools:
             if tool.icon_path is not None:
                 self._add_action(
                     tool,
@@ -132,7 +129,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                     text=tool.menu_text,
                     callback=tool.run,
                     parent=self.iface.mainWindow(),
-                    enabled_flag=enabled
+                    enabled_flag=enabled,
+                    add_to_toolbar=add_to_toolbar,
                 )
 
         # Connect the signals
@@ -222,7 +220,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_changed.connect(self.fraction_analysis.result_changed)
         self.model.grid_changed.connect(self.fraction_analysis.grid_changed)
 
-        for tool, _ in self.tools:
+        for tool, _, _, in self.tools:
             self.dockwidget.add_custom_actions(tool.get_custom_actions())
 
         # Further administrative signals that need to happens last:
@@ -253,7 +251,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             return False
 
         # Allow each tool to save additional info to the xml node
-        for tool, _ in self.tools:
+        for tool, _, _ in self.tools:
             if not tool.write(doc, node):
                 return False
 
@@ -283,7 +281,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         if tool_node:
             # Allow each tool to read additional info from the dedicated xml node
-            for tool, _ in self.tools:
+            for tool, _, _ in self.tools:
                 if not tool.read(tool_node):
                     self.model.clear()
                     return False
@@ -315,7 +313,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.iface.removePluginMenu(PLUGIN_MENU_NAME, action)
             self.iface.removeToolBarIcon(action)
 
-        for tool, _ in self.tools:
+        for tool, _, _ in self.tools:
             tool.on_unload()
 
         self.iface.removeDockWidget(self.dockwidget)
