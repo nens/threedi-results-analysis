@@ -49,7 +49,11 @@ class StatisticsTool(ThreeDiPluginTool):
 
         self.iface = iface
         self.model = model
-        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_custom_statistics.png")
+        self.icon_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "icons",
+            "icon_result_aggregation.svg"
+        )
         self.menu_text = u"Post-processing tool to generate custom time aggregations of Rana simulation results and visualize these on the map canvas"
         self.dlg = None
 

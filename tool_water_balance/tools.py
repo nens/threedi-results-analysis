@@ -24,7 +24,7 @@ class WaterBalanceTool(ThreeDiPluginTool):
         """
         super().__init__()
         self.iface = iface
-        self.icon_path = str(Path(__file__).parent.parent / 'icons' / 'weight-scale.png')
+        self.icon_path = str(Path(__file__).parent.parent / 'icons' / 'icon_water_balance.svg')
         self.menu_text = u"Water balance tool"
 
         self.is_active = False

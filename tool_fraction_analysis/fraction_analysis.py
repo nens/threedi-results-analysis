@@ -21,7 +21,7 @@ class FractionAnalysis(ThreeDiPluginTool):
 
         self.iface = iface
         self.model = model
-        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_fraction.png")
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_fat.svg")
         self.menu_text = "Fraction analysis tool"
 
         self.dock_widgets = []
