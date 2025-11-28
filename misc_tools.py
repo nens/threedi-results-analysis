@@ -47,8 +47,8 @@ class ToggleResultsManager(ThreeDiPluginTool):
     def __init__(self, iface):
         super().__init__()
         self.iface = iface
-        self.icon_path = ":images/themes/default/mIconTreeView.svg"
-        self.menu_text = "Rana Results Manager"
+        self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon_panel.svg")
+        self.menu_text = "Simulation Results Manager"
 
     def run(self):
         """Shows dialog with version information."""

@@ -54,7 +54,7 @@ class StatisticsTool(ThreeDiPluginTool):
             "icons",
             "icon_result_aggregation.svg"
         )
-        self.menu_text = u"Post-processing tool to generate custom time aggregations of Rana simulation results and visualize these on the map canvas"
+        self.menu_text = u"Result aggregation tool"
         self.dlg = None
 
         # Keeps track of the layer groups already generated
