@@ -4,7 +4,7 @@
 3.26.3 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Bugfix: styling is now applied correctly to water level rasters created by the Water depth/level processing algorithms.
 
 
 3.26.2 (2025-11-18)
