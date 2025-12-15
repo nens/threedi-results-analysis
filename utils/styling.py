@@ -6,7 +6,6 @@ from qgis.core import (
     QgsSingleBandPseudoColorRenderer,
 )
 from PyQt5.QtGui import QColor
-from qgis.utils import iface
 
 
 def apply_transparency_gradient(
