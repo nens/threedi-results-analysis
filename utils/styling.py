@@ -6,6 +6,7 @@ from qgis.core import (
     QgsSingleBandPseudoColorRenderer,
 )
 from PyQt5.QtGui import QColor
+from qgis.utils import iface
 
 
 def apply_transparency_gradient(
@@ -76,7 +77,7 @@ def apply_gradient_ramp(
     # Define the color ramp shader
     color_ramp_shader = QgsColorRampShader()
     color_ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
-    color_ramp_shader.setColorRamp(color_ramp)
+    color_ramp_shader.setSourceColorRamp(color_ramp)
     color_ramp_shader.setMinimumValue(min_value)
     color_ramp_shader.setMaximumValue(max_value)
 
@@ -86,4 +87,11 @@ def apply_gradient_ramp(
     # Apply renderer
     renderer = QgsSingleBandPseudoColorRenderer(layer.dataProvider(), band, shader)
     layer.setRenderer(renderer)
+
+    # layer.loadDefaultStyle()
+    iface.layerTreeView().refreshLayerSymbology(layer.id())
     layer.triggerRepaint()
+
+    iface.mapCanvas().refreshAllLayers()
+    from qgis.core import QgsMessageLog
+    QgsMessageLog.logMessage(str(layer.isValid()))
