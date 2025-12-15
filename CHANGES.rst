@@ -1,7 +1,7 @@
 3Di Results Analysis changelog
 ========================
 
-3.26.3 (unreleased)
+3.26.3 (2025-12-15)
 -------------------
 
 - Bugfix: styling is now applied correctly to water level rasters created by the Water depth/level processing algorithms.
