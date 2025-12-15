@@ -73,25 +73,23 @@ def apply_gradient_ramp(
     band : int
         Raster band index (default=1).
     """
-
     # Define the color ramp shader
     color_ramp_shader = QgsColorRampShader()
     color_ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
-    color_ramp_shader.setSourceColorRamp(color_ramp)
     color_ramp_shader.setMinimumValue(min_value)
     color_ramp_shader.setMaximumValue(max_value)
+    color_ramp_shader.setSourceColorRamp(color_ramp)
+    color_ramp_shader.classifyColorRamp(classes=25)
 
+    # Create shader function
     shader = QgsRasterShader()
     shader.setRasterShaderFunction(color_ramp_shader)
 
-    # Apply renderer
+    # Create renderer
     renderer = QgsSingleBandPseudoColorRenderer(layer.dataProvider(), band, shader)
+    renderer.setClassificationMin(min_value)
+    renderer.setClassificationMax(max_value)
+
+    # Apply renderer to layer
     layer.setRenderer(renderer)
-
-    # layer.loadDefaultStyle()
-    iface.layerTreeView().refreshLayerSymbology(layer.id())
     layer.triggerRepaint()
-
-    iface.mapCanvas().refreshAllLayers()
-    from qgis.core import QgsMessageLog
-    QgsMessageLog.logMessage(str(layer.isValid()))
