@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.3 (unreleased)
+3.26.4 (unreleased)
 -------------------
 
 - Remove 3Di from user facing text, replace with Rana
@@ -11,6 +11,12 @@ Rana Results Analysis changelog
 - Removed About button
 - Removed Show log file from toolbar (still available in via the Plugins menu)
 - Removed logos from water balance tool "Show total balance" dialog
+
+
+3.26.3 (2025-12-15)
+-------------------
+
+- Bugfix: styling is now applied correctly to water level rasters created by the Water depth/level processing algorithms.
 
 
 3.26.2 (2025-11-18)
