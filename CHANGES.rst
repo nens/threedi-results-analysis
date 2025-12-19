@@ -1,6 +1,12 @@
 Rana Results Analysis changelog
 ===============================
 
+3.26.5 (unreleased)
+-------------------
+
+- Nothing changed yet.
+
+
 3.26.4 (2025-12-19)
 -------------------
 
