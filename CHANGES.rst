@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.4 (unreleased)
+3.26.4 (2025-12-19)
 -------------------
 
 - Remove 3Di from user facing text, replace with Rana
