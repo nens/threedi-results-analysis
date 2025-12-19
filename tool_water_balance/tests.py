@@ -237,7 +237,7 @@ def wb_widget(pt, wb_calculation):
     manager = WaterBalanceCalculationManager
     iface = mock.Mock()
     wb_widget = WaterBalanceWidget(
-        "3Di water balance", iface=iface, manager=manager,
+        "Rana water balance", iface=iface, manager=manager,
     )
     wb_widget.calc = wb_calculation
     return wb_widget

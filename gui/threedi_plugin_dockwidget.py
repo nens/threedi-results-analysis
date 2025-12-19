@@ -1,11 +1,14 @@
 from pathlib import Path
+from typing import Optional
+
 from qgis.core import QgsSettings
 from qgis.PyQt import uic
+from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import pyqtSignal, QItemSelectionModel
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QPixmap
+from qgis.PyQt.QtSvg import QSvgWidget
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QMenu
@@ -21,6 +24,7 @@ import logging
 
 
 logger = logging.getLogger(__name__)
+
 
 FORM_CLASS, _ = uic.loadUiType(
     Path(__file__).parent / 'threedi_plugin_dockwidget_base.ui',
@@ -45,15 +49,20 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         self.first_show = True
 
         self.setupUi(self)
-        self.pushButton_Add.clicked.connect(self._add_clicked)
-        self.pushButton_RemoveItem.clicked.connect(self._remove_current_index_clicked)
+        self.toolButton_Add.clicked.connect(self._add_clicked)
+        self.toolButton_RemoveItem.clicked.connect(self._remove_current_index_clicked)
         self.alignStartsCheckBox.stateChanged.connect(self._align_starts_clicked)
 
         # Set logo
-        path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
-        logo_3di = QPixmap(path_3di_logo)
-        logo_3di = logo_3di.scaledToHeight(30)
-        self.logo.setPixmap(logo_3di)
+        path_rana_logo = PLUGIN_DIR / "icons" / "banner.svg"
+        self.replace_logo(svg_path=path_rana_logo, width=150)
+
+        # Set button SVGs
+        svg_path_icon_add = PLUGIN_DIR / "icons" / "icon_add.svg"
+        self.toolButton_Add.setIcon(QIcon(str(svg_path_icon_add)))
+
+        svg_path_icon_remove = PLUGIN_DIR / "icons" / "icon_remove.svg"
+        self.toolButton_RemoveItem.setIcon(QIcon(str(svg_path_icon_remove)))
 
         # Replace any backslashes with slash to make QGIS happy when accessing a Windows network location.
         open_eye_logo = str(PLUGIN_DIR / "icons" / "open.png").replace("\\", "/")
@@ -71,6 +80,52 @@ class ThreeDiPluginDockWidget(QDockWidget, FORM_CLASS):
         self.dialog.result_grid_file_selected.connect(self.result_grid_file_selected)
 
         self.custom_actions = {}
+
+    def replace_logo(self, svg_path: Path | str, width: Optional[int] = None, height: Optional[int] = None):
+        """
+        QSvgWidgets are not supported in Qt designer, so we use a QLabel (self.logo) as a placeholder
+        This function replaces self.logo with a QSvgWidget at the same position in the layout.
+        """
+
+        old_label = self.logo
+        parent = old_label.parentWidget()
+        layout = parent.layout()
+
+        if layout is None:
+            raise RuntimeError("self.logo is not inside a layout.")
+
+        # Find index of the QLabel inside its layout
+        index = None
+        for i in range(layout.count()):
+            if layout.itemAt(i).widget() is old_label:
+                index = i
+                break
+
+        if index is None:
+            raise RuntimeError("Could not find self.logo inside layout.")
+
+        # Remove QLabel
+        layout.removeWidget(old_label)
+        old_label.deleteLater()
+
+        # Create SVG widget
+        svg_widget = QSvgWidget(str(svg_path))
+        renderer = svg_widget.renderer()
+        original_size = renderer.defaultSize()  # QSize
+        if width is None:
+            if height is None:
+                raise ValueError("Either width or height must be specified.")
+            width = int(original_size.width() / original_size.height() * height)
+        elif height is None:
+            height = int(original_size.height() / original_size.width() * width)
+        svg_widget.setFixedWidth(width)
+        svg_widget.setFixedHeight(height)
+
+        # Insert SVG widget in the same layout slot
+        layout.insertWidget(index, svg_widget)
+
+        # Store reference if needed later
+        self.logo = svg_widget
 
     def add_custom_actions(self, actions):
         self.custom_actions |= actions

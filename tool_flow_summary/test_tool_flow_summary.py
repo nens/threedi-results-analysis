@@ -76,7 +76,9 @@ class TestFlowSummaryTool(unittest.TestCase):
 
     def test_icon_path_is_set(self):
         self.assertEqual(
-            self.flow_summary.icon_path, "/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/threedi_results_analysis/icons/icon_summary.png"
+            self.flow_summary.icon_path,
+            "/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/threedi_results_analysis/icons/"
+            "icon_summary.svg"
         )
 
     def test_result_addition_removal(self):

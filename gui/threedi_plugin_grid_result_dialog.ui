@@ -21,7 +21,7 @@
      </property>
      <widget class="QWidget" name="threedi">
       <attribute name="title">
-       <string>3Di Working Directory</string>
+       <string>Rana modelling directory</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>

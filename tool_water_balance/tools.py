@@ -24,7 +24,7 @@ class WaterBalanceTool(ThreeDiPluginTool):
         """
         super().__init__()
         self.iface = iface
-        self.icon_path = str(Path(__file__).parent.parent / 'icons' / 'weight-scale.png')
+        self.icon_path = str(Path(__file__).parent.parent / 'icons' / 'icon_water_balance.svg')
         self.menu_text = u"Water balance tool"
 
         self.is_active = False
@@ -36,7 +36,7 @@ class WaterBalanceTool(ThreeDiPluginTool):
             return
 
         widget = WaterBalanceWidget(
-            "3Di Water balance", manager=self.manager, iface=self.iface,
+            "Rana water balance", manager=self.manager, iface=self.iface,
         )
         widget.closingWidget.connect(self.on_close_child_widget)
         self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, widget)

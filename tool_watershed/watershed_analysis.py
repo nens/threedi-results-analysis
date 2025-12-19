@@ -25,7 +25,7 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
         self.iface = iface
         self.model = model
 
-        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_watershed.png")
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_watershed.svg")
         self.menu_text = "Watershed tool"
 
         self.dock_widget = None

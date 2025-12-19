@@ -177,25 +177,25 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
             extension="h5"
         )
         gridadmin_param.setMetadata(
-            {"shortHelpString": "HDF5 file (*.h5) containing the computational grid of a 3Di model"}
+            {"shortHelpString": "HDF5 file (*.h5) containing the computational grid of a Rana model"}
         )
         result.append(gridadmin_param)
 
         # NetCDF input
         netcdf_input_param = QgsProcessingParameterFile(
             name=NETCDF_INPUT,
-            description="3Di simulation output (.nc)",
+            description="Rana simulation results (.nc)",
             extension="nc"
         )
         if self.data_type == WATER_QUANTITY:
             short_help_string = (
-                "NetCDF (*.nc) containing the results or aggregated results of a 3Di simulation. "
+                "NetCDF (*.nc) containing the results or aggregated results of a Rana simulation. "
                 "When using aggregated results (aggregate_results_3di.nc), make sure to use 'maximum water level' "
                 "as one of the aggregation variables in the simulation."
             )
         elif self.data_type == WATER_QUALITY:
             short_help_string = (
-                "NetCDF (*.nc) containing the water quality results of a 3Di simulation. "
+                "NetCDF (*.nc) containing the water quality results of a Rana simulation. "
             )
         netcdf_input_param.setMetadata(
             {"shortHelpString": short_help_string}
@@ -632,7 +632,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         if self.data_type == WATER_QUANTITY:
             title = "Calculate water depth or level raster"
             leader_paragraphs = [
-                "The 3Di simulation result contains a single water level for each cell, for each time step. However, "
+                "The Rana simulation result contains a single water level for each cell, for each time step. However, "
                 "the water <i>depth</i> is different for each pixel within the cell. "
                 "To calculate water depths from water levels, the DEM needs to be subtracted from the water level. "
                 "This results in a raster with a water depth value for each pixel.",
@@ -646,7 +646,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
         elif self.data_type == WATER_QUALITY:
             title = "Calculate concentration/fraction raster"
             leader_paragraphs = [
-                "The 3Di water quality simulation result contains a single concentration (or fraction) for each cell, "
+                "The Rana water quality simulation result contains a single concentration (or fraction) for each cell, "
                 "for each time step, for each substance. This tool allows you to make a raster of this data.",
 
                 "To get a smoother result, use the option to spatially interpolate the concentrations.",
@@ -686,7 +686,7 @@ class BaseThreediDepthAlgorithm(QgsProcessingAlgorithm):
 
 class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
-    Calculates water depth or water level from 3Di result NetCDF for a single time step
+    Calculates water depth or water level from Rana simulation result NetCDF for a single time step
     """
 
     @property
@@ -717,7 +717,7 @@ class WaterDepthOrLevelSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
 
 class WaterDepthOrLevelMaximumAlgorithm(BaseThreediDepthAlgorithm):
     """
-    Calculates maximum water depth or water level from 3Di result NetCDF
+    Calculates maximum water depth or water level from Rana simulation result NetCDF
     """
     @property
     def data_type(self) -> str:
@@ -747,7 +747,7 @@ class WaterDepthOrLevelMaximumAlgorithm(BaseThreediDepthAlgorithm):
 
 class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
-    Calculates water depth or water level from 3Di result NetCDF for multiple time steps
+    Calculates water depth or water level from Rana simulation result NetCDF for multiple time steps
     """
     @property
     def data_type(self) -> str:
@@ -777,7 +777,7 @@ class WaterDepthOrLevelMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
 
 class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
-    Calculates concentration from 3Di result NetCDF for a single time step
+    Calculates concentration from Rana simulation result NetCDF for a single time step
     """
     @property
     def data_type(self) -> str:
@@ -807,7 +807,7 @@ class ConcentrationSingleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
 
 class ConcentrationMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
     """
-    Calculates concentration rasters from 3Di result NetCDF for multiple time steps
+    Calculates concentration rasters from Rana simulation result NetCDF for multiple time steps
     """
     @property
     def data_type(self) -> str:
@@ -837,7 +837,7 @@ class ConcentrationMultipleTimeStepAlgorithm(BaseThreediDepthAlgorithm):
 
 class ConcentrationMaximumAlgorithm(BaseThreediDepthAlgorithm):
     """
-    Calculates maximum concentration raster from 3Di result NetCDF
+    Calculates maximum concentration raster from Rana simulation result NetCDF
     """
     @property
     def data_type(self) -> str:

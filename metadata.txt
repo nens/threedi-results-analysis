@@ -1,18 +1,18 @@
 [general]
-name=3Di Results Analysis
+name=Rana Results Analysis
 qgisMinimumVersion=3.22
-description=3Di Results Analysis
+description=Rana Results Analysis
 version=3.26.4
-author=3Di Water Management
+author=Nelen & Schuurmans
 email=servicedesk@nelen-schuurmans.nl
 
-about=Analyse 3Di results and visualize computational grids in the 3Di Modeller Interface.
+about=Analyse Rana simulation results and visualize computational grids in the Rana Desktop Client.
 
     The tools that this plugin provides allow you to:
 
-    - Make (maximum) water depth or water level rasters from raw 3Di simulation results.
-    - Visualize results on the map canvas for a specific timestep
-    - Plot timeseries of discharge, water level or any other variable in a graph
+    - Make (maximum) water depth or water level rasters from raw Rana simulation results.
+    - Visualize results on the map canvas for a specific time step
+    - Plot time series of discharge, water level or any other variable in a graph
     - Make side view plots of water levels and water level gradients at any time during the simulation
     - Calculate the water balance for any given area in the model domain
     - Calculate aggregated results such as maximum water level per node or total discharge per flowline
@@ -32,9 +32,9 @@ changelog=https://docs.3di.live/a_releasenotes_3di_mi.html
 # Tags are comma separated with spaces allowed
 tags=analysis, catchment, drainage, flood, flooding, graph, grid, groundwater, hydraulics, hydrology, modelling, netcdf, network analysis, plot, profile, statistics, time series, water
 
-homepage=https://www.3diwatermanagement.com
+homepage=https://www.ranawaterintelligence.com
 category=Plugins
-icon=icons/icon.png
+icon=icons/rana_blue_on_transparent.svg
 experimental=False
 hasProcessingProvider=yes
 plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.2.6

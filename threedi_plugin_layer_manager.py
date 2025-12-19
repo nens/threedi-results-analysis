@@ -433,7 +433,7 @@ class ThreeDiPluginLayerManager(QObject):
     def _resolve_grid_item_text(file: Path) -> str:
         """The text of the grid item depends on its containing file structure
 
-        In case the grid file is in the 3Di Models & Simulations local directory
+        In case the grid file is in the Rana modelling directory
         structure, the text should be schematisation name + revision nr. Otherwise just a number.
         """
         if file.parent.parent is not None and file.parent.parent.parent is not None:

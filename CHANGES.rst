@@ -1,10 +1,16 @@
-3Di Results Analysis changelog
-========================
+Rana Results Analysis changelog
+===============================
 
 3.26.4 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Remove 3Di from user facing text, replace with Rana
+- Replace icons for Rana-style icons
+- Use QSvgWidgets instead of turning svg's into pixmaps
+- Use toolbuttons instead of pushbuttons in Results Manager panel
+- Removed About button
+- Removed Show log file from toolbar (still available in via the Plugins menu)
+- Removed logos from water balance tool "Show total balance" dialog
 
 
 3.26.3 (2025-12-15)

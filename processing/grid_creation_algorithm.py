@@ -121,7 +121,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             log_capture_string.close()
             logger.removeHandler(ch)
             if log_contents:
-                feedback.pushWarning("3Di gridbuilder log:")
+                feedback.pushWarning("The module that makes the computational grid logged the following messages:")
                 feedback.pushWarning(log_contents)
 
         feedback.setProgress(0)

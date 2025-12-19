@@ -69,7 +69,7 @@ def feedback_callback_factory(feedback):
 
 class MigrateAlgorithm(QgsProcessingAlgorithm):
     """
-    Migrate 3Di model schema to the current version
+    Migrate database schema to the current version
     """
 
     INPUT = "INPUT"
@@ -79,8 +79,8 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT,
-                "3Di schematisation database",
-                fileFilter="3Di schematisation database (*.gpkg *.sqlite)"
+                "Schematisation geopackage",
+                fileFilter="Rana schematisation geopackage (*.gpkg *.sqlite)"
             )
         )
 
@@ -95,7 +95,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         # the schematisation editor
         if filename.endswith(".gpkg"):
             if schema.get_version() < 300:
-                warn_msg = "The selected file is not a valid 3Di schematisation database.\n\nYou may have selected a geopackage that was created by an older version of the 3Di Schematisation Editor (before version 2.0). In that case, there will probably be a Spatialite (*.sqlite) in the same folder. Please use that file instead."
+                warn_msg = "The selected file is not a valid 3Di schematisation database.\n\nYou may have selected a geopackage that was created by an older version of the Rana Schematisation Editor (before version 2.0). In that case, there will probably be a Spatialite (*.sqlite) in the same folder. Please use that file instead."
                 feedback.pushWarning(warn_msg)
                 return {self.OUTPUT: None}
 
@@ -188,7 +188,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Schematisation"), fileFilter="GeoPackage (*.gpkg)"
+                self.INPUT, self.tr("Rana schematisation geopackage"), fileFilter="GeoPackage (*.gpkg)"
             )
         )
 
@@ -220,8 +220,8 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             model_checker = ThreediModelChecker(threedi_db)
         except errors.MigrationMissingError:
             feedback.pushWarning(
-                "The selected 3Di model does not have the latest migration. Please "
-                "migrate your model to the latest version."
+                "The selected schematisation does not have the latest schema version. Please "
+                "migrate your schematisation to the latest version."
             )
             return {self.OUTPUT: None}
         schema = threedi_db.schema
@@ -401,7 +401,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
 
 class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     """
-    Import data from GWSW HydX to a 3Di Schematisation
+    Import data from GWSW HydX to a Rana schematisation
     """
 
     INPUT_DATASET_NAME = "INPUT_DATASET_NAME"
@@ -412,7 +412,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.TARGET_SCHEMATISATION, "Target 3Di Schematisation", fileFilter="GeoPackage (*.gpkg)"
+                self.TARGET_SCHEMATISATION, "Target Rana schematisation", fileFilter="GeoPackage (*.gpkg)"
             )
         )
 
@@ -453,7 +453,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
         if not threedi_db:
             raise QgsProcessingException(
-                f"Unable to connect to 3Di schematisation '{out_path}'"
+                f"Unable to connect to Rana schematisation geopackage '{out_path}'"
             )
         try:
             schema = threedi_db.schema
@@ -461,8 +461,8 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
 
         except errors.MigrationMissingError:
             raise QgsProcessingException(
-                "The selected 3Di schematisation does not have the latest database schema version. Please migrate this "
-                "schematisation and try again: Processing > Toolbox > 3Di > Schematisation > Migrate schematisation database"
+                "The selected Rana schematisation does not have the latest database schema version. Please migrate this "
+                "schematisation and try again: Processing > Toolbox > Rana schematisation editor > Schematisation > Migrate schematisation database"
             )
         if not (hydx_dataset_name or hydx_path):
             raise QgsProcessingException(
@@ -524,10 +524,10 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         return """
         <h3>Introduction</h3>
         <p>Use this processing algorithm to import data in the format of the Dutch "Gegevenswoordenboek Stedelijk Water (GWSW)". Either select a previously downloaded local dataset, or download a dataset directly from the server.</p>
-        <p>A log file will be created in the same directory as the Target 3Di schematisation. Please check this log file after the import has completed.&nbsp;&nbsp;</p>
+        <p>A log file will be created in the same directory as the Target Rana schematisation. Please check this log file after the import has completed.&nbsp;&nbsp;</p>
         <h3>Parameters</h3>
-        <h4>Target 3Di Schematisation</h4>
-        <p>GeoPackage (.gpkg) file that contains the layers required by 3Di. Imported data will be added to any data already contained in the 3Di schematisation.</p>
+        <h4>Target Rana schematisation</h4>
+        <p>GeoPackage (.gpkg) file that contains the vector layers and tables of a Rana schematisation. Imported data will be added to any data already contained in the schematisation.</p>
         <h4>GWSW HydX directory (local)</h4>
         <p>Use this option if you have already downloaded a GWSW HydX dataset to a local directory.</p>
         <h4>GWSW dataset name (online)</h4>
