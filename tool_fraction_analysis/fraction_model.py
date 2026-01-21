@@ -163,7 +163,7 @@ class FractionModel(QStandardItemModel):
 
     def timeseries_table(self, substance, id, time_units):
         timeseries = self.result_item.threedi_result.get_timeseries(
-            substance, node_id=id, fill_value=np.NaN
+            substance, node_id=id, fill_value=np.nan
         )
         if timeseries.shape[1] == 1:
             logger.error("1-element timeserie, plotting empty serie")
