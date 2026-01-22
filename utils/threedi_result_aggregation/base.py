@@ -278,16 +278,40 @@ def prepare_timeseries(
     return raw_values_signed, tintervals
 
 
-def get_exchange_level(nodes: Nodes, lines: Lines, no_data: float) -> np.array:
+def get_exchange_level(
+        nodes: Nodes,
+        lines: Lines,
+        no_data: float,
+        surface_water: bool = True,
+        groundwater: bool = False
+) -> np.array:
     """
     Return an array of lowest dpumax of adjacent 1D2D lines.
 
     Returned array has the same length and order as the input nodes
 
     Returned value for that are not 1D nodes or do not have 1D2D connections is ``no_data``
+
+    By default, only exchange with surface water cells are take into account and groundwater is ignored.
+    Use the boolean arguments ``surface_water`` and ``groundwater`` to change this.
     """
     # find adjacent lines
-    lines = filter_lines_by_node_ids(lines, nodes.id).subset("1D2D")
+    kcu_types = []
+    if surface_water:
+        kcu_types += [
+            51,  # 51: 1D-2D Single connected line (closed)
+            52,  # 52: 1D-2D Single connected line (open water)
+            53,  # 53: 1D-2D Double connected line (closed)
+            54,  # 54: 1D-2D Double connected line (open water)
+            55,  # 55: 1D-2D Connected line possible breach
+            56,  # 56: 1D-2D Connected line active breach
+        ]
+    if groundwater:
+        kcu_types += [
+            57,  # 57: 1D-2D Groundwater
+            58,  # 58: 1D-2D Groundwater
+        ]
+    lines = filter_lines_by_node_ids(lines, nodes.id).filter(kcu__in=kcu_types)
 
     # make array to lookup thresholds by node id
     max_node_id = max(nodes.id.max(), lines.line.max(initial=-1))
