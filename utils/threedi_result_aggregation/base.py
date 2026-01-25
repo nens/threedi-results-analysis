@@ -283,7 +283,7 @@ def get_exchange_level(
         lines: Lines,
         no_data: float,
         surface_water: bool = True,
-        groundwater: bool = False
+        groundwater: bool = True
 ) -> np.array:
     """
     Return an array of lowest dpumax of adjacent 1D2D lines.
@@ -441,7 +441,13 @@ def get_threshold_values(
     :param lines: required only when threshold attribute = "exchange_level_1d2d"
     """
     if threshold_attribute == EXCHANGE_LEVEL_1D2D:
-        return get_exchange_level(nodes=threedigrid_object, lines=lines, no_data=np.inf)
+        return get_exchange_level(
+            nodes=threedigrid_object,
+            lines=lines,
+            no_data=np.inf,
+            surface_water=True,
+            groundwater=False,
+        )
     else:
         return threedigrid_object.only(threshold_attribute).data[threshold_attribute]
 
@@ -1365,7 +1371,9 @@ def aggregate_threedi_results(
                     lines=gr.lines.subset("1D2D"),
                     node_ids=nodes.id
                 ),
-                no_data=np.nan
+                no_data=np.nan,
+                surface_water=True,
+                groundwater=False,
             )
             node_attr_data_types = attr_data_types
             node_attr_data_types["exchange_level_1d2d"] = ogr.OFTReal
