@@ -278,16 +278,40 @@ def prepare_timeseries(
     return raw_values_signed, tintervals
 
 
-def get_exchange_level(nodes: Nodes, lines: Lines, no_data: float) -> np.array:
+def get_exchange_level(
+        nodes: Nodes,
+        lines: Lines,
+        no_data: float,
+        surface_water: bool = True,
+        groundwater: bool = True
+) -> np.array:
     """
     Return an array of lowest dpumax of adjacent 1D2D lines.
 
     Returned array has the same length and order as the input nodes
 
     Returned value for that are not 1D nodes or do not have 1D2D connections is ``no_data``
+
+    By default, only exchange with surface water cells are take into account and groundwater is ignored.
+    Use the boolean arguments ``surface_water`` and ``groundwater`` to change this.
     """
     # find adjacent lines
-    lines = filter_lines_by_node_ids(lines, nodes.id).subset("1D2D")
+    kcu_types = []
+    if surface_water:
+        kcu_types += [
+            51,  # 51: 1D-2D Single connected line (closed)
+            52,  # 52: 1D-2D Single connected line (open water)
+            53,  # 53: 1D-2D Double connected line (closed)
+            54,  # 54: 1D-2D Double connected line (open water)
+            55,  # 55: 1D-2D Connected line possible breach
+            56,  # 56: 1D-2D Connected line active breach
+        ]
+    if groundwater:
+        kcu_types += [
+            57,  # 57: 1D-2D Groundwater
+            58,  # 58: 1D-2D Groundwater
+        ]
+    lines = filter_lines_by_node_ids(lines, nodes.id).filter(kcu__in=kcu_types)
 
     # make array to lookup thresholds by node id
     max_node_id = max(nodes.id.max(), lines.line.max(initial=-1))
@@ -417,7 +441,13 @@ def get_threshold_values(
     :param lines: required only when threshold attribute = "exchange_level_1d2d"
     """
     if threshold_attribute == EXCHANGE_LEVEL_1D2D:
-        return get_exchange_level(nodes=threedigrid_object, lines=lines, no_data=np.inf)
+        return get_exchange_level(
+            nodes=threedigrid_object,
+            lines=lines,
+            no_data=np.inf,
+            surface_water=True,
+            groundwater=False,
+        )
     else:
         return threedigrid_object.only(threshold_attribute).data[threshold_attribute]
 
@@ -1341,7 +1371,9 @@ def aggregate_threedi_results(
                     lines=gr.lines.subset("1D2D"),
                     node_ids=nodes.id
                 ),
-                no_data=np.nan
+                no_data=np.nan,
+                surface_water=True,
+                groundwater=False,
             )
             node_attr_data_types = attr_data_types
             node_attr_data_types["exchange_level_1d2d"] = ogr.OFTReal

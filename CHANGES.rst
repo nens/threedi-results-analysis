@@ -4,7 +4,9 @@ Rana Results Analysis changelog
 3.26.6 (unreleased)
 -------------------
 
+- Bugfix: "Water on street duration" preset in the result aggregation tool gave wrong results for models with groundwater component
 - Use np.nan instead of np.NaN since NaN was removed in NumPy 2.0.
+
 
 
 3.26.5 (2026-01-05)
