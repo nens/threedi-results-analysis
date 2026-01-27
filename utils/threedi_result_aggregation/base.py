@@ -259,7 +259,7 @@ def prepare_timeseries(
             f"Unknown aggregation variable '{aggregation.variable.long_name}'"
         )
 
-    # replace -9999 in raw values by NaN
+    # replace -9999 in raw values by nan
     raw_values[raw_values == -9999] = np.nan
 
     # reverse flow direction in 1d-2d links

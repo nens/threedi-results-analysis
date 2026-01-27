@@ -245,7 +245,7 @@ def threedi_result_legend_class_bounds(
 
     # TODO: this should move inside "if relative to t0" once the styling supports "all other values"
     if variable == WATERLEVEL.name:
-        # replace NaN with dmax a.k.a. bottom_level
+        # replace nan with dmax a.k.a. bottom_level
         mask = np.isnan(values)
         values[mask] = np.broadcast_to(bottom_level, values.shape)[mask]
 
@@ -766,14 +766,14 @@ class MapAnimator(QGroupBox):
 
             # theedigrid may have returned masked arrays in the past
             if isinstance(values_t0, np.ma.MaskedArray):
-                values_t0 = values_t0.filled(np.NaN)
+                values_t0 = values_t0.filled(np.nan)
             if isinstance(values_ti, np.ma.MaskedArray):
-                values_ti = values_ti.filled(np.NaN)
+                values_ti = values_ti.filled(np.nan)
 
             if parameter == WATERLEVEL.name:
                 # dry cells have a NO_DATA_VALUE water level
-                values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
-                values_ti[values_ti == NO_DATA_VALUE] = np.NaN
+                values_t0[values_t0 == NO_DATA_VALUE] = np.nan
+                values_ti[values_ti == NO_DATA_VALUE] = np.nan
 
             # determine which fields to update
             ti_field_index, t0_field_index = (

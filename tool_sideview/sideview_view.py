@@ -580,7 +580,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                 # find index in node table
                 column = node_id_table.index(node["id"])
                 levels = node_levels[:, column]
-                levels[levels == NO_DATA_VALUE] = np.NaN
+                levels[levels == NO_DATA_VALUE] = np.nan
 
                 node["timeseries"][result.id] = levels
 
