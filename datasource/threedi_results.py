@@ -275,28 +275,36 @@ class ThreediResult():
     def get_structure_control_action_timeseries(self, ga, nc_variable, node_id, selected_object_type, fill_value):
         assert nc_variable
         assert node_id
-        timestamps = []
-        values = []
 
-        prev_value = None
+        time_action_values = {}
+
+        # Typically 'table_control', 'memory_control' and 'timed_control'
         for control_type in StructureControlTypes.__members__.values():
             control_type_data = getattr(ga, control_type.name)
             structure_controls_for_id = control_type_data.group_by_grid_id(node_id)
-            structure_controls = [sc for sc in structure_controls_for_id if sc.action_type == nc_variable]
 
-            #  It could be that the same action is applied on nodes, lines and pumps, we need to find the right one.
+            #  It could be that the same action is applied on nodes or pumps, we need to find the right one.
             desired_type = StructureControlSourceTypes.LINES if selected_object_type == "flowline" else StructureControlSourceTypes.PUMPS
-            structure_controls = [sc for sc in structure_controls_for_id if sc.source_type == desired_type]
+            structure_controls = [sc for sc in structure_controls_for_id if sc.source_type == desired_type and sc.action_type == nc_variable]
 
             for structure_control in structure_controls:
                 assert len(structure_control.time) == len(structure_control.action_value_1)
                 for time_key, value in zip(structure_control.time, structure_control.action_value_1):
-                    if prev_value is not None:
-                        timestamps.append(time_key)
-                        values.append(prev_value)
-                    prev_value = value
-                    timestamps.append(time_key)
-                    values.append(value)
+                    if time_key in time_action_values:
+                        logger.info(f"Structure controls: time key {time_key} controlled by multiple controls.")
+                    time_action_values[time_key] = value
+
+        # Convert the timeseries to a plot
+        prev_value = None
+        timestamps = []
+        values = []
+        for time_key, value in sorted(time_action_values.items()):
+            if prev_value is not None:
+                timestamps.append(time_key)
+                values.append(prev_value)
+            prev_value = value
+            timestamps.append(time_key)
+            values.append(value)
 
         # Retrieve gridadmin structure
         if selected_object_type == "flowline":
