@@ -1092,14 +1092,22 @@ class CellPair:
         if from_pixel_label != to_pixel_label:
             raise ValueError(f"from_pixel and to_pixel are not connected above hmin = {hmin}")
         masked_pixels = pixels
-        masked_pixels[labelled_pixels != from_pixel_label] = np.nan
+        masked_pixels[labelled_pixels != from_pixel_label] = -np.inf
+        masked_pixels[masked_pixels == -9999] = -np.inf
+        masked_pixels[np.isnan(masked_pixels)] = -np.inf
 
         if self.neigh_primary_location == TOP:
             row_indices = np.arange(masked_pixels.shape[0])
-            col_indices = np.nanargmax(masked_pixels, axis=1)
+            col_indices = np.argmax(masked_pixels, axis=1)
+            valid = ~np.all(np.isneginf(masked_pixels), axis=1)
+            row_indices = row_indices[valid]
+            col_indices = col_indices[valid]
         elif self.neigh_primary_location == RIGHT:
-            row_indices = np.nanargmax(masked_pixels, axis=0)
+            row_indices = np.argmax(masked_pixels, axis=0)
             col_indices = np.arange(masked_pixels.shape[1])
+            valid = ~np.all(np.isneginf(masked_pixels), axis=0)
+            row_indices = row_indices[valid]
+            col_indices = col_indices[valid]
         else:
             raise ValueError(f"CellPair has invalid neigh_primary_location: {self.neigh_primary_location}")
 
@@ -1109,7 +1117,7 @@ class CellPair:
             from_array=MERGED,
             to_array=REFERENCE,
         )
-        pixel_positions_reference_cell += 0.5  # vertices on pixel centers
+        pixel_positions_reference_cell = pixel_positions_reference_cell + 0.5  # vertices on pixel centers
 
         # transform to DEM pixel positions
         gt = self.ld.dem.GetGeoTransform()
@@ -1206,7 +1214,7 @@ class CellPair:
                 crest_level, crest_geometry = self.crest_from_pixels(
                     pixels=pixels,
                     from_pos=from_pos_arg,
-                    to_pos=to_pos_arg
+                    to_pos=to_pos_arg,
                 )
                 if crest_level is None:
                     continue
@@ -1426,7 +1434,7 @@ def highest(elements: List[Union[Obstacle, Edge]]):
 
 def lowest(elements: List[Union[Obstacle, Edge]]):
     """
-    Return the lowest element from a list of obstaclesor edges.
+    Return the lowest element from a list of obstacles or edges.
     """
     min_element_height = PSEUDO_INFINITE
     lowest_element = None
