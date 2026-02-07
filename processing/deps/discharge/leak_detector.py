@@ -352,38 +352,28 @@ class Obstacle:
     def __init__(
             self,
             ld: LeakDetector,
-            crest_level,
-            from_cell,
-            to_cell,
+            crest_level: float,
+            geometry: LineString,
+            from_cell: 'Cell',
+            to_cell: 'Cell',
             from_pos: Tuple[int, int],
             to_pos: Tuple[int, int],
-            from_side: str = None,
-            to_side: str = None,
-            edges=None
+            from_side: str | None = None,
+            to_side: str | None = None,
+            edges: List['Edge'] | None = None,
     ):
-        self.ld = ld
-        self.crest_level = crest_level
-        self.from_cell = from_cell
-        self.to_cell = to_cell
-        self.from_side = from_side
-        self.to_side = to_side
-        self.from_pos = from_pos
-        self.to_pos = to_pos
+        self.ld = ld  # LeakDetector that owns this obstacle
+        self.crest_level = crest_level  # lowest point in to cross this obstacle
+        self.geometry = geometry
+        self.from_cell = from_cell  # obstacle blocks the path to get from from_cell to to_cell
+        self.to_cell = to_cell  # obstacle blocks the path to get from from_cell to to_cell
+        self.from_side = from_side  # the side of from_cell where to start the path that is blocked by obstacle
+        self.to_side = to_side  # the side of to_cell where to end the path that is blocked by obstacle
+        self.from_pos = from_pos  # integer indices inside the cell, (row_index, col_index). upper left == (0, 0)
+        self.to_pos = to_pos  # integer indices inside the cell, (row_index, col_index). upper left == (0, 0)
         self.edges = edges if edges else []
         self._from_edge = None
         self._to_edge = None
-
-        # calculate geometry
-        gt = self.ld.dem.GetGeoTransform()
-        from_pos_y = self.from_pos[0]
-        from_pos_x = self.from_pos[1]
-        to_pos_y = self.to_pos[0]
-        to_pos_x = self.to_pos[1]
-        from_x = self.from_cell.coords[0] + from_pos_x * abs(gt[1]) + abs(gt[1]) / 2
-        from_y = self.from_cell.coords[3] - (from_pos_y * abs(gt[5]) + abs(gt[5]) / 2)
-        to_x = self.to_cell.coords[0] + to_pos_x * abs(gt[1]) + abs(gt[1]) / 2
-        to_y = self.to_cell.coords[3] - (to_pos_y * abs(gt[5]) + abs(gt[5]) / 2)
-        self.geometry = LineString([Point(from_x, from_y), Point(to_x, to_y)])
 
     @staticmethod
     def _find_edge(cell, side, pos):
@@ -655,7 +645,7 @@ class CellPair:
         self.ld = ld
         self.reference_cell = reference_cell
         self.neigh_cell = neigh_cell
-        self.cells = {REFERENCE: self.reference_cell, NEIGH: self.neigh_cell}
+        self.cells: Dict[str, Cell] = {REFERENCE: self.reference_cell, NEIGH: self.neigh_cell}
         self.neigh_primary_location, self.neigh_secondary_location = self.locate_cell(NEIGH)
         if self.neigh_primary_location not in [TOP, RIGHT]:
             raise ValueError(
@@ -727,7 +717,7 @@ class CellPair:
         self.width = self.pixels.shape[1]
         self.height = self.pixels.shape[0]
 
-        # Determine shifts, i.e. paramaters to transform coordinates between ref cell, neigh cell and merged
+        # Determine shifts, i.e. parameters to transform coordinates between ref cell, neigh cell and merged
         # {pos in ref cell} + self.reference_cell_shift = {pos in merged pixels}
         # {pos in neigh cell} + self.neigh_cell_shift = {pos in merged pixels}
 
@@ -1014,14 +1004,14 @@ class CellPair:
 
         return {RIGHTHANDSIDE: filtered_rhs_maxima, LEFTHANDSIDE: filtered_lhs_maxima}
 
-    def crest_level_from_pixels(
+    def crest_from_pixels(
             self,
             pixels: np.ndarray,
             from_pos: Tuple[int, int],
             to_pos: Tuple[int, int]
-    ) -> Union[float, None]:
+    ) -> Tuple[float, LineString] | Tuple[None, None]:
         """
-        Find obstacle in `pixels` and return its crest level
+        Find obstacle in `pixels` and return its geometry and crest level
 
         Returns None if no obstacle is found
         """
@@ -1030,7 +1020,7 @@ class CellPair:
 
         # case: flat(ish) cellpair (from_val or max_to_val is not significantly higher than the lowest pixel)
         if np.nanmin([from_val, to_val]) - np.nanmin(pixels) < self.ld.search_precision:
-            return None
+            return None, None
 
         # now find the obstacle crest level iteratively
         hmin = np.nanmin(pixels)
@@ -1042,6 +1032,12 @@ class CellPair:
         to_pixel_label = labelled_pixels[to_pos]
         if from_pixel_label != 0 and np.any(to_pixel_label == from_pixel_label):
             obstacle_crest_level = hmax
+            obstacle_crest_geometry = self.crest_geometry_from_pixels(
+                pixels=pixels,
+                hmin=hmax,
+                from_pos=from_pos,
+                to_pos=to_pos,
+            )
 
         # all other cases
         else:
@@ -1058,8 +1054,71 @@ class CellPair:
                     hmax = hcurrent
 
             obstacle_crest_level = float(np.mean([hmin, hmax]))
+            obstacle_crest_geometry = self.crest_geometry_from_pixels(
+                pixels=pixels,
+                hmin=hmin,
+                from_pos=from_pos,
+                to_pos=to_pos,
+            )
+        return obstacle_crest_level, obstacle_crest_geometry
 
-        return obstacle_crest_level
+    def crest_geometry_from_pixels(
+            self,
+            pixels: np.ndarray,
+            hmin: float,
+            from_pos: Tuple[float, float],
+            to_pos: Tuple[float, float],
+    ) -> LineString:
+
+        """
+         Extract the crest line from `pixels` by finding, within the
+         connected region above `hmin`, the maximum pixel per row or column.
+
+         Parameters
+         ----------
+         pixels : np.ndarray
+             2D elevation array.
+         hmin : float
+             Threshold; only pixels > hmin are considered.
+         from_pos : (int, int)
+             Starting pixel as (row, col).
+         to_pos : (int, int)
+             Ending pixel as (row, col), must be connected to from_pos.
+        """
+
+        labelled_pixels, _ = label(pixels >= hmin, structure=SEARCH_STRUCTURE)
+        from_pixel_label = int(labelled_pixels[from_pos])
+        to_pixel_label = int(labelled_pixels[to_pos])
+        if from_pixel_label != to_pixel_label:
+            raise ValueError(f"from_pixel and to_pixel are not connected above hmin = {hmin}")
+        masked_pixels = pixels
+        masked_pixels[labelled_pixels != from_pixel_label] = np.nan
+
+        if self.neigh_primary_location == TOP:
+            row_indices = np.arange(masked_pixels.shape[0])
+            col_indices = np.nanargmax(masked_pixels, axis=1)
+        elif self.neigh_primary_location == RIGHT:
+            row_indices = np.nanargmax(masked_pixels, axis=0)
+            col_indices = np.arange(masked_pixels.shape[1])
+        else:
+            raise ValueError(f"CellPair has invalid neigh_primary_location: {self.neigh_primary_location}")
+
+        # transform to reference cell pixel positions
+        pixel_positions_reference_cell = self.transform(
+            pos=np.array([row_indices, col_indices]),
+            from_array=MERGED,
+            to_array=REFERENCE,
+        )
+        pixel_positions_reference_cell += 0.5  # vertices on pixel centers
+
+        # transform to DEM pixel positions
+        gt = self.ld.dem.GetGeoTransform()
+        x = self.reference_cell.coords[0] + pixel_positions_reference_cell[0] * abs(gt[1]) + abs(gt[1]) / 2
+        y = self.reference_cell.coords[3] - (pixel_positions_reference_cell[1] * abs(gt[5]) + abs(gt[5]) / 2)
+
+        line = LineString(np.column_stack((x, y)))
+
+        return line
 
     @staticmethod
     def squash_indices(array_a: np.ndarray, array_b: np.ndarray, side: str, secondary_location: Union[str, None]):
@@ -1144,7 +1203,7 @@ class CellPair:
                     from_pos_arg = from_pos
                     to_pos_arg = to_pos
                 pixels = cell_or_cell_pair.pixels
-                crest_level = self.crest_level_from_pixels(
+                crest_level, crest_geometry = self.crest_from_pixels(
                     pixels=pixels,
                     from_pos=from_pos_arg,
                     to_pos=to_pos_arg
@@ -1162,7 +1221,7 @@ class CellPair:
                 ):
                     continue
                 # determine other obstacle properties
-                # # from_edges, to_edges, from_cell, to_cell, from_pos, to_pos
+                # # from_edges, to_edges, from_cell, to_cell, from_pos, to_pos, geometry
                 if self.neigh_primary_location == TOP:
                     from_side = LEFT
                     to_side = RIGHT
@@ -1175,6 +1234,7 @@ class CellPair:
                 obstacle = Obstacle(
                     ld=self.ld,
                     crest_level=crest_level,
+                    geometry=crest_geometry,
                     from_side=from_side,
                     to_side=to_side,
                     from_cell=from_cell,
@@ -1259,7 +1319,7 @@ class CellPair:
                         rhs_pos_in_cell_pair = self.transform(pos=rhs_pos, from_array=rhs_cell, to_array=MERGED)
 
                         # connect lhs_pos and rhs_pos. If possible @ sufficient height, obstacle is added to middle edge
-                        crest_level = self.crest_level_from_pixels(
+                        crest_level, crest_geometry = self.crest_from_pixels(
                             pixels=self.pixels,
                             from_pos=lhs_pos_in_cell_pair,
                             to_pos=rhs_pos_in_cell_pair
@@ -1271,6 +1331,7 @@ class CellPair:
                                 obstacle = Obstacle(
                                     ld=self.ld,
                                     crest_level=crest_level,
+                                    geometry=crest_geometry,
                                     from_cell=self.cells[lhs_cell],
                                     to_cell=self.cells[rhs_cell],
                                     from_pos=lhs_pos,
