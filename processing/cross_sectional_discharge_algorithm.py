@@ -499,11 +499,11 @@ class CrossSectionalDischargeAlgorithm(QgsProcessingAlgorithm):
             <p>Name of the field in the <i>cross-section lines</i> layer to which total net discharge will be written.</p>
             <h3>Outputs</h3>
             <h4>Total net discharge per cross-section line</h4>
-            <p>This result will be written to the <i>cross-section lines</i> layer, in a field specified by <i>output field name</i>. This field will be created if it does not exist.</p>
+            <p>The total net discharge that crosses the cross-section line, in m³. This result will be written to the <i>cross-section lines</i> layer, in a field specified by <i>output field name</i>. This field will be created if it does not exist.</p>
             <h4>Intersected flowlines</h4>
-            <p>Flowlines that are included in the analysis. The styling will indicate if there is positive (left-hand side to right-hand side of the cross-section line) or negative net flow through each of these flowlines.<p>
+            <p>Flowlines that are included in the analysis. The styling will indicate if there is positive (left-hand side to right-hand side of the cross-section line) or negative net flow through each of these flowlines. The total net discharge in m³ per intersected flowline is stored in an attribute.<p>
             <h4>Time series</h4>
-            <p>Table (CSV file) with time series of net flow over each cross-section line. Tip: use the DataPlotly QGIS plugin to visualize these time series.</p>
+            <p>Table (CSV file) with time series of net flow over each cross-section line. The time steps are in seconds since start of the simulation, the values in m³/s. Tip: use the DataPlotly QGIS plugin to visualize these time series.</p>
             """
         )
 
