@@ -3,6 +3,7 @@ from typing import Dict, Union, List, Tuple, Optional, Iterator
 
 import numpy as np
 from osgeo import gdal
+from shapely import GEOSException
 from shapely.geometry import LineString, Point
 from shapely.strtree import STRtree
 from scipy.ndimage import label, generate_binary_structure
@@ -1008,12 +1009,15 @@ class CellPair:
             self,
             pixels: np.ndarray,
             from_pos: Tuple[int, int],
-            to_pos: Tuple[int, int]
+            to_pos: Tuple[int, int],
+            geometry_from_pixels: bool = True,
     ) -> Tuple[float, LineString] | Tuple[None, None]:
         """
         Find obstacle in `pixels` and return its geometry and crest level
+        If `geometry_from_pixels` is True, a detailed geometry will be derived from the DEM.
+        Otherwise, the geometry will be a straight line from from_pos to to_pos
 
-        Returns None if no obstacle is found
+        Returns (None, None) if no obstacle is found
         """
         from_val = pixels[from_pos]
         to_val = pixels[to_pos]
@@ -1059,6 +1063,7 @@ class CellPair:
                 hmin=hmin,
                 from_pos=from_pos,
                 to_pos=to_pos,
+                geometry_from_pixels=geometry_from_pixels,
             )
         return obstacle_crest_level, obstacle_crest_geometry
 
@@ -1068,6 +1073,7 @@ class CellPair:
             hmin: float,
             from_pos: Tuple[float, float],
             to_pos: Tuple[float, float],
+            geometry_from_pixels: bool = True,
     ) -> LineString:
 
         """
@@ -1084,32 +1090,40 @@ class CellPair:
              Starting pixel as (row, col).
          to_pos : (int, int)
              Ending pixel as (row, col), must be connected to from_pos.
+         geometry_from_pixels : bool
+             If `False`, geometry will be a straight line from `from_pos` to `to_pos`
+
         """
+        if geometry_from_pixels:
+            labelled_pixels, _ = label(pixels >= hmin, structure=SEARCH_STRUCTURE)
+            from_pixel_label = int(labelled_pixels[from_pos])
+            to_pixel_label = int(labelled_pixels[to_pos])
+            if from_pixel_label != to_pixel_label:
+                raise ValueError(f"from_pixel and to_pixel are not connected above hmin = {hmin}")
+            masked_pixels = pixels.copy()
+            masked_pixels[labelled_pixels != from_pixel_label] = -np.inf
+            masked_pixels[masked_pixels == -9999] = -np.inf
+            masked_pixels[np.isnan(masked_pixels)] = -np.inf
 
-        labelled_pixels, _ = label(pixels >= hmin, structure=SEARCH_STRUCTURE)
-        from_pixel_label = int(labelled_pixels[from_pos])
-        to_pixel_label = int(labelled_pixels[to_pos])
-        if from_pixel_label != to_pixel_label:
-            raise ValueError(f"from_pixel and to_pixel are not connected above hmin = {hmin}")
-        masked_pixels = pixels
-        masked_pixels[labelled_pixels != from_pixel_label] = -np.inf
-        masked_pixels[masked_pixels == -9999] = -np.inf
-        masked_pixels[np.isnan(masked_pixels)] = -np.inf
-
-        if self.neigh_primary_location == TOP:
-            row_indices = np.arange(masked_pixels.shape[0])
-            col_indices = np.argmax(masked_pixels, axis=1)
-            valid = ~np.all(np.isneginf(masked_pixels), axis=1)
-            row_indices = row_indices[valid]
-            col_indices = col_indices[valid]
-        elif self.neigh_primary_location == RIGHT:
-            row_indices = np.argmax(masked_pixels, axis=0)
-            col_indices = np.arange(masked_pixels.shape[1])
-            valid = ~np.all(np.isneginf(masked_pixels), axis=0)
-            row_indices = row_indices[valid]
-            col_indices = col_indices[valid]
+            if self.neigh_primary_location == RIGHT:
+                # scan left-to-right
+                row_indices = np.arange(masked_pixels.shape[0])
+                col_indices = np.argmax(masked_pixels, axis=1)
+                valid = ~np.all(np.isneginf(masked_pixels), axis=1)
+                row_indices = row_indices[valid]
+                col_indices = col_indices[valid]
+            elif self.neigh_primary_location == TOP:
+                # scan top-to-bottom
+                row_indices = np.argmax(masked_pixels, axis=0)
+                col_indices = np.arange(masked_pixels.shape[1])
+                valid = ~np.all(np.isneginf(masked_pixels), axis=0)
+                row_indices = row_indices[valid]
+                col_indices = col_indices[valid]
+            else:
+                raise ValueError(f"CellPair has invalid neigh_primary_location: {self.neigh_primary_location}")
         else:
-            raise ValueError(f"CellPair has invalid neigh_primary_location: {self.neigh_primary_location}")
+            row_indices = np.array([from_pos[0], to_pos[0]])
+            col_indices = np.array([from_pos[1], to_pos[1]])
 
         # transform to reference cell pixel positions
         pixel_positions_reference_cell = self.transform(
@@ -1124,7 +1138,13 @@ class CellPair:
         x = self.reference_cell.coords[0] + pixel_positions_reference_cell[0] * abs(gt[1]) + abs(gt[1]) / 2
         y = self.reference_cell.coords[3] - (pixel_positions_reference_cell[1] * abs(gt[5]) + abs(gt[5]) / 2)
 
-        line = LineString(np.column_stack((x, y)))
+        coords = np.column_stack((x, y))
+
+        try:
+            line = LineString(coords)
+        except GEOSException:
+            print("Oeps")
+            raise
 
         return line
 
@@ -1330,7 +1350,8 @@ class CellPair:
                         crest_level, crest_geometry = self.crest_from_pixels(
                             pixels=self.pixels,
                             from_pos=lhs_pos_in_cell_pair,
-                            to_pos=rhs_pos_in_cell_pair
+                            to_pos=rhs_pos_in_cell_pair,
+                            geometry_from_pixels=False,
                         )
                         if crest_level:
                             if crest_level > middle_edge.exchange_level + \
@@ -1444,3 +1465,31 @@ def lowest(elements: List[Union[Obstacle, Edge]]):
             min_element_height = getattr(element, attr_name)
             lowest_element = element
     return lowest_element
+
+
+if __name__ == "__main__":
+    dem_ds = gdal.Open('C:/Users/leendert.vanwolfswin/Downloads/dem_ahrtal_clip_10m.tif')
+    gridadmin = GridH5Admin('C:\\Users\\leendert.vanwolfswin\\Downloads\\ahrtal grid clip 10m 320 m.h5')
+    # flowline_ids = list(gridadmin.lines.id)
+    flowline_ids = [2470]
+    leak_detector = LeakDetector(
+        gridadmin=gridadmin,
+        dem=dem_ds,
+        flowline_ids=flowline_ids,
+        min_obstacle_height=5,
+    )
+
+    class MockFeedback:
+        def setProgress(self, value):
+            print(f"Progress: {value}")
+
+        def setProgressText(self, value):
+            print(value)
+
+        def isCanceled(self):
+            return False
+
+        def pushInfo(self, value):
+            print(value)
+
+    leak_detector.run(feedback=MockFeedback())
