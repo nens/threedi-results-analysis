@@ -2,7 +2,6 @@
 from threedi_results_analysis import PLUGIN_DIR
 
 import configparser
-import importlib
 import logging
 import mock
 import threedi_results_analysis
