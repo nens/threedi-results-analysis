@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.8 (unreleased)
+3.26.8 (2026-02-13)
 -------------------
 
 - Remove use of pkg_resources
