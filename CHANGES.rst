@@ -1,11 +1,17 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.7 (unreleased)
+3.26.8 (unreleased)
 -------------------
 
 - Fix structure control plotting for structures with multiple controls (#1159)
 - Remove use of pkg_resources
+
+
+3.26.7 (2026-02-11)
+-------------------
+
+- Fix structure control plotting for structures with multiple controls (#1159)
 
 
 3.26.6 (2026-01-28)
