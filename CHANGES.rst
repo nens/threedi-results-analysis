@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.9 (unreleased)
+3.26.9 (2026-02-18)
 -------------------
 
 - Bump nens-dependency-loader to 1.2.12.
