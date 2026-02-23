@@ -46,7 +46,7 @@ from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr i
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-from typing import Iterable
+from typing import Iterable, Dict
 from typing import List
 
 import logging
@@ -138,7 +138,8 @@ class Graph3DiQgsConnector:
         self.result_sets = []
         self.dissolved_result_sets = []
         self.smooth_result_catchments = []
-        self._result_markers = dict()
+        self._result_markers: Dict[int, List[QgsVertexMarker]] = dict()
+        self._show_markers = True
 
     @property
     def gr(self):
@@ -207,6 +208,17 @@ class Graph3DiQgsConnector:
         self.update_layer_filters()
         self.update_marker_visibility()
 
+    @property
+    def show_markers(self) -> bool:
+        """Sets if markers are shown for target nodes in the current result set(s)"""
+        return self._show_markers
+
+    @show_markers.setter
+    def show_markers(self, value: bool):
+        """Sets if markers are shown for target nodes in the current result set(s)"""
+        self._show_markers = value
+        self.update_marker_visibility()
+
     def average_cell_size(self, result_set_id):
         request = QgsFeatureRequest()
         request.setFilterExpression(f"catchment_id = {result_set_id}")
@@ -241,15 +253,20 @@ class Graph3DiQgsConnector:
 
     def update_marker_visibility(self):
         # remove all markers from scene
-        for marker in self._result_markers.values():
-            self.iface.mapCanvas().scene().removeItem(marker)
+        for markers in self._result_markers.values():
+            for marker in markers:
+                self.iface.mapCanvas().scene().removeItem(marker)
 
         # add markers to scene that are within filter
-        for result_set, marker in self._result_markers.items():
-            if self.filter:
-                if result_set not in self.filter:
-                    continue
-            self.iface.mapCanvas().scene().addItem(marker)
+        if self.show_markers:
+            for result_set, markers in self._result_markers.items():
+                if self.filter:
+                    if result_set not in self.filter:
+                        continue
+                for marker in markers:
+                    self.iface.mapCanvas().scene().addItem(marker)
+
+        self.iface.mapCanvas().refresh()
 
     def new_result_set_id(self):
         if len(self.result_sets) == 0:
@@ -376,8 +393,9 @@ class Graph3DiQgsConnector:
             self.target_node_layer.triggerRepaint()
 
     def clear_markers(self):
-        for marker in self._result_markers.values():
-            self.iface.mapCanvas().scene().removeItem(marker)
+        for markers in self._result_markers.values():
+            for marker in markers:
+                self.iface.mapCanvas().scene().removeItem(marker)
         self._result_markers.clear()
 
     def prepare_result_cell_layer(self):
@@ -389,9 +407,14 @@ class Graph3DiQgsConnector:
             set_read_only(self.result_cell_layer, True)
 
     def update_analyzed_target_cells(self, target_node_ids, result_set):
+        """
+        Add the given `result_set` to the target nodes in `target_node_ids`
+        Show markers (black dot with yellow glow) for target nodes
+        """
         ids_str = ",".join(map(str, target_node_ids))
         request = QgsFeatureRequest()
         request.setFilterExpression(f"id IN ({ids_str})")
+        # idx = index of the field that contains the list of result set ids
         idx = self.target_node_layer.fields().indexFromName(ATTRIBUTE_NAME)
 
         for feat in self.target_node_layer.getFeatures(request):
@@ -409,7 +432,10 @@ class Graph3DiQgsConnector:
             result_marker.setFillColor(Qt.GlobalColor.black)
             result_marker.setPenWidth(3)
             result_marker.setCenter(feat.geometry().asPoint())
-            self._result_markers[result_set] = result_marker
+            if result_set in self._result_markers:
+                self._result_markers[result_set].append(result_marker)
+            else:
+                self._result_markers[result_set] = [result_marker]
 
         self.target_node_layer.triggerRepaint()
         self.update_layer_filters()
@@ -1195,6 +1221,9 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.gq.zoom_to_results()
         self.iface.mapCanvas().refreshAllLayers()
 
+    def checkbox_show_markers_state_changed(self):
+        self.gq.show_markers = self.checkBoxShowMarkers.isChecked()
+
     def spinbox_browse_result_sets_value_changed(self):
         if self.checkBoxBrowseResultSets.isChecked():
             self.gq.filter = [self.spinBoxBrowseResultSets.value()]
@@ -1229,6 +1258,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.pushButtonCatchmentForPolygons.clicked.connect(self.pushbutton_catchment_for_polygons_clicked)
         self.checkBoxBrowseResultSets.stateChanged.connect(self.checkbox_browse_result_sets_state_changed)
         self.checkBoxSmoothing.stateChanged.connect(self.checkbox_smoothing_state_changed)
+        self.checkBoxShowMarkers.stateChanged.connect(self.checkbox_show_markers_state_changed)
         self.spinBoxBrowseResultSets.valueChanged.connect(self.spinbox_browse_result_sets_value_changed)
         self.pushButtonClearResults.clicked.connect(self.pushbutton_clear_results_clicked)
 
