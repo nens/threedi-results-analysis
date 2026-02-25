@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.10 (unreleased)
+3.26.10 (2026-02-25)
 --------------------
 
 - Bugfix: if multiple target nodes are used to create a result set, all of them are managed in self._result_markers. The bug was that only the last one of them was included, and therefore the others were not removed.
