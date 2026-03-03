@@ -1,3 +1,5 @@
+from typing import Optional
+
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 from pathlib import Path
 from qgis.core import Qgis, QgsVectorLayer
@@ -17,7 +19,7 @@ class ThreeDiPluginModelValidator(QObject):
     a grid or result is valid, a signal is emited
     so listeners can handle accordingly.
     """
-    grid_valid = pyqtSignal(ThreeDiGridItem)
+    grid_valid = pyqtSignal(ThreeDiGridItem, list)
     result_valid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
     grid_invalid = pyqtSignal(ThreeDiGridItem)
     result_invalid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
@@ -27,7 +29,7 @@ class ThreeDiPluginModelValidator(QObject):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(str)
-    def validate_grid(self, grid_file: str, result_slug: str = None) -> ThreeDiGridItem:
+    def validate_grid(self, grid_file: str, result_slug: str = None, parents: Optional[list[str]] = None) -> ThreeDiGridItem:
         """
         Validates the grid and returns the new (or already existing) ThreeDiGridItem. Also emits signal.
 
@@ -93,11 +95,11 @@ class ThreeDiPluginModelValidator(QObject):
                         return grid_item
 
         new_grid = ThreeDiGridItem(Path(grid_file), "")
-        self.grid_valid.emit(new_grid)
+        self.grid_valid.emit(new_grid, parents if parents else [])
         return new_grid
 
     @pyqtSlot(str, str)
-    def validate_result_grid(self, results_path: str, grid_path: str):
+    def validate_result_grid(self, results_path: str, grid_path: str, parents: Optional[list[str]] = None):
         """
         Validate the result, but first validate (and add) the grid.
         """
@@ -105,7 +107,7 @@ class ThreeDiPluginModelValidator(QObject):
         # in the model (with same slug)
         result_model_slug = ThreeDiPluginModelValidator.get_result_slug(Path(results_path))
         logger.info(f"Validating {results_path} ({result_model_slug}) and {grid_path}")
-        grid_item = self.validate_grid(grid_path, result_model_slug)
+        grid_item = self.validate_grid(grid_path, result_model_slug, parents)
         if not grid_item:
             messagebar_message(TOOLBOX_MESSAGE_TITLE, "No computational grid for this result could be found, aborting", Qgis.MessageLevel.Critical, 5)
             return

@@ -4,7 +4,7 @@ Rana Results Analysis changelog
 3.26.11 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Add support for placing layers in a custom root
 
 
 3.26.10 (2026-02-25)
