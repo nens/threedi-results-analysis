@@ -314,7 +314,7 @@ class ThreeDiPluginLayerManager(QObject):
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated computational grid geopackage")
 
     @staticmethod
-    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, parents: Optional[list[str]]=None) -> bool:
+    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, parents: Optional[list[str]] = None) -> bool:
         """
         Retrieves (a subset of the) layers from gpk and add to project.
         """

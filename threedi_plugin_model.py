@@ -1,6 +1,5 @@
 from functools import cached_property
 from pathlib import Path
-from typing import Optional
 
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import pyqtSlot
