@@ -322,7 +322,7 @@ class ThreeDiPluginLayerManager(QObject):
         invalid_layers = []
         empty_layers = []
         if parents:
-            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure(parents+[item.text()])
+            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure(parents+[TOOLBOX_QGIS_GROUP_NAME, item.text()])
         else:
             item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
 
