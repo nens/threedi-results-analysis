@@ -390,8 +390,8 @@ class WaterBalanceCalculation(object):
             if self.polygon.contains(QgsPointXY(bound.geometry().asPoint())):
                 # find link connected to boundary
                 request_filter_bound = QgsFeatureRequest().setFilterExpression(
-                    f"calculation_node_id_start == {bound.id()} OR"
-                    f"calculation_node_id_end == {bound.id()}"
+                    f"calculation_node_id_start = {bound['id']} OR "
+                    f"calculation_node_id_end = {bound['id']}"
                 )
                 bound_lines = lines.getFeatures(request_filter_bound)
                 for bound_line in bound_lines:

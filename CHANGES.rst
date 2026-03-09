@@ -4,7 +4,7 @@ Rana Results Analysis changelog
 3.26.11 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Water balance tool does not take 1D boundary conditions into account properly (#1158)
 
 
 3.26.10 (2026-02-25)
