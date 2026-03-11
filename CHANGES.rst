@@ -5,6 +5,7 @@ Rana Results Analysis changelog
 --------------------
 
 - Add support for placing layers in a custom root
+- Water balance tool does not take 1D boundary conditions into account properly (#1158)
 
 
 3.26.10 (2026-02-25)
