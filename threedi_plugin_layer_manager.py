@@ -419,7 +419,7 @@ class ThreeDiPluginLayerManager(QObject):
     def _get_or_create_group(group_name: str):
         root = QgsProject.instance().layerTreeRoot()
         root_group = root.findGroup(TOOLBOX_QGIS_GROUP_NAME)
-        if not root_group or not root_group in root.children():
+        if not root_group or root_group not in root.children():
             root_group = root.insertGroup(0, TOOLBOX_QGIS_GROUP_NAME)
 
         layer_group = root_group.findGroup(group_name)
