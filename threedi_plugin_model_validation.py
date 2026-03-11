@@ -9,7 +9,9 @@ from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 from threedi_results_analysis.utils.utils import listdirs
 import h5py
+from qgis.PyQt.QtWidgets import QMessageBox
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -112,16 +114,15 @@ class ThreeDiPluginModelValidator(QObject):
             messagebar_message(TOOLBOX_MESSAGE_TITLE, "No computational grid for this result could be found, aborting", Qgis.MessageLevel.Critical, 5)
             return
 
-        self._validate_result(results_path, grid_item)
+        self._validate_result(results_path, grid_item, add_to_project=project is not None)
 
-    def _validate_result(self, results_path: str, grid_item: ThreeDiGridItem) -> bool:
+    def _validate_result(self, results_path: str, grid_item: ThreeDiGridItem, add_to_project: bool = False) -> bool:
         logger.info(f"Validating result with grid item {grid_item.text()}")
         """
         Validate the result when added to the selected grid item. Returns True
         on success and emits result_valid or result_invalid.
         """
         def fail(msg):
-            # TODO: add message box!
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.MessageLevel.Warning, 5)
             self.result_invalid.emit(result_item, grid_item)
             return False
@@ -129,6 +130,8 @@ class ThreeDiPluginModelValidator(QObject):
         result_item = ThreeDiResultItem(Path(results_path))
 
         if self.model.contains(Path(results_path), True):
+            if add_to_project:
+                QMessageBox.warning(None, TOOLBOX_MESSAGE_TITLE, 'This result was already loaded. Please check out the "Rana simulation results" group in the Layers panel.')
             return fail("This result was already loaded")
 
         # Check correct file name
