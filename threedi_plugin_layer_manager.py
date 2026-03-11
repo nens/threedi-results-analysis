@@ -1,6 +1,8 @@
 import os
 from collections import OrderedDict
 from pathlib import Path
+from typing import Optional
+
 import re
 import uuid
 from qgis.PyQt.QtCore import Qt
@@ -97,7 +99,8 @@ class ThreeDiPluginLayerManager(QObject):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(ThreeDiGridItem)
-    def load_grid(self, grid_item: ThreeDiGridItem) -> bool:
+    @pyqtSlot(ThreeDiGridItem, str)
+    def load_grid(self, grid_item: ThreeDiGridItem, project: Optional[str] = None) -> bool:
         # generate geopackage if needed and point item path to it
         if grid_item.path.suffix == ".h5":
             path_h5 = grid_item.path
@@ -112,7 +115,7 @@ class ThreeDiPluginLayerManager(QObject):
         if not grid_item.text():
             grid_item.setText(ThreeDiPluginLayerManager._resolve_grid_item_text(grid_item.path))
 
-        if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, grid_item):
+        if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, grid_item, project=project):
             pop_up_critical("Failed adding the layers to the project.")
             self.grid_not_loaded.emit(grid_item)
             return False
@@ -311,15 +314,17 @@ class ThreeDiPluginLayerManager(QObject):
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated computational grid geopackage")
 
     @staticmethod
-    def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
+    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, project: Optional[str] = None) -> bool:
         """
         Retrieves (a subset of the) layers from gpk and add to project.
         """
 
         invalid_layers = []
         empty_layers = []
-
-        item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
+        if project:
+            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure([project] + [TOOLBOX_QGIS_GROUP_NAME, item.text()])
+        else:
+            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
 
         # Use to modify grid name when LayerGroup is renamed
         item.layer_group.nameChanged.connect(lambda node, txt, grid_item=item: ThreeDiPluginLayerManager._layer_node_renamed(node, txt, grid_item))
@@ -397,10 +402,24 @@ class ThreeDiPluginLayerManager(QObject):
         return True
 
     @staticmethod
+    def _get_or_create_group_alternative_structure(parents: list[str]):
+        root = QgsProject.instance().layerTreeRoot()
+        for parent in parents:
+            if not root.findGroup(parent):
+                root = root.addGroup(parent)
+            else:
+                root = root.findGroup(parent)
+        layer_group = root
+        # We'll add a subgroup for the computation grid layers (to distinguish them from result layers)
+        if not layer_group.findGroup(GRID_GROUP_NAME):
+            layer_group.insertGroup(0, GRID_GROUP_NAME)
+        return layer_group
+
+    @staticmethod
     def _get_or_create_group(group_name: str):
         root = QgsProject.instance().layerTreeRoot()
         root_group = root.findGroup(TOOLBOX_QGIS_GROUP_NAME)
-        if not root_group:
+        if not root_group or root_group not in root.children():
             root_group = root.insertGroup(0, TOOLBOX_QGIS_GROUP_NAME)
 
         layer_group = root_group.findGroup(group_name)
@@ -411,7 +430,6 @@ class ThreeDiPluginLayerManager(QObject):
         grid_group = layer_group.findGroup(GRID_GROUP_NAME)
         if not grid_group:
             grid_group = layer_group.insertGroup(0, GRID_GROUP_NAME)
-
         return layer_group
 
     @staticmethod
