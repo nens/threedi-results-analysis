@@ -99,8 +99,8 @@ class ThreeDiPluginLayerManager(QObject):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(ThreeDiGridItem)
-    @pyqtSlot(ThreeDiGridItem, list)
-    def load_grid(self, grid_item: ThreeDiGridItem, parents: Optional[list[str]] = None) -> bool:
+    @pyqtSlot(ThreeDiGridItem, str)
+    def load_grid(self, grid_item: ThreeDiGridItem, project: Optional[str] = None) -> bool:
         # generate geopackage if needed and point item path to it
         if grid_item.path.suffix == ".h5":
             path_h5 = grid_item.path
@@ -115,7 +115,7 @@ class ThreeDiPluginLayerManager(QObject):
         if not grid_item.text():
             grid_item.setText(ThreeDiPluginLayerManager._resolve_grid_item_text(grid_item.path))
 
-        if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, grid_item, parents=parents):
+        if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, grid_item, project=project):
             pop_up_critical("Failed adding the layers to the project.")
             self.grid_not_loaded.emit(grid_item)
             return False
@@ -314,15 +314,15 @@ class ThreeDiPluginLayerManager(QObject):
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated computational grid geopackage")
 
     @staticmethod
-    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, parents: Optional[list[str]] = None) -> bool:
+    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, project: Optional[str] = None) -> bool:
         """
         Retrieves (a subset of the) layers from gpk and add to project.
         """
 
         invalid_layers = []
         empty_layers = []
-        if parents:
-            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure(parents+[TOOLBOX_QGIS_GROUP_NAME, item.text()])
+        if project:
+            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure([project] + [TOOLBOX_QGIS_GROUP_NAME, item.text()])
         else:
             item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
 

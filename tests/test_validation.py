@@ -142,13 +142,13 @@ class TestGridValidator(unittest.TestCase):
         validator = ThreeDiPluginModelValidator(self.model)
         with patch.object(validator, "grid_valid") as grid_valid:
             new_grid_item = validator.validate_grid("c:/test/gridadmin.h5")
-            grid_valid.emit.assert_called_once_with(new_grid_item, [])
+            grid_valid.emit.assert_called_once_with(new_grid_item, '')
 
     def test_grid_is_valid_with_parents(self):
         validator = ThreeDiPluginModelValidator(self.model)
         with patch.object(validator, "grid_valid") as grid_valid:
-            new_grid_item = validator.validate_grid("c:/test/gridadmin.h5", parents=['foo', 'bar'])
-            grid_valid.emit.assert_called_once_with(new_grid_item, ['foo', 'bar'])
+            new_grid_item = validator.validate_grid("c:/test/gridadmin.h5", project='bar')
+            grid_valid.emit.assert_called_once_with(new_grid_item, 'bar')
 
     def test_grid_already_present(self):
         grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.h5"), "text")
@@ -201,7 +201,7 @@ class TestGridValidator(unittest.TestCase):
             grid_slug.side_effect = ["result_slug", "bla"]
             created_grid = validator.validate_grid("c:/test/gridadmin.h5")
             self.assertTrue(created_grid is not right_grid_item)
-            grid_valid.emit.assert_called_once_with(created_grid, [])
+            grid_valid.emit.assert_called_once_with(created_grid, '')
 
     def test_appropriate_grid_found(self):
         wrong_grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.h5"), "text2")

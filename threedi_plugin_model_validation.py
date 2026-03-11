@@ -19,7 +19,7 @@ class ThreeDiPluginModelValidator(QObject):
     a grid or result is valid, a signal is emited
     so listeners can handle accordingly.
     """
-    grid_valid = pyqtSignal(ThreeDiGridItem, list)
+    grid_valid = pyqtSignal(ThreeDiGridItem, str)
     result_valid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
     grid_invalid = pyqtSignal(ThreeDiGridItem)
     result_invalid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
@@ -29,7 +29,7 @@ class ThreeDiPluginModelValidator(QObject):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(str)
-    def validate_grid(self, grid_file: str, result_slug: str = None, parents: Optional[list[str]] = None) -> ThreeDiGridItem:
+    def validate_grid(self, grid_file: str, result_slug: str = None, project: Optional[str] = None) -> ThreeDiGridItem:
         """
         Validates the grid and returns the new (or already existing) ThreeDiGridItem. Also emits signal.
 
@@ -95,11 +95,11 @@ class ThreeDiPluginModelValidator(QObject):
                         return grid_item
 
         new_grid = ThreeDiGridItem(Path(grid_file), "")
-        self.grid_valid.emit(new_grid, parents if parents else [])
+        self.grid_valid.emit(new_grid, project if project else '')
         return new_grid
 
     @pyqtSlot(str, str)
-    def validate_result_grid(self, results_path: str, grid_path: str, parents: Optional[list[str]] = None):
+    def validate_result_grid(self, results_path: str, grid_path: str, project: Optional[str] = None):
         """
         Validate the result, but first validate (and add) the grid.
         """
@@ -107,7 +107,7 @@ class ThreeDiPluginModelValidator(QObject):
         # in the model (with same slug)
         result_model_slug = ThreeDiPluginModelValidator.get_result_slug(Path(results_path))
         logger.info(f"Validating {results_path} ({result_model_slug}) and {grid_path}")
-        grid_item = self.validate_grid(grid_path, result_model_slug, parents)
+        grid_item = self.validate_grid(grid_path, result_model_slug, project)
         if not grid_item:
             messagebar_message(TOOLBOX_MESSAGE_TITLE, "No computational grid for this result could be found, aborting", Qgis.MessageLevel.Critical, 5)
             return
@@ -121,6 +121,7 @@ class ThreeDiPluginModelValidator(QObject):
         on success and emits result_valid or result_invalid.
         """
         def fail(msg):
+            # TODO: add message box!
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.MessageLevel.Warning, 5)
             self.result_invalid.emit(result_item, grid_item)
             return False
