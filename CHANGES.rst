@@ -4,7 +4,8 @@ Rana Results Analysis changelog
 3.26.12 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Fraction: Unit conversion factor for percentages now correctly set (nens/rana#3721)
+- Fraction: Unit conversion factor no longer incorrectly applied on timekeys (#1166)
 
 
 3.26.11 (2026-03-11)

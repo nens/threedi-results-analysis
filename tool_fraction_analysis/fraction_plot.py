@@ -162,7 +162,7 @@ class FractionPlot(pg.PlotWidget):
                     processed_substance_unit = matches[0][0].strip()
                     volume_label = "Load"
             elif substance_unit.strip() == "%":
-                substance_unit_conversion = 1.0
+                substance_unit_conversion = 0.01
                 processed_substance_unit = "m<sup>3</sup>"
                 volume_label = "Volume"
             else:  # unknown, take original unit as-is and append x m3

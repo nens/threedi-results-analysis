@@ -146,8 +146,8 @@ class FractionModel(QStandardItemModel):
             ts_table = self.timeseries_table(substance, feature_id, time_units=time_units)
 
             if volume:
-                # Some conversion for convenient volume units
-                ts_table = ts_table * unit_conversion
+                # Some conversion for convenient volume units (don't convert the timekeys)
+                ts_table[:, 1] *= unit_conversion
                 # multiply with nodes' volume when volume_mode is selected
                 ts_table[:, 1] = np.multiply(ts_table[:, 1], volume_series[:, 1])
 
