@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.12 (unreleased)
+3.26.12 (2026-03-31)
 --------------------
 
 - Fraction: Unit conversion factor for percentages now correctly set (nens/rana#3721)
