@@ -13,7 +13,8 @@ class SideViewGraphGenerator():
     def __init__(self, gridadmin_file: Path):
         # Preload some big data structs
         self.ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
-        self.lines_1d2d_data = self.ga.lines.subset("1D2D").only("dpumax", "line").data
+        # All 1D2D flowlines except groundwater (57, 58)
+        self.lines_1d2d_data = self.ga.lines.filter(kcu__in=[51, 52, 53, 54, 55, 56]).only("dpumax", "line").data
         self.lines_1d2d_data = {k: v.tolist() for (k, v) in self.lines_1d2d_data.items()}
 
     def retrieve_profile_info_from_flowline(self, flowline_id: int) -> tuple[float, float, float, float, float, int]:
