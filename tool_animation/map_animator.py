@@ -25,6 +25,8 @@ from qgis.PyQt.QtXml import QDomDocument
 from qgis.PyQt.QtXml import QDomElement
 from threedi_results_analysis import PLUGIN_DIR
 from threedi_results_analysis.datasource.result_constants import AGGREGATION_OPTIONS
+from threedi_results_analysis.datasource.result_constants import NODE_DEBUG_VARIABLES
+from threedi_results_analysis.datasource.result_constants import LINE_DEBUG_VARIABLES
 from threedi_results_analysis.datasource.result_constants import DISCHARGE
 from threedi_results_analysis.datasource.result_constants import H_TYPES
 from threedi_results_analysis.datasource.result_constants import NEGATIVE_POSSIBLE
@@ -226,6 +228,10 @@ def threedi_result_legend_class_bounds(
                     .filter(node_type__ne=6)
                     .dmax
                 )
+    elif variable in NODE_DEBUG_VARIABLES:
+        nodes_or_lines = gr.nodes
+    elif variable in LINE_DEBUG_VARIABLES:
+        nodes_or_lines = gr.nodes.lines
     else:
         raise ValueError(f"unknown variable: {variable}")
 
@@ -686,9 +692,10 @@ class MapAnimator(QGroupBox):
                 available_subgrid_vars.remove("q_pump")
             agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
             available_wq_vars = threedi_result.available_water_quality_vars[:]  # a copy
+            debug_vars = threedi_result.available_debug_vars[:]
 
             parameter_config = generate_parameter_config(
-                available_subgrid_vars, agg_vars=agg_vars, wq_vars=available_wq_vars, sca_vars=None
+                available_subgrid_vars, agg_vars=agg_vars, wq_vars=available_wq_vars, sca_vars=None, debug_vars=debug_vars
             )
 
             def _intersection(a: List, b: List):

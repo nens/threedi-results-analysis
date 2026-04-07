@@ -6,6 +6,8 @@ from threedi_results_analysis.datasource.result_constants import (
 )
 from threedi_results_analysis.datasource.result_constants import H_TYPES
 from threedi_results_analysis.datasource.result_constants import Q_TYPES
+from threedi_results_analysis.datasource.result_constants import NODE_DEBUG_VARIABLES
+from threedi_results_analysis.datasource.result_constants import LINE_DEBUG_VARIABLES
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
 from typing import List
 from typing import Sequence
@@ -106,12 +108,13 @@ def is_substance_variable(variable: str) -> bool:
     return variable.startswith("substance")
 
 
-def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars, sca_vars=None):
+def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars, sca_vars, debug_vars):
     """Dynamically create the parameter config
 
     :param subgrid_map_vars: available vars from subgrid_map.nc
     :param agg_vars: available vars from aggregation netCDF
     :param sca_vars: available vars from structure control actions netCDF (optional)
+    :param debug_vars: available vars from debug result netCDF (optional)
     :returns: dict with two lists of parameters for lines ('q') and nodes ('h'). Structure:
     {'q': [{"name": str, "unit": str, "parameters": (str, [str]) }], 'h': [<same structure as q>]}.
     """
@@ -156,6 +159,17 @@ def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars, sca_vars=None
         }
         # always node variables
         config["h"].append(d)
+
+    for debugvar in debug_vars:
+        d = {
+            "name": debugvar.capitalize(),
+            "unit": "",
+            "parameters": debugvar,
+        }
+        if debugvar in LINE_DEBUG_VARIABLES:
+            config["q"].append(d)
+        elif debugvar in NODE_DEBUG_VARIABLES:
+            config["h"].append(d)
 
     if sca_vars:
         for scavar in sca_vars:

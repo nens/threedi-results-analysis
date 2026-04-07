@@ -846,11 +846,12 @@ class GraphDockWidget(QDockWidget):
             available_agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
             available_wq_vars = threedi_result.available_water_quality_vars[:]  # a copy
             available_sca_vars = threedi_result.available_structure_control_actions_vars[:]  # a copy
+            available_debug_vars = threedi_result.available_debug_vars[:]
             if not available_agg_vars:
                 messagebar_message("Warning", "No aggregation netCDF was found.", level=1, duration=5)
 
             parameter_config = generate_parameter_config(
-                available_subgrid_vars, agg_vars=available_agg_vars, wq_vars=available_wq_vars, sca_vars=available_sca_vars
+                available_subgrid_vars, agg_vars=available_agg_vars, wq_vars=available_wq_vars, sca_vars=available_sca_vars, debug_vars=available_debug_vars
             )
 
             def _union(a: List, b: List):

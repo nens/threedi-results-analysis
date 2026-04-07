@@ -132,10 +132,10 @@ class LocationTimeseriesModel(BaseModel):
             if (parameters not in threedi_result.available_subgrid_map_vars and
                     parameters not in threedi_result.available_aggregation_vars and
                     parameters not in [v["parameters"] for v in threedi_result.available_water_quality_vars] and
-                    parameters not in [v["parameters"] for v in threedi_result.available_structure_control_actions_vars]):
+                    parameters not in [v["parameters"] for v in threedi_result.available_structure_control_actions_vars] and
+                    parameters not in threedi_result.available_debug_vars):
                 logger.warning(f"Parameter {parameters} not available in result {self.result.value.text()}")
                 return EMPTY_TIMESERIES
-
             ga = threedi_result.get_gridadmin(parameters)
             if ga.has_pumpstations:
                 # In some gridadmin types pumps do not have a Meta attribute... In
@@ -143,7 +143,7 @@ class LocationTimeseriesModel(BaseModel):
                 # the timeserie should be empty.
                 try:
                     pump_fields = set(list(ga.pumps.Meta.composite_fields.keys()))
-                except AttributeError:
+                except (AttributeError, NotImplementedError):
                     pump_fields = {}
             else:
                 pump_fields = {}
