@@ -480,7 +480,7 @@ class GraphWidget(QWidget):
             if param in active:
                 active_idx = idx
 
-        self.parameter_combo_box.setCurrentIndex(active_idx)
+        self.parameter_combo_box.setCurrentIndex(active_idx or 0)
 
     def on_close(self):
         """
