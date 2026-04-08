@@ -231,7 +231,7 @@ def threedi_result_legend_class_bounds(
     elif variable in NODE_DEBUG_VARIABLES:
         nodes_or_lines = gr.nodes
     elif variable in LINE_DEBUG_VARIABLES:
-        nodes_or_lines = gr.nodes.lines
+        nodes_or_lines = gr.lines
     else:
         raise ValueError(f"unknown variable: {variable}")
 
