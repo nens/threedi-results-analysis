@@ -278,7 +278,6 @@ class ThreediResult():
             filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
                 indexes=slice(None)
             )
-
             if node_id:
                 filtered_result = filtered_result.filter(id=node_id)
             values = self.get_timeseries_values(filtered_result, nc_variable)
@@ -438,7 +437,6 @@ class ThreediResult():
             )
             ga = self.get_gridadmin(variable)
             model_instance = ga.get_model_instance_by_field_name(variable)
-
             unfiltered_timeseries = model_instance.timeseries(indexes=slice(None))
             values = self.get_timeseries_values(unfiltered_timeseries, variable)
             logger.debug(
