@@ -5,8 +5,6 @@ from threedi_results_analysis.datasource.result_constants import (
 from threedi_results_analysis.datasource.result_constants import (
     LAYER_OBJECT_TYPE_MAPPING,
 )
-from threedi_results_analysis.datasource.result_constants import NODE_DEBUG_VARIABLES
-from threedi_results_analysis.datasource.result_constants import LINE_DEBUG_VARIABLES
 from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
 from threedigrid.admin.constants import NO_DATA_VALUE
 from threedigrid.admin.gridadmin import GridH5Admin
@@ -216,16 +214,9 @@ class ThreediResult():
         #  often queried and cause performance issues.
         if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.result_admin.nodes.timestamps
-        elif parameter in [v["parameters"] for v in self.available_water_quality_vars]:
+        elif (parameter in [v["parameters"] for v in self.available_water_quality_vars]) or (parameter in self.available_debug_vars):
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).timestamps
-        elif parameter in self.available_debug_vars:
-            ga = self.get_gridadmin(variable=parameter)
-            # get_model_instance_by_field_name is not working for GridH5DebugResultAdmin (https://github.com/nens/threedigrid/issues/267)
-            if parameter in LINE_DEBUG_VARIABLES:
-                return ga.lines.timestamps
-            elif parameter in NODE_DEBUG_VARIABLES:
-                return ga.nodes.timestamps
         else:
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).get_timestamps(
@@ -284,20 +275,12 @@ class ThreediResult():
             # GridH5StructureControl has a different interface compared to the other GridAdmin structures
             return self.get_structure_control_action_timeseries(ga, nc_variable, node_id, selected_object_type, fill_value)
         else:
-            if isinstance(ga, GridH5DebugResultAdmin):
-                # get_model_instance_by_field_name is not working for GridH5DebugResultAdmin (https://github.com/nens/threedigrid/issues/267)
-                if nc_variable in LINE_DEBUG_VARIABLES:
-                    filtered_result = ga.lines.timeseries(indexes=slice(None))
-                elif nc_variable in NODE_DEBUG_VARIABLES:
-                    filtered_result = ga.nodes.timeseries(indexes=slice(None))
-            else:
-                filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
-                    indexes=slice(None)
-                )
+            filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
+                indexes=slice(None)
+            )
 
             if node_id:
                 filtered_result = filtered_result.filter(id=node_id)
-
             values = self.get_timeseries_values(filtered_result, nc_variable)
             if fill_value is not None:
                 values[values == NO_DATA_VALUE] = fill_value
@@ -454,17 +437,9 @@ class ThreediResult():
                 "Variable %s not yet in cache, fetching from result file", variable
             )
             ga = self.get_gridadmin(variable)
-            if isinstance(ga, GridH5DebugResultAdmin):
-                # get_model_instance_by_field_name is not working for GridH5DebugResultAdmin (https://github.com/nens/threedigrid/issues/267)
-                if variable in LINE_DEBUG_VARIABLES:
-                    model_instance = ga.lines
-                elif variable in NODE_DEBUG_VARIABLES:
-                    model_instance = ga.nodes
-            else:
-                model_instance = ga.get_model_instance_by_field_name(variable)
+            model_instance = ga.get_model_instance_by_field_name(variable)
 
             unfiltered_timeseries = model_instance.timeseries(indexes=slice(None))
-
             values = self.get_timeseries_values(unfiltered_timeseries, variable)
             logger.debug(
                 "Caching additional {:.3f} MB of data".format(
