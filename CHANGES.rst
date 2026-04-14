@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.13 (unreleased)
+3.26.13 (2026-04-14)
 --------------------
 
 - Added support for debug convergence diagnostics files (debug_results_3di.nc) (nens/rana#3858)
