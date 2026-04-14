@@ -162,13 +162,14 @@ def generate_parameter_config(subgrid_map_vars, agg_vars, wq_vars, sca_vars, deb
 
     for debugvar in debug_vars:
         d = {
-            "name": debugvar.capitalize(),
             "unit": "",
             "parameters": debugvar,
         }
         if debugvar in LINE_DEBUG_VARIABLES:
+            d["name"] = LINE_DEBUG_VARIABLES[debugvar]
             config["q"].append(d)
         elif debugvar in NODE_DEBUG_VARIABLES:
+            d["name"] = NODE_DEBUG_VARIABLES[debugvar]
             config["h"].append(d)
 
     if sca_vars:
