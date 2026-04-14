@@ -153,7 +153,7 @@
           <string>Load NetCDF</string>
          </property>
          <property name="filter">
-          <string>NetCDF (*.nc)</string>
+          <string>HCC results (results_3di.nc)</string>
          </property>
         </widget>
        </item>

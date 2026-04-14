@@ -10,6 +10,7 @@ from threedigrid.admin.constants import NO_DATA_VALUE
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from threedigrid.admin.gridresultadmin import GridH5DebugResultAdmin
 from threedigrid.admin.gridresultadmin import GridH5StructureControl
 from threedigrid.admin.gridresultadmin import GridH5WaterQualityResultAdmin
 from threedigrid.admin.structure_controls.models import StructureControlSourceTypes
@@ -82,6 +83,20 @@ class ThreediResult():
         return list(available_known_vars)
 
     @cached_property
+    def available_debug_vars(self):
+        """Return a list of available variables in the 'debug_results_3di.nc"""
+        gb = self.debug_result_admin
+        if not gb:
+            return []
+
+        available_debug_variables = set(
+            list(gb.lines.Meta.composite_fields.keys())
+            + list(gb.nodes.Meta.composite_fields.keys())
+        )
+
+        return list(available_debug_variables)
+
+    @cached_property
     def available_aggregation_vars(self):
         """Return a list of available variables in the 'aggregate_results_3di.nc"""
         ga = self.aggregate_result_admin
@@ -128,7 +143,7 @@ class ThreediResult():
     @property
     def available_vars(self):
         """Return a list of all available variables"""
-        return self.available_subgrid_map_vars + self.available_aggregation_vars + self.available_water_quality_vars + self.available_structure_control_actions_vars
+        return self.available_subgrid_map_vars + self.available_aggregation_vars + self.available_water_quality_vars + self.available_structure_control_actions_vars + self.available_debug_vars
 
     @property
     def available_structure_control_actions_vars(self):
@@ -199,7 +214,7 @@ class ThreediResult():
         #  often queried and cause performance issues.
         if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.result_admin.nodes.timestamps
-        elif parameter in [v["parameters"] for v in self.available_water_quality_vars]:
+        elif (parameter in [v["parameters"] for v in self.available_water_quality_vars]) or (parameter in self.available_debug_vars):
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).timestamps
         else:
@@ -226,6 +241,8 @@ class ThreediResult():
             return self.result_admin
         elif variable in self.available_aggregation_vars:
             return self.aggregate_result_admin
+        elif variable in self.available_debug_vars:
+            return self.debug_result_admin
         elif variable in [v["parameters"] for v in self.available_water_quality_vars]:
             return self.water_quality_result_admin
         elif variable in [v["parameters"] for v in self.available_structure_control_actions_vars]:
@@ -465,6 +482,20 @@ class ThreediResult():
         return GridH5AggregateResultAdmin(file_like_object_h5, file_like_object_nc)
 
     @cached_property
+    def debug_result_admin(self):
+        try:
+            debug_path = find_debug_netcdf(self.file_path)
+        except FileNotFoundError:
+            logger.info("Debug result not found, ignoring")
+            return None
+        # Note: passing a file-like object due to an issue in threedigrid
+        # https://github.com/nens/threedigrid/issues/183
+        file_like_object_h5 = open(self.h5_path, 'rb')
+        file_like_object_h5.startswith = lambda x: False
+        file_like_object_nc = open(debug_path, 'rb')
+        return GridH5DebugResultAdmin(file_like_object_h5, file_like_object_nc)
+
+    @cached_property
     def water_quality_result_admin(self):
         try:
             # Note: both of these might raise the FileNotFoundError
@@ -532,17 +563,6 @@ def find_aggregation_netcdf(netcdf_file_path):
 
 
 def find_structure_control_actions_netcdf(netcdf_file_path):
-    """An ad-hoc way to find the structure control actions netcdf file
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        the structure control actions netcdf path
-
-    Raises:
-        FileNotFoundError if nothing is found
-    """
     pattern = "structure_control_actions_3di.nc"
     result_dir = os.path.dirname(netcdf_file_path)
     sca_result_files = glob.glob(os.path.join(result_dir, pattern))
@@ -553,18 +573,18 @@ def find_structure_control_actions_netcdf(netcdf_file_path):
     )
 
 
+def find_debug_netcdf(netcdf_file_path):
+    pattern = "debug_results_3di.nc"
+    result_dir = os.path.dirname(netcdf_file_path)
+    debug_result_files = glob.glob(os.path.join(result_dir, pattern))
+    if debug_result_files:
+        return debug_result_files[0]
+    raise FileNotFoundError(
+        "'debug_results_3di.nc' file not found relative to %s" % result_dir
+    )
+
+
 def find_water_quality_netcdf(netcdf_file_path):
-    """An ad-hoc way to find the water quality netcdf file
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        the water quality netcdf path
-
-    Raises:
-        FileNotFoundError if nothing is found
-    """
     pattern = "water_quality_results_3di.nc"
     result_dir = os.path.dirname(netcdf_file_path)
     water_quality_result_files = glob.glob(os.path.join(result_dir, pattern))

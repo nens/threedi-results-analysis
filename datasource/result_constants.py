@@ -136,6 +136,18 @@ layer_information = [
 # TODO: QH is also defined above.
 LAYER_OBJECT_TYPE_MAPPING = dict([(a[0], a[1]) for a in layer_information])
 
+
+# Debug variables and user-friendly description
+NODE_DEBUG_VARIABLES = {
+    "epss1": "convergence_residual",
+    "epss1_max": "convergence_residual_max"
+}
+
+LINE_DEBUG_VARIABLES = {
+    "cfl": "cfl_number",
+    "cfl_max": "cfl_number_max"
+}
+
 """
     Maps action type to affected structure.
     This can be used when no control action is present for an object.
