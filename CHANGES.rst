@@ -4,7 +4,8 @@ Rana Results Analysis changelog
 3.26.13 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Added support for debug convergence diagnostics files (debug_results_3di.nc) (nens/rana#3858)
+- Bumped N&S dependency loader.
 
 
 3.26.12 (2026-03-31)
