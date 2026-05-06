@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.14 (unreleased)
+3.26.14 (2026-05-06)
 --------------------
 
 - Increased size toolbar icons (#3288)
