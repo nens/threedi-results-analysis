@@ -1054,13 +1054,10 @@ class GraphDockWidget(QDockWidget):
             graph_widget.add_objects(result.mLayer, [result.mFeature])
             layers_added.add(layer_id)
 
-        from qgis.core import QgsMessageLog
-        QgsMessageLog.logMessage("------------")
         if layers_added:
             tab_index = self.graphTabWidget.indexOf(graph_widget)
             self.graphTabWidget.setCurrentIndex(tab_index)
-            
-            QgsMessageLog.logMessage("EMITTT")
+
             graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
 
