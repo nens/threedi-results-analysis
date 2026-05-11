@@ -5,6 +5,7 @@ Rana Results Analysis changelog
 --------------------
 
 - Graph: Fixed missing autoscale (#4126)
+- Sideview: properly deal with pipes containing exchange level. (#4133)
 
 
 3.26.14 (2026-05-06)

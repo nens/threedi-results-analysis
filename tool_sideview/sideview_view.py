@@ -1,4 +1,5 @@
 from functools import reduce
+import math
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
@@ -326,9 +327,20 @@ class SideViewPlotWidget(pg.PlotWidget):
                 node_level_2, node_height_2 = generator.retrieve_profile_info_from_node(end_node_id)
 
                 # Only draw exchange when nodes have heights
-                if (node_height_1 > 0.0 and node_height_2 > 0.0):
-                    exchange_line.append((begin_dist, node_level_1 + node_height_1))
-                    exchange_line.append((end_dist, node_level_2 + node_height_2))
+                if (node_height_1 >= 0.0 and node_height_2 >= 0.0):
+                    # Note that in some "gutter" like pipes (where the 1D2D exchange level is in the pipe,
+                    # we need to alter the visualisation and let the exchange line coincide with the upper line of the pipe)
+                    if (ltype == LineType.PIPE) and (((node_level_1 + node_height_1) < (begin_level + begin_height)) or ((node_level_2 + node_height_2) < (end_level + end_height))):
+                        exchange_line.append((begin_dist, begin_level + begin_height))
+                        exchange_line.append((end_dist, end_level + end_height))
+                    else:
+                        exchange_line.append((begin_dist, node_level_1 + node_height_1))
+                        exchange_line.append((end_dist, node_level_2 + node_height_2))
+
+                if math.isnan(node_height_1):
+                    node_height_1 = np.float64(0.0)
+                if math.isnan(node_height_2):
+                    node_height_2 = np.float64(0.0)
 
                 # store node information for water level line
                 if first_node:
@@ -606,7 +618,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             timestamp_nr = bisect_left(parameter_timestamps, current_seconds)
             timestamp_nr = min(timestamp_nr, parameter_timestamps.size - 1)
 
-            logger.info(f"Drawing for result {result.id} for nr {timestamp_nr}")
+            # logger.info(f"Drawing for result {result.id} for nr {timestamp_nr}")
 
             water_level_line = []
             water_nodes = []

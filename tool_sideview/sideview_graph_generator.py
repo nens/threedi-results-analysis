@@ -93,7 +93,7 @@ class SideViewGraphGenerator():
 
             height = np.float64(0.0)
             if math.isnan(upper_level):
-                height = np.float64(0.0)
+                height = upper_level
             else:
                 # TODO: This does not always seem to be the case for 2D nodes (node type = [1, 2, 5, 6])
                 if (node.node_type[0] not in [1, 2, 5, 6]):
@@ -161,4 +161,4 @@ class SideViewGraphGenerator():
         if dpumax_list:
             return np.min(dpumax_list).item()
         else:
-            return math.nan
+            return np.float64(np.nan)
