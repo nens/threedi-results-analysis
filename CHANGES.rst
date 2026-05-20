@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.15 (unreleased)
+3.26.15 (2026-05-20)
 --------------------
 
 - Graph: Fixed missing autoscale (#4126)
