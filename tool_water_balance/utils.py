@@ -41,8 +41,12 @@ class WrappedResult:
         return self._get_layer_by_name('node')
 
     @property
+    def pump_lines(self):
+        return self._get_layer_by_name('pump_linestring')
+
+    @property
     def pumps(self):
-        return None  # TODO
+        return self._get_layer_by_name('pump')
 
     @property
     def text(self):

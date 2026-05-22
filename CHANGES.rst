@@ -4,7 +4,7 @@ Rana Results Analysis changelog
 3.26.16 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Water Balance: fix for incorporating pumps in water balance (#4258)
 
 
 3.26.15 (2026-05-20)
