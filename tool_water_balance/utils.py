@@ -29,6 +29,8 @@ class WrappedResult:
         self.result = result
 
     def _get_layer_by_name(self, layer_name):
+        if layer_name not in self.result.parent().layer_ids:
+            return None
         layer_id = self.result.parent().layer_ids[layer_name]
         return QgsProject.instance().mapLayer(layer_id)
 
@@ -41,8 +43,12 @@ class WrappedResult:
         return self._get_layer_by_name('node')
 
     @property
+    def pump_lines(self):
+        return self._get_layer_by_name('pump_linestring')
+
+    @property
     def pumps(self):
-        return None  # TODO
+        return self._get_layer_by_name('pump')
 
     @property
     def text(self):

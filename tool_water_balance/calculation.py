@@ -3,6 +3,8 @@ from copy import deepcopy
 import logging
 
 import numpy as np
+from qgis.core import NULL
+from qgis.core import Qgis
 import numpy.ma as ma
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsFeatureRequest
@@ -66,8 +68,6 @@ class WaterBalanceCalculation(object):
         self.polygon = polygon
         self.mapcrs = mapcrs
 
-        logger.info("polygon of wb area: %s", self.polygon.asWkt())
-
         ga = self.wrapped_result.threedi_result.gridadmin
 
         # total nr of x-dir (horizontal in topview) 2d lines
@@ -112,6 +112,7 @@ class WaterBalanceCalculation(object):
                 range(y_grndwtr_range_min, y_grndwtr_range_max + 1)
             )
 
+        # Note that pump_selection contains both point and line pumps
         line_selection, pump_selection = self._select_lines_and_pumps()
         point_selection = self._select_points()
 
@@ -198,6 +199,7 @@ class WaterBalanceCalculation(object):
 
         lines = self.wrapped_result.lines
         points = self.wrapped_result.points
+        pump_lines = self.wrapped_result.pump_lines
         pumps = self.wrapped_result.pumps
 
         # all links in and out
@@ -406,6 +408,40 @@ class WaterBalanceCalculation(object):
                         else:  # 2d
                             line_selection["2d_bound_out"].append(bound_line)
 
+        # pump_lines
+        # use bounding box and spatial index to prefilter pumps
+        if pump_lines is None:
+            f_pump_lines = []
+        else:
+            request_filter = QgsFeatureRequest().setFilterRect(
+                self.polygon.get().boundingBox()
+            )
+            f_pump_lines = pump_lines.getFeatures(request_filter)
+
+        for pump_line in f_pump_lines:
+            # test if lines are crossing boundary of polygon
+            pump_geometry = pump_line.geometry()
+            if pump_geometry.intersects(self.polygon):
+                # For some reason, the pump_linestring layer is stored as an LineStringZ.
+                pump_geometry.get().dropZValue()
+                linestring = pump_geometry.asPolyline()
+                # check if flow is in or out by testing if startpoint
+                # is inside polygon --> out
+                startpoint = QgsPointXY(linestring[0])
+                endpoint = QgsPointXY(linestring[-1])
+                outgoing = self.polygon.contains(startpoint)
+                # check if flow is in or out by testing if endpoint
+                # is inside polygon --> in
+                incoming = self.polygon.contains(endpoint)
+
+                if incoming and outgoing:
+                    # skip, not leaving or entering the area
+                    pass
+                elif outgoing:
+                    pump_selection["out"].append(pump_line)
+                elif incoming:
+                    pump_selection["in"].append(pump_line)
+
         # pumps
         # use bounding box and spatial index to prefilter pumps
         if pumps is None:
@@ -417,27 +453,13 @@ class WaterBalanceCalculation(object):
             f_pumps = pumps.getFeatures(request_filter)
 
         for pump in f_pumps:
-            # test if lines are crossing boundary of polygon
+            # test if points are in polygon
             pump_geometry = pump.geometry()
-            if pump_geometry.intersects(self.polygon):
-                pump_end_node_id = pump["node_idx2"]
-                linestring = pump_geometry.asPolyline()
-                # check if flow is in or out by testing if startpoint
-                # is inside polygon --> out
-                startpoint = QgsPointXY(linestring[0])
-                endpoint = QgsPointXY(linestring[-1])
-                outgoing = self.polygon.contains(startpoint)
-                # check if flow is in or out by testing if endpoint
-                # is inside polygon --> in
-                incoming = self.polygon.contains(endpoint) if not pump_end_node_id == NO_ENDPOINT_ID else False
-
-                if incoming and outgoing:
-                    # skip
-                    pass
-                elif outgoing:
+            if self.polygon.contains(QgsPointXY(pump_geometry.asPoint())):
+                # Check whether this is a 0D pump, 1D is already covered in pump_lines
+                if (pump["calculation_node_id_end"] == NULL):
+                    # Pump is always out
                     pump_selection["out"].append(pump)
-                elif incoming:
-                    pump_selection["in"].append(pump)
 
         return line_selection, pump_selection
 
@@ -786,7 +808,7 @@ class WaterBalanceCalculation(object):
 
         if np_pump.size > 0:
             # pumps
-            pump_pref = 0
+            pump_prev = 0
             for ts_idx, t in enumerate(times):
                 # (2) inflow and outflow through pumps
                 pump_flow = (
@@ -796,8 +818,8 @@ class WaterBalanceCalculation(object):
                     * np_pump["dir"]
                 )
 
-                flow_dt = pump_flow - pump_pref
-                pump_pref = pump_flow
+                flow_dt = pump_flow - pump_prev
+                pump_prev = pump_flow
 
                 in_sum = flow_dt.clip(min=0)
                 out_sum = flow_dt.clip(max=0)
@@ -918,19 +940,24 @@ class WaterBalanceCalculation(object):
             self.wrapped_result.lines.crs(), self.mapcrs, QgsProject.instance(),
         )
         qgs_lines = defaultdict(list)
+        qgs_points = defaultdict(list)
         for c, fl in line_selection.items():
             for f in fl:
                 geom = f.geometry()
                 geom.transform(transform)
                 geom = geom.asPolyline()
                 qgs_lines[c.rsplit('_in')[0].rsplit('_out')[0]].append(geom)
-        qgs_points = defaultdict(list)
+
         for c, fl in pump_selection.items():
+            # Can be both point and line
             for f in fl:
                 geom = f.geometry()
                 geom.transform(transform)
-                geom = geom.asPoint()
-                qgs_points["pumps_hoover"].append(geom)
+                if geom.type() is Qgis.GeometryType.Point:
+                    qgs_points["pumps_hoover"].append(geom.asPoint())
+                else:
+                    geom.get().dropZValue()
+                    qgs_lines["pumps_hoover"].append(geom.asPolyline())
         for c, fl in point_selection.items():
             for f in fl:
                 geom = f.geometry()

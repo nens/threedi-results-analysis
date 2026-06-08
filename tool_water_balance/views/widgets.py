@@ -91,6 +91,7 @@ SERIES_NAME_TO_NODE_TYPES = {
     "lateral flow to 1D": ["1d"],
     "lateral flow to 2D": ["2d"],
     "leakage": ["2d"],
+    "pumps": ["pumps_hoover"],
     "interception": ["2d"],
     "constant infiltration": ["2d"],
     "external (rain and laterals)": ["1d", "2d"],
