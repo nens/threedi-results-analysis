@@ -4,7 +4,7 @@ Rana Results Analysis changelog
 3.26.16 (unreleased)
 --------------------
 
-- Add progress bar colors: blue while running, green on completion (nens/rana#294)
+- Add progress bar colors: blue while running, green on completion (nens/rana-qgis-plugin#294)
 
 
 3.26.15 (2026-05-20)
