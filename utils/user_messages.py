@@ -5,7 +5,6 @@ from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.PyQt.QtWidgets import QProgressBar
 from qgis.utils import iface
 from threedi_mi_utils.ui import ColoredProgressBar
 
