@@ -14,8 +14,7 @@ ENV PYTHONPATH=/usr/share/qgis/python/:/usr/share/qgis/python/plugins:/usr/lib/p
  
 # Install the test dependencies in a folder in python path
 # Retrieve constraints from dependency loader
-# TODO: change back to main!
-ADD https://raw.githubusercontent.com/nens/nens-dependency-loader/refs/heads/bump_deps/dependencies.py /root/dependencies.py
+ADD https://raw.githubusercontent.com/nens/nens-dependency-loader/refs/heads/main/dependencies.py /root/dependencies.py
 
 RUN python3 /root/dependencies.py
 
