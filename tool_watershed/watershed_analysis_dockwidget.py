@@ -43,7 +43,7 @@ from threedi_results_analysis.utils.qprojects import set_read_only
 from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import (
     threedigrid_to_ogr,
 )
-from threedi_results_analysis.utils.user_messages import ColoredProgressBar
+from threedi_mi_utils.ui import ColoredProgressBar
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
