@@ -146,3 +146,7 @@ class TestResult(unittest.TestCase):
     def test_parent_should_be_provided(self):
         item = ThreeDiResultItem(self.result_path, "text")
         self.assertFalse(self.model.add_result(item, None))
+
+    def test_result_item_has_waterdepth_layer_id(self):
+        item = ThreeDiResultItem(self.result_path)
+        self.assertIsNone(item.waterdepth_layer_id)

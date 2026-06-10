@@ -94,6 +94,9 @@ class ThreeDiResultItem(ThreeDiModelItem):
 
         self._timedelta = None
 
+        # Layer ID of the optional max_waterdepth.tif raster layer
+        self.waterdepth_layer_id = None
+
     @cached_property
     def threedi_result(self):
         # ThreediResult is a wrapper around a theedigrid's
