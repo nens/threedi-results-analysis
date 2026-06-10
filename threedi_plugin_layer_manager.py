@@ -231,7 +231,8 @@ class ThreeDiPluginLayerManager(QObject):
             logger.warning("Cannot load waterdepth: grid has no layer group")
             return
 
-        raster_layer = QgsRasterLayer(str(tif_path), tif_path.stem)
+        sim_name = result_item.text() or tif_path.parent.stem
+        raster_layer = QgsRasterLayer(str(tif_path), f"max wd {sim_name}")
         if not raster_layer.isValid():
             logger.warning(f"Waterdepth raster layer is not valid: {tif_path}")
             return
