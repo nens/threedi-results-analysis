@@ -43,6 +43,7 @@ from threedi_results_analysis.utils.qprojects import set_read_only
 from threedi_results_analysis.utils.threedi_result_aggregation.threedigrid_ogr import (
     threedigrid_to_ogr,
 )
+from threedi_mi_utils.ui import ColoredProgressBar
 from threedi_schema import errors
 from threedi_schema import ThreediDatabase
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
@@ -749,7 +750,7 @@ class Graph3DiQgsConnector:
 
     def upstream_downstream_analysis(self, target_node_ids: Iterable, upstream: bool, downstream: bool, smoothing: bool):
         progress_message_bar = self.iface.messageBar().createMessage("Watershed analysis is being performed...")
-        progress = QtWidgets.QProgressBar()
+        progress = ColoredProgressBar()
         current_progress = 0
         max_progress = 2
         if upstream:

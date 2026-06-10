@@ -5,8 +5,8 @@ from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.PyQt.QtWidgets import QProgressBar
 from qgis.utils import iface
+from threedi_mi_utils.ui import ColoredProgressBar
 
 
 def pop_up_info(msg: str = "", title: str = "Information", parent=None):
@@ -73,7 +73,7 @@ class StatusProgressBar(object):
         self.maximum = maximum
         self.message_bar = iface.messageBar().createMessage(message_title, "")
 
-        self.progress_bar = QProgressBar()
+        self.progress_bar = ColoredProgressBar()
         self.progress_bar.setMaximum(maximum)
         self.progress_bar.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
@@ -123,7 +123,7 @@ def progress_bar(iface, min_value=1, max_value=100):
     try:
         progressMessageBar = iface.messageBar()
 
-        _progress_bar = QProgressBar()
+        _progress_bar = ColoredProgressBar()
         # Maximum is set to 100, making it easy to work with
         # percentage of completion
         _progress_bar.setMinimum(min_value)
