@@ -208,12 +208,17 @@ class ThreeDiPluginLayerManager(QObject):
         self.result_loaded.emit(threedi_result_item, grid_item)
         return True
 
-    @pyqtSlot(ThreeDiResultItem, ThreeDiGridItem)
-    def load_waterdepth(self, result_item: ThreeDiResultItem, grid_item: ThreeDiGridItem) -> None:
+    @pyqtSlot(ThreeDiResultItem)
+    def load_waterdepth(self, result_item: ThreeDiResultItem) -> None:
         """If max_waterdepth.tif exists in the result folder, load it into a
         'Waterdepth' group inside the grid's layer group."""
         tif_path = result_item.path.parent / "max_waterdepth.tif"
         if not tif_path.exists():
+            return
+
+        grid_item = result_item.parent()
+        if not isinstance(grid_item, ThreeDiGridItem):
+            logger.warning("Cannot load waterdepth: result item has no grid parent")
             return
 
         if not grid_item.layer_group:
