@@ -132,6 +132,11 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
                     "The schematisation database cannot be migrated to the current version. Please contact the service desk for assistance."
                 )
                 return {self.OUTPUT: None}
+        # SchemaStructureError will only be called if MigrationMissingError is not
+        except errors.SchemaStructureError as e:
+            msg = str(e)[0].lower() + str(e)[1:]
+            feedback.pushWarning(f"The schematisation was already migrated to the latest version but the {msg}")
+            return {self.OUTPUT: None}
         success = True
         return {self.OUTPUT: success}
 
@@ -223,6 +228,9 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 "The selected schematisation does not have the latest schema version. Please "
                 "migrate your schematisation to the latest version."
             )
+            return {self.OUTPUT: None}
+        except errors.SchemaStructureError as e:
+            feedback.pushWarning(str(e))
             return {self.OUTPUT: None}
         schema = threedi_db.schema
         schema.set_spatial_indexes()
@@ -458,12 +466,13 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         try:
             schema = threedi_db.schema
             schema.validate_schema()
-
         except errors.MigrationMissingError:
             raise QgsProcessingException(
                 "The selected Rana schematisation does not have the latest database schema version. Please migrate this "
                 "schematisation and try again: Processing > Toolbox > Rana schematisation editor > Schematisation > Migrate schematisation database"
             )
+        except errors.SchemaStructureError as e:
+            raise QgsProcessingException(str(e))
         if not (hydx_dataset_name or hydx_path):
             raise QgsProcessingException(
                 "Either 'GWSW HydX directory (local)' or 'GWSW dataset name (online)' must be filled in!"

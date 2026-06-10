@@ -1092,6 +1092,12 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             )
             self.QgsFileWidgetSchematisation.setFilePath("")
             return
+        except errors.SchemaStructureError as e:
+            self.iface.messageBar().pushMessage(
+                MESSAGE_CATEGORY, str(e), level=Qgis.MessageLevel.Warning
+            )
+            self.QgsFileWidgetSchematisation.setFilePath("")
+            return
 
         surface_layer = QgsVectorLayer(self.QgsFileWidgetSchematisation.filePath() + "|layername=surface", "meta", "ogr")
         if surface_layer.isValid():
