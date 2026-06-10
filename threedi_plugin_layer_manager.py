@@ -212,6 +212,9 @@ class ThreeDiPluginLayerManager(QObject):
     def load_waterdepth(self, result_item: ThreeDiResultItem) -> None:
         """If max_waterdepth.tif exists in the result folder, load it into a
         'Waterdepth' group inside the grid's layer group."""
+        if result_item.waterdepth_layer_id:
+            return
+
         tif_path = result_item.path.parent / "max_waterdepth.tif"
         if not tif_path.exists():
             return
