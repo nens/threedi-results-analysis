@@ -5,6 +5,7 @@ Rana Results Analysis changelog
 --------------------
 
 - Add progress bar colors: blue while running, green on completion (nens/rana-qgis-plugin#294)
+- Handle SchemaStructureError after model validation or model checker (nens/rana#4189)
 
 
 3.26.16 (2026-06-01)
