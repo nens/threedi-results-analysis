@@ -216,9 +216,10 @@ class ThreeDiPluginLayerManager(QObject):
         if not tif_path.exists():
             return
 
-        # Skip if this raster is already loaded in the project
+        # Skip if this raster is already loaded in the project (e.g. restored from project file)
         for layer in QgsProject.instance().mapLayers().values():
             if layer.source() == str(tif_path):
+                layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
                 result_item.waterdepth_layer_id = layer.id()
                 return
 
@@ -237,6 +238,7 @@ class ThreeDiPluginLayerManager(QObject):
             logger.warning(f"Waterdepth raster layer is not valid: {tif_path}")
             return
 
+        raster_layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
         QgsProject.instance().addMapLayer(raster_layer, addToLegend=False)
 
         waterdepth_group = grid_item.layer_group.findGroup(WATERDEPTH_GROUP_NAME)
