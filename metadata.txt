@@ -37,7 +37,7 @@ category=Plugins
 icon=icons/rana_blue_on_transparent.svg
 experimental=False
 hasProcessingProvider=yes
-plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.2.16
+plugin_dependencies=Rana Dependency Loader==1.2.17
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
