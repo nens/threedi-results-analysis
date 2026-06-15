@@ -8,7 +8,7 @@ import uuid
 from qgis.PyQt.QtCore import Qt
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes, QgsLayerTreeNode
+from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes, QgsLayerTreeNode, QgsLayerTreeGroup
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_GROUP_NAME, TOOLBOX_MESSAGE_TITLE
 from threedi_results_analysis.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
@@ -120,6 +120,8 @@ class ThreeDiPluginLayerManager(QObject):
             pop_up_critical("Failed adding the layers to the project.")
             self.grid_not_loaded.emit(grid_item)
             return False
+
+        grid_item.project = project
 
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Added layers to the project", duration=2)
 
@@ -256,12 +258,14 @@ class ThreeDiPluginLayerManager(QObject):
             return
 
         layer = QgsProject.instance().mapLayer(result_item.waterdepth_layer_id)
-        if layer is not None:
-            QgsProject.instance().removeMapLayer(result_item.waterdepth_layer_id)
-
         result_item.waterdepth_layer_id = None
 
-        # Clean up the Waterdepth group if it is now empty
+        if layer is None:
+            return
+
+        # Remove via the layer tree node directly. This both removes the node
+        # from the group and unregisters the layer from the project synchronously,
+        # avoiding timing issues with QgsLayerTreeRegistryBridge.
         grid_item = result_item.parent()
         if not isinstance(grid_item, ThreeDiGridItem):
             return
@@ -269,8 +273,11 @@ class ThreeDiPluginLayerManager(QObject):
             return
 
         waterdepth_group = grid_item.layer_group.findGroup(WATERDEPTH_GROUP_NAME)
-        if waterdepth_group and len(waterdepth_group.children()) == 0:
-            grid_item.layer_group.removeChildNode(waterdepth_group)
+        if waterdepth_group:
+            layer.setFlags(layer.flags() | QgsMapLayer.LayerFlag.Removable)
+            waterdepth_group.removeLayer(layer)
+            if len(waterdepth_group.children()) == 0:
+                grid_item.layer_group.removeChildNode(waterdepth_group)
 
         iface.mapCanvas().refresh()
 
@@ -485,8 +492,14 @@ class ThreeDiPluginLayerManager(QObject):
     @staticmethod
     def _get_or_create_group(group_name: str):
         root = QgsProject.instance().layerTreeRoot()
-        root_group = root.findGroup(TOOLBOX_QGIS_GROUP_NAME)
-        if not root_group or root_group not in root.children():
+        # Use a direct children search (not recursive) to avoid accidentally matching
+        # a same-named group that is nested under a project folder (e.g. from rana-qgis-plugin).
+        root_group = next(
+            (child for child in root.children()
+             if isinstance(child, QgsLayerTreeGroup) and child.name() == TOOLBOX_QGIS_GROUP_NAME),
+            None
+        )
+        if not root_group:
             root_group = root.insertGroup(0, TOOLBOX_QGIS_GROUP_NAME)
 
         layer_group = root_group.findGroup(group_name)
