@@ -6,6 +6,7 @@ Rana Results Analysis changelog
 
 - Add progress bar colors: blue while running, green on completion (nens/rana-qgis-plugin#294)
 - Handle SchemaStructureError after model validation or model checker (nens/rana#4189)
+- Remove empty parent groups in layer manager when removing results loaded via Rana plugin (nens/threedi-results-analysis#1173)
 
 
 3.26.16 (2026-06-01)
