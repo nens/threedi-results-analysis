@@ -144,6 +144,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.validator.grid_valid.connect(self.loader.load_grid)
         self.loader.grid_loaded.connect(self.model.add_grid)
         self.loader.result_loaded.connect(self.model.add_result)
+        self.model.result_added.connect(self.loader.load_waterdepth)
 
         self.model.grid_added.connect(self.dockwidget.expand_grid)
 
@@ -232,6 +233,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.model.grid_removed.connect(self.loader.unload_grid)
         self.model.result_removed.connect(self.loader.unload_result)
+        self.model.result_removed.connect(self.loader.unload_waterdepth)
 
         self.init_state_sync()
 

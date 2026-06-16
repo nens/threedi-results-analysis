@@ -8,7 +8,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QStandardItem
 from qgis.PyQt.QtGui import QStandardItemModel
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
-from typing import List
+from typing import List, Optional
 
 import logging
 import uuid
@@ -65,6 +65,9 @@ class ThreeDiGridItem(ThreeDiModelItem):
         # layer info
         self.layer_group = None
 
+        # project name used when the grid was loaded via an external plugin (e.g. rana-qgis-plugin)
+        self.project: Optional[str] = None
+
 
 class ThreeDiResultItem(ThreeDiModelItem):
     """
@@ -93,6 +96,9 @@ class ThreeDiResultItem(ThreeDiModelItem):
         self._pattern = None
 
         self._timedelta = None
+
+        # Layer ID of the optional max_waterdepth.tif raster layer
+        self.waterdepth_layer_id = None
 
     @cached_property
     def threedi_result(self):

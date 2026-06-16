@@ -77,7 +77,8 @@ class ThreeDiPluginModelSerializer:
                         label_node = layer_nodes.at(i).toElement()
                         model_node.layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
 
-                    if not loader.load_grid(model_node):
+                    project = xml_element_node.attribute("project") or None
+                    if not loader.load_grid(model_node, project):
                         return False
 
                 elif tag_name == "result":
@@ -161,6 +162,8 @@ class ThreeDiPluginModelSerializer:
                     xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
                     xml_node.setAttribute("text", model_node.text())
                     xml_node.setAttribute("id", model_node.id)
+                    if model_node.project:
+                        xml_node.setAttribute("project", model_node.project)
 
                     # Write corresponding layer id's
                     for table_name, layer_id in model_node.layer_ids.items():
