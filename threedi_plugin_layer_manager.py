@@ -150,7 +150,16 @@ class ThreeDiPluginLayerManager(QObject):
             item.layer_group.removeChildNode(grid_group)
 
         if len(item.layer_group.children()) == 0:
-            item.layer_group.parent().removeChildNode(item.layer_group)
+            parent = item.layer_group.parent()
+            parent.removeChildNode(item.layer_group)
+
+            # Walk up the tree and remove empty parent groups (e.g. "Rana simulation results",
+            # PROJECT_NAME) that were created by external plugins like rana-qgis-plugin.
+            root = QgsProject.instance().layerTreeRoot()
+            while parent is not None and parent is not root and len(parent.children()) == 0:
+                grandparent = parent.parent()
+                grandparent.removeChildNode(parent)
+                parent = grandparent
         else:
             logger.info(f"Item group of grid {item.text()} contains external layers: not removing.")
 
