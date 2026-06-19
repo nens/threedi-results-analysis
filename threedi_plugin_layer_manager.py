@@ -15,7 +15,9 @@ from threedi_results_analysis.utils.user_messages import StatusProgressBar, mess
 from threedi_results_analysis.utils.utils import safe_join
 from qgis.utils import iface
 
-styles_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "layer_styles", "grid")
+style_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "layer_styles")
+grid_style_dir = os.path.join(style_dir, "grid")
+raster_style_dir = os.path.join(style_dir, "raster")
 
 import logging
 logger = logging.getLogger(__name__)
@@ -248,7 +250,9 @@ class ThreeDiPluginLayerManager(QObject):
         if not raster_layer.isValid():
             logger.warning(f"Waterdepth raster layer is not valid: {tif_path}")
             return
-
+        raster_layer.loadNamedStyle(os.path.join(raster_style_dir, "water_depth.qml"))
+        if hasattr(raster_layer.renderer(), "setBand"):
+            raster_layer.renderer().setBand(1)
         raster_layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
         QgsProject.instance().addMapLayer(raster_layer, addToLegend=False)
 
@@ -356,7 +360,7 @@ class ThreeDiPluginLayerManager(QObject):
             assert scratch_layer
 
             # (Re)apply the style and naming
-            qml_path = safe_join(styles_dir, f"{table_name}.qml")
+            qml_path = safe_join(grid_style_dir, f"{table_name}.qml")
             if os.path.exists(qml_path):
                 msg, res = scratch_layer.loadNamedStyle(qml_path)
                 if not res:
@@ -441,7 +445,7 @@ class ThreeDiPluginLayerManager(QObject):
             )
 
             # Apply the style
-            qml_path = safe_join(styles_dir, f"{table_name}.qml")
+            qml_path = safe_join(grid_style_dir, f"{table_name}.qml")
             if os.path.exists(qml_path):
                 msg, res = vector_layer.loadNamedStyle(qml_path)
                 if not res:
