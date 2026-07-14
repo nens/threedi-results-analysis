@@ -4,7 +4,7 @@ Rana Results Analysis changelog
 3.26.18 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- QGIS4 (and numpy2) compatible (#1157)
 
 
 3.26.17 (2026-06-29)

@@ -101,10 +101,10 @@ def time_intervals(
     ]  # filters timestamps for end_time
 
     ts_start_time_idx = int(
-        np.where(all_timestamps == filtered_timestamps[0])[0]
+        np.where(all_timestamps == filtered_timestamps[0])[0].item()
     )
     ts_end_time_idx = int(
-        np.where(all_timestamps == filtered_timestamps[-1])[0]
+        np.where(all_timestamps == filtered_timestamps[-1])[0].item()
     )
 
     # Prepend start_time as timestamp if the start_time falls between two timestamps
@@ -266,12 +266,12 @@ def prepare_timeseries(
     # threedigrid reads these flowlines from the netcdf in reversed order (known inconsistency)
     if isinstance(threedigrid_object, Lines):
         kcu_types_1d2d = np.array([51, 52, 53, 54, 54, 55, 56, 57, 58])
-        raw_values[:, np.in1d(threedigrid_object.kcu, kcu_types_1d2d)] *= -1
+        raw_values[:, np.isin(threedigrid_object.kcu, kcu_types_1d2d)] *= -1
 
     # if aggregation variable is ts_max, set maximum possible time step (ts_max) to a very high value for line types
     # to which time step reduction is not applied
     if aggregation.variable.short_name == "ts_max":
-        raw_values[:, np.in1d(kcu_types, np.array(NON_TS_REDUCING_KCU))] = 9999
+        raw_values[:, np.isin(kcu_types, np.array(NON_TS_REDUCING_KCU))] = 9999
 
     raw_values_signed = aggregation.sign.apply(raw_values) if aggregation.sign else raw_values
 
@@ -325,7 +325,7 @@ def get_exchange_level(
 
     threshold = threshold_by_id[nodes.id]
     nodeds_1d_id = nodes.filter(node_type__in=[3, 4]).id
-    mask = np.logical_not(np.in1d(nodes.id, nodeds_1d_id))
+    mask = np.logical_not(np.isin(nodes.id, nodeds_1d_id))
     threshold[mask] = no_data
     return threshold
 
@@ -693,7 +693,7 @@ def flow_per_node(
 
     # if there are any nodes without flowlinks, they will have been missed so far
     linkless_node_ids = node_ids[
-        np.logical_not(np.in1d(node_ids, start_node_ids_unique))
+        np.logical_not(np.isin(node_ids, start_node_ids_unique))
     ]
     if linkless_node_ids.ndim > 0 and linkless_node_ids.size > 0:
         linkless_node_zeroflow = np.c_[
@@ -1157,12 +1157,12 @@ def filter_nodes_by_lines(nodes, lines):
 
 
 def select_from_2d_array_where_col_x_in(array_2d, col_nr, values):
-    return array_2d[np.in1d(array_2d[:, col_nr], values), :]
+    return array_2d[np.isin(array_2d[:, col_nr], values), :]
 
 
 def cell_results_from_node_results(node_results: Dict[str, np.array], nodes: Nodes, cells: Cells):
     cell_results = dict()
-    mask = np.in1d(nodes.id, cells.id)
+    mask = np.isin(nodes.id, cells.id)
     for column_name, values in node_results.items():
         cell_results[column_name] = values[mask]
     return cell_results
@@ -1174,7 +1174,7 @@ def pump_linestring_results_from_pump_results(
 ):
     pumps_linestring = pumps.filter(node2_id__ne=-9999)
     pump_linestring_results = dict()
-    mask = np.in1d(pumps.id, pumps_linestring.id)
+    mask = np.isin(pumps.id, pumps_linestring.id)
     for column_name, values in pump_results.items():
         pump_linestring_results[column_name] = values[mask]
     return pump_linestring_results

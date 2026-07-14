@@ -8,7 +8,10 @@ from qgis.PyQt.QtCore import pyqtSignal, QItemSelectionModel
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtSvg import QSvgWidget
+try:
+    from qgis.PyQt.QtSvgWidgets import QSvgWidget
+except ImportError:
+    from qgis.PyQt.QtSvg import QSvgWidget
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QMenu

@@ -88,7 +88,7 @@ def multiband_raster_min_max(layer) -> Tuple[float, float]:
     for band in range(1, band_count + 1):
         stats = provider.bandStatistics(
             band,
-            QgsRasterBandStats.Min | QgsRasterBandStats.Max
+            QgsRasterBandStats.Stats.Min | QgsRasterBandStats.Stats.Max
         )
         global_min = min(global_min, stats.minimumValue)
         global_max = max(global_max, stats.maximumValue)

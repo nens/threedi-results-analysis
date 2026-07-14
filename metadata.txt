@@ -1,6 +1,7 @@
 [general]
 name=Rana Results Analysis
 qgisMinimumVersion=3.22
+qgisMaximumVersion=4.99
 description=Rana Results Analysis
 version=3.26.18
 author=Nelen & Schuurmans
@@ -41,6 +42,3 @@ plugin_dependencies=Nelen and Schuurmans Dependency Loader==1.2.16
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
-
-
-supportsQt6=True
