@@ -3,7 +3,7 @@ name=Rana Results Analysis
 qgisMinimumVersion=3.22
 qgisMaximumVersion=4.99
 description=Rana Results Analysis
-version=3.26.18
+version=3.26.19
 author=Nelen & Schuurmans
 email=servicedesk@nelen-schuurmans.nl
 
