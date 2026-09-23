@@ -1388,11 +1388,11 @@ class Aggregate3DiResults(QgsTask):
 
     def _get_or_create_result_group(self, result: ThreeDiResultItem, group_name: str):
         # We'll place the result layers in a dedicated result group
-        grid_item = result.parent()
-        assert grid_item
-        tool_group = grid_item.layer_group.findGroup(group_name)
+        result_group_parent = result.get_layer_group()
+        assert result_group_parent
+        tool_group = result_group_parent.findGroup(group_name)
         if not tool_group:
-            tool_group = grid_item.layer_group.insertGroup(0, group_name)
+            tool_group = result_group_parent.insertGroup(0, group_name)
             tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
 
         # Add result group
