@@ -238,27 +238,40 @@ class ThreeDiPluginLayerManager(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def load_waterdepth(self, result_item: ThreeDiResultItem) -> None:
-        """If max_waterdepth.tif exists in the result folder, load it into a
-        'Waterdepth' group inside the grid's layer group."""
+        """Load max_waterdepth.tif into the result's owning layer group."""
         tif_path = result_item.path.parent / "max_waterdepth.tif"
         if not tif_path.exists():
             return
-
-        # Skip if this raster is already loaded in the project (e.g. restored from project file)
-        for layer in QgsProject.instance().mapLayers().values():
-            if layer.source() == str(tif_path):
-                layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
-                result_item.waterdepth_layer_id = layer.id()
-                return
 
         grid_item = result_item.parent()
         if not isinstance(grid_item, ThreeDiGridItem):
             logger.warning("Cannot load waterdepth: result item has no grid parent")
             return
 
-        if not grid_item.layer_group:
+        layer_group = (
+            result_item.layer_group
+            if result_item.group_path
+            else grid_item.layer_group
+        )
+        if not layer_group:
             logger.warning("Cannot load waterdepth: grid has no layer group")
             return
+
+        project = QgsProject.instance()
+        if result_item.waterdepth_layer_id:
+            existing_layer = project.mapLayer(result_item.waterdepth_layer_id)
+            if existing_layer is not None:
+                return
+            result_item.waterdepth_layer_id = None
+
+        # Legacy results share a grid-owned raster when the source path is
+        # already loaded. Grouped results must never share raster ownership.
+        if not result_item.group_path:
+            for layer in project.mapLayers().values():
+                if layer.source() == str(tif_path):
+                    layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
+                    result_item.waterdepth_layer_id = layer.id()
+                    return
 
         sim_name = result_item.text() or tif_path.parent.stem
         raster_layer = QgsRasterLayer(str(tif_path), f"max wd {sim_name}")
@@ -269,11 +282,11 @@ class ThreeDiPluginLayerManager(QObject):
         if hasattr(raster_layer.renderer(), "setBand"):
             raster_layer.renderer().setBand(1)
         raster_layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
-        QgsProject.instance().addMapLayer(raster_layer, addToLegend=False)
+        project.addMapLayer(raster_layer, addToLegend=False)
 
-        waterdepth_group = grid_item.layer_group.findGroup(WATERDEPTH_GROUP_NAME)
+        waterdepth_group = layer_group.findGroup(WATERDEPTH_GROUP_NAME)
         if not waterdepth_group:
-            waterdepth_group = grid_item.layer_group.insertGroup(1, WATERDEPTH_GROUP_NAME)
+            waterdepth_group = layer_group.insertGroup(1, WATERDEPTH_GROUP_NAME)
 
         waterdepth_group.addLayer(raster_layer)
         result_item.waterdepth_layer_id = raster_layer.id()
@@ -297,17 +310,30 @@ class ThreeDiPluginLayerManager(QObject):
         grid_item = result_item.parent()
         if not isinstance(grid_item, ThreeDiGridItem):
             return
-        if not grid_item.layer_group:
+        layer_group = (
+            result_item.layer_group
+            if result_item.group_path
+            else grid_item.layer_group
+        )
+        if not layer_group:
+            if result_item.group_path:
+                QgsProject.instance().removeMapLayer(layer.id())
             return
 
-        waterdepth_group = grid_item.layer_group.findGroup(WATERDEPTH_GROUP_NAME)
+        waterdepth_group = layer_group.findGroup(WATERDEPTH_GROUP_NAME)
         if waterdepth_group:
             layer.setFlags(layer.flags() | QgsMapLayer.LayerFlag.Removable)
             waterdepth_group.removeLayer(layer)
+            QgsProject.instance().removeMapLayer(layer.id())
             if len(waterdepth_group.children()) == 0:
-                grid_item.layer_group.removeChildNode(waterdepth_group)
+                layer_group.removeChildNode(waterdepth_group)
 
-        iface.mapCanvas().refresh()
+        if result_item.group_path and not layer_group.children():
+            if self._prune_empty_group_path(layer_group):
+                result_item.layer_group = None
+
+        if iface is not None:
+            iface.mapCanvas().refresh()
 
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
@@ -390,6 +416,13 @@ class ThreeDiPluginLayerManager(QObject):
             )
             return
 
+        if self._prune_empty_group_path(layer_group):
+            result_item.layer_group = None
+
+    @staticmethod
+    def _prune_empty_group_path(layer_group: QgsLayerTreeGroup) -> bool:
+        """Remove an empty group and empty ancestors up to the project root."""
+        root = QgsProject.instance().layerTreeRoot()
         current_group = layer_group
         while current_group is not root and not current_group.children():
             parent = current_group.parent()
@@ -397,9 +430,7 @@ class ThreeDiPluginLayerManager(QObject):
                 break
             parent.removeChildNode(current_group)
             current_group = parent
-
-        if current_group is not layer_group:
-            result_item.layer_group = None
+        return current_group is not layer_group
 
     @dirty
     @pyqtSlot(ThreeDiResultItem)
