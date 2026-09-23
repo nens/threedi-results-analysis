@@ -66,3 +66,22 @@ def test_graph_relevant_layers_include_grouped_result_layers():
     finally:
         project.removeMapLayer(grid_layer.id())
         project.removeMapLayer(grouped_layer.id())
+
+
+def test_result_owned_group_and_node_layer_are_resolved_for_outputs():
+    """Result-derived outputs can resolve grouped group and node ownership."""
+    grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.gpkg"), "grid")
+    result_item = ThreeDiResultItem(Path("c:/test/results_3di.nc"))
+    result_item.group_path = ["files", "result.zip"]
+    result_item.layer_group = object()
+    result_item.layer_ids["node"] = "grouped-node-id"
+    grid_item.layer_group = object()
+    grid_item.layer_ids["node"] = "grid-node-id"
+    grid_item.appendRow(result_item)
+
+    assert result_item.get_layer_group() is result_item.layer_group
+    assert result_item.get_layer_ids()["node"] == "grouped-node-id"
+
+    result_item.group_path = None
+    assert result_item.get_layer_group() is grid_item.layer_group
+    assert result_item.get_layer_ids()["node"] == "grid-node-id"
