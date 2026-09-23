@@ -178,6 +178,13 @@ class ThreeDiPluginModelSerializer:
                     xml_node.setAttribute("text", model_node.text())
                     xml_node.setAttribute("id", model_node.id)
                     xml_node.setAttribute("check_state", str(model_node.checkState()))
+                    if model_node.group_path:
+                        xml_node.setAttribute("group_path", "/".join(model_node.group_path))
+                        for table_name, layer_id in model_node.layer_ids.items():
+                            layer_element = doc.createElement("layer")
+                            layer_element.setAttribute("id", layer_id)
+                            layer_element.setAttribute("table_name", table_name)
+                            xml_node.appendChild(layer_element)
                 else:
                     logger.error("Unknown node type for serialization")
                     return False
