@@ -189,10 +189,20 @@ class ThreeDiPluginLayerManager(QObject):
             threedi_result_item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_path(
                 threedi_result_item.group_path
             )
+            if not ThreeDiPluginLayerManager._add_grouped_layers_from_gpkg(
+                grid_item.path, threedi_result_item
+            ):
+                self.result_not_loaded.emit(threedi_result_item, grid_item)
+                return False
 
-        # Add result fields for this result to the grid layers
-        logger.info("Adding result fields to grid layers")
-        for layer_id in grid_item.layer_ids.values():
+        # Add result fields for this result to its owned layers
+        logger.info("Adding result fields to layers")
+        layer_ids = (
+            threedi_result_item.layer_ids
+            if threedi_result_item.group_path
+            else grid_item.layer_ids
+        )
+        for layer_id in layer_ids.values():
             layer = QgsProject.instance().mapLayer(layer_id)
             provider = layer.dataProvider()
 
@@ -406,32 +416,25 @@ class ThreeDiPluginLayerManager(QObject):
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated computational grid geopackage")
 
     @staticmethod
-    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, project: Optional[str] = None) -> bool:
-        """
-        Retrieves (a subset of the) layers from gpk and add to project.
-        """
-
+    def _copy_layers_from_gpkg(path, layer_group, layer_ids, reuse_existing=True) -> bool:
         invalid_layers = []
         empty_layers = []
-        if project:
-            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure([project] + [TOOLBOX_QGIS_GROUP_NAME, item.text()])
-        else:
-            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
 
-        # Use to modify grid name when LayerGroup is renamed
-        item.layer_group.nameChanged.connect(lambda node, txt, grid_item=item: ThreeDiPluginLayerManager._layer_node_renamed(node, txt, grid_item))
-
-        progress_bar = StatusProgressBar(len(gpkg_layers) - 1, "Adding computational grid layers")
+        progress_bar = None
+        if iface is not None:
+            progress_bar = StatusProgressBar(
+                len(gpkg_layers) - 1, "Adding computational grid layers"
+            )
         for layer_name, table_name in gpkg_layers.items():
 
             # QGIS does save memory layers to the project file (but without the data)
             # Removing the scratch layer and resaving the project causes QGIS to crash,
             # therefore we reuse the layer instance.
             scratch_layer = None
-            if table_name in item.layer_ids.keys():
-                scratch_layer = QgsProject.instance().mapLayer(item.layer_ids[table_name])
+            if reuse_existing and table_name in layer_ids.keys():
+                scratch_layer = QgsProject.instance().mapLayer(layer_ids[table_name])
                 if scratch_layer:
-                    logger.info(f"Map layer corresponding to table {item.layer_ids[table_name]} already exist in project, reusing...")
+                    logger.info(f"Map layer corresponding to table {layer_ids[table_name]} already exist in project, reusing...")
 
             # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
             # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
@@ -472,16 +475,17 @@ class ThreeDiPluginLayerManager(QObject):
             vector_layer.setObjectName(table_name)
 
             if scratch_layer is None:
-                # Keep track of layer id for future reference (deletion of grid item)
-                item.layer_ids[table_name] = vector_layer.id()
+                layer_ids[table_name] = vector_layer.id()
 
                 QgsProject.instance().addMapLayer(vector_layer, addToLegend=False)
                 # Add to computational grid subgroup (created above)
-                item.layer_group.findGroup(GRID_GROUP_NAME).addLayer(vector_layer)
+                layer_group.findGroup(GRID_GROUP_NAME).addLayer(vector_layer)
 
-            progress_bar.increase_progress()
+            if progress_bar:
+                progress_bar.increase_progress()
 
-        del progress_bar
+        if progress_bar:
+            del progress_bar
 
         # Invalid layers info
         if invalid_layers:
@@ -492,6 +496,39 @@ class ThreeDiPluginLayerManager(QObject):
             logger.warning("The following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n")
 
         return True
+
+    @staticmethod
+    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, project: Optional[str] = None) -> bool:
+        """
+        Retrieves (a subset of the) layers from gpkg and adds them to project.
+        """
+        if project:
+            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure([project] + [TOOLBOX_QGIS_GROUP_NAME, item.text()])
+        else:
+            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
+
+        # Use to modify grid name when LayerGroup is renamed
+        item.layer_group.nameChanged.connect(lambda node, txt, grid_item=item: ThreeDiPluginLayerManager._layer_node_renamed(node, txt, grid_item))
+
+        return ThreeDiPluginLayerManager._copy_layers_from_gpkg(
+            path,
+            item.layer_group,
+            item.layer_ids,
+        )
+
+    @staticmethod
+    def _add_grouped_layers_from_gpkg(path, result_item: ThreeDiResultItem) -> bool:
+        """Create fresh computational-grid layers owned by a grouped result."""
+        if result_item.layer_group is None:
+            logger.warning("Cannot add grouped result layers without a layer group")
+            return False
+
+        return ThreeDiPluginLayerManager._copy_layers_from_gpkg(
+            path,
+            result_item.layer_group,
+            result_item.layer_ids,
+            reuse_existing=False,
+        )
 
     @staticmethod
     def _get_or_create_group_alternative_structure(parents: list[str]):
