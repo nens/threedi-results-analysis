@@ -54,6 +54,30 @@ class TestResultValidation(unittest.TestCase):
             self.assertTrue(self.validator._validate_result("c:/test/results_3di.nc", self.grid_item))
             result_valid.emit.assert_called_once_with(result_item_mock.return_value, self.grid_item)
 
+    def test_group_path_is_set_before_result_is_emitted(self, test_h5, result_item_mock):
+        test_h5.return_value.attrs = {"threedicore_version": "", "model_slug": "result_slug".encode()}
+        result_item_mock.return_value.path.name = "results_3di.nc"
+
+        with patch.object(self.validator, "result_valid") as result_valid, patch.object(
+                ThreeDiPluginModelValidator, "get_grid_slug", return_value="result_slug"):
+            for group_path in (None, [], ["project", "files", "result.zip"]):
+                result_item_mock.return_value.group_path = "old value"
+                result_valid.reset_mock()
+
+                self.assertTrue(
+                    self.validator._validate_result(
+                        "c:/test/results_3di.nc",
+                        self.grid_item,
+                        group_path=group_path,
+                    )
+                )
+
+                self.assertEqual(result_item_mock.return_value.group_path, group_path)
+                result_valid.emit.assert_called_once_with(
+                    result_item_mock.return_value,
+                    self.grid_item,
+                )
+
     def test_result_item_is_reparented(self, test_h5, result_item_mock):
         test_h5.return_value.attrs = {"threedicore_version": "", "model_slug": "result_slug".encode()}
         result_item_mock.return_value.path.name = "results_3di.nc"
@@ -131,6 +155,40 @@ class TestResultValidation(unittest.TestCase):
             self.validator.validate_result_grid("c:/test/results_3di.nc", "c:/thisfolder/gridadmin.h5")
             calls = [call(result_item_mock.return_value, wrong_grid)]
             result_valid.emit.assert_has_calls(calls)
+
+    def test_grouped_results_reuse_one_logical_grid(self, test_h5, result_item_mock):
+        with patch.object(
+            ThreeDiPluginModelValidator,
+            "get_result_slug",
+            return_value="same_slug",
+        ), patch.object(
+            ThreeDiPluginModelValidator,
+            "get_grid_slug",
+            return_value="same_slug",
+        ), patch.object(self.validator, "_validate_result") as validate_result:
+            self.validator.validate_result_grid(
+                "c:/result-a/results_3di.nc",
+                "c:/test/gridadmin.h5",
+                group_path=["files", "result-a"],
+            )
+            self.validator.validate_result_grid(
+                "c:/result-b/results_3di.nc",
+                "c:/test/gridadmin.h5",
+                group_path=["files", "result-b"],
+            )
+
+        self.assertEqual(self.model.number_of_grids(), 1)
+        self.assertEqual(validate_result.call_count, 2)
+        self.assertIs(validate_result.call_args_list[0].args[1], self.grid_item)
+        self.assertIs(validate_result.call_args_list[1].args[1], self.grid_item)
+        self.assertEqual(
+            validate_result.call_args_list[0].kwargs["group_path"],
+            ["files", "result-a"],
+        )
+        self.assertEqual(
+            validate_result.call_args_list[1].kwargs["group_path"],
+            ["files", "result-b"],
+        )
 
 
 class TestGridValidator(unittest.TestCase):
