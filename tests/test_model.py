@@ -180,3 +180,30 @@ class TestResult(unittest.TestCase):
 
         self.assertIs(result.get_layer_ids(), self.grid_item.layer_ids)
         self.assertIs(result.get_layer_group(), self.grid_item.layer_group)
+
+    def test_result_field_names_are_scoped_to_layer(self):
+        result = ThreeDiResultItem(self.result_path, "result")
+        result.group_path = ["files", "result"]
+        result._result_field_names["result-layer-id"] = (
+            "result_value",
+            "initial_value",
+        )
+        second_result = ThreeDiResultItem("c:/test2/results_3di.nc", "result 2")
+        second_result.group_path = ["files", "result-2"]
+        second_result._result_field_names["second-layer-id"] = (
+            "second_result_value",
+            "second_initial_value",
+        )
+
+        self.assertTrue(self.model.add_result(result, self.grid_item))
+        self.assertTrue(self.model.add_result(second_result, self.grid_item))
+
+        self.assertEqual(
+            self.model.get_result_field_names("result-layer-id"),
+            {"result_value", "initial_value"},
+        )
+        self.assertEqual(
+            self.model.get_result_field_names("second-layer-id"),
+            {"second_result_value", "second_initial_value"},
+        )
+        self.assertEqual(self.model.get_result_field_names("unknown-layer-id"), set())

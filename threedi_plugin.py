@@ -277,7 +277,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         return True
 
     def write_map_layer(self, layer: QgsMapLayer, elem: QDomElement, _: QDomDocument):
-        # Ensure all our dynamically added attributes are not serialized
+        # Result fields are keyed by their actual owner layer ID, including
+        # independent layers created for grouped results.
         result_field_names = self.model.get_result_field_names(layer.id())
         ThreeDiPluginModelSerializer.remove_result_field_references(
             elem, result_field_names,

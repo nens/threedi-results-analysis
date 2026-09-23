@@ -260,6 +260,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         return results
 
     def get_result_field_names(self, layer_id):
+        """Return dynamic result fields belonging to a specific QGIS layer."""
         names = {
             f_name
             for result_item in self.get_results(checked_only=False)
