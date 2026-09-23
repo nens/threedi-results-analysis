@@ -101,7 +101,13 @@ class ThreeDiPluginModelValidator(QObject):
         return new_grid
 
     @pyqtSlot(str, str)
-    def validate_result_grid(self, results_path: str, grid_path: str, project: Optional[str] = None):
+    def validate_result_grid(
+        self,
+        results_path: str,
+        grid_path: str,
+        project: Optional[str] = None,
+        group_path: Optional[list[str]] = None,
+    ):
         """
         Validate the result, but first validate (and add) the grid.
         """
@@ -114,9 +120,20 @@ class ThreeDiPluginModelValidator(QObject):
             messagebar_message(TOOLBOX_MESSAGE_TITLE, "No computational grid for this result could be found, aborting", Qgis.MessageLevel.Critical, 5)
             return
 
-        self._validate_result(results_path, grid_item, add_to_project=project is not None)
+        self._validate_result(
+            results_path,
+            grid_item,
+            add_to_project=project is not None,
+            group_path=group_path,
+        )
 
-    def _validate_result(self, results_path: str, grid_item: ThreeDiGridItem, add_to_project: bool = False) -> bool:
+    def _validate_result(
+        self,
+        results_path: str,
+        grid_item: ThreeDiGridItem,
+        add_to_project: bool = False,
+        group_path: Optional[list[str]] = None,
+    ) -> bool:
         logger.info(f"Validating result with grid item {grid_item.text()}")
         """
         Validate the result when added to the selected grid item. Returns True
@@ -128,6 +145,7 @@ class ThreeDiPluginModelValidator(QObject):
             return False
 
         result_item = ThreeDiResultItem(Path(results_path))
+        result_item.group_path = group_path
 
         if self.model.contains(Path(results_path), True):
             if add_to_project:
