@@ -33,7 +33,6 @@ from threedi_results_analysis.datasource.result_constants import NEGATIVE_POSSIB
 from threedi_results_analysis.datasource.result_constants import Q_TYPES
 from threedi_results_analysis.datasource.result_constants import WATERLEVEL
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
-from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
 from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem
 from threedi_results_analysis.utils.timing import timing
 from threedi_results_analysis.utils.user_messages import pop_up_critical
@@ -472,9 +471,8 @@ class MapAnimator(QGroupBox):
         line_parameter_class_bounds, _ = self._get_class_bounds_line(
             threedi_result, self.current_line_parameter["parameters"], current_line_settings
         )
-        grid_item = result_item.parent()
-        assert isinstance(grid_item, ThreeDiGridItem)
-        layer_id = grid_item.layer_ids["flowline"]
+        layer_ids = result_item.get_layer_ids()
+        layer_id = layer_ids["flowline"]
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
         layer = get_layer_by_id(layer_id)
@@ -495,10 +493,8 @@ class MapAnimator(QGroupBox):
         )
 
         # Adjust the styling of the grid layer based on the bounds and result field name
-        grid_item = result_item.parent()
-        assert isinstance(grid_item, ThreeDiGridItem)
-
-        layer_id = grid_item.layer_ids["node"]
+        layer_ids = result_item.get_layer_ids()
+        layer_id = layer_ids["node"]
         layer = get_layer_by_id(layer_id)
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
@@ -522,9 +518,9 @@ class MapAnimator(QGroupBox):
         progress_bar.increase_progress()
 
         # Pure 1D models do not have cells
-        if "cell" in grid_item.layer_ids:
+        if "cell" in layer_ids:
             logger.info("Styling cell layer")
-            layer_id = grid_item.layer_ids["cell"]
+            layer_id = layer_ids["cell"]
             layer = get_layer_by_id(layer_id)
             virtual_field_name = result_item._result_field_names[layer_id][0]
             postfix = virtual_field_name[6:]  # remove "result" prefix
@@ -725,24 +721,24 @@ class MapAnimator(QGroupBox):
         """Fill initial value and result fields of the animation layers, based
         on currently set animation datetime and parameters."""
         logger.info(f"Render {result_item.text()} at {result_item._timedelta}")
-        grid_item = result_item.parent()
+        layer_ids = result_item.get_layer_ids()
 
         layers_to_update = [
             (
-                get_layer_by_id(grid_item.layer_ids["flowline"]),
+                get_layer_by_id(layer_ids["flowline"]),
                 self.current_line_parameter,
             ),
             (
-                get_layer_by_id(grid_item.layer_ids["node"]),
+                get_layer_by_id(layer_ids["node"]),
                 self.current_node_parameter,
             ),
         ]
 
         # Pure 1D models do not have a cells
-        if "cell" in grid_item.layer_ids:
+        if "cell" in layer_ids:
             layers_to_update.append(
                 (
-                    get_layer_by_id(grid_item.layer_ids["cell"]),
+                    get_layer_by_id(layer_ids["cell"]),
                     self.current_node_parameter,
                 ))
 

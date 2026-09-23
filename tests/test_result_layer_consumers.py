@@ -1,0 +1,68 @@
+from pathlib import Path
+
+from qgis.core import QgsProject, QgsVectorLayer
+
+from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
+from threedi_results_analysis.threedi_plugin_model import (
+    ThreeDiGridItem,
+    ThreeDiResultItem,
+)
+from threedi_results_analysis.tool_graph.graph_view import GraphDockWidget
+from threedi_results_analysis.tool_water_balance.utils import WrappedResult
+
+
+def test_water_balance_wrapper_resolves_grouped_result_layers():
+    """Result-scoped consumers resolve grouped layers instead of grid layers."""
+    project = QgsProject.instance()
+    grid_layer = QgsVectorLayer("Point?crs=EPSG:28992", "Grid node", "memory")
+    result_layer = QgsVectorLayer("Point?crs=EPSG:28992", "Result node", "memory")
+    assert grid_layer.isValid()
+    assert result_layer.isValid()
+    project.addMapLayer(grid_layer, addToLegend=False)
+    project.addMapLayer(result_layer, addToLegend=False)
+
+    grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.gpkg"), "grid")
+    grid_item.layer_ids["node"] = grid_layer.id()
+    result_item = ThreeDiResultItem(Path("c:/test/results_3di.nc"))
+    result_item.group_path = ["files", "result.zip"]
+    result_item.layer_ids["node"] = result_layer.id()
+    grid_item.appendRow(result_item)
+
+    try:
+        wrapped_result = WrappedResult(result_item)
+        assert wrapped_result.points is result_layer
+
+        result_item.group_path = None
+        assert wrapped_result.points is grid_layer
+    finally:
+        project.removeMapLayer(grid_layer.id())
+        project.removeMapLayer(result_layer.id())
+
+
+def test_graph_relevant_layers_include_grouped_result_layers():
+    """Graph map-tool input accepts grouped and legacy-owned layers."""
+    model = ThreeDiPluginModel()
+    grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.gpkg"), "grid")
+    assert model.add_grid(grid_item)
+
+    grid_layer = QgsVectorLayer("Point?crs=EPSG:28992", "Grid node", "memory")
+    grouped_layer = QgsVectorLayer("Point?crs=EPSG:28992", "Grouped node", "memory")
+    assert grid_layer.isValid()
+    assert grouped_layer.isValid()
+    project = QgsProject.instance()
+    project.addMapLayer(grid_layer, addToLegend=False)
+    project.addMapLayer(grouped_layer, addToLegend=False)
+    grid_item.layer_ids["node"] = grid_layer.id()
+
+    grouped_result = ThreeDiResultItem(Path("c:/test/results_3di.nc"))
+    grouped_result.group_path = ["files", "result.zip"]
+    grouped_result.layer_ids["node"] = grouped_layer.id()
+    assert model.add_result(grouped_result, grid_item)
+
+    try:
+        relevant_layer_ids = GraphDockWidget._get_relevant_layer_ids(model, ["node"])
+        assert grid_layer.id() in relevant_layer_ids
+        assert grouped_layer.id() in relevant_layer_ids
+    finally:
+        project.removeMapLayer(grid_layer.id())
+        project.removeMapLayer(grouped_layer.id())
