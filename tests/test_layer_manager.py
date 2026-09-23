@@ -7,6 +7,7 @@ from qgis.core import QgsLayerTreeGroup, QgsProject, QgsVectorLayer
 from threedi_results_analysis.threedi_plugin_layer_manager import (
     GRID_GROUP_NAME,
     ThreeDiPluginLayerManager,
+    WATERDEPTH_GROUP_NAME,
     gpkg_layers,
 )
 from threedi_results_analysis.threedi_plugin_model import (
@@ -379,3 +380,112 @@ def test_grouped_result_unload_preserves_sibling_and_external_layer(tmp_path):
         group = root.findGroup(group_root)
         if group is not None:
             root.removeChildNode(group)
+
+
+def test_grouped_waterdepth_is_owned_and_removed_independently(tmp_path):
+    """Grouped Waterdepth layers live below and belong to their result group."""
+    source_gpkg_path = (
+        Path(__file__).parent
+        / "data"
+        / "testmodel"
+        / "v2_bergermeer"
+        / "gridadmin.gpkg"
+    )
+    source_raster_path = Path(__file__).parent / "data" / "rasters" / "test1.tif"
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+
+    result_dirs = []
+    for result_name in ("result-a", "result-b"):
+        result_dir = tmp_path / result_name
+        result_dir.mkdir()
+        shutil.copy(source_raster_path, result_dir / "max_waterdepth.tif")
+        result_dirs.append(result_dir)
+
+    group_root = f"task8-{uuid4().hex}"
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    result_items = []
+    for result_dir in result_dirs:
+        result_item = ThreeDiResultItem(result_dir / "results_3di.nc")
+        result_item.group_path = [group_root, f"{result_dir.name}.zip"]
+        grid_item.appendRow(result_item)
+        result_items.append(result_item)
+
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+    manager = ThreeDiPluginLayerManager()
+    waterdepth_ids = []
+
+    try:
+        for result_item in result_items:
+            assert manager.load_result(result_item, grid_item)
+            manager.load_waterdepth(result_item)
+            assert result_item.waterdepth_layer_id
+            waterdepth_ids.append(result_item.waterdepth_layer_id)
+
+        assert waterdepth_ids[0] != waterdepth_ids[1]
+        grouped_root = root.findGroup(group_root)
+        assert grouped_root is not None
+
+        for result_item in result_items:
+            result_group = grouped_root.findGroup(f"{result_item.path.parent.name}.zip")
+            assert result_group is not None
+            assert result_group.findGroup(WATERDEPTH_GROUP_NAME) is not None
+            assert result_item.layer_group is result_group
+            assert result_group.findGroup(GRID_GROUP_NAME) is not None
+
+        # The normal result-removal signal order calls unload_result first and
+        # unload_waterdepth second. The latter must still find result A's group.
+        first_result, second_result = result_items
+        first_waterdepth_id, second_waterdepth_id = waterdepth_ids
+        assert manager.unload_result(first_result)
+        manager.unload_waterdepth(first_result)
+
+        assert first_result.waterdepth_layer_id is None
+        assert project.mapLayer(first_waterdepth_id) is None
+        assert project.mapLayer(second_waterdepth_id) is not None
+        assert grouped_root.findGroup("result-a.zip") is None
+        assert grouped_root.findGroup("result-b.zip") is not None
+        assert grouped_root.findGroup("result-b.zip").findGroup(WATERDEPTH_GROUP_NAME)
+    finally:
+        for result_item in result_items:
+            for layer_id in result_item.layer_ids.values():
+                project.removeMapLayer(layer_id)
+            if result_item.waterdepth_layer_id:
+                project.removeMapLayer(result_item.waterdepth_layer_id)
+        group = root.findGroup(group_root)
+        if group is not None:
+            root.removeChildNode(group)
+
+
+def test_legacy_waterdepth_stays_under_grid_group(tmp_path):
+    """Legacy Waterdepth placement remains owned by the parent grid group."""
+    source_raster_path = Path(__file__).parent / "data" / "rasters" / "test1.tif"
+    result_dir = tmp_path / "legacy-result"
+    result_dir.mkdir()
+    shutil.copy(source_raster_path, result_dir / "max_waterdepth.tif")
+
+    grid_item = ThreeDiGridItem(tmp_path / "gridadmin.gpkg", "grid")
+    result_item = ThreeDiResultItem(result_dir / "results_3di.nc")
+    grid_item.appendRow(result_item)
+    manager = ThreeDiPluginLayerManager()
+    grid_item.layer_group = manager._get_or_create_group(f"task8-{uuid4().hex}")
+    root = QgsProject.instance().layerTreeRoot()
+    group = grid_item.layer_group
+
+    try:
+        manager.load_waterdepth(result_item)
+
+        assert result_item.waterdepth_layer_id
+        assert group.findGroup(WATERDEPTH_GROUP_NAME) is not None
+        assert result_item.layer_group is None
+        assert manager.unload_waterdepth(result_item) is None
+        assert result_item.waterdepth_layer_id is None
+        assert group.findGroup(WATERDEPTH_GROUP_NAME) is None
+    finally:
+        if result_item.waterdepth_layer_id:
+            QgsProject.instance().removeMapLayer(result_item.waterdepth_layer_id)
+        if group is not None and group.parent() is not None:
+            root_group = root.findGroup(group.parent().name())
+            if root_group is not None:
+                root.removeChildNode(root_group)
