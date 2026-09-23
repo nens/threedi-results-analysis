@@ -311,7 +311,8 @@ class ThreeDiPluginLayerManager(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        # Remove the corresponding result fields from the grid layers
+        # Internally remove the plugin-owned dynamic fields from their owner
+        # layers. Generated layers remain read-only to users in the QGIS UI.
         for layer_id, result_field_names in threedi_result_item._result_field_names.items():
             # It could be that the map layer is removed by QGIS
             if QgsProject.instance().mapLayer(layer_id) is not None:
@@ -342,7 +343,9 @@ class ThreeDiPluginLayerManager(QObject):
                 if (result_item.checkState() == Qt.CheckState.Checked and threedi_result_item is not result_item):
                     reset_styling = False
 
-        if reset_styling:
+        if threedi_result_item.group_path:
+            self.reset_result_styling(threedi_result_item)
+        elif reset_styling:
             self.reset_styling(grid_item)
 
         self.result_unloaded.emit(threedi_result_item)
@@ -351,6 +354,10 @@ class ThreeDiPluginLayerManager(QObject):
     @dirty
     @pyqtSlot(ThreeDiResultItem)
     def result_unchecked(self, item: ThreeDiResultItem):
+        if item.group_path:
+            self.reset_result_styling(item)
+            return
+
         # In case all results are unchecked, revert back to default styling (and naming)
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
@@ -365,13 +372,20 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiGridItem)
     def reset_styling(self, grid_item: ThreeDiGridItem) -> None:
         """Sets all the grid layers for a given grid back to their original name and style"""
+        self._reset_styling(grid_item.layer_ids)
+
+    def reset_result_styling(self, result_item: ThreeDiResultItem) -> None:
+        """Reset the styles of layers owned by a grouped result."""
+        self._reset_styling(result_item.get_layer_ids())
+
+    def _reset_styling(self, layer_ids) -> None:
         for layer_name, table_name in gpkg_layers.items():
 
             # Some models do not contain pump or obstacle layers.
-            if table_name not in grid_item.layer_ids.keys():
+            if table_name not in layer_ids.keys():
                 continue
 
-            scratch_layer = QgsProject.instance().mapLayer(grid_item.layer_ids[table_name])
+            scratch_layer = QgsProject.instance().mapLayer(layer_ids[table_name])
             assert scratch_layer
 
             # (Re)apply the style and naming
@@ -382,7 +396,8 @@ class ThreeDiPluginLayerManager(QObject):
                     logger.error(f"Unable to load style: {msg}")
 
             scratch_layer.setName(layer_name)
-            iface.layerTreeView().refreshLayerSymbology(scratch_layer.id())
+            if iface is not None:
+                iface.layerTreeView().refreshLayerSymbology(scratch_layer.id())
             scratch_layer.triggerRepaint()
 
     @dirty
