@@ -345,11 +345,61 @@ class ThreeDiPluginLayerManager(QObject):
 
         if threedi_result_item.group_path:
             self.reset_result_styling(threedi_result_item)
+            self._unload_grouped_result_layers(threedi_result_item)
         elif reset_styling:
             self.reset_styling(grid_item)
 
         self.result_unloaded.emit(threedi_result_item)
         return True
+
+    def _unload_grouped_result_layers(self, result_item: ThreeDiResultItem) -> None:
+        """Remove grouped result layers and prune only empty owned groups."""
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+
+        for layer_id in list(result_item.layer_ids.values()):
+            if project.mapLayer(layer_id) is not None:
+                project.removeMapLayer(layer_id)
+                continue
+
+            layer_node = root.findLayer(layer_id)
+            if layer_node is not None and layer_node.parent() is not None:
+                layer_node.parent().removeChildNode(layer_node)
+
+        result_item.layer_ids.clear()
+
+        layer_group = result_item.layer_group
+        if layer_group is None:
+            return
+
+        grid_group = next(
+            (
+                child
+                for child in layer_group.children()
+                if isinstance(child, QgsLayerTreeGroup)
+                and child.name() == GRID_GROUP_NAME
+            ),
+            None,
+        )
+        if grid_group is not None and not grid_group.children():
+            layer_group.removeChildNode(grid_group)
+
+        if layer_group.children():
+            logger.info(
+                "Grouped result group contains external layers or groups: not removing."
+            )
+            return
+
+        current_group = layer_group
+        while current_group is not root and not current_group.children():
+            parent = current_group.parent()
+            if parent is None:
+                break
+            parent.removeChildNode(current_group)
+            current_group = parent
+
+        if current_group is not layer_group:
+            result_item.layer_group = None
 
     @dirty
     @pyqtSlot(ThreeDiResultItem)
