@@ -528,7 +528,11 @@ class ThreeDiPluginLayerManager(QObject):
             # therefore we reuse the layer instance.
             scratch_layer = None
             if reuse_existing and table_name in layer_ids.keys():
-                scratch_layer = QgsProject.instance().mapLayer(layer_ids[table_name])
+                candidate_layer = QgsProject.instance().mapLayer(layer_ids[table_name])
+                if candidate_layer and candidate_layer.objectName() == table_name:
+                    scratch_layer = candidate_layer
+                else:
+                    layer_ids.pop(table_name, None)
                 if scratch_layer:
                     logger.info(f"Map layer corresponding to table {layer_ids[table_name]} already exist in project, reusing...")
 
@@ -544,9 +548,12 @@ class ThreeDiPluginLayerManager(QObject):
                 empty_layers.append(layer_name)
                 continue
 
-            vector_layer = copy_layer_into_memory_layer(
-                vector_layer, layer_name, scratch_layer
-            )
+            if scratch_layer is not None and scratch_layer.featureCount():
+                vector_layer = scratch_layer
+            else:
+                vector_layer = copy_layer_into_memory_layer(
+                    vector_layer, layer_name, scratch_layer
+                )
 
             # Apply the style
             qml_path = safe_join(grid_style_dir, f"{table_name}.qml")
@@ -576,6 +583,8 @@ class ThreeDiPluginLayerManager(QObject):
                 QgsProject.instance().addMapLayer(vector_layer, addToLegend=False)
                 # Add to computational grid subgroup (created above)
                 layer_group.findGroup(GRID_GROUP_NAME).addLayer(vector_layer)
+            elif layer_group.findLayer(scratch_layer.id()) is None:
+                layer_group.findGroup(GRID_GROUP_NAME).addLayer(scratch_layer)
 
             if progress_bar:
                 progress_bar.increase_progress()
@@ -623,7 +632,7 @@ class ThreeDiPluginLayerManager(QObject):
             path,
             result_item.layer_group,
             result_item.layer_ids,
-            reuse_existing=False,
+            reuse_existing=True,
         )
 
     @staticmethod

@@ -18,6 +18,23 @@ class IdentityResolver:
     def writePath(self, path):
         return f"resolved:{path}"
 
+    def readPath(self, path):
+        return path.removeprefix("resolved:")
+
+
+class RecordingLoader:
+    def __init__(self):
+        self.grids = []
+        self.results = []
+
+    def load_grid(self, grid_item, project=None):
+        self.grids.append((grid_item, project))
+        return True
+
+    def load_result(self, result_item, grid_item):
+        self.results.append((result_item, grid_item))
+        return True
+
 
 def _serialize_model(model):
     document = QDomDocument()
@@ -75,3 +92,49 @@ def test_legacy_result_omits_grouped_metadata():
 
     assert not result_element.hasAttribute("group_path")
     assert result_element.elementsByTagName("layer").length() == 0
+
+
+def test_grouped_result_read_restores_path_and_owned_layers():
+    model = ThreeDiPluginModel()
+    grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
+    grid.layer_ids["node"] = "grid-node-id"
+    result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
+    result.group_path = ["project", "files", "result.zip"]
+    result.layer_ids = {"node": "result-node-id", "flowline": "result-flowline-id"}
+    assert model.add_grid(grid)
+    assert model.add_result(result, grid)
+    document = QDomDocument()
+    document.setContent("<qgis/>")
+    assert ThreeDiPluginModelSerializer.write(model, document, IdentityResolver())[0]
+
+    loader = RecordingLoader()
+    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
+
+    restored_grid = loader.grids[0][0]
+    restored_result, result_parent = loader.results[0]
+    assert restored_grid.layer_ids == {"node": "grid-node-id"}
+    assert restored_result.group_path == ["project", "files", "result.zip"]
+    assert restored_result.layer_ids == {
+        "node": "result-node-id",
+        "flowline": "result-flowline-id",
+    }
+    assert result_parent is restored_grid
+
+
+def test_legacy_result_read_does_not_claim_grid_layers():
+    model = ThreeDiPluginModel()
+    grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
+    grid.layer_ids["node"] = "grid-node-id"
+    result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
+    assert model.add_grid(grid)
+    assert model.add_result(result, grid)
+    document = QDomDocument()
+    document.setContent("<qgis/>")
+    assert ThreeDiPluginModelSerializer.write(model, document, IdentityResolver())[0]
+
+    loader = RecordingLoader()
+    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
+
+    restored_result = loader.results[0][0]
+    assert restored_result.group_path is None
+    assert restored_result.layer_ids == {}

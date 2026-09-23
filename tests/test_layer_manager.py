@@ -489,3 +489,59 @@ def test_legacy_waterdepth_stays_under_grid_group(tmp_path):
             root_group = root.findGroup(group.parent().name())
             if root_group is not None:
                 root.removeChildNode(root_group)
+
+
+def test_grouped_layer_restore_reuses_existing_layer_ids(tmp_path):
+    """Restoring valid grouped IDs reuses layers instead of creating duplicates."""
+    source_gpkg_path = (
+        Path(__file__).parent
+        / "data"
+        / "testmodel"
+        / "v2_bergermeer"
+        / "gridadmin.gpkg"
+    )
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+    group_path = [f"task12-{uuid4().hex}", "files", "result.zip"]
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    original_result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
+    original_result.group_path = group_path
+    grid_item.appendRow(original_result)
+
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+    manager = ThreeDiPluginLayerManager()
+
+    try:
+        assert manager.load_result(original_result, grid_item)
+        stored_layer_ids = dict(original_result.layer_ids)
+        stored_feature_counts = {
+            table_name: project.mapLayer(layer_id).featureCount()
+            for table_name, layer_id in stored_layer_ids.items()
+        }
+        initial_project_layer_ids = set(project.mapLayers())
+
+        restored_result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
+        restored_result.group_path = list(group_path)
+        restored_result.layer_ids = dict(stored_layer_ids)
+        grid_item.appendRow(restored_result)
+
+        assert manager.load_result(restored_result, grid_item)
+        assert restored_result.layer_ids == stored_layer_ids
+        assert set(project.mapLayers()) == initial_project_layer_ids
+        assert {
+            table_name: project.mapLayer(layer_id).featureCount()
+            for table_name, layer_id in restored_result.layer_ids.items()
+        } == stored_feature_counts
+        assert {
+            layer_node.layerId()
+            for layer_node in restored_result.layer_group.findGroup(
+                GRID_GROUP_NAME
+            ).findLayers()
+        } == set(stored_layer_ids.values())
+    finally:
+        for layer_id in stored_layer_ids if "stored_layer_ids" in locals() else []:
+            project.removeMapLayer(layer_id)
+        group = root.findGroup(group_path[0])
+        if group is not None:
+            root.removeChildNode(group)
