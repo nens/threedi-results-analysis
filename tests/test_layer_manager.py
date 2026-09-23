@@ -151,3 +151,109 @@ def test_legacy_result_load_uses_grid_layers_before_model_addition():
         )
     finally:
         project.removeMapLayer(layer.id())
+
+
+def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
+    """Grouped field and style changes stay isolated from a sibling result.
+
+    Both results share one logical grid, but each result owns a separate set of
+    QGIS layers. The test changes only the first result and verifies that the
+    second result is unaffected.
+    """
+    # Copy the source GeoPackage so the test can open it without creating
+    # SQLite sidecar files next to the committed fixture.
+    source_gpkg_path = (
+        Path(__file__).parent
+        / "data"
+        / "testmodel"
+        / "v2_bergermeer"
+        / "gridadmin.gpkg"
+    )
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+    group_root = f"task6-{uuid4().hex}"
+
+    # Keep both results under one model grid while giving them different QGIS
+    # layer-tree paths. This is the distinction the grouped ownership model
+    # must preserve.
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    result_items = []
+    for result_name, result_text in (
+        ("result-a.zip", "Result A"),
+        ("result-b.zip", "Result B"),
+    ):
+        result_item = ThreeDiResultItem(Path(f"c:/{result_name}/results_3di.nc"))
+        result_item.group_path = [group_root, result_name]
+        result_item.setText(result_text)
+        grid_item.appendRow(result_item)
+        result_items.append(result_item)
+
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+
+    try:
+        manager = ThreeDiPluginLayerManager()
+
+        # Loading creates independent memory layers and adds each result's
+        # dynamic fields to its own layer set.
+        for result_item in result_items:
+            assert manager.load_result(result_item, grid_item)
+
+        first_result, second_result = result_items
+        first_layer_id = first_result.layer_ids["node"]
+        second_layer_id = second_result.layer_ids["node"]
+        first_layer = project.mapLayer(first_layer_id)
+        second_layer = project.mapLayer(second_layer_id)
+
+        # Users cannot edit generated computational-grid layers. The manager
+        # may still remove the dynamic fields it created during result cleanup.
+        assert first_layer.readOnly()
+        assert second_layer.readOnly()
+
+        first_field_names = first_result._result_field_names[first_layer_id]
+        second_field_names = second_result._result_field_names[second_layer_id]
+
+        # Each result has its own fields and receives its own initial aliases;
+        # the two results must not share field state through the parent grid.
+        assert all(
+            first_layer.fields().indexFromName(name) != -1 for name in first_field_names
+        )
+        assert all(
+            second_layer.fields().indexFromName(name) != -1
+            for name in second_field_names
+        )
+        assert first_layer.fields().field(first_field_names[0]).alias() == "Result A"
+        assert second_layer.fields().field(second_field_names[0]).alias() == "Result B"
+
+        # Renaming the first result updates only aliases on the first result's
+        # layers. The sibling retains its original display name.
+        first_result.setText("Renamed A")
+        manager.update_result(first_result)
+        assert first_layer.fields().field(first_field_names[0]).alias() == "Renamed A"
+        assert second_layer.fields().field(second_field_names[0]).alias() == "Result B"
+
+        # result_unchecked() must reset styling/name state on the selected
+        # grouped result, not on the sibling's independently owned layers.
+        first_layer.setName("Changed layer name")
+        second_layer.setName("Sibling layer name")
+        manager.result_unchecked(first_result)
+        assert first_layer.name() == "Node"
+        assert second_layer.name() == "Sibling layer name"
+
+        # Removing the first result through the manager invokes internal
+        # cleanup of its generated fields, while the sibling remains intact.
+        # Layer/group deletion is handled by the later cleanup task.
+        assert manager.unload_result(first_result)
+        assert all(
+            first_layer.fields().indexFromName(name) == -1 for name in first_field_names
+        )
+        assert all(
+            second_layer.fields().indexFromName(name) != -1
+            for name in second_field_names
+        )
+    finally:
+        # The test owns both temporary result layer sets and their group tree.
+        for result_item in result_items:
+            for layer_id in result_item.layer_ids.values():
+                project.removeMapLayer(layer_id)
+        root.removeChildNode(root.findGroup(group_root))
