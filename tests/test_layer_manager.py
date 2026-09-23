@@ -153,6 +153,28 @@ def test_legacy_result_load_uses_grid_layers_before_model_addition():
         project.removeMapLayer(layer.id())
 
 
+def test_legacy_result_unload_keeps_grid_layers():
+    """Legacy result removal still leaves the grid-owned layer in place."""
+    project = QgsProject.instance()
+    layer = QgsVectorLayer("Point?crs=EPSG:28992", "Node", "memory")
+    assert layer.isValid()
+    project.addMapLayer(layer, addToLegend=False)
+
+    grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.gpkg"), "grid")
+    grid_item.layer_ids["node"] = layer.id()
+    result_item = ThreeDiResultItem(Path("c:/test/results_3di.nc"))
+    grid_item.appendRow(result_item)
+
+    try:
+        manager = ThreeDiPluginLayerManager()
+        assert manager.load_result(result_item, grid_item)
+        assert manager.unload_result(result_item)
+        assert project.mapLayer(layer.id()) is not None
+        assert layer.id() in grid_item.layer_ids.values()
+    finally:
+        project.removeMapLayer(layer.id())
+
+
 def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
     """Grouped field and style changes stay isolated from a sibling result.
 
@@ -240,20 +262,120 @@ def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
         assert first_layer.name() == "Node"
         assert second_layer.name() == "Sibling layer name"
 
-        # Removing the first result through the manager invokes internal
-        # cleanup of its generated fields, while the sibling remains intact.
-        # Layer/group deletion is handled by the later cleanup task.
+        # Removing the first result invokes internal cleanup of its generated
+        # fields and (for grouped results) its owned layers.
         assert manager.unload_result(first_result)
-        assert all(
-            first_layer.fields().indexFromName(name) == -1 for name in first_field_names
-        )
         assert all(
             second_layer.fields().indexFromName(name) != -1
             for name in second_field_names
         )
+        assert not first_result.layer_ids
+        assert project.mapLayer(first_layer_id) is None
+        assert project.mapLayer(second_layer_id) is not None
     finally:
         # The test owns both temporary result layer sets and their group tree.
         for result_item in result_items:
             for layer_id in result_item.layer_ids.values():
                 project.removeMapLayer(layer_id)
         root.removeChildNode(root.findGroup(group_root))
+
+
+def test_grouped_result_unload_prunes_empty_ancestors(tmp_path):
+    """Removing the only grouped result prunes its empty path hierarchy."""
+    source_gpkg_path = (
+        Path(__file__).parent
+        / "data"
+        / "testmodel"
+        / "v2_bergermeer"
+        / "gridadmin.gpkg"
+    )
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+    group_path = [f"task7-{uuid4().hex}", "files", "result.zip"]
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    result_item = ThreeDiResultItem(Path("c:/result.zip/results_3di.nc"))
+    result_item.group_path = group_path
+    grid_item.appendRow(result_item)
+
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+
+    try:
+        manager = ThreeDiPluginLayerManager()
+        assert manager.load_result(result_item, grid_item)
+        layer_ids = set(result_item.layer_ids.values())
+
+        assert manager.unload_result(result_item)
+
+        assert not result_item.layer_ids
+        assert result_item.layer_group is None
+        assert all(project.mapLayer(layer_id) is None for layer_id in layer_ids)
+        assert root.findGroup(group_path[0]) is None
+    finally:
+        group = root.findGroup(group_path[0])
+        if group is not None:
+            root.removeChildNode(group)
+
+
+def test_grouped_result_unload_preserves_sibling_and_external_layer(tmp_path):
+    """Removal preserves sibling results and external shared-ancestor layers."""
+    source_gpkg_path = (
+        Path(__file__).parent
+        / "data"
+        / "testmodel"
+        / "v2_bergermeer"
+        / "gridadmin.gpkg"
+    )
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+    group_root = f"task7-{uuid4().hex}"
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    result_items = []
+    for result_name in ("result-a.zip", "result-b.zip"):
+        result_item = ThreeDiResultItem(Path(f"c:/{result_name}/results_3di.nc"))
+        result_item.group_path = [group_root, result_name]
+        grid_item.appendRow(result_item)
+        result_items.append(result_item)
+
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+    external_layer = QgsVectorLayer("Point?crs=EPSG:28992", "External", "memory")
+    assert external_layer.isValid()
+    project.addMapLayer(external_layer, addToLegend=False)
+
+    try:
+        manager = ThreeDiPluginLayerManager()
+        for result_item in result_items:
+            assert manager.load_result(result_item, grid_item)
+
+        common_group = root.findGroup(group_root)
+        assert common_group is not None
+        common_group.addLayer(external_layer)
+
+        first_result, second_result = result_items
+        first_layer_ids = set(first_result.layer_ids.values())
+        second_layer_ids = set(second_result.layer_ids.values())
+        assert manager.unload_result(first_result)
+
+        # Only the removed result's QGIS layers and final group are gone.
+        assert all(project.mapLayer(layer_id) is None for layer_id in first_layer_ids)
+        assert all(
+            project.mapLayer(layer_id) is not None for layer_id in second_layer_ids
+        )
+        assert first_result.layer_group is None
+        assert second_result.layer_group is not None
+        assert root.findGroup(group_root).findGroup("result-a.zip") is None
+        assert root.findGroup(group_root).findGroup("result-b.zip") is not None
+
+        # The shared ancestor remains because it contains both the sibling and
+        # an externally added layer.
+        assert project.mapLayer(external_layer.id()) is not None
+        assert root.findGroup(group_root).findLayer(external_layer.id()) is not None
+    finally:
+        for result_item in result_items:
+            for layer_id in result_item.layer_ids.values():
+                project.removeMapLayer(layer_id)
+        project.removeMapLayer(external_layer.id())
+        group = root.findGroup(group_root)
+        if group is not None:
+            root.removeChildNode(group)
