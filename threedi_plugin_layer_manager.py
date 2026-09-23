@@ -185,6 +185,11 @@ class ThreeDiPluginLayerManager(QObject):
         if not threedi_result_item.text():
             threedi_result_item.setText(ThreeDiPluginLayerManager._resolve_result_item_text(threedi_result_item.path))
 
+        if threedi_result_item.group_path:
+            threedi_result_item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_path(
+                threedi_result_item.group_path
+            )
+
         # Add result fields for this result to the grid layers
         logger.info("Adding result fields to grid layers")
         for layer_id in grid_item.layer_ids.values():
@@ -501,6 +506,38 @@ class ThreeDiPluginLayerManager(QObject):
         if not layer_group.findGroup(GRID_GROUP_NAME):
             layer_group.insertGroup(0, GRID_GROUP_NAME)
         return layer_group
+
+    @staticmethod
+    def _get_or_create_group_path(group_path: list[str]) -> QgsLayerTreeGroup:
+        """Create the direct QGIS layer-tree hierarchy for a result path."""
+        current_group = QgsProject.instance().layerTreeRoot()
+        for group_name in group_path:
+            group = next(
+                (
+                    child
+                    for child in current_group.children()
+                    if isinstance(child, QgsLayerTreeGroup)
+                    and child.name() == group_name
+                ),
+                None,
+            )
+            if group is None:
+                group = current_group.addGroup(group_name)
+            current_group = group
+
+        grid_group = next(
+            (
+                child
+                for child in current_group.children()
+                if isinstance(child, QgsLayerTreeGroup)
+                and child.name() == GRID_GROUP_NAME
+            ),
+            None,
+        )
+        if grid_group is None:
+            current_group.insertGroup(0, GRID_GROUP_NAME)
+
+        return current_group
 
     @staticmethod
     def _get_or_create_group(group_name: str):
