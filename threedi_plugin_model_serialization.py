@@ -72,9 +72,13 @@ class ThreeDiPluginModelSerializer:
 
                     model_node = ThreeDiGridItem(Path(resolver.readPath(xml_element_node.attribute("path"))), xml_element_node.attribute("text"), id)
                     assert xml_node.hasChildNodes()
-                    layer_nodes = xml_element_node.elementsByTagName("layer")
-                    for i in range(layer_nodes.count()):
-                        label_node = layer_nodes.at(i).toElement()
+                    layer_nodes = [
+                        child.toElement()
+                        for i in range(xml_element_node.childNodes().count())
+                        for child in [xml_element_node.childNodes().at(i)]
+                        if child.isElement() and child.toElement().tagName() == "layer"
+                    ]
+                    for label_node in layer_nodes:
                         model_node.layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
 
                     project = xml_element_node.attribute("project") or None
@@ -89,6 +93,15 @@ class ThreeDiPluginModelSerializer:
                     model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))), id)
                     model_node.setCheckState(int(xml_element_node.attribute("check_state")))
                     model_node.setText(xml_element_node.attribute("text"))
+
+                    group_path = xml_element_node.attribute("group_path")
+                    if group_path and group_path.strip():
+                        model_node.group_path = [part for part in group_path.split("/") if part]
+                        for i in range(xml_element_node.childNodes().count()):
+                            child = xml_element_node.childNodes().at(i)
+                            if child.isElement() and child.toElement().tagName() == "layer":
+                                layer_node = child.toElement()
+                                model_node.layer_ids[layer_node.attribute("table_name")] = layer_node.attribute("id")
 
                     assert isinstance(model_parent, ThreeDiGridItem)
                     if not loader.load_result(model_node, model_parent):
