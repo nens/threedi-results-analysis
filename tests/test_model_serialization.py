@@ -138,3 +138,50 @@ def test_legacy_result_read_does_not_claim_grid_layers():
     restored_result = loader.results[0][0]
     assert restored_result.group_path is None
     assert restored_result.layer_ids == {}
+
+
+def test_grid_with_only_grouped_results_restores_as_deferred():
+    """Restoring a project where every result under a grid is grouped must
+    not eagerly recreate the grid's own (shared) layers on reopen."""
+    model = ThreeDiPluginModel()
+    grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
+    result_a = ThreeDiResultItem(Path("c:/result-a/results_3di.nc"))
+    result_a.group_path = ["files", "result-a.zip"]
+    result_b = ThreeDiResultItem(Path("c:/result-b/results_3di.nc"))
+    result_b.group_path = ["files", "result-b.zip"]
+    assert model.add_grid(grid)
+    assert model.add_result(result_a, grid)
+    assert model.add_result(result_b, grid)
+
+    document = QDomDocument()
+    document.setContent("<qgis/>")
+    assert ThreeDiPluginModelSerializer.write(model, document, IdentityResolver())[0]
+
+    loader = RecordingLoader()
+    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
+
+    restored_grid = loader.grids[0][0]
+    assert restored_grid.defer_layer_creation is True
+
+
+def test_grid_with_a_legacy_result_does_not_restore_as_deferred():
+    """If any result under a grid is non-grouped, the grid's own layers are
+    needed and must not be deferred on restore."""
+    model = ThreeDiPluginModel()
+    grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
+    grouped_result = ThreeDiResultItem(Path("c:/result-a/results_3di.nc"))
+    grouped_result.group_path = ["files", "result-a.zip"]
+    legacy_result = ThreeDiResultItem(Path("c:/result-b/results_3di.nc"))
+    assert model.add_grid(grid)
+    assert model.add_result(grouped_result, grid)
+    assert model.add_result(legacy_result, grid)
+
+    document = QDomDocument()
+    document.setContent("<qgis/>")
+    assert ThreeDiPluginModelSerializer.write(model, document, IdentityResolver())[0]
+
+    loader = RecordingLoader()
+    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
+
+    restored_grid = loader.grids[0][0]
+    assert restored_grid.defer_layer_creation is False

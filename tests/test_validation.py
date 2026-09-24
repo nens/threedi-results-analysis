@@ -208,6 +208,24 @@ class TestGridValidator(unittest.TestCase):
             new_grid_item = validator.validate_grid("c:/test/gridadmin.h5", project='bar')
             grid_valid.emit.assert_called_once_with(new_grid_item, 'bar')
 
+    def test_new_grid_defers_layer_creation_when_grouped(self):
+        """A brand-new grid requested only for a grouped result should not
+        eagerly create its own (shared) layers; the layer manager creates
+        them lazily only if a non-grouped result later needs them."""
+        validator = ThreeDiPluginModelValidator(self.model)
+        with patch.object(validator, "grid_valid") as grid_valid:
+            new_grid_item = validator.validate_grid(
+                "c:/test/gridadmin.h5", group_path=["files", "result.zip"]
+            )
+            grid_valid.emit.assert_called_once_with(new_grid_item, '')
+            self.assertTrue(new_grid_item.defer_layer_creation)
+
+    def test_new_grid_does_not_defer_layer_creation_without_group_path(self):
+        validator = ThreeDiPluginModelValidator(self.model)
+        with patch.object(validator, "grid_valid"):
+            new_grid_item = validator.validate_grid("c:/test/gridadmin.h5")
+            self.assertFalse(new_grid_item.defer_layer_creation)
+
     def test_grid_already_present(self):
         grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.h5"), "text")
         self.model.add_grid(grid_item)
