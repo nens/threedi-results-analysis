@@ -118,12 +118,21 @@ class ThreeDiPluginLayerManager(QObject):
         if not grid_item.text():
             grid_item.setText(ThreeDiPluginLayerManager._resolve_grid_item_text(grid_item.path))
 
+        grid_item.project = project
+
+        if grid_item.defer_layer_creation:
+            # Only requested so far for a grouped result, which owns
+            # independent layers of its own. Register the grid without
+            # creating its own layers; they are created on demand (see
+            # load_result()) if a non-grouped result ever needs them.
+            grid_item.defer_layer_creation = False
+            self.grid_loaded.emit(grid_item)
+            return True
+
         if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, grid_item, project=project):
             pop_up_critical("Failed adding the layers to the project.")
             self.grid_not_loaded.emit(grid_item)
             return False
-
-        grid_item.project = project
 
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Added layers to the project", duration=2)
 
@@ -133,6 +142,12 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiGridItem)
     def unload_grid(self, item: ThreeDiGridItem) -> bool:
         """Removes the corresponding layers from the group in the project"""
+
+        if item.layer_group is None:
+            # Grid never had its own layers created (only used by grouped
+            # results so far, which own and clean up their layers themselves).
+            self.grid_unloaded.emit(item)
+            return True
 
         # It could be possible that some layers have been dragged outside the
         # layer group. Delete the individual layers first
@@ -144,7 +159,6 @@ class ThreeDiPluginLayerManager(QObject):
         # Deletion of root node of a tree will delete all nodes of the tree.
         # In case the user dragged another layer in the group, remove the reference
         # from this grid to the group, but don't delete it from QGIS.
-        assert item.layer_group
         grid_group = item.layer_group.findGroup(GRID_GROUP_NAME)
 
         # Remove "Computational Grid" group
@@ -174,7 +188,10 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiGridItem)
     def update_grid(self, item: ThreeDiGridItem) -> bool:
         """Updates the group name in the project"""
-        assert item.layer_group
+        if item.layer_group is None:
+            # Grid has no layers of its own yet (only used by grouped
+            # results so far); nothing to rename.
+            return True
         item.layer_group.setName(item.text())
         return True
 
@@ -191,6 +208,15 @@ class ThreeDiPluginLayerManager(QObject):
             )
             if not ThreeDiPluginLayerManager._add_grouped_layers_from_gpkg(
                 grid_item.path, threedi_result_item
+            ):
+                self.result_not_loaded.emit(threedi_result_item, grid_item)
+                return False
+        elif grid_item.layer_group is None and not grid_item.layer_ids:
+            # The grid's own layers were not created yet (it was first
+            # requested only for a grouped result). This non-grouped result
+            # needs the grid's shared layers, so create them now.
+            if not ThreeDiPluginLayerManager._add_layers_from_gpkg(
+                grid_item.path, grid_item, project=grid_item.project
             ):
                 self.result_not_loaded.emit(threedi_result_item, grid_item)
                 return False
