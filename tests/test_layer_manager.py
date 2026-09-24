@@ -162,7 +162,7 @@ def test_grid_first_used_by_grouped_result_defers_own_layers(tmp_path):
     assert set(project.mapLayers()) == initial_layer_ids
 
 
-def test_grid_layers_materialized_lazily_for_legacy_result(tmp_path):
+def test_grid_layers_materialized_lazily_for_standalone_result(tmp_path):
     """If a non-grouped result later attaches to a grid whose own layers
     were deferred, the grid's shared layers must be created on demand."""
     source_gpkg_path = (
@@ -192,7 +192,7 @@ def test_grid_layers_materialized_lazily_for_legacy_result(tmp_path):
         assert grid_item.layer_ids
         assert grid_item.layer_group.findGroup(GRID_GROUP_NAME) is not None
 
-        # The (legacy) result fields were added to the grid-owned layers.
+        # The (standalone) result fields were added to the grid-owned layers.
         for layer_id in grid_item.layer_ids.values():
             layer = project.mapLayer(layer_id)
             assert layer is not None
@@ -206,9 +206,9 @@ def test_grid_layers_materialized_lazily_for_legacy_result(tmp_path):
             root.removeChildNode(grid_item.layer_group)
 
 
-def test_grouped_result_first_then_legacy_result_share_one_grid(tmp_path):
+def test_grouped_result_first_then_standalone_result_share_one_grid(tmp_path):
     """Mixed use of one grid: a grouped result loads first (deferring the
-    grid's own layers), then a legacy result attaches afterwards. The grid's
+    grid's own layers), then a standalone result attaches afterwards. The grid's
     own layers must be created exactly once, on demand, and the grouped
     result's independent layers must be unaffected."""
     source_gpkg_path = (
@@ -232,8 +232,8 @@ def test_grouped_result_first_then_legacy_result_share_one_grid(tmp_path):
     grouped_result.group_path = [group_root, "grouped.zip"]
     grid_item.appendRow(grouped_result)
 
-    legacy_result = ThreeDiResultItem(Path("c:/legacy/results_3di.nc"))
-    grid_item.appendRow(legacy_result)
+    standalone_result = ThreeDiResultItem(Path("c:/standalone/results_3di.nc"))
+    grid_item.appendRow(standalone_result)
 
     try:
         # Grouped result loads first: grid stays deferred, grouped result
@@ -243,9 +243,9 @@ def test_grouped_result_first_then_legacy_result_share_one_grid(tmp_path):
         assert grid_item.layer_ids == {}
         assert grouped_result.layer_ids
 
-        # Legacy result loads second: this is what finally materializes the
+        # Standalone result loads second: this is what finally materializes the
         # grid's own (shared) layers.
-        assert manager.load_result(legacy_result, grid_item)
+        assert manager.load_result(standalone_result, grid_item)
         assert grid_item.layer_group is not None
         assert grid_item.layer_ids
 
@@ -255,7 +255,7 @@ def test_grouped_result_first_then_legacy_result_share_one_grid(tmp_path):
         )
         for layer_id in grid_item.layer_ids.values():
             layer = project.mapLayer(layer_id)
-            assert set(legacy_result._result_field_names[layer_id]).issubset(
+            assert set(standalone_result._result_field_names[layer_id]).issubset(
                 {field.name() for field in layer.fields()}
             )
     finally:
@@ -268,8 +268,8 @@ def test_grouped_result_first_then_legacy_result_share_one_grid(tmp_path):
         root.removeChildNode(root.findGroup(group_root))
 
 
-def test_legacy_result_first_then_grouped_result_share_one_grid(tmp_path):
-    """Mixed use of one grid in the opposite order: a legacy result loads
+def test_standalone_result_first_then_grouped_result_share_one_grid(tmp_path):
+    """Mixed use of one grid in the opposite order: a standalone result loads
     first (creating the grid's own layers immediately, as always), then a
     grouped result attaches afterwards and still gets independent layers."""
     source_gpkg_path = (
@@ -291,15 +291,15 @@ def test_legacy_result_first_then_grouped_result_share_one_grid(tmp_path):
     assert grid_item.layer_group is not None  # created immediately, as before
     assert grid_item.layer_ids
 
-    legacy_result = ThreeDiResultItem(Path("c:/legacy/results_3di.nc"))
-    grid_item.appendRow(legacy_result)
+    standalone_result = ThreeDiResultItem(Path("c:/standalone/results_3di.nc"))
+    grid_item.appendRow(standalone_result)
 
     grouped_result = ThreeDiResultItem(Path("c:/grouped/results_3di.nc"))
     grouped_result.group_path = [group_root, "grouped.zip"]
     grid_item.appendRow(grouped_result)
 
     try:
-        assert manager.load_result(legacy_result, grid_item)
+        assert manager.load_result(standalone_result, grid_item)
         assert manager.load_result(grouped_result, grid_item)
 
         assert grouped_result.layer_ids
@@ -308,7 +308,7 @@ def test_legacy_result_first_then_grouped_result_share_one_grid(tmp_path):
         )
         for layer_id in grid_item.layer_ids.values():
             layer = project.mapLayer(layer_id)
-            assert set(legacy_result._result_field_names[layer_id]).issubset(
+            assert set(standalone_result._result_field_names[layer_id]).issubset(
                 {field.name() for field in layer.fields()}
             )
     finally:
@@ -334,8 +334,8 @@ def test_unload_and_update_grid_tolerate_deferred_layers(tmp_path):
     manager.unload_grid(grid_item)  # must not raise
 
 
-def test_legacy_result_load_uses_grid_layers_before_model_addition():
-    """Legacy loading still targets grid layers before model insertion."""
+def test_standalone_result_load_uses_grid_layers_before_model_addition():
+    """Standalone loading still targets grid layers before model insertion."""
     project = QgsProject.instance()
     layer = QgsVectorLayer("Point?crs=EPSG:28992", "Node", "memory")
     assert layer.isValid()
@@ -355,8 +355,8 @@ def test_legacy_result_load_uses_grid_layers_before_model_addition():
         project.removeMapLayer(layer.id())
 
 
-def test_legacy_result_unload_keeps_grid_layers():
-    """Legacy result removal still leaves the grid-owned layer in place."""
+def test_standalone_result_unload_keeps_grid_layers():
+    """Standalone result removal still leaves the grid-owned layer in place."""
     project = QgsProject.instance()
     layer = QgsVectorLayer("Point?crs=EPSG:28992", "Node", "memory")
     assert layer.isValid()
@@ -659,10 +659,10 @@ def test_grouped_waterdepth_is_owned_and_removed_independently(tmp_path):
             root.removeChildNode(group)
 
 
-def test_legacy_waterdepth_stays_under_grid_group(tmp_path):
-    """Legacy Waterdepth placement remains owned by the parent grid group."""
+def test_standalone_waterdepth_stays_under_grid_group(tmp_path):
+    """Standalone Waterdepth placement remains owned by the parent grid group."""
     source_raster_path = Path(__file__).parent / "data" / "rasters" / "test1.tif"
-    result_dir = tmp_path / "legacy-result"
+    result_dir = tmp_path / "standalone-result"
     result_dir.mkdir()
     shutil.copy(source_raster_path, result_dir / "max_waterdepth.tif")
 
