@@ -322,7 +322,7 @@ class Graph3DiQgsConnector:
             logger.info("Retrieving result group from cache")
             self.result_group = self.preloaded_layers[self.result_id]["group"]
         else:
-            # Place result layers below the owning grouped/legacy result group.
+            # Place result layers below the owning grouped/standalone result group.
             result = self.model.get_result(self.result_id)
             result_group_parent = result.get_layer_group()
             assert result_group_parent

@@ -79,7 +79,7 @@ def test_grouped_result_serializes_display_path_and_owned_layers():
     assert grid_layer.attribute("id") == "grid-node-id"
 
 
-def test_legacy_result_omits_grouped_metadata():
+def test_standalone_result_omits_grouped_metadata():
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
     result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
@@ -121,7 +121,7 @@ def test_grouped_result_read_restores_path_and_owned_layers():
     assert result_parent is restored_grid
 
 
-def test_legacy_result_read_does_not_claim_grid_layers():
+def test_standalone_result_read_does_not_claim_grid_layers():
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
     grid.layer_ids["node"] = "grid-node-id"
@@ -164,17 +164,17 @@ def test_grid_with_only_grouped_results_restores_as_deferred():
     assert restored_grid.defer_layer_creation is True
 
 
-def test_grid_with_a_legacy_result_does_not_restore_as_deferred():
+def test_grid_with_a_standalone_result_does_not_restore_as_deferred():
     """If any result under a grid is non-grouped, the grid's own layers are
     needed and must not be deferred on restore."""
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
     grouped_result = ThreeDiResultItem(Path("c:/result-a/results_3di.nc"))
     grouped_result.group_path = ["files", "result-a.zip"]
-    legacy_result = ThreeDiResultItem(Path("c:/result-b/results_3di.nc"))
+    standalone_result = ThreeDiResultItem(Path("c:/result-b/results_3di.nc"))
     assert model.add_grid(grid)
     assert model.add_result(grouped_result, grid)
-    assert model.add_result(legacy_result, grid)
+    assert model.add_result(standalone_result, grid)
 
     document = QDomDocument()
     document.setContent("<qgis/>")

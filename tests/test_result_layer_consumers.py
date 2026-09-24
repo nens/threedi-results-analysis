@@ -44,7 +44,7 @@ def test_water_balance_wrapper_resolves_grouped_result_layers():
 
 
 def test_graph_relevant_layers_include_grouped_result_layers():
-    """Graph map-tool input accepts grouped and legacy-owned layers."""
+    """Graph map-tool input accepts grouped and standalone-owned layers."""
     model = ThreeDiPluginModel()
     grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.gpkg"), "grid")
     assert model.add_grid(grid_item)

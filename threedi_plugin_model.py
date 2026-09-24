@@ -91,7 +91,7 @@ class ThreeDiResultItem(ThreeDiModelItem):
         self.setCheckState(Qt.CheckState.Unchecked)
 
         # layer info
-        # Grouped results own independent layer instances. In legacy mode these
+        # Grouped results own independent layer instances. In standalone mode these
         # remain empty and the parent grid owns the layers.
         self.group_path = None
         self.layer_group = None

@@ -152,7 +152,7 @@ flowchart TD
 
 So a grid requested purely for grouped results is registered in the model (`model.add_grid()` still fires, and all the usual `grid_added` listeners still run), but `ThreeDiGridItem.layer_group` stays `None` and `ThreeDiGridItem.layer_ids` stays empty until (and unless) something that actually needs the shared layers comes along.
 
-That "something" is a non-grouped (legacy or project-based) result attaching to the same grid later — which can happen because grids are matched and reused across loads by their model slug. `load_result()` lazily creates the grid's own layers on demand the first time this happens:
+That "something" is a non-grouped (standalone or project-based) result attaching to the same grid later — which can happen because grids are matched and reused across loads by their model slug. `load_result()` lazily creates the grid's own layers on demand the first time this happens:
 
 ```mermaid
 flowchart TD
@@ -169,10 +169,10 @@ flowchart TD
 The extra `not grid_item.layer_ids` check (in addition to `layer_group is None`) matters for tests/tools that construct a `ThreeDiGridItem` with `layer_ids` populated directly without bothering to set up a real `layer_group`: only a grid with *neither* signal set is considered
 "genuinely deferred and not yet materialized".
 
-Because deferral only ever *postpones* eager creation and materialization  is idempotent (a second legacy result attaching later just reuses the  already-created layers), the two possible attachment orders for one grid  converge on the same end state:
+Because deferral only ever *postpones* eager creation and materialization  is idempotent (a second standalone result attaching later just reuses the  already-created layers), the two possible attachment orders for one grid  converge on the same end state:
 
-- **grouped result first, legacy result later**: grid stays empty until the legacy result attaches, then its layers are created on demand.
-- **legacy result first, grouped result later**: the grid's layers are created immediately as before; the grouped result's independent layers are unaffected either way.
+- **grouped result first, standalone result later**: grid stays empty until the standalone result attaches, then its layers are created on demand.
+- **standalone result first, grouped result later**: the grid's layers are created immediately as before; the grouped result's independent layers are unaffected either way.
 
 `unload_grid()` and `update_grid()` tolerate a grid that never materialized its own layers (nothing to remove/rename) instead of asserting.
 
@@ -315,8 +315,8 @@ node's `<result>` children before calling `load_grid()`: if the grid has at
 least one result child and *all* of them carry a non-empty `group_path`,
 the restored `ThreeDiGridItem` is marked `defer_layer_creation = True` as
 well, so a saved-and-reopened purely-grouped project does not recreate the
-orphaned legacy layer tree on every reopen. If any child result has no
-`group_path` (mixed use, or plain legacy/project-based use), the grid
+orphaned ungrouped layer tree on every reopen. If any child result has no
+`group_path` (mixed use, or plain standalone/project-based use), the grid
 restores and loads its own layers immediately, exactly like a fresh
 (non-restored) load would.
 
