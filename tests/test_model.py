@@ -171,7 +171,7 @@ class TestResult(unittest.TestCase):
         self.assertEqual(result.get_layer_ids(), {"node": "result-layer-id"})
         self.assertEqual(second_result.get_layer_ids(), {"node": "result-2-layer-id"})
 
-    def test_legacy_results_use_parent_grid_layers(self):
+    def test_standalone_results_use_parent_grid_layers(self):
         self.grid_item.layer_ids = {"node": "grid-layer-id"}
         self.grid_item.layer_group = object()
         result = ThreeDiResultItem(self.result_path, "result")
