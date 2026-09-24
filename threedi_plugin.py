@@ -274,7 +274,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def read(self, doc: QDomDocument) -> bool:
         self.model.clear()
-        self.dockwidget.set_model(self.model)
 
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
@@ -282,6 +281,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if not res:
             self.model.clear()
             return False
+
+        self.dockwidget.set_model(self.model)
 
         if tool_node:
             # Allow each tool to read additional info from the dedicated xml node
