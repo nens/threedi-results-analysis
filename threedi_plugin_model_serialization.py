@@ -81,6 +81,20 @@ class ThreeDiPluginModelSerializer:
                     for label_node in layer_nodes:
                         model_node.layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
 
+                    # If every child result is grouped, this grid's own
+                    # layers were never created in the saved session either;
+                    # defer their creation the same way the live load does.
+                    result_children = [
+                        child.toElement()
+                        for i in range(xml_element_node.childNodes().count())
+                        for child in [xml_element_node.childNodes().at(i)]
+                        if child.isElement() and child.toElement().tagName() == "result"
+                    ]
+                    if result_children and all(
+                        child.attribute("group_path").strip() for child in result_children
+                    ):
+                        model_node.defer_layer_creation = True
+
                     project = xml_element_node.attribute("project") or None
                     if not loader.load_grid(model_node, project):
                         return False

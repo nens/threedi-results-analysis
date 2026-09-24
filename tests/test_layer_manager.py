@@ -133,6 +133,207 @@ def test_grouped_results_get_independent_grid_layers(tmp_path):
         root.removeChildNode(root.findGroup(group_root))
 
 
+def test_grid_first_used_by_grouped_result_defers_own_layers(tmp_path):
+    """A brand-new grid requested only for a grouped result must not get its
+    own (shared) 'Computational grid' layers created; those are only ever
+    needed by non-grouped results, and grouped results own independent
+    layers of their own (see test_grouped_result_uses_direct_group_path)."""
+    source_gpkg_path = (
+        Path(__file__).parent / "data" / "testmodel" / "v2_bergermeer" / "gridadmin.gpkg"
+    )
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    # This is what the validator does for a brand-new grid requested with a
+    # non-empty group_path (see ThreeDiPluginModelValidator.validate_grid).
+    grid_item.defer_layer_creation = True
+
+    project = QgsProject.instance()
+    initial_layer_ids = set(project.mapLayers())
+
+    manager = ThreeDiPluginLayerManager()
+    assert manager.load_grid(grid_item)
+
+    assert grid_item.layer_group is None
+    assert grid_item.layer_ids == {}
+    assert grid_item.defer_layer_creation is False
+    # No new layers were added to the project for this grid.
+    assert set(project.mapLayers()) == initial_layer_ids
+
+
+def test_grid_layers_materialized_lazily_for_legacy_result(tmp_path):
+    """If a non-grouped result later attaches to a grid whose own layers
+    were deferred, the grid's shared layers must be created on demand."""
+    source_gpkg_path = (
+        Path(__file__).parent / "data" / "testmodel" / "v2_bergermeer" / "gridadmin.gpkg"
+    )
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    grid_item.defer_layer_creation = True
+
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+
+    manager = ThreeDiPluginLayerManager()
+    assert manager.load_grid(grid_item)
+    assert grid_item.layer_group is None  # still deferred
+
+    result_item = ThreeDiResultItem(Path("c:/test/results_3di.nc"))
+    grid_item.appendRow(result_item)
+
+    try:
+        assert manager.load_result(result_item, grid_item)
+
+        # The grid's own layers now exist and are populated.
+        assert grid_item.layer_group is not None
+        assert grid_item.layer_ids
+        assert grid_item.layer_group.findGroup(GRID_GROUP_NAME) is not None
+
+        # The (legacy) result fields were added to the grid-owned layers.
+        for layer_id in grid_item.layer_ids.values():
+            layer = project.mapLayer(layer_id)
+            assert layer is not None
+            assert set(result_item._result_field_names[layer_id]).issubset(
+                {field.name() for field in layer.fields()}
+            )
+    finally:
+        for layer_id in grid_item.layer_ids.values():
+            project.removeMapLayer(layer_id)
+        if grid_item.layer_group is not None:
+            root.removeChildNode(grid_item.layer_group)
+
+
+def test_grouped_result_first_then_legacy_result_share_one_grid(tmp_path):
+    """Mixed use of one grid: a grouped result loads first (deferring the
+    grid's own layers), then a legacy result attaches afterwards. The grid's
+    own layers must be created exactly once, on demand, and the grouped
+    result's independent layers must be unaffected."""
+    source_gpkg_path = (
+        Path(__file__).parent / "data" / "testmodel" / "v2_bergermeer" / "gridadmin.gpkg"
+    )
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+    group_root = f"task-mixed-a-{uuid4().hex}"
+
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    grid_item.defer_layer_creation = True  # as validate_grid() would set for the grouped request
+
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+
+    manager = ThreeDiPluginLayerManager()
+    assert manager.load_grid(grid_item)
+    assert grid_item.layer_group is None  # still deferred
+
+    grouped_result = ThreeDiResultItem(Path("c:/grouped/results_3di.nc"))
+    grouped_result.group_path = [group_root, "grouped.zip"]
+    grid_item.appendRow(grouped_result)
+
+    legacy_result = ThreeDiResultItem(Path("c:/legacy/results_3di.nc"))
+    grid_item.appendRow(legacy_result)
+
+    try:
+        # Grouped result loads first: grid stays deferred, grouped result
+        # gets its own independent layers.
+        assert manager.load_result(grouped_result, grid_item)
+        assert grid_item.layer_group is None
+        assert grid_item.layer_ids == {}
+        assert grouped_result.layer_ids
+
+        # Legacy result loads second: this is what finally materializes the
+        # grid's own (shared) layers.
+        assert manager.load_result(legacy_result, grid_item)
+        assert grid_item.layer_group is not None
+        assert grid_item.layer_ids
+
+        # The two result-owned layer sets never overlap.
+        assert set(grouped_result.layer_ids.values()).isdisjoint(
+            set(grid_item.layer_ids.values())
+        )
+        for layer_id in grid_item.layer_ids.values():
+            layer = project.mapLayer(layer_id)
+            assert set(legacy_result._result_field_names[layer_id]).issubset(
+                {field.name() for field in layer.fields()}
+            )
+    finally:
+        for layer_id in grid_item.layer_ids.values():
+            project.removeMapLayer(layer_id)
+        for layer_id in grouped_result.layer_ids.values():
+            project.removeMapLayer(layer_id)
+        if grid_item.layer_group is not None:
+            root.removeChildNode(grid_item.layer_group)
+        root.removeChildNode(root.findGroup(group_root))
+
+
+def test_legacy_result_first_then_grouped_result_share_one_grid(tmp_path):
+    """Mixed use of one grid in the opposite order: a legacy result loads
+    first (creating the grid's own layers immediately, as always), then a
+    grouped result attaches afterwards and still gets independent layers."""
+    source_gpkg_path = (
+        Path(__file__).parent / "data" / "testmodel" / "v2_bergermeer" / "gridadmin.gpkg"
+    )
+    gpkg_path = tmp_path / "gridadmin.gpkg"
+    shutil.copy(source_gpkg_path, gpkg_path)
+    group_root = f"task-mixed-b-{uuid4().hex}"
+
+    grid_item = ThreeDiGridItem(gpkg_path, "grid")
+    # As validate_grid() would leave it for a plain (non-grouped) request.
+    assert grid_item.defer_layer_creation is False
+
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+
+    manager = ThreeDiPluginLayerManager()
+    assert manager.load_grid(grid_item)
+    assert grid_item.layer_group is not None  # created immediately, as before
+    assert grid_item.layer_ids
+
+    legacy_result = ThreeDiResultItem(Path("c:/legacy/results_3di.nc"))
+    grid_item.appendRow(legacy_result)
+
+    grouped_result = ThreeDiResultItem(Path("c:/grouped/results_3di.nc"))
+    grouped_result.group_path = [group_root, "grouped.zip"]
+    grid_item.appendRow(grouped_result)
+
+    try:
+        assert manager.load_result(legacy_result, grid_item)
+        assert manager.load_result(grouped_result, grid_item)
+
+        assert grouped_result.layer_ids
+        assert set(grouped_result.layer_ids.values()).isdisjoint(
+            set(grid_item.layer_ids.values())
+        )
+        for layer_id in grid_item.layer_ids.values():
+            layer = project.mapLayer(layer_id)
+            assert set(legacy_result._result_field_names[layer_id]).issubset(
+                {field.name() for field in layer.fields()}
+            )
+    finally:
+        for layer_id in grid_item.layer_ids.values():
+            project.removeMapLayer(layer_id)
+        for layer_id in grouped_result.layer_ids.values():
+            project.removeMapLayer(layer_id)
+        root.removeChildNode(grid_item.layer_group)
+        root.removeChildNode(root.findGroup(group_root))
+
+
+def test_unload_and_update_grid_tolerate_deferred_layers(tmp_path):
+    """unload_grid/update_grid must not crash for a grid that never had its
+    own layers materialized (only used by grouped results so far)."""
+    grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.gpkg"), "grid")
+    grid_item.setText("grid")
+    assert grid_item.layer_group is None
+    assert grid_item.layer_ids == {}
+
+    manager = ThreeDiPluginLayerManager()
+    manager.update_grid(grid_item)  # must not raise (the @dirty wrapper discards the return value)
+
+    manager.unload_grid(grid_item)  # must not raise
+
+
 def test_legacy_result_load_uses_grid_layers_before_model_addition():
     """Legacy loading still targets grid layers before model insertion."""
     project = QgsProject.instance()

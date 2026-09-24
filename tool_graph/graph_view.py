@@ -1037,7 +1037,7 @@ class GraphDockWidget(QDockWidget):
             layer_keys = ['node', 'cell']
             graph_widget = self.h_graph_widget
 
-        relevant_layer_ids = self._get_relevant_layer_ids(layer_keys)
+        relevant_layer_ids = self._get_relevant_layer_ids(self.model, layer_keys)
 
         layers_added = set()
         for result in results:
