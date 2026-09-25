@@ -7,7 +7,6 @@ from qgis.core import QgsLayerTreeGroup, QgsProject, QgsVectorLayer
 from threedi_results_analysis.threedi_plugin_layer_manager import (
     GRID_GROUP_NAME,
     ThreeDiPluginLayerManager,
-    WATERDEPTH_GROUP_NAME,
     gpkg_layers,
 )
 from threedi_results_analysis.threedi_plugin_model import (
@@ -631,9 +630,9 @@ def test_grouped_waterdepth_is_owned_and_removed_independently(tmp_path):
         for result_item in result_items:
             result_group = grouped_root.findGroup(f"{result_item.path.parent.name}.zip")
             assert result_group is not None
-            assert result_group.findGroup(WATERDEPTH_GROUP_NAME) is not None
             assert result_item.layer_group is result_group
             assert result_group.findGroup(GRID_GROUP_NAME) is not None
+            assert result_group.findLayer(result_item.waterdepth_layer_id) is not None
 
         # The normal result-removal signal order calls unload_result first and
         # unload_waterdepth second. The latter must still find result A's group.
@@ -647,7 +646,7 @@ def test_grouped_waterdepth_is_owned_and_removed_independently(tmp_path):
         assert project.mapLayer(second_waterdepth_id) is not None
         assert grouped_root.findGroup("result-a.zip") is None
         assert grouped_root.findGroup("result-b.zip") is not None
-        assert grouped_root.findGroup("result-b.zip").findGroup(WATERDEPTH_GROUP_NAME)
+        assert grouped_root.findGroup("result-b.zip").findLayer(second_waterdepth_id)
     finally:
         for result_item in result_items:
             for layer_id in result_item.layer_ids.values():
@@ -678,11 +677,13 @@ def test_standalone_waterdepth_stays_under_grid_group(tmp_path):
         manager.load_waterdepth(result_item)
 
         assert result_item.waterdepth_layer_id
-        assert group.findGroup(WATERDEPTH_GROUP_NAME) is not None
+        assert group.findLayer(result_item.waterdepth_layer_id) is not None
         assert result_item.layer_group is None
+        waterdepth_layer_id = result_item.waterdepth_layer_id
+        assert waterdepth_layer_id is not None
         assert manager.unload_waterdepth(result_item) is None
         assert result_item.waterdepth_layer_id is None
-        assert group.findGroup(WATERDEPTH_GROUP_NAME) is None
+        assert group.findLayer(waterdepth_layer_id) is None
     finally:
         if result_item.waterdepth_layer_id:
             QgsProject.instance().removeMapLayer(result_item.waterdepth_layer_id)

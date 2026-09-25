@@ -23,7 +23,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 GRID_GROUP_NAME = "Computational grid"
-WATERDEPTH_GROUP_NAME = "Waterdepth"
 
 
 def dirty(func):
@@ -310,11 +309,7 @@ class ThreeDiPluginLayerManager(QObject):
         raster_layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
         project.addMapLayer(raster_layer, addToLegend=False)
 
-        waterdepth_group = layer_group.findGroup(WATERDEPTH_GROUP_NAME)
-        if not waterdepth_group:
-            waterdepth_group = layer_group.insertGroup(1, WATERDEPTH_GROUP_NAME)
-
-        waterdepth_group.addLayer(raster_layer)
+        layer_group.addLayer(raster_layer)
         result_item.waterdepth_layer_id = raster_layer.id()
         logger.info(f"Loaded waterdepth layer: {tif_path}")
 
@@ -346,13 +341,11 @@ class ThreeDiPluginLayerManager(QObject):
                 QgsProject.instance().removeMapLayer(layer.id())
             return
 
-        waterdepth_group = layer_group.findGroup(WATERDEPTH_GROUP_NAME)
-        if waterdepth_group:
-            layer.setFlags(layer.flags() | QgsMapLayer.LayerFlag.Removable)
-            waterdepth_group.removeLayer(layer)
-            QgsProject.instance().removeMapLayer(layer.id())
-            if len(waterdepth_group.children()) == 0:
-                layer_group.removeChildNode(waterdepth_group)
+        layer.setFlags(layer.flags() | QgsMapLayer.LayerFlag.Removable)
+        layer_node = layer_group.findLayer(layer.id())
+        if layer_node is not None:
+            layer_group.removeChildNode(layer_node)
+        QgsProject.instance().removeMapLayer(layer.id())
 
         if result_item.group_path and not layer_group.children():
             if self._prune_empty_group_path(layer_group):
