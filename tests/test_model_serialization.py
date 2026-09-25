@@ -62,6 +62,7 @@ def test_grouped_result_serializes_display_path_and_owned_layers():
 
     assert result_element.attribute("path") == "resolved:c:/result/results_3di.nc"
     assert result_element.attribute("group_path") == "project/files/result.zip"
+    assert result_element.attribute("check_state") == "2"
     layers = result_element.elementsByTagName("layer")
     assert layers.length() == 2
     assert {
@@ -119,6 +120,38 @@ def test_grouped_result_read_restores_path_and_owned_layers():
         "flowline": "result-flowline-id",
     }
     assert result_parent is restored_grid
+
+
+def test_legacy_enum_check_state_is_read():
+    document = QDomDocument()
+    document.setContent(
+        """<qgis><threedi_results_analysis>
+        <grid id="grid" path="resolved:c:/grid/gridadmin.gpkg" text="grid">
+            <result id="result" path="resolved:c:/result/results_3di.nc"
+                    text="result" check_state="CheckState.Checked"/>
+        </grid>
+        </threedi_results_analysis></qgis>"""
+    )
+
+    loader = RecordingLoader()
+    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
+    assert loader.results[0][0].checkState() == Qt.CheckState.Checked
+
+
+def test_missing_check_state_defaults_to_unchecked():
+    document = QDomDocument()
+    document.setContent(
+        """<qgis><threedi_results_analysis>
+        <grid id="grid" path="resolved:c:/grid/gridadmin.gpkg" text="grid">
+            <result id="result" path="resolved:c:/result/results_3di.nc"
+                    text="result"/>
+        </grid>
+        </threedi_results_analysis></qgis>"""
+    )
+
+    loader = RecordingLoader()
+    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
+    assert loader.results[0][0].checkState() == Qt.CheckState.Unchecked
 
 
 def test_standalone_result_read_does_not_claim_grid_layers():
