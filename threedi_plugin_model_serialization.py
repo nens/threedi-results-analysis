@@ -35,19 +35,21 @@ class ThreeDiPluginModelSerializer:
         elif results_nodes.length() == 0:
             return True, None  # Nothing to load
 
-        results_node = results_nodes.at(0)
+        results_node = results_nodes.at(0).toElement()
         assert results_node.parentNode() is not None
 
         # Now traverse through the XML tree and add model items
-        if not ThreeDiPluginModelSerializer._read_recursive(loader, results_node, None, resolver):
+        if not ThreeDiPluginModelSerializer._read_recursive(
+            loader, results_node, None, resolver
+        ):
             logger.error("Unable to read XML, aborting read")
             return False, None
 
-        # Retrieve dedicated XML node for tools
+        # Retrieve dedicated XML node for tools. Older project XML may not have
+        # this optional node; model restoration does not depend on it.
         tools_node = results_node.firstChildElement("tools")
-        if not tools_node:
-            logger.error("Unable to read XML (no dedicated tool node), aborting read")
-            return False, None
+        if tools_node.isNull():
+            return True, None
 
         return True, tools_node
 
@@ -144,6 +146,9 @@ class ThreeDiPluginModelSerializer:
 
                 if not ThreeDiPluginModelSerializer._read_recursive(loader, xml_node, model_node, resolver):
                     return False
+            elif not xml_node.toText().data().strip():
+                # XML formatting creates whitespace text nodes between elements.
+                continue
             else:
                 return False
 
