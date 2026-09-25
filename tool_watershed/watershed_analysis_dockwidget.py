@@ -332,22 +332,30 @@ class Graph3DiQgsConnector:
                 tool_group = result_group_parent.insertGroup(0, GROUP_NAME)
                 tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
 
-            # Add result group
-            self.result_group = tool_group.findGroup(result.text())
-            if not self.result_group:
-                self.result_group = tool_group.addGroup(result.text())
+            if result.group_path:
+                self.result_group = tool_group
+            else:
+                # Shared grid groups need a result-specific subgroup.
+                self.result_group = tool_group.findGroup(result.text())
+                if not self.result_group:
+                    self.result_group = tool_group.addGroup(result.text())
 
-            # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
-            # infinite signal loop because the model only emits the result_changed when the text has actually
-            # changed.
-            self.result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+                # Use to modify result name when QgsLayerTreeNode is renamed.
+                self.result_group.nameChanged.connect(
+                    lambda _, txt, result_item=result: result_item.setText(txt)
+                )
 
             # Cache
             self.preloaded_layers[self.result_id]["group"] = self.result_group
 
     def _group_removed(self, n, idxFrom, idxTo):
         for result_id in list(self.preloaded_layers):
+            if "group" not in self.preloaded_layers[result_id]:
+                continue
             group = self.preloaded_layers[result_id]["group"]
+            if group is n:
+                del self.preloaded_layers[result_id]["group"]
+                continue
             for i in range(idxFrom, idxTo+1):
                 if n.children()[i] is group:
                     del self.preloaded_layers[result_id]["group"]

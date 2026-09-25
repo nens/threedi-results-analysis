@@ -64,10 +64,13 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 continue
             tool_group = result_group_parent.findGroup(GROUP_NAME)
             if tool_group:
-                result_group = tool_group.findGroup(result.text())
+                result_group = tool_group if result.group_path else tool_group.findGroup(result.text())
                 if result_group:
                     self.preloaded_layers[result_id]["group"] = result_group
-                    result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+                    if not result.group_path:
+                        result_group.nameChanged.connect(
+                            lambda _, txt, result_item=result: result_item.setText(txt)
+                        )
 
         # When the layers have been loaded, you want them to be removable until we
         # open the tool.
@@ -139,10 +142,13 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 continue
             tool_group = result_group_parent.findGroup(GROUP_NAME)
             if tool_group:
-                result_group = tool_group.findGroup(result.text())
+                result_group = tool_group if result.group_path else tool_group.findGroup(result.text())
                 if result_group:
                     loaded_layer_dict["group"] = result_group
-                    result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+                    if not result.group_path:
+                        result_group.nameChanged.connect(
+                            lambda _, txt, result_item=result: result_item.setText(txt)
+                        )
 
     def run(self):
         """Run method that loads and starts the tool"""
@@ -187,8 +193,8 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
             # Remove group
             if "group" in layer_dict:
                 result_group = layer_dict["group"]
-                tool_group = result_group.parent()
-                tool_group.removeChildNode(result_group)
+                if not result_item.group_path:
+                    result_group.parent().removeChildNode(result_group)
 
             # In case the tool ("watershed") group is now empty, we'll remove that too
             result_group_parent = result_item.get_layer_group()
