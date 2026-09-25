@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.19 (unreleased)
+3.26.19 (2026-09-25)
 --------------------
 
 - Fix bug that breaks project opening with QGIS4
