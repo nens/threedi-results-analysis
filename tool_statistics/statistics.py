@@ -73,15 +73,19 @@ class StatisticsTool(ThreeDiPluginTool):
 
         results = self.model.get_results(False)
         for result in results:
-            grid_item = result.parent()
-            assert grid_item
-            tool_group = grid_item.layer_group.findGroup(self.group_name)
+            result_group = result.get_layer_group()
+            if result_group is None:
+                continue
+            tool_group = result_group.findGroup(self.group_name)
             if tool_group:
                 tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
-                result_group = tool_group.findGroup(result.text())
-                if result_group:
-                    self.layer_groups[result.id] = result_group
-                    result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+                if result.group_path:
+                    self.layer_groups[result.id] = tool_group
+                else:
+                    result_group = tool_group.findGroup(result.text())
+                    if result_group:
+                        self.layer_groups[result.id] = result_group
+                        result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
         return True
 
     def _group_removed(self, n, idxFrom, idxTo):
@@ -127,16 +131,25 @@ class StatisticsTool(ThreeDiPluginTool):
         # Remove group in layer manager
         if result_item.id in self.layer_groups:
             result_group = self.layer_groups[result_item.id]
-            tool_group = result_group.parent()
-            tool_group.removeChildNode(result_group)
+            if result_item.group_path:
+                tool_group = result_group
+            else:
+                tool_group = result_group.parent()
+                tool_group.removeChildNode(result_group)
 
             # In case the tool ("statistics") group is now empty, we'll remove that too
-            tool_group = result_item.parent().layer_group.findGroup(self.group_name)
-            if len(tool_group.children()) == 0:
+            result_group_parent = result_item.get_layer_group()
+            tool_group = (
+                result_group_parent.findGroup(self.group_name)
+                if result_group_parent
+                else None
+            )
+            if tool_group and len(tool_group.children()) == 0:
                 tool_group.parent().removeChildNode(tool_group)
 
-            # Via a callback (willRemoveChildren), the deleted group should already have removed itself from the list
-            assert result_item.id not in self.layer_groups
+            # The willRemoveChildren callback normally removes this entry, but
+            # it is not guaranteed to run while QGIS is closing a project.
+            self.layer_groups.pop(result_item.id, None)
 
     @pyqtSlot(ThreeDiResultItem)
     def result_changed(self, result_item: ThreeDiResultItem) -> None:

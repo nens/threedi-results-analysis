@@ -500,7 +500,7 @@ class GraphWidget(QWidget):
 
     def highlight_feature(self, obj_id, obj_type, result_item: ThreeDiResultItem):
 
-        for table_name, layer_id in result_item.parent().layer_ids.items():
+        for table_name, layer_id in result_item.get_layer_ids().items():
 
             if obj_type == table_name:
                 # query layer for object
@@ -673,7 +673,7 @@ class GraphWidget(QWidget):
             result_items = self.model.get_results(checked_only=False)
             for result_item in result_items:
                 # Check whether this result belongs to the selected grid
-                if layer.id() not in result_item.parent().layer_ids.values():
+                if layer.id() not in result_item.get_layer_ids().values():
                     continue
 
                 # Check whether a pump isn't already plotted as pump_linestring or vice versa (QGIS doesn't know they are the same thing)
@@ -1036,18 +1036,13 @@ class GraphDockWidget(QDockWidget):
         elif feature_type == NODE_OR_CELL:
             layer_keys = ['node', 'cell']
             graph_widget = self.h_graph_widget
-        item = self.model.invisibleRootItem()
 
-        relevant_grid_layer_ids = []
-        for layer_key in layer_keys:
-            for i in range(item.rowCount()):
-                if layer_key in item.child(i).layer_ids:
-                    relevant_grid_layer_ids.append(item.child(i).layer_ids[layer_key])
+        relevant_layer_ids = self._get_relevant_layer_ids(self.model, layer_keys)
 
         layers_added = set()
         for result in results:
             layer_id = result.mLayer.id()
-            if layer_id not in relevant_grid_layer_ids:
+            if layer_id not in relevant_layer_ids:
                 continue
             if single_feature_per_layer and layer_id in layers_added:
                 continue
@@ -1059,6 +1054,28 @@ class GraphDockWidget(QDockWidget):
             self.graphTabWidget.setCurrentIndex(tab_index)
 
             graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
+
+    @staticmethod
+    def _get_relevant_layer_ids(model, layer_keys):
+        """Return grid-owned and grouped result-owned IDs for graph input."""
+        relevant_layer_ids = set()
+
+        for grid_item in model.get_grids():
+            relevant_layer_ids.update(
+                grid_item.layer_ids[layer_key]
+                for layer_key in layer_keys
+                if layer_key in grid_item.layer_ids
+            )
+
+        for result_item in model.get_results(checked_only=False):
+            layer_ids = result_item.get_layer_ids()
+            relevant_layer_ids.update(
+                layer_ids[layer_key]
+                for layer_key in layer_keys
+                if layer_key in layer_ids
+            )
+
+        return relevant_layer_ids
 
 
 class BaseAddMapTool(QgsMapToolIdentify):

@@ -240,11 +240,22 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Disable warning that scratch layer data will be lost
         QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.Section.App)
 
-    def load_result(self, result_path: str, grid_path: str, project: Optional[str] = None):
+    def load_result(
+        self,
+        result_path: str,
+        grid_path: str,
+        project: Optional[str] = None,
+        group_path: Optional[list[str]] = None,
+    ):
         """This function can be used by other plugins to load results into
         this tool. It will follow the standard workflow (as it would have been
         selected in the UI in this tool)"""
-        self.validator.validate_result_grid(result_path, grid_path, project=project)
+        self.validator.validate_result_grid(
+            result_path,
+            grid_path,
+            project=project,
+            group_path=group_path,
+        )
 
     def write(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
@@ -266,7 +277,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         return True
 
     def write_map_layer(self, layer: QgsMapLayer, elem: QDomElement, _: QDomDocument):
-        # Ensure all our dynamically added attributes are not serialized
+        # Result fields are keyed by their actual owner layer ID, including
+        # independent layers created for grouped results.
         result_field_names = self.model.get_result_field_names(layer.id())
         ThreeDiPluginModelSerializer.remove_result_field_references(
             elem, result_field_names,
@@ -274,7 +286,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def read(self, doc: QDomDocument) -> bool:
         self.model.clear()
-        self.dockwidget.set_model(self.model)
 
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
@@ -282,6 +293,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if not res:
             self.model.clear()
             return False
+
+        self.dockwidget.set_model(self.model)
 
         if tool_node:
             # Allow each tool to read additional info from the dedicated xml node

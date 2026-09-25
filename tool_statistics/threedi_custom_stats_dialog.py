@@ -1388,12 +1388,20 @@ class Aggregate3DiResults(QgsTask):
 
     def _get_or_create_result_group(self, result: ThreeDiResultItem, group_name: str):
         # We'll place the result layers in a dedicated result group
-        grid_item = result.parent()
-        assert grid_item
-        tool_group = grid_item.layer_group.findGroup(group_name)
+        result_group_parent = result.get_layer_group()
+        assert result_group_parent
+        tool_group = result_group_parent.findGroup(group_name)
         if not tool_group:
-            tool_group = grid_item.layer_group.insertGroup(0, group_name)
+            tool_group = result_group_parent.insertGroup(0, group_name)
             tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
+
+        # A grouped result already has its own layer-tree group. Avoid adding
+        # a redundant simulation-name group below the tool group. Ungrouped
+        # results share their grid group, so retain that extra level to keep
+        # outputs from different results separate.
+        if result.group_path:
+            self.layer_groups[result.id] = tool_group
+            return tool_group
 
         # Add result group
         result_group = tool_group.findGroup(result.text())
@@ -1410,6 +1418,9 @@ class Aggregate3DiResults(QgsTask):
     def _group_removed(self, n, idxFrom, idxTo):
         for result_id in list(self.layer_groups):
             group = self.layer_groups[result_id]
+            if group is n:
+                del self.layer_groups[result_id]
+                continue
             for i in range(idxFrom, idxTo+1):
                 if n.children()[i] is group:
                     del self.layer_groups[result_id]

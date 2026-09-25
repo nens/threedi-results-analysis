@@ -23,7 +23,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 GRID_GROUP_NAME = "Computational grid"
-WATERDEPTH_GROUP_NAME = "Waterdepth"
 
 
 def dirty(func):
@@ -118,12 +117,21 @@ class ThreeDiPluginLayerManager(QObject):
         if not grid_item.text():
             grid_item.setText(ThreeDiPluginLayerManager._resolve_grid_item_text(grid_item.path))
 
+        grid_item.project = project
+
+        if grid_item.defer_layer_creation:
+            # Only requested so far for a grouped result, which owns
+            # independent layers of its own. Register the grid without
+            # creating its own layers; they are created on demand (see
+            # load_result()) if a non-grouped result ever needs them.
+            grid_item.defer_layer_creation = False
+            self.grid_loaded.emit(grid_item)
+            return True
+
         if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, grid_item, project=project):
             pop_up_critical("Failed adding the layers to the project.")
             self.grid_not_loaded.emit(grid_item)
             return False
-
-        grid_item.project = project
 
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Added layers to the project", duration=2)
 
@@ -133,6 +141,12 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiGridItem)
     def unload_grid(self, item: ThreeDiGridItem) -> bool:
         """Removes the corresponding layers from the group in the project"""
+
+        if item.layer_group is None:
+            # Grid never had its own layers created (only used by grouped
+            # results so far, which own and clean up their layers themselves).
+            self.grid_unloaded.emit(item)
+            return True
 
         # It could be possible that some layers have been dragged outside the
         # layer group. Delete the individual layers first
@@ -144,7 +158,6 @@ class ThreeDiPluginLayerManager(QObject):
         # Deletion of root node of a tree will delete all nodes of the tree.
         # In case the user dragged another layer in the group, remove the reference
         # from this grid to the group, but don't delete it from QGIS.
-        assert item.layer_group
         grid_group = item.layer_group.findGroup(GRID_GROUP_NAME)
 
         # Remove "Computational Grid" group
@@ -174,7 +187,10 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiGridItem)
     def update_grid(self, item: ThreeDiGridItem) -> bool:
         """Updates the group name in the project"""
-        assert item.layer_group
+        if item.layer_group is None:
+            # Grid has no layers of its own yet (only used by grouped
+            # results so far); nothing to rename.
+            return True
         item.layer_group.setName(item.text())
         return True
 
@@ -185,9 +201,33 @@ class ThreeDiPluginLayerManager(QObject):
         if not threedi_result_item.text():
             threedi_result_item.setText(ThreeDiPluginLayerManager._resolve_result_item_text(threedi_result_item.path))
 
-        # Add result fields for this result to the grid layers
-        logger.info("Adding result fields to grid layers")
-        for layer_id in grid_item.layer_ids.values():
+        if threedi_result_item.group_path:
+            threedi_result_item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_path(
+                threedi_result_item.group_path
+            )
+            if not ThreeDiPluginLayerManager._add_grouped_layers_from_gpkg(
+                grid_item.path, threedi_result_item
+            ):
+                self.result_not_loaded.emit(threedi_result_item, grid_item)
+                return False
+        elif grid_item.layer_group is None and not grid_item.layer_ids:
+            # The grid's own layers were not created yet (it was first
+            # requested only for a grouped result). This non-grouped result
+            # needs the grid's shared layers, so create them now.
+            if not ThreeDiPluginLayerManager._add_layers_from_gpkg(
+                grid_item.path, grid_item, project=grid_item.project
+            ):
+                self.result_not_loaded.emit(threedi_result_item, grid_item)
+                return False
+
+        # Add result fields for this result to its owned layers
+        logger.info("Adding result fields to layers")
+        layer_ids = (
+            threedi_result_item.layer_ids
+            if threedi_result_item.group_path
+            else grid_item.layer_ids
+        )
+        for layer_id in layer_ids.values():
             layer = QgsProject.instance().mapLayer(layer_id)
             provider = layer.dataProvider()
 
@@ -223,27 +263,40 @@ class ThreeDiPluginLayerManager(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def load_waterdepth(self, result_item: ThreeDiResultItem) -> None:
-        """If max_waterdepth.tif exists in the result folder, load it into a
-        'Waterdepth' group inside the grid's layer group."""
+        """Load max_waterdepth.tif into the result's owning layer group."""
         tif_path = result_item.path.parent / "max_waterdepth.tif"
         if not tif_path.exists():
             return
-
-        # Skip if this raster is already loaded in the project (e.g. restored from project file)
-        for layer in QgsProject.instance().mapLayers().values():
-            if layer.source() == str(tif_path):
-                layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
-                result_item.waterdepth_layer_id = layer.id()
-                return
 
         grid_item = result_item.parent()
         if not isinstance(grid_item, ThreeDiGridItem):
             logger.warning("Cannot load waterdepth: result item has no grid parent")
             return
 
-        if not grid_item.layer_group:
+        layer_group = (
+            result_item.layer_group
+            if result_item.group_path
+            else grid_item.layer_group
+        )
+        if not layer_group:
             logger.warning("Cannot load waterdepth: grid has no layer group")
             return
+
+        project = QgsProject.instance()
+        if result_item.waterdepth_layer_id:
+            existing_layer = project.mapLayer(result_item.waterdepth_layer_id)
+            if existing_layer is not None:
+                return
+            result_item.waterdepth_layer_id = None
+
+        # Legacy results share a grid-owned raster when the source path is
+        # already loaded. Grouped results must never share raster ownership.
+        if not result_item.group_path:
+            for layer in project.mapLayers().values():
+                if layer.source() == str(tif_path):
+                    layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
+                    result_item.waterdepth_layer_id = layer.id()
+                    return
 
         sim_name = result_item.text() or tif_path.parent.stem
         raster_layer = QgsRasterLayer(str(tif_path), f"max wd {sim_name}")
@@ -254,13 +307,9 @@ class ThreeDiPluginLayerManager(QObject):
         if hasattr(raster_layer.renderer(), "setBand"):
             raster_layer.renderer().setBand(1)
         raster_layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
-        QgsProject.instance().addMapLayer(raster_layer, addToLegend=False)
+        project.addMapLayer(raster_layer, addToLegend=False)
 
-        waterdepth_group = grid_item.layer_group.findGroup(WATERDEPTH_GROUP_NAME)
-        if not waterdepth_group:
-            waterdepth_group = grid_item.layer_group.insertGroup(1, WATERDEPTH_GROUP_NAME)
-
-        waterdepth_group.addLayer(raster_layer)
+        layer_group.addLayer(raster_layer)
         result_item.waterdepth_layer_id = raster_layer.id()
         logger.info(f"Loaded waterdepth layer: {tif_path}")
 
@@ -282,21 +331,33 @@ class ThreeDiPluginLayerManager(QObject):
         grid_item = result_item.parent()
         if not isinstance(grid_item, ThreeDiGridItem):
             return
-        if not grid_item.layer_group:
+        layer_group = (
+            result_item.layer_group
+            if result_item.group_path
+            else grid_item.layer_group
+        )
+        if not layer_group:
+            if result_item.group_path:
+                QgsProject.instance().removeMapLayer(layer.id())
             return
 
-        waterdepth_group = grid_item.layer_group.findGroup(WATERDEPTH_GROUP_NAME)
-        if waterdepth_group:
-            layer.setFlags(layer.flags() | QgsMapLayer.LayerFlag.Removable)
-            waterdepth_group.removeLayer(layer)
-            if len(waterdepth_group.children()) == 0:
-                grid_item.layer_group.removeChildNode(waterdepth_group)
+        layer.setFlags(layer.flags() | QgsMapLayer.LayerFlag.Removable)
+        layer_node = layer_group.findLayer(layer.id())
+        if layer_node is not None:
+            layer_group.removeChildNode(layer_node)
+        QgsProject.instance().removeMapLayer(layer.id())
 
-        iface.mapCanvas().refresh()
+        if result_item.group_path and not layer_group.children():
+            if self._prune_empty_group_path(layer_group):
+                result_item.layer_group = None
+
+        if iface is not None:
+            iface.mapCanvas().refresh()
 
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        # Remove the corresponding result fields from the grid layers
+        # Internally remove the plugin-owned dynamic fields from their owner
+        # layers. Generated layers remain read-only to users in the QGIS UI.
         for layer_id, result_field_names in threedi_result_item._result_field_names.items():
             # It could be that the map layer is removed by QGIS
             if QgsProject.instance().mapLayer(layer_id) is not None:
@@ -327,15 +388,76 @@ class ThreeDiPluginLayerManager(QObject):
                 if (result_item.checkState() == Qt.CheckState.Checked and threedi_result_item is not result_item):
                     reset_styling = False
 
-        if reset_styling:
+        if threedi_result_item.group_path:
+            self.reset_result_styling(threedi_result_item)
+            self._unload_grouped_result_layers(threedi_result_item)
+        elif reset_styling:
             self.reset_styling(grid_item)
 
         self.result_unloaded.emit(threedi_result_item)
         return True
 
+    def _unload_grouped_result_layers(self, result_item: ThreeDiResultItem) -> None:
+        """Remove grouped result layers and prune only empty owned groups."""
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+
+        for layer_id in list(result_item.layer_ids.values()):
+            if project.mapLayer(layer_id) is not None:
+                project.removeMapLayer(layer_id)
+                continue
+
+            layer_node = root.findLayer(layer_id)
+            if layer_node is not None and layer_node.parent() is not None:
+                layer_node.parent().removeChildNode(layer_node)
+
+        result_item.layer_ids.clear()
+
+        layer_group = result_item.layer_group
+        if layer_group is None:
+            return
+
+        grid_group = next(
+            (
+                child
+                for child in layer_group.children()
+                if isinstance(child, QgsLayerTreeGroup)
+                and child.name() == GRID_GROUP_NAME
+            ),
+            None,
+        )
+        if grid_group is not None and not grid_group.children():
+            layer_group.removeChildNode(grid_group)
+
+        if layer_group.children():
+            logger.info(
+                "Grouped result group contains external layers or groups: not removing."
+            )
+            return
+
+        if self._prune_empty_group_path(layer_group):
+            result_item.layer_group = None
+
+    @staticmethod
+    def _prune_empty_group_path(layer_group: QgsLayerTreeGroup) -> bool:
+        """Remove an empty group and empty ancestors up to the project root."""
+        root = QgsProject.instance().layerTreeRoot()
+        current_group = layer_group
+        while current_group is not root and not current_group.children():
+            parent = current_group.parent()
+            if parent is None:
+                break
+            parent.removeChildNode(current_group)
+            current_group = parent
+        return current_group is not layer_group
+
     @dirty
     @pyqtSlot(ThreeDiResultItem)
     def result_unchecked(self, item: ThreeDiResultItem):
+        if item.group_path:
+            self.reset_result_styling(item)
+            return
+
         # In case all results are unchecked, revert back to default styling (and naming)
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
@@ -350,13 +472,20 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiGridItem)
     def reset_styling(self, grid_item: ThreeDiGridItem) -> None:
         """Sets all the grid layers for a given grid back to their original name and style"""
+        self._reset_styling(grid_item.layer_ids)
+
+    def reset_result_styling(self, result_item: ThreeDiResultItem) -> None:
+        """Reset the styles of layers owned by a grouped result."""
+        self._reset_styling(result_item.get_layer_ids())
+
+    def _reset_styling(self, layer_ids) -> None:
         for layer_name, table_name in gpkg_layers.items():
 
             # Some models do not contain pump or obstacle layers.
-            if table_name not in grid_item.layer_ids.keys():
+            if table_name not in layer_ids.keys():
                 continue
 
-            scratch_layer = QgsProject.instance().mapLayer(grid_item.layer_ids[table_name])
+            scratch_layer = QgsProject.instance().mapLayer(layer_ids[table_name])
             assert scratch_layer
 
             # (Re)apply the style and naming
@@ -367,7 +496,8 @@ class ThreeDiPluginLayerManager(QObject):
                     logger.error(f"Unable to load style: {msg}")
 
             scratch_layer.setName(layer_name)
-            iface.layerTreeView().refreshLayerSymbology(scratch_layer.id())
+            if iface is not None:
+                iface.layerTreeView().refreshLayerSymbology(scratch_layer.id())
             scratch_layer.triggerRepaint()
 
     @dirty
@@ -401,32 +531,29 @@ class ThreeDiPluginLayerManager(QObject):
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated computational grid geopackage")
 
     @staticmethod
-    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, project: Optional[str] = None) -> bool:
-        """
-        Retrieves (a subset of the) layers from gpk and add to project.
-        """
-
+    def _copy_layers_from_gpkg(path, layer_group, layer_ids, reuse_existing=True) -> bool:
         invalid_layers = []
         empty_layers = []
-        if project:
-            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure([project] + [TOOLBOX_QGIS_GROUP_NAME, item.text()])
-        else:
-            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
 
-        # Use to modify grid name when LayerGroup is renamed
-        item.layer_group.nameChanged.connect(lambda node, txt, grid_item=item: ThreeDiPluginLayerManager._layer_node_renamed(node, txt, grid_item))
-
-        progress_bar = StatusProgressBar(len(gpkg_layers) - 1, "Adding computational grid layers")
+        progress_bar = None
+        if iface is not None:
+            progress_bar = StatusProgressBar(
+                len(gpkg_layers) - 1, "Adding computational grid layers"
+            )
         for layer_name, table_name in gpkg_layers.items():
 
             # QGIS does save memory layers to the project file (but without the data)
             # Removing the scratch layer and resaving the project causes QGIS to crash,
             # therefore we reuse the layer instance.
             scratch_layer = None
-            if table_name in item.layer_ids.keys():
-                scratch_layer = QgsProject.instance().mapLayer(item.layer_ids[table_name])
+            if reuse_existing and table_name in layer_ids.keys():
+                candidate_layer = QgsProject.instance().mapLayer(layer_ids[table_name])
+                if candidate_layer and candidate_layer.objectName() == table_name:
+                    scratch_layer = candidate_layer
+                else:
+                    layer_ids.pop(table_name, None)
                 if scratch_layer:
-                    logger.info(f"Map layer corresponding to table {item.layer_ids[table_name]} already exist in project, reusing...")
+                    logger.info(f"Map layer corresponding to table {layer_ids[table_name]} already exist in project, reusing...")
 
             # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
             # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
@@ -440,9 +567,12 @@ class ThreeDiPluginLayerManager(QObject):
                 empty_layers.append(layer_name)
                 continue
 
-            vector_layer = copy_layer_into_memory_layer(
-                vector_layer, layer_name, scratch_layer
-            )
+            if scratch_layer is not None and scratch_layer.featureCount():
+                vector_layer = scratch_layer
+            else:
+                vector_layer = copy_layer_into_memory_layer(
+                    vector_layer, layer_name, scratch_layer
+                )
 
             # Apply the style
             qml_path = safe_join(grid_style_dir, f"{table_name}.qml")
@@ -467,16 +597,19 @@ class ThreeDiPluginLayerManager(QObject):
             vector_layer.setObjectName(table_name)
 
             if scratch_layer is None:
-                # Keep track of layer id for future reference (deletion of grid item)
-                item.layer_ids[table_name] = vector_layer.id()
+                layer_ids[table_name] = vector_layer.id()
 
                 QgsProject.instance().addMapLayer(vector_layer, addToLegend=False)
                 # Add to computational grid subgroup (created above)
-                item.layer_group.findGroup(GRID_GROUP_NAME).addLayer(vector_layer)
+                layer_group.findGroup(GRID_GROUP_NAME).addLayer(vector_layer)
+            elif layer_group.findLayer(scratch_layer.id()) is None:
+                layer_group.findGroup(GRID_GROUP_NAME).addLayer(scratch_layer)
 
-            progress_bar.increase_progress()
+            if progress_bar:
+                progress_bar.increase_progress()
 
-        del progress_bar
+        if progress_bar:
+            del progress_bar
 
         # Invalid layers info
         if invalid_layers:
@@ -487,6 +620,39 @@ class ThreeDiPluginLayerManager(QObject):
             logger.warning("The following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n")
 
         return True
+
+    @staticmethod
+    def _add_layers_from_gpkg(path, item: ThreeDiGridItem, project: Optional[str] = None) -> bool:
+        """
+        Retrieves (a subset of the) layers from gpkg and adds them to project.
+        """
+        if project:
+            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_alternative_structure([project] + [TOOLBOX_QGIS_GROUP_NAME, item.text()])
+        else:
+            item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
+
+        # Use to modify grid name when LayerGroup is renamed
+        item.layer_group.nameChanged.connect(lambda node, txt, grid_item=item: ThreeDiPluginLayerManager._layer_node_renamed(node, txt, grid_item))
+
+        return ThreeDiPluginLayerManager._copy_layers_from_gpkg(
+            path,
+            item.layer_group,
+            item.layer_ids,
+        )
+
+    @staticmethod
+    def _add_grouped_layers_from_gpkg(path, result_item: ThreeDiResultItem) -> bool:
+        """Create fresh computational-grid layers owned by a grouped result."""
+        if result_item.layer_group is None:
+            logger.warning("Cannot add grouped result layers without a layer group")
+            return False
+
+        return ThreeDiPluginLayerManager._copy_layers_from_gpkg(
+            path,
+            result_item.layer_group,
+            result_item.layer_ids,
+            reuse_existing=True,
+        )
 
     @staticmethod
     def _get_or_create_group_alternative_structure(parents: list[str]):
@@ -501,6 +667,38 @@ class ThreeDiPluginLayerManager(QObject):
         if not layer_group.findGroup(GRID_GROUP_NAME):
             layer_group.insertGroup(0, GRID_GROUP_NAME)
         return layer_group
+
+    @staticmethod
+    def _get_or_create_group_path(group_path: list[str]) -> QgsLayerTreeGroup:
+        """Create the direct QGIS layer-tree hierarchy for a result path."""
+        current_group = QgsProject.instance().layerTreeRoot()
+        for group_name in group_path:
+            group = next(
+                (
+                    child
+                    for child in current_group.children()
+                    if isinstance(child, QgsLayerTreeGroup)
+                    and child.name() == group_name
+                ),
+                None,
+            )
+            if group is None:
+                group = current_group.addGroup(group_name)
+            current_group = group
+
+        grid_group = next(
+            (
+                child
+                for child in current_group.children()
+                if isinstance(child, QgsLayerTreeGroup)
+                and child.name() == GRID_GROUP_NAME
+            ),
+            None,
+        )
+        if grid_group is None:
+            current_group.insertGroup(0, GRID_GROUP_NAME)
+
+        return current_group
 
     @staticmethod
     def _get_or_create_group(group_name: str):

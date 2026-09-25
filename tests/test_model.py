@@ -89,6 +89,9 @@ class TestResult(unittest.TestCase):
     def test_creation(self):
         item = ThreeDiResultItem(self.result_path, "text")
         self.assertTrue(item)
+        self.assertIsNone(item.group_path)
+        self.assertIsNone(item.layer_group)
+        self.assertEqual(item.layer_ids, {})
 
     def test_addition(self):
         item = ThreeDiResultItem(self.result_path, "text")
@@ -146,3 +149,61 @@ class TestResult(unittest.TestCase):
     def test_parent_should_be_provided(self):
         item = ThreeDiResultItem(self.result_path, "text")
         self.assertFalse(self.model.add_result(item, None))
+
+    def test_grouped_results_keep_one_logical_grid(self):
+        result = ThreeDiResultItem(self.result_path, "result")
+        result.group_path = ["project", "files", "result"]
+        result.layer_group = object()
+        result.layer_ids = {"node": "result-layer-id"}
+
+        second_result = ThreeDiResultItem("c:/test2/results_3di.nc", "result 2")
+        second_result.group_path = ["project", "files", "result-2"]
+        second_result.layer_group = object()
+        second_result.layer_ids = {"node": "result-2-layer-id"}
+
+        self.assertTrue(self.model.add_result(result, self.grid_item))
+        self.assertTrue(self.model.add_result(second_result, self.grid_item))
+
+        self.assertEqual(self.model.number_of_grids(), 1)
+        self.assertEqual(self.model.number_of_results(), 2)
+        self.assertIs(result.parent(), self.grid_item)
+        self.assertIs(second_result.parent(), self.grid_item)
+        self.assertEqual(result.get_layer_ids(), {"node": "result-layer-id"})
+        self.assertEqual(second_result.get_layer_ids(), {"node": "result-2-layer-id"})
+
+    def test_standalone_results_use_parent_grid_layers(self):
+        self.grid_item.layer_ids = {"node": "grid-layer-id"}
+        self.grid_item.layer_group = object()
+        result = ThreeDiResultItem(self.result_path, "result")
+
+        self.assertTrue(self.model.add_result(result, self.grid_item))
+
+        self.assertIs(result.get_layer_ids(), self.grid_item.layer_ids)
+        self.assertIs(result.get_layer_group(), self.grid_item.layer_group)
+
+    def test_result_field_names_are_scoped_to_layer(self):
+        result = ThreeDiResultItem(self.result_path, "result")
+        result.group_path = ["files", "result"]
+        result._result_field_names["result-layer-id"] = (
+            "result_value",
+            "initial_value",
+        )
+        second_result = ThreeDiResultItem("c:/test2/results_3di.nc", "result 2")
+        second_result.group_path = ["files", "result-2"]
+        second_result._result_field_names["second-layer-id"] = (
+            "second_result_value",
+            "second_initial_value",
+        )
+
+        self.assertTrue(self.model.add_result(result, self.grid_item))
+        self.assertTrue(self.model.add_result(second_result, self.grid_item))
+
+        self.assertEqual(
+            self.model.get_result_field_names("result-layer-id"),
+            {"result_value", "initial_value"},
+        )
+        self.assertEqual(
+            self.model.get_result_field_names("second-layer-id"),
+            {"second_result_value", "second_initial_value"},
+        )
+        self.assertEqual(self.model.get_result_field_names("unknown-layer-id"), set())

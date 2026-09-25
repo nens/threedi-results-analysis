@@ -322,32 +322,40 @@ class Graph3DiQgsConnector:
             logger.info("Retrieving result group from cache")
             self.result_group = self.preloaded_layers[self.result_id]["group"]
         else:
-            # We'll place the result layers in the grid group
+            # Place result layers below the owning grouped/standalone result group.
             result = self.model.get_result(self.result_id)
-            grid_item = result.parent()
-            assert grid_item
-            tool_group = grid_item.layer_group.findGroup(GROUP_NAME)
+            result_group_parent = result.get_layer_group()
+            assert result_group_parent
+            tool_group = result_group_parent.findGroup(GROUP_NAME)
             if not tool_group:
                 logger.info("Creating new group for watershed tool results.")
-                tool_group = grid_item.layer_group.insertGroup(0, GROUP_NAME)
+                tool_group = result_group_parent.insertGroup(0, GROUP_NAME)
                 tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
 
-            # Add result group
-            self.result_group = tool_group.findGroup(result.text())
-            if not self.result_group:
-                self.result_group = tool_group.addGroup(result.text())
+            if result.group_path:
+                self.result_group = tool_group
+            else:
+                # Shared grid groups need a result-specific subgroup.
+                self.result_group = tool_group.findGroup(result.text())
+                if not self.result_group:
+                    self.result_group = tool_group.addGroup(result.text())
 
-            # Use to modify result name when QgsLayerTreeNode is renamed. Note that this does not cause a
-            # infinite signal loop because the model only emits the result_changed when the text has actually
-            # changed.
-            self.result_group.nameChanged.connect(lambda _, txt, result_item=result: result_item.setText(txt))
+                # Use to modify result name when QgsLayerTreeNode is renamed.
+                self.result_group.nameChanged.connect(
+                    lambda _, txt, result_item=result: result_item.setText(txt)
+                )
 
             # Cache
             self.preloaded_layers[self.result_id]["group"] = self.result_group
 
     def _group_removed(self, n, idxFrom, idxTo):
         for result_id in list(self.preloaded_layers):
+            if "group" not in self.preloaded_layers[result_id]:
+                continue
             group = self.preloaded_layers[result_id]["group"]
+            if group is n:
+                del self.preloaded_layers[result_id]["group"]
+                continue
             for i in range(idxFrom, idxTo+1):
                 if n.children()[i] is group:
                     del self.preloaded_layers[result_id]["group"]
@@ -355,9 +363,7 @@ class Graph3DiQgsConnector:
     def prepare_target_node_layer(self):
         # We'll use the node layer of the computational grid
         result = self.model.get_result(self.result_id)
-        grid_item = result.parent()
-        assert grid_item
-        layer_id = grid_item.layer_ids["node"]
+        layer_id = result.get_layer_ids()["node"]
         self.target_node_layer = QgsProject.instance().mapLayer(layer_id)
 
         # Add additional result feature

@@ -31,7 +31,13 @@ class ThreeDiPluginModelValidator(QObject):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(str)
-    def validate_grid(self, grid_file: str, result_slug: str = None, project: Optional[str] = None) -> ThreeDiGridItem:
+    def validate_grid(
+        self,
+        grid_file: str,
+        result_slug: str = None,
+        project: Optional[str] = None,
+        group_path: Optional[list[str]] = None,
+    ) -> ThreeDiGridItem:
         """
         Validates the grid and returns the new (or already existing) ThreeDiGridItem. Also emits signal.
 
@@ -40,6 +46,11 @@ class ThreeDiPluginModelValidator(QObject):
         If not, the validator will check whether a grid with the same slug is found as the grid_file.
 
         If not, the validor will create a new ThreeDiGridItem and emit the grid_valid signal.
+
+        group_path is only used when a brand-new grid is created: it tells the
+        layer manager to defer creating this grid's own layers, since the
+        grouped result that triggered this load owns independent layers of
+        its own (see ThreeDiGridItem.defer_layer_creation).
         """
         logger.info(f"Validate_grid({grid_file}, {result_slug}")
 
@@ -97,11 +108,18 @@ class ThreeDiPluginModelValidator(QObject):
                         return grid_item
 
         new_grid = ThreeDiGridItem(Path(grid_file), "")
+        new_grid.defer_layer_creation = bool(group_path)
         self.grid_valid.emit(new_grid, project if project else '')
         return new_grid
 
     @pyqtSlot(str, str)
-    def validate_result_grid(self, results_path: str, grid_path: str, project: Optional[str] = None):
+    def validate_result_grid(
+        self,
+        results_path: str,
+        grid_path: str,
+        project: Optional[str] = None,
+        group_path: Optional[list[str]] = None,
+    ):
         """
         Validate the result, but first validate (and add) the grid.
         """
@@ -109,14 +127,25 @@ class ThreeDiPluginModelValidator(QObject):
         # in the model (with same slug)
         result_model_slug = ThreeDiPluginModelValidator.get_result_slug(Path(results_path))
         logger.info(f"Validating {results_path} ({result_model_slug}) and {grid_path}")
-        grid_item = self.validate_grid(grid_path, result_model_slug, project)
+        grid_item = self.validate_grid(grid_path, result_model_slug, project, group_path)
         if not grid_item:
             messagebar_message(TOOLBOX_MESSAGE_TITLE, "No computational grid for this result could be found, aborting", Qgis.MessageLevel.Critical, 5)
             return
 
-        self._validate_result(results_path, grid_item, add_to_project=project is not None)
+        self._validate_result(
+            results_path,
+            grid_item,
+            add_to_project=project is not None,
+            group_path=group_path,
+        )
 
-    def _validate_result(self, results_path: str, grid_item: ThreeDiGridItem, add_to_project: bool = False) -> bool:
+    def _validate_result(
+        self,
+        results_path: str,
+        grid_item: ThreeDiGridItem,
+        add_to_project: bool = False,
+        group_path: Optional[list[str]] = None,
+    ) -> bool:
         logger.info(f"Validating result with grid item {grid_item.text()}")
         """
         Validate the result when added to the selected grid item. Returns True
@@ -128,6 +157,7 @@ class ThreeDiPluginModelValidator(QObject):
             return False
 
         result_item = ThreeDiResultItem(Path(results_path))
+        result_item.group_path = group_path
 
         if self.model.contains(Path(results_path), True):
             if add_to_project:

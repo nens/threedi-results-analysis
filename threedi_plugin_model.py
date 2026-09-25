@@ -68,6 +68,13 @@ class ThreeDiGridItem(ThreeDiModelItem):
         # project name used when the grid was loaded via an external plugin (e.g. rana-qgis-plugin)
         self.project: Optional[str] = None
 
+        # One-shot hint consumed by the layer manager: when set, creation of
+        # this grid's own (shared) layers is deferred because the grid was
+        # first requested only for a grouped result, which owns independent
+        # layers of its own. Cleared once the grid's own layers are created
+        # (immediately, or lazily when a non-grouped result needs them).
+        self.defer_layer_creation = False
+
 
 class ThreeDiResultItem(ThreeDiModelItem):
     """
@@ -84,6 +91,12 @@ class ThreeDiResultItem(ThreeDiModelItem):
         self.setCheckState(Qt.CheckState.Unchecked)
 
         # layer info
+        # Grouped results own independent layer instances. In standalone mode these
+        # remain empty and the parent grid owns the layers.
+        self.group_path = None
+        self.layer_group = None
+        self.layer_ids = {}
+
         # map of grid layers id to added result field names (tuple of ids)
         # (Two fields, initial_value and result, are required)
         # Used for cleaning up result fields when result is removed
@@ -99,6 +112,18 @@ class ThreeDiResultItem(ThreeDiModelItem):
 
         # Layer ID of the optional max_waterdepth.tif raster layer
         self.waterdepth_layer_id = None
+
+    def get_layer_ids(self):
+        """Return the layer IDs owned by this result or its parent grid."""
+        if self.group_path:
+            return self.layer_ids
+        return self.parent().layer_ids
+
+    def get_layer_group(self):
+        """Return the layer group owned by this result or its parent grid."""
+        if self.group_path:
+            return self.layer_group
+        return self.parent().layer_group
 
     @cached_property
     def threedi_result(self):
@@ -242,6 +267,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         return results
 
     def get_result_field_names(self, layer_id):
+        """Return dynamic result fields belonging to a specific QGIS layer."""
         names = {
             f_name
             for result_item in self.get_results(checked_only=False)
