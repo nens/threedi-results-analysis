@@ -5,6 +5,7 @@ Rana Results Analysis changelog
 --------------------
 
 - Fix bug that breaks project opening with QGIS4
+- Bumped Dependency Loader plugin to 1.2.21
 
 
 3.26.18 (2026-08-19)
