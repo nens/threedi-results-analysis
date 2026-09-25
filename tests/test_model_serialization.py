@@ -125,12 +125,12 @@ def test_grouped_result_read_restores_path_and_owned_layers():
 def test_legacy_enum_check_state_is_read():
     document = QDomDocument()
     document.setContent(
-        """<qgis><threedi_results_analysis>
+        """<qgis><threediPluginModel>
         <grid id="grid" path="resolved:c:/grid/gridadmin.gpkg" text="grid">
             <result id="result" path="resolved:c:/result/results_3di.nc"
                     text="result" check_state="CheckState.Checked"/>
         </grid>
-        </threedi_results_analysis></qgis>"""
+        </threediPluginModel></qgis>"""
     )
 
     loader = RecordingLoader()
@@ -141,12 +141,12 @@ def test_legacy_enum_check_state_is_read():
 def test_missing_check_state_defaults_to_unchecked():
     document = QDomDocument()
     document.setContent(
-        """<qgis><threedi_results_analysis>
+        """<qgis><threediPluginModel>
         <grid id="grid" path="resolved:c:/grid/gridadmin.gpkg" text="grid">
             <result id="result" path="resolved:c:/result/results_3di.nc"
                     text="result"/>
         </grid>
-        </threedi_results_analysis></qgis>"""
+        </threediPluginModel></qgis>"""
     )
 
     loader = RecordingLoader()
