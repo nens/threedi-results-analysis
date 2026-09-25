@@ -1,6 +1,12 @@
 Rana Results Analysis changelog
 ===============================
 
+3.26.20 (unreleased)
+--------------------
+
+- Nothing changed yet.
+
+
 3.26.19 (2026-09-25)
 --------------------
 
