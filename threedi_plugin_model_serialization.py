@@ -3,6 +3,7 @@ from threedi_results_analysis.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from qgis.PyQt.QtGui import QStandardItem
+from qgis.PyQt.QtCore import Qt
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem, already_used_ids
 from typing import Tuple
 from pathlib import Path
@@ -87,7 +88,19 @@ class ThreeDiPluginModelSerializer:
                     already_used_ids.append(id)
 
                     model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))), id)
-                    model_node.setCheckState(int(xml_element_node.attribute("check_state")))
+                    check_state = xml_element_node.attribute("check_state") or str(
+                        int(Qt.CheckState.Unchecked)
+                    )
+                    legacy_check_states = {
+                        "CheckState.Unchecked": Qt.CheckState.Unchecked,
+                        "CheckState.PartiallyChecked": Qt.CheckState.PartiallyChecked,
+                        "CheckState.Checked": Qt.CheckState.Checked,
+                    }
+                    if check_state in legacy_check_states:
+                        check_state = legacy_check_states[check_state]
+                    else:
+                        check_state = Qt.CheckState(int(check_state))
+                    model_node.setCheckState(check_state)
                     model_node.setText(xml_element_node.attribute("text"))
 
                     assert isinstance(model_parent, ThreeDiGridItem)
@@ -177,7 +190,7 @@ class ThreeDiPluginModelSerializer:
                     xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
                     xml_node.setAttribute("text", model_node.text())
                     xml_node.setAttribute("id", model_node.id)
-                    xml_node.setAttribute("check_state", str(model_node.checkState()))
+                    xml_node.setAttribute("check_state", str(int(model_node.checkState())))
                 else:
                     logger.error("Unknown node type for serialization")
                     return False
