@@ -6,22 +6,6 @@ Rana Results Analysis changelog
 
 - Fix bug that breaks project opening with QGIS4
 
-  Reproduction:
-
-  - Open a QGIS 4 (Qt6) project that contains previously saved Rana plugin
-    state (plugin XML in the project file).
-  - On load the plugin cleared the model and set the dockwidget model too early,
-    causing UI state and check-state parsing to be inconsistent and the project
-    restore to fail.
-
-  Fix:
-
-  - Delay setting the dockwidget model until after model validation and
-    resolver handling so UI state is applied in the correct order.
-  - Make model serialization resilient to legacy `check_state` string values
-    (e.g. "CheckState.Checked") and save `check_state` as an integer to avoid
-    ambiguity across QGIS/Qt versions.
-
 
 3.26.18 (2026-08-19)
 --------------------
