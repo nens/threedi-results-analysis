@@ -120,10 +120,10 @@ class ThreeDiPluginLayerManager(QObject):
         grid_item.project = project
 
         if grid_item.defer_layer_creation:
-            # Only requested so far for a grouped result, which owns
+            # Only requested so far for an isolated result, which owns
             # independent layers of its own. Register the grid without
             # creating its own layers; they are created on demand (see
-            # load_result()) if a non-grouped result ever needs them.
+            # load_result()) if a non-isolated result ever needs them.
             grid_item.defer_layer_creation = False
             self.grid_loaded.emit(grid_item)
             return True
@@ -143,7 +143,7 @@ class ThreeDiPluginLayerManager(QObject):
         """Removes the corresponding layers from the group in the project"""
 
         if item.layer_group is None:
-            # Grid never had its own layers created (only used by grouped
+            # Grid never had its own layers created (only used by isolated
             # results so far, which own and clean up their layers themselves).
             self.grid_unloaded.emit(item)
             return True
@@ -188,7 +188,7 @@ class ThreeDiPluginLayerManager(QObject):
     def update_grid(self, item: ThreeDiGridItem) -> bool:
         """Updates the group name in the project"""
         if item.layer_group is None:
-            # Grid has no layers of its own yet (only used by grouped
+            # Grid has no layers of its own yet (only used by isolated
             # results so far); nothing to rename.
             return True
         item.layer_group.setName(item.text())
@@ -201,18 +201,18 @@ class ThreeDiPluginLayerManager(QObject):
         if not threedi_result_item.text():
             threedi_result_item.setText(ThreeDiPluginLayerManager._resolve_result_item_text(threedi_result_item.path))
 
-        if threedi_result_item.group_path:
-            threedi_result_item.layer_group = ThreeDiPluginLayerManager._get_or_create_group_path(
-                threedi_result_item.group_path
+        if threedi_result_item.layer_path:
+            threedi_result_item.layer_group = ThreeDiPluginLayerManager._get_or_create_layer_path(
+                threedi_result_item.layer_path
             )
-            if not ThreeDiPluginLayerManager._add_grouped_layers_from_gpkg(
+            if not ThreeDiPluginLayerManager._add_isolated_layers_from_gpkg(
                 grid_item.path, threedi_result_item
             ):
                 self.result_not_loaded.emit(threedi_result_item, grid_item)
                 return False
         elif grid_item.layer_group is None and not grid_item.layer_ids:
             # The grid's own layers were not created yet (it was first
-            # requested only for a grouped result). This non-grouped result
+            # requested only for an isolated result). This non-isolated result
             # needs the grid's shared layers, so create them now.
             if not ThreeDiPluginLayerManager._add_layers_from_gpkg(
                 grid_item.path, grid_item, project=grid_item.project
@@ -224,7 +224,7 @@ class ThreeDiPluginLayerManager(QObject):
         logger.info("Adding result fields to layers")
         layer_ids = (
             threedi_result_item.layer_ids
-            if threedi_result_item.group_path
+            if threedi_result_item.layer_path
             else grid_item.layer_ids
         )
         for layer_id in layer_ids.values():
@@ -275,7 +275,7 @@ class ThreeDiPluginLayerManager(QObject):
 
         layer_group = (
             result_item.layer_group
-            if result_item.group_path
+            if result_item.layer_path
             else grid_item.layer_group
         )
         if not layer_group:
@@ -289,9 +289,9 @@ class ThreeDiPluginLayerManager(QObject):
                 return
             result_item.waterdepth_layer_id = None
 
-        # Legacy results share a grid-owned raster when the source path is
-        # already loaded. Grouped results must never share raster ownership.
-        if not result_item.group_path:
+        # Non-isolated results share a grid-owned raster when the source path is
+        # already loaded. Isolated results must never share raster ownership.
+        if not result_item.layer_path:
             for layer in project.mapLayers().values():
                 if layer.source() == str(tif_path):
                     layer.setFlags(QgsMapLayer.LayerFlag.Searchable | QgsMapLayer.LayerFlag.Identifiable)
@@ -333,11 +333,11 @@ class ThreeDiPluginLayerManager(QObject):
             return
         layer_group = (
             result_item.layer_group
-            if result_item.group_path
+            if result_item.layer_path
             else grid_item.layer_group
         )
         if not layer_group:
-            if result_item.group_path:
+            if result_item.layer_path:
                 QgsProject.instance().removeMapLayer(layer.id())
             return
 
@@ -347,8 +347,8 @@ class ThreeDiPluginLayerManager(QObject):
             layer_group.removeChildNode(layer_node)
         QgsProject.instance().removeMapLayer(layer.id())
 
-        if result_item.group_path and not layer_group.children():
-            if self._prune_empty_group_path(layer_group):
+        if result_item.layer_path and not layer_group.children():
+            if self._prune_empty_layer_path(layer_group):
                 result_item.layer_group = None
 
         if iface is not None:
@@ -388,17 +388,17 @@ class ThreeDiPluginLayerManager(QObject):
                 if (result_item.checkState() == Qt.CheckState.Checked and threedi_result_item is not result_item):
                     reset_styling = False
 
-        if threedi_result_item.group_path:
+        if threedi_result_item.layer_path:
             self.reset_result_styling(threedi_result_item)
-            self._unload_grouped_result_layers(threedi_result_item)
+            self._unload_isolated_result_layers(threedi_result_item)
         elif reset_styling:
             self.reset_styling(grid_item)
 
         self.result_unloaded.emit(threedi_result_item)
         return True
 
-    def _unload_grouped_result_layers(self, result_item: ThreeDiResultItem) -> None:
-        """Remove grouped result layers and prune only empty owned groups."""
+    def _unload_isolated_result_layers(self, result_item: ThreeDiResultItem) -> None:
+        """Remove isolated result layers and prune only empty owned groups."""
         project = QgsProject.instance()
         root = project.layerTreeRoot()
 
@@ -431,15 +431,15 @@ class ThreeDiPluginLayerManager(QObject):
 
         if layer_group.children():
             logger.info(
-                "Grouped result group contains external layers or groups: not removing."
+                "Isolated result group contains external layers or groups: not removing."
             )
             return
 
-        if self._prune_empty_group_path(layer_group):
+        if self._prune_empty_layer_path(layer_group):
             result_item.layer_group = None
 
     @staticmethod
-    def _prune_empty_group_path(layer_group: QgsLayerTreeGroup) -> bool:
+    def _prune_empty_layer_path(layer_group: QgsLayerTreeGroup) -> bool:
         """Remove an empty group and empty ancestors up to the project root."""
         root = QgsProject.instance().layerTreeRoot()
         current_group = layer_group
@@ -454,7 +454,7 @@ class ThreeDiPluginLayerManager(QObject):
     @dirty
     @pyqtSlot(ThreeDiResultItem)
     def result_unchecked(self, item: ThreeDiResultItem):
-        if item.group_path:
+        if item.layer_path:
             self.reset_result_styling(item)
             return
 
@@ -475,7 +475,7 @@ class ThreeDiPluginLayerManager(QObject):
         self._reset_styling(grid_item.layer_ids)
 
     def reset_result_styling(self, result_item: ThreeDiResultItem) -> None:
-        """Reset the styles of layers owned by a grouped result."""
+        """Reset the styles of layers owned by an isolated result."""
         self._reset_styling(result_item.get_layer_ids())
 
     def _reset_styling(self, layer_ids) -> None:
@@ -641,10 +641,10 @@ class ThreeDiPluginLayerManager(QObject):
         )
 
     @staticmethod
-    def _add_grouped_layers_from_gpkg(path, result_item: ThreeDiResultItem) -> bool:
-        """Create fresh computational-grid layers owned by a grouped result."""
+    def _add_isolated_layers_from_gpkg(path, result_item: ThreeDiResultItem) -> bool:
+        """Create fresh computational-grid layers owned by an isolated result."""
         if result_item.layer_group is None:
-            logger.warning("Cannot add grouped result layers without a layer group")
+            logger.warning("Cannot add isolated result layers without a layer group")
             return False
 
         return ThreeDiPluginLayerManager._copy_layers_from_gpkg(
@@ -669,10 +669,10 @@ class ThreeDiPluginLayerManager(QObject):
         return layer_group
 
     @staticmethod
-    def _get_or_create_group_path(group_path: list[str]) -> QgsLayerTreeGroup:
+    def _get_or_create_layer_path(layer_path: list[str]) -> QgsLayerTreeGroup:
         """Create the direct QGIS layer-tree hierarchy for a result path."""
         current_group = QgsProject.instance().layerTreeRoot()
-        for group_name in group_path:
+        for group_name in layer_path:
             group = next(
                 (
                     child

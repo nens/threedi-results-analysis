@@ -84,7 +84,7 @@ class ThreeDiPluginModelSerializer:
                     for label_node in layer_nodes:
                         model_node.layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
 
-                    # If every child result is grouped, this grid's own
+                    # If every child result is isolated, this grid's own
                     # layers were never created in the saved session either;
                     # defer their creation the same way the live load does.
                     result_children = [
@@ -94,7 +94,11 @@ class ThreeDiPluginModelSerializer:
                         if child.isElement() and child.toElement().tagName() == "result"
                     ]
                     if result_children and all(
-                        child.attribute("group_path").strip() for child in result_children
+                        (
+                            child.attribute("layer_path")
+                            or child.attribute("group_path")
+                        ).strip()
+                        for child in result_children
                     ):
                         model_node.defer_layer_creation = True
 
@@ -123,9 +127,14 @@ class ThreeDiPluginModelSerializer:
                     model_node.setCheckState(check_state)
                     model_node.setText(xml_element_node.attribute("text"))
 
-                    group_path = xml_element_node.attribute("group_path")
-                    if group_path and group_path.strip():
-                        model_node.group_path = [part for part in group_path.split("/") if part]
+                    # ``group_path`` was used by the unreleased PR schema;
+                    # accept it when opening an older project, but always
+                    # write the clearer ``layer_path`` name going forward.
+                    layer_path = xml_element_node.attribute("layer_path") or xml_element_node.attribute(
+                        "group_path"
+                    )
+                    if layer_path and layer_path.strip():
+                        model_node.layer_path = [part for part in layer_path.split("/") if part]
                         for i in range(xml_element_node.childNodes().count()):
                             child = xml_element_node.childNodes().at(i)
                             if child.isElement() and child.toElement().tagName() == "layer":
@@ -223,8 +232,8 @@ class ThreeDiPluginModelSerializer:
                     xml_node.setAttribute("text", model_node.text())
                     xml_node.setAttribute("id", model_node.id)
                     xml_node.setAttribute("check_state", str(int(model_node.checkState())))
-                    if model_node.group_path:
-                        xml_node.setAttribute("group_path", "/".join(model_node.group_path))
+                    if model_node.layer_path:
+                        xml_node.setAttribute("layer_path", "/".join(model_node.layer_path))
                         for table_name, layer_id in model_node.layer_ids.items():
                             layer_element = doc.createElement("layer")
                             layer_element.setAttribute("id", layer_id)

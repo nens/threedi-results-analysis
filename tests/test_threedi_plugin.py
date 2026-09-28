@@ -9,7 +9,7 @@ def test_smoke():
     assert threedi_plugin
 
 
-def test_load_result_forwards_group_path():
+def test_load_result_forwards_layer_path():
     plugin = ThreeDiPlugin(None)
     plugin.validator = Mock()
 
@@ -24,5 +24,5 @@ def test_load_result_forwards_group_path():
         "c:/test/results_3di.nc",
         "c:/test/gridadmin.h5",
         project="project",
-        group_path=["project", "files", "result"],
+        layer_path=["project", "files", "result"],
     )

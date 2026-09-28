@@ -1057,7 +1057,7 @@ class GraphDockWidget(QDockWidget):
 
     @staticmethod
     def _get_relevant_layer_ids(model, layer_keys):
-        """Return grid-owned and grouped result-owned IDs for graph input."""
+        """Return grid-owned and isolated result-owned IDs for graph input."""
         relevant_layer_ids = set()
 
         for grid_item in model.get_grids():

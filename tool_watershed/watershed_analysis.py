@@ -64,10 +64,10 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 continue
             tool_group = result_group_parent.findGroup(GROUP_NAME)
             if tool_group:
-                result_group = tool_group if result.group_path else tool_group.findGroup(result.text())
+                result_group = tool_group if result.layer_path else tool_group.findGroup(result.text())
                 if result_group:
                     self.preloaded_layers[result_id]["group"] = result_group
-                    if not result.group_path:
+                    if not result.layer_path:
                         result_group.nameChanged.connect(
                             lambda _, txt, result_item=result: result_item.setText(txt)
                         )
@@ -142,10 +142,10 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
                 continue
             tool_group = result_group_parent.findGroup(GROUP_NAME)
             if tool_group:
-                result_group = tool_group if result.group_path else tool_group.findGroup(result.text())
+                result_group = tool_group if result.layer_path else tool_group.findGroup(result.text())
                 if result_group:
                     loaded_layer_dict["group"] = result_group
-                    if not result.group_path:
+                    if not result.layer_path:
                         result_group.nameChanged.connect(
                             lambda _, txt, result_item=result: result_item.setText(txt)
                         )
@@ -193,7 +193,7 @@ class ThreeDiWatershedAnalyst(ThreeDiPluginTool):
             # Remove group
             if "group" in layer_dict:
                 result_group = layer_dict["group"]
-                if not result_item.group_path:
+                if not result_item.layer_path:
                     result_group.parent().removeChildNode(result_group)
 
             # In case the tool ("watershed") group is now empty, we'll remove that too

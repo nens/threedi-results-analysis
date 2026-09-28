@@ -79,7 +79,7 @@ class StatisticsTool(ThreeDiPluginTool):
             tool_group = result_group.findGroup(self.group_name)
             if tool_group:
                 tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
-                if result.group_path:
+                if result.layer_path:
                     self.layer_groups[result.id] = tool_group
                 else:
                     result_group = tool_group.findGroup(result.text())
@@ -131,7 +131,7 @@ class StatisticsTool(ThreeDiPluginTool):
         # Remove group in layer manager
         if result_item.id in self.layer_groups:
             result_group = self.layer_groups[result_item.id]
-            if result_item.group_path:
+            if result_item.layer_path:
                 tool_group = result_group
             else:
                 tool_group = result_group.parent()

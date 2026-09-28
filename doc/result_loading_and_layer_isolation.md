@@ -1,4 +1,4 @@
-# Result loading and grouping
+# Result loading and layer isolation
 
 This describes how computational grids and simulation results get loaded into QGIS, and how the resulting layers are organized in the layer tree depending on the loading mode. It's a walk-through of one specific, cross-cutting flow: `ThreeDiPlugin.load_result()` (and the equivalent result-manager UI action) down to the QGIS layers that end up in the project.
 
@@ -15,7 +15,7 @@ sequenceDiagram
     participant Loader as ThreeDiPluginLayerManager
     participant Model as ThreeDiPluginModel
 
-    Caller->>Validator: validate_result_grid(result_path, grid_path, project, group_path)
+    Caller->>Validator: validate_result_grid(result_path, grid_path, project, layer_path)
     Validator->>Validator: validate_grid(...) — find-or-create the grid
     Validator-->>Loader: grid_valid(grid_item, project)
     Loader->>Loader: load_grid(grid_item, project)
@@ -30,16 +30,16 @@ sequenceDiagram
 
 `ThreeDiPluginModel` is the source of truth for *what* is loaded (one `ThreeDiGridItem` per computational grid, with `ThreeDiResultItem` children). `ThreeDiPluginLayerManager` is the source of truth for *which QGIS layers* represent that state, and owns their lifecycle.
 
-Two optional keyword arguments change how the QGIS layer tree is organized, without changing the model tree: `project` (for grouping results per project) and `group_path` (for grouping results per result file).
+Two optional keyword arguments change how the QGIS layer tree is organized, without changing the model tree: `project` (for grouping results per project) and `layer_path` (for placing isolated result layers at a source-derived path).
 
 > [!IMPORTANT]
-> `project` and `group_path' only affect the grouping in the layer panel, not in the results analysis dock widget. This gives three loading modes.
+> `project` and `layer_path` only affect the organization and ownership of layers in the layer panel, not the results analysis dock widget. This gives three loading modes.
 
-## Mode 1: standalone (no `project`, no `group_path`)
+## Mode 1: standalone (no `project`, no `layer_path`)
 
 This is the mode used by the Results Analysis result-manager UI itself.
 
-`load_grid()` converts the `.h5` gridadmin to a `.gpkg` (if needed) and copies its tables into memory layers directly under the layer-tree root, in a group named after the grid (`ThreeDiGridItem.text()`). Every result attached to that grid (`ThreeDiPluginLayerManager.load_result`) adds its own dynamic `result_...`/`initial_value_...` fields to *those same* grid-owned layers (`ThreeDiGridItem.layer_ids`). All results sharing a grid therefore share one set of QGIS layers; only the fields differ per result. `ThreeDiResultItem.group_path` is `None` in this mode. `Waterdepth` and the tool groups are likewise shared: they attach to the grid's own `layer_group`, not to an individual result, so multiple results on the same grid share them too (see `load_waterdepth()`, `tool_statistics/threedi_custom_stats_dialog.py`, `tool_watershed/watershed_analysis_dockwidget.py`).
+`load_grid()` converts the `.h5` gridadmin to a `.gpkg` (if needed) and copies its tables into memory layers directly under the layer-tree root, in a group named after the grid (`ThreeDiGridItem.text()`). Every result attached to that grid (`ThreeDiPluginLayerManager.load_result`) adds its own dynamic `result_...`/`initial_value_...` fields to *those same* grid-owned layers (`ThreeDiGridItem.layer_ids`). All results sharing a grid therefore share one set of QGIS layers; only the fields differ per result. `ThreeDiResultItem.layer_path` is `None` in this mode. `Waterdepth` and the tool groups are likewise shared: they attach to the grid's own `layer_group`, not to an individual result, so multiple results on the same grid share them too (see `load_waterdepth()`, `tool_statistics/threedi_custom_stats_dialog.py`, `tool_watershed/watershed_analysis_dockwidget.py`).
 
 Concretely, if Result A and Result B are both loaded against the same
 computational grid, **both show up under this exact same `<grid name>`
@@ -99,17 +99,17 @@ project bar/
 ```
 
 
-## Mode 3: grouped by source file (`group_path` keyword)
+## Mode 3: isolated layers (`layer_path` keyword)
 
 Used by the current Rana integration, which knows the ordered file-tree
 location a result came from (e.g. `["<project>", "files", "folder", "result.zip"]`) and wants the QGIS layer tree to mirror it.
 
 > [!NOTE]
-> a non-empty `group_path` always takes precedence over `project`, even if both are supplied.
+> a non-empty `layer_path` always takes precedence over `project`, even if both are supplied.
 
-Unlike modes 1 and 2, a grouped result does **not** reuse the grid's shared layers. `ThreeDiPluginLayerManager.load_result()` copies fresh, independent vector-layer instances from the same underlying GeoPackage into the  result's *own* layer group (`ThreeDiResultItem.layer_group` `ThreeDiResultItem.layer_ids`). This lets two results that share one computational grid (same schematisation revision, different result files) have independent visibility, styling, aliases, fields and cleanup. The underlying `.gpkg` conversion is still only performed once and reused. The `ThreeDiGridItem` itself is *not* duplicated: the Results Analysis model still keeps one logical grid item per computational grid, and multiple grouped results (with different `group_path` values) can be children of the same grid item. Only the *QGIS layers* differ per result; the *model* tree looks the same as in the other modes.
+Unlike modes 1 and 2, a isolated result does **not** reuse the grid's shared layers. `ThreeDiPluginLayerManager.load_result()` copies fresh, independent vector-layer instances from the same underlying GeoPackage into the  result's *own* layer group (`ThreeDiResultItem.layer_group` `ThreeDiResultItem.layer_ids`). This lets two results that share one computational grid (same schematisation revision, different result files) have independent visibility, styling, aliases, fields and cleanup. The underlying `.gpkg` conversion is still only performed once and reused. The `ThreeDiGridItem` itself is *not* duplicated: the Results Analysis model still keeps one logical grid item per computational grid, and multiple isolated results (with different `layer_path` values) can be children of the same grid item. Only the *QGIS layers* differ per result; the *model* tree looks the same as in the other modes.
 
-In grouped mode, each ThreeDiResultItem stores its group_path, its result-owned layer_group, and its result-owned layer_ids. The result remains a child of the matching ThreeDiGridItem in the Results Analysis model, but its QGIS layers are tracked independently from the grid. In non-grouped modes these result-owned attributes remain unused: the result uses its parent grid’s layer_group and layer_ids instead. This lets the model retain the link between a result and its computational grid while allowing grouped results to appear at separate locations in the QGIS layer tree.
+In isolated mode, each ThreeDiResultItem stores its layer_path, its result-owned layer_group, and its result-owned layer_ids. The result remains a child of the matching ThreeDiGridItem in the Results Analysis model, but its QGIS layers are tracked independently from the grid. In non-isolated modes these result-owned attributes remain unused: the result uses its parent grid’s layer_group and layer_ids instead. This lets the model retain the link between a result and its computational grid while allowing isolated results to appear at separate locations in the QGIS layer tree.
 
 For two results, `result-a.zip` and `result-b.zip`, that share the same computational grid, the model tree looks like this:
 
@@ -126,13 +126,13 @@ project foo/
             └── max wd result-b
 ```
 
-## Summary: are results sharing a grid grouped together?
+## Summary: are results sharing a grid isolated together?
 
 | | RA model (result manager) | QGIS layer tree |
 | --- | --- | --- |
-| Mode 1: standalone | grouped under one grid item | grouped under one `<grid name>` group |
-| Mode 2: `project` | grouped under one grid item | grouped under one `<project>/.../<grid name>` group |
-| Mode 3: `group_path` | grouped under one grid item | **not** grouped — each result's layers live wherever its own `group_path` places them |
+| Mode 1: standalone | isolated under one grid item | isolated under one `<grid name>` group |
+| Mode 2: `project` | isolated under one grid item | isolated under one `<project>/.../<grid name>` group |
+| Mode 3: `layer_path` | isolated under one grid item | **not** isolated — each result's layers live wherever its own `layer_path` places them |
 
 
 ## Deferred grid-layer creation
@@ -142,7 +142,7 @@ To avoid this duplicate creation of computational grid layers, `ThreeDiGridItem`
 
 ```mermaid
 flowchart TD
-    A["validate_grid(..., group_path=[...])"] -->|"grid is genuinely new"| B["new_grid.defer_layer_creation = bool(group_path)"]
+    A["validate_grid(..., layer_path=[...])"] -->|"grid is genuinely new"| B["new_grid.defer_layer_creation = bool(layer_path)"]
     B --> C["grid_valid.emit(new_grid, project)"]
     C --> D["load_grid(new_grid, project)"]
     D --> E{"defer_layer_creation?"}
@@ -150,13 +150,13 @@ flowchart TD
     E -->|"False"| G["create the grid's own layers as usual"]
 ```
 
-So a grid requested purely for grouped results is registered in the model (`model.add_grid()` still fires, and all the usual `grid_added` listeners still run), but `ThreeDiGridItem.layer_group` stays `None` and `ThreeDiGridItem.layer_ids` stays empty until (and unless) something that actually needs the shared layers comes along.
+So a grid requested purely for isolated results is registered in the model (`model.add_grid()` still fires, and all the usual `grid_added` listeners still run), but `ThreeDiGridItem.layer_group` stays `None` and `ThreeDiGridItem.layer_ids` stays empty until (and unless) something that actually needs the shared layers comes along.
 
-That "something" is a non-grouped (standalone or project-based) result attaching to the same grid later — which can happen because grids are matched and reused across loads by their model slug. `load_result()` lazily creates the grid's own layers on demand the first time this happens:
+That "something" is a non-isolated (standalone or project-based) result attaching to the same grid later — which can happen because grids are matched and reused across loads by their model slug. `load_result()` lazily creates the grid's own layers on demand the first time this happens:
 
 ```mermaid
 flowchart TD
-    A["load_result(result_item, grid_item)"] --> B{"result_item.group_path?"}
+    A["load_result(result_item, grid_item)"] --> B{"result_item.layer_path?"}
     B -->|"yes"| C["create/reuse the result's own independent layers"]
     B -->|"no"| D{"grid_item.layer_group is None\nand not grid_item.layer_ids?"}
     D -->|"yes (still deferred)"| E["materialize the grid's own layers now\n(_add_layers_from_gpkg), exactly as\nload_grid() would have done eagerly"]
@@ -171,8 +171,8 @@ The extra `not grid_item.layer_ids` check (in addition to `layer_group is None`)
 
 Because deferral only ever *postpones* eager creation and materialization  is idempotent (a second standalone result attaching later just reuses the  already-created layers), the two possible attachment orders for one grid  converge on the same end state:
 
-- **grouped result first, standalone result later**: grid stays empty until the standalone result attaches, then its layers are created on demand.
-- **standalone result first, grouped result later**: the grid's layers are created immediately as before; the grouped result's independent layers are unaffected either way.
+- **isolated result first, standalone result later**: grid stays empty until the standalone result attaches, then its layers are created on demand.
+- **standalone result first, isolated result later**: the grid's layers are created immediately as before; the isolated result's independent layers are unaffected either way.
 
 `unload_grid()` and `update_grid()` tolerate a grid that never materialized its own layers (nothing to remove/rename) instead of asserting.
 
@@ -213,7 +213,7 @@ sequenceDiagram
       <layer id="..." table_name="flowline"/>
       ...
       <result path="..." text="..." id="..." check_state="2"
-              group_path="...(mode 3 only)">
+              layer_path="...(mode 3 only)">
         <layer id="..." table_name="node"/>   <!-- mode 3 only -->
         ...
       </result>
@@ -230,7 +230,7 @@ checked (visible/animated) when saved.
 
 Continuing the `gridadmin` / `result-a.zip` / `result-b.zip` example from above, here is what actually gets written for each mode (abbreviated, `<layer>` children of `<grid>`/`<result>` shown for `node` only):
 
-**Mode 1: standalone** — no `project`, results carry no `group_path` and no `<layer>` children of their own (they use the grid's):
+**Mode 1: standalone** — no `project`, results carry no `layer_path` and no `<layer>` children of their own (they use the grid's):
 
 ```xml
 <grid path="gridadmin.gpkg" text="gridadmin" id="g1">
@@ -251,20 +251,20 @@ Continuing the `gridadmin` / `result-a.zip` / `result-b.zip` example from above,
 </grid>
 ```
 
-**Mode 3: grouped** — each `<result>` carries its own `group_path` (joined
+**Mode 3: isolated** — each `<result>` carries its own `layer_path` (joined
 with `/`, since it is a display path, not a filesystem path — see below)
 and its own `<layer>` children. If this grid was never used by a
-non-grouped result in the saved session, its own `<layer>` children are
+non-isolated result in the saved session, its own `<layer>` children are
 simply absent (see "Deferred layers on restore" below):
 
 ```xml
 <grid path="gridadmin.gpkg" text="gridadmin" id="g1">
   <result path="result-a.zip/results_3di.nc" text="result-a.zip" id="r1" check_state="2"
-          group_path="my-model/revision-1/result-a.zip">
+          layer_path="my-model/revision-1/result-a.zip">
     <layer id="result_a_node_layer_id" table_name="node"/>
   </result>
   <result path="result-b.zip/results_3di.nc" text="result-b.zip" id="r2" check_state="2"
-          group_path="my-model/revision-1/result-b.zip">
+          layer_path="my-model/revision-1/result-b.zip">
     <layer id="result_b_node_layer_id" table_name="node"/>
   </result>
 </grid>
@@ -282,9 +282,9 @@ simply absent (see "Deferred layers on restore" below):
   read.
 - Otherwise, `path` is written and read as an absolute path.
 
-`group_path` is **not** a filesystem path and is never passed through the
+`layer_path` is **not** a filesystem path and is never passed through the
 resolver: it is a plain, already-serializable list of display-name
-components (see the earlier "Serialize `group_path` as a display path"
+components (see the earlier "Serialize `layer_path` as a display path"
 rationale — components must not themselves contain `/`), joined with `/`
 for storage and split back into a list on read.
 
@@ -312,26 +312,26 @@ reused across a save/reopen cycle. Instead of persisting them:
 The same deferral decision described above is made again when a QGIS
 project is reopened. `ThreeDiPluginModelSerializer` reads each `<grid>` XML
 node's `<result>` children before calling `load_grid()`: if the grid has at
-least one result child and *all* of them carry a non-empty `group_path`,
+least one result child and *all* of them carry a non-empty `layer_path`,
 the restored `ThreeDiGridItem` is marked `defer_layer_creation = True` as
-well, so a saved-and-reopened purely-grouped project does not recreate the
-orphaned ungrouped layer tree on every reopen. If any child result has no
-`group_path` (mixed use, or plain standalone/project-based use), the grid
+well, so a saved-and-reopened purely-isolated project does not recreate the
+orphaned unisolated layer tree on every reopen. If any child result has no
+`layer_path` (mixed use, or plain standalone/project-based use), the grid
 restores and loads its own layers immediately, exactly like a fresh
 (non-restored) load would.
 
 ```mermaid
 flowchart TD
     A["_read_recursive() reaches a &lt;grid&gt; XML node"] --> B["scan its &lt;result&gt; children"]
-    B --> C{"at least one result child,\nand all have group_path?"}
+    B --> C{"at least one result child,\nand all have layer_path?"}
     C -->|"yes"| D["model_node.defer_layer_creation = True"]
     C -->|"no"| E["defer_layer_creation stays False"]
     D --> F["loader.load_grid(model_node, project)"]
     E --> F
 ```
 
-Grouped result nodes persist their own `group_path` and result-owned
+Isolated result nodes persist their own `layer_path` and result-owned
 `<layer>` children directly on the `<result>` XML element (in addition to
 the regular `<layer>` children a `<grid>` element carries for its own,
-non-deferred layers), so grouped layers are reused rather than duplicated
+non-deferred layers), so isolated layers are reused rather than duplicated
 on reopen.
