@@ -68,11 +68,12 @@ class ThreeDiGridItem(ThreeDiModelItem):
         # project name used when the grid was loaded via an external plugin (e.g. rana-qgis-plugin)
         self.project: Optional[str] = None
 
-        # One-shot hint consumed by the layer manager: when set, creation of
-        # this grid's own (shared) layers is deferred because the grid was
-        # first requested only for an isolated result, which owns independent
-        # layers of its own. Cleared once the grid's own layers are created
-        # (immediately, or lazily when a non-isolated result needs them).
+        # One-shot instruction for the layer manager. If this grid was first
+        # requested by an isolated result, defer creating the grid-owned shared
+        # layers because that result has its own independent layer copies.
+        # The flag is cleared when load_grid() consumes it. If a standalone or
+        # project-based result later uses this grid, load_result() creates the
+        # deferred shared layers on demand.
         self.defer_layer_creation = False
 
 
