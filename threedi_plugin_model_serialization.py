@@ -3,6 +3,7 @@ from threedi_results_analysis.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from qgis.PyQt.QtGui import QStandardItem
+from qgis.PyQt.QtCore import Qt
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem, already_used_ids
 from typing import Tuple
 from pathlib import Path
@@ -108,7 +109,9 @@ class ThreeDiPluginModelSerializer:
                     already_used_ids.append(id)
 
                     model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))), id)
-                    model_node.setCheckState(int(xml_element_node.attribute("check_state")))
+                    model_node.setCheckState(
+                        Qt.CheckState(int(xml_element_node.attribute("check_state")))
+                    )
                     model_node.setText(xml_element_node.attribute("text"))
 
                     layer_path = xml_element_node.attribute("layer_path")
