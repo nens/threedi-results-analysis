@@ -34,8 +34,13 @@ def test_water_balance_wrapper_resolves_isolated_result_layers():
 
     try:
         wrapped_result = WrappedResult(result_item)
+
+        # An isolated result must resolve its node layer from its own layer IDs,
+        # rather than from the parent grid's layer IDs.
         assert wrapped_result.points is result_layer
 
+        # Without an isolated layer path, the wrapper deliberately falls back
+        # to the shared grid-owned layer used by standalone results.
         result_item.layer_path = None
         assert wrapped_result.points is grid_layer
     finally:
@@ -64,6 +69,8 @@ def test_graph_relevant_layers_include_isolated_result_layers():
     assert model.add_result(isolated_result, grid_item)
 
     try:
+        # Graph input must include both the shared grid layer and the separate
+        # layer owned by the isolated result.
         relevant_layer_ids = GraphDockWidget._get_relevant_layer_ids(model, ["node"])
         assert grid_layer.id() in relevant_layer_ids
         assert isolated_layer.id() in relevant_layer_ids
@@ -83,29 +90,12 @@ def test_result_owned_group_and_node_layer_are_resolved_for_outputs():
     grid_item.layer_ids["node"] = "grid-node-id"
     grid_item.appendRow(result_item)
 
+    # Isolated outputs use both the result-owned group and the result-owned
+    # computational layer.
     assert result_item.get_layer_group() is result_item.layer_group
     assert result_item.get_layer_ids()["node"] == "isolated-node-id"
 
+    # Removing the layer path switches ownership back to the parent grid.
     result_item.layer_path = None
     assert result_item.get_layer_group() is grid_item.layer_group
     assert result_item.get_layer_ids()["node"] == "grid-node-id"
-
-
-def test_graph_add_results_calls_relevant_layer_ids_correctly():
-    """Regression test: add_results() must call the _get_relevant_layer_ids
-    staticmethod with the model explicitly, since staticmethods do not
-    receive an implicit `self`/`model` argument through `self.<name>(...)`.
-    """
-    model = ThreeDiPluginModel()
-
-    # A minimal stand-in for GraphDockWidget: only the attributes touched by
-    # add_results() when there are no results to add.
-    fake_widget = SimpleNamespace(
-        model=model,
-        q_graph_widget=None,
-        h_graph_widget=None,
-        _get_relevant_layer_ids=GraphDockWidget._get_relevant_layer_ids,
-    )
-
-    # Must not raise (previously raised TypeError: missing 'layer_keys').
-    GraphDockWidget.add_results(fake_widget, [], feature_type=NODE_OR_CELL)

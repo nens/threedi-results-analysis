@@ -122,54 +122,6 @@ def test_isolated_result_read_restores_path_and_owned_layers():
     assert result_parent is restored_grid
 
 
-def test_legacy_enum_check_state_is_read():
-    document = QDomDocument()
-    document.setContent(
-        """<qgis><threediPluginModel>
-        <grid id="grid" path="resolved:c:/grid/gridadmin.gpkg" text="grid">
-            <result id="result" path="resolved:c:/result/results_3di.nc"
-                    text="result" check_state="CheckState.Checked"/>
-        </grid>
-        </threediPluginModel></qgis>"""
-    )
-
-    loader = RecordingLoader()
-    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
-    assert loader.results[0][0].checkState() == Qt.CheckState.Checked
-
-
-def test_legacy_group_path_is_read_as_layer_path():
-    document = QDomDocument()
-    document.setContent(
-        """<qgis><threediPluginModel>
-        <grid id="grid" path="resolved:c:/grid/gridadmin.gpkg" text="grid">
-            <result id="result" path="resolved:c:/result/results_3di.nc"
-                    text="result" group_path="files/result.zip"/>
-        </grid>
-        </threediPluginModel></qgis>"""
-    )
-
-    loader = RecordingLoader()
-    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
-    assert loader.results[0][0].layer_path == ["files", "result.zip"]
-
-
-def test_missing_check_state_defaults_to_unchecked():
-    document = QDomDocument()
-    document.setContent(
-        """<qgis><threediPluginModel>
-        <grid id="grid" path="resolved:c:/grid/gridadmin.gpkg" text="grid">
-            <result id="result" path="resolved:c:/result/results_3di.nc"
-                    text="result"/>
-        </grid>
-        </threediPluginModel></qgis>"""
-    )
-
-    loader = RecordingLoader()
-    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
-    assert loader.results[0][0].checkState() == Qt.CheckState.Unchecked
-
-
 def test_standalone_result_read_does_not_claim_grid_layers():
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")

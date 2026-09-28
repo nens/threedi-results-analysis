@@ -3,7 +3,6 @@ from threedi_results_analysis.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from qgis.PyQt.QtGui import QStandardItem
-from qgis.PyQt.QtCore import Qt
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem, already_used_ids
 from typing import Tuple
 from pathlib import Path
@@ -45,11 +44,11 @@ class ThreeDiPluginModelSerializer:
             logger.error("Unable to read XML, aborting read")
             return False, None
 
-        # Retrieve dedicated XML node for tools. Older project XML may not have
-        # this optional node; model restoration does not depend on it.
+        # Retrieve the dedicated XML node used by tools to restore their state.
         tools_node = results_node.firstChildElement("tools")
         if tools_node.isNull():
-            return True, None
+            logger.error("Unable to read XML (no dedicated tool node), aborting read")
+            return False, None
 
         return True, tools_node
 
@@ -94,10 +93,7 @@ class ThreeDiPluginModelSerializer:
                         if child.isElement() and child.toElement().tagName() == "result"
                     ]
                     if result_children and all(
-                        (
-                            child.attribute("layer_path")
-                            or child.attribute("group_path")
-                        ).strip()
+                        child.attribute("layer_path").strip()
                         for child in result_children
                     ):
                         model_node.defer_layer_creation = True
@@ -112,27 +108,10 @@ class ThreeDiPluginModelSerializer:
                     already_used_ids.append(id)
 
                     model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))), id)
-                    check_state = xml_element_node.attribute("check_state") or str(
-                        int(Qt.CheckState.Unchecked)
-                    )
-                    legacy_check_states = {
-                        "CheckState.Unchecked": Qt.CheckState.Unchecked,
-                        "CheckState.PartiallyChecked": Qt.CheckState.PartiallyChecked,
-                        "CheckState.Checked": Qt.CheckState.Checked,
-                    }
-                    if check_state in legacy_check_states:
-                        check_state = legacy_check_states[check_state]
-                    else:
-                        check_state = Qt.CheckState(int(check_state))
-                    model_node.setCheckState(check_state)
+                    model_node.setCheckState(int(xml_element_node.attribute("check_state")))
                     model_node.setText(xml_element_node.attribute("text"))
 
-                    # ``group_path`` was used by the unreleased PR schema;
-                    # accept it when opening an older project, but always
-                    # write the clearer ``layer_path`` name going forward.
-                    layer_path = xml_element_node.attribute("layer_path") or xml_element_node.attribute(
-                        "group_path"
-                    )
+                    layer_path = xml_element_node.attribute("layer_path")
                     if layer_path and layer_path.strip():
                         model_node.layer_path = [part for part in layer_path.split("/") if part]
                         for i in range(xml_element_node.childNodes().count()):
