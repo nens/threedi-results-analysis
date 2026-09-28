@@ -1,5 +1,4 @@
 from pathlib import Path
-from types import SimpleNamespace
 
 from qgis.core import QgsProject, QgsVectorLayer
 
@@ -10,7 +9,6 @@ from threedi_results_analysis.threedi_plugin_model import (
 )
 from threedi_results_analysis.tool_graph.graph_view import (
     GraphDockWidget,
-    NODE_OR_CELL,
 )
 from threedi_results_analysis.tool_water_balance.utils import WrappedResult
 
