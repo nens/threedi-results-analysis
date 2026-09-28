@@ -1,6 +1,6 @@
 # Result loading and layer isolation
 
-This describes how computational grids and simulation results get loaded into QGIS, and how the resulting layers are organized in the layer tree depending on the loading mode. It's a walk-through of one specific, cross-cutting flow: `ThreeDiPlugin.load_result()` (and the equivalent result-manager UI action) down to the QGIS layers that end up in the project.
+This describes how computational grids and simulation results get loaded into QGIS, and how the resulting layers are organized in the layer tree depending on the loading mode. It separates the common result-opening pipeline from the mode-specific layer placement and ownership rules.
 
 Read this together with `threedi_plugin.py`, `threedi_plugin_model_validation.py` and `threedi_plugin_layer_manager.py`.
 
@@ -35,11 +35,49 @@ Two optional keyword arguments change how the QGIS layer tree is organized, with
 > [!IMPORTANT]
 > `project` and `layer_path` only affect the organization and ownership of layers in the layer panel, not the results analysis dock widget. This gives three loading modes.
 
-## Mode 1: standalone (no `project`, no `layer_path`)
+## How a result is opened
+
+The three modes below use the same loading pipeline. The mode only changes
+where the resulting QGIS layers are placed and who owns them; it does not
+change how the result datasource is opened.
+
+1. `validate_grid()` finds an existing `ThreeDiGridItem` or creates one for
+   the computational grid. A new grid normally causes `load_grid()` to convert
+   the `.h5` gridadmin to a `.gpkg` (if needed) and copy its tables into QGIS
+   layers.
+2. `validate_result_grid()` validates the result file and creates a
+   `ThreeDiResultItem` linked to the matching grid item.
+3. `load_result()` prepares the result datasource through the established
+   `ThreeDiResultItem.threedi_result` path and adds the dynamic
+   `result_...`/`initial_value_...` fields to the layers owned by that result.
+4. The model records the grid and result, and emits the normal model signals.
+   Tools use those signals and the result's layer accessors rather than
+   discovering result layers independently.
+
+The computational-grid conversion is shared: results using the same grid do
+not convert the gridadmin repeatedly. The layer manager also handles
+waterdepth rasters, styling, cleanup, and project persistence using the same
+ownership rules described below.
+
+When a grid is first requested only by an isolated result, creation of the
+grid-owned shared layers is deferred. The isolated result gets its own layers
+immediately. If a standalone or project-based result later uses that same
+grid, the shared grid layers are materialized on demand. See
+`Deferred grid-layer creation` below.
+
+## Loading modes
+
+The modes differ in layer placement and ownership, not in the result-opening
+pipeline above.
+
+### Mode 1: standalone (no `project`, no `layer_path`)
 
 This is the mode used by the Results Analysis result-manager UI itself.
 
-`load_grid()` converts the `.h5` gridadmin to a `.gpkg` (if needed) and copies its tables into memory layers directly under the layer-tree root, in a group named after the grid (`ThreeDiGridItem.text()`). Every result attached to that grid (`ThreeDiPluginLayerManager.load_result`) adds its own dynamic `result_...`/`initial_value_...` fields to *those same* grid-owned layers (`ThreeDiGridItem.layer_ids`). All results sharing a grid therefore share one set of QGIS layers; only the fields differ per result. `ThreeDiResultItem.layer_path` is `None` in this mode. `Waterdepth` and the tool groups are likewise shared: they attach to the grid's own `layer_group`, not to an individual result, so multiple results on the same grid share them too (see `load_waterdepth()`, `tool_statistics/threedi_custom_stats_dialog.py`, `tool_watershed/watershed_analysis_dockwidget.py`).
+The result uses the grid's shared QGIS layers. `ThreeDiResultItem.layer_path`
+is `None`, and its dynamic fields are added to `ThreeDiGridItem.layer_ids`.
+Waterdepth and tool groups are also attached to the grid's `layer_group`, so
+multiple results using one grid share those layer containers.
 
 Concretely, if Result A and Result B are both loaded against the same
 computational grid, **both show up under this exact same `<grid name>`
@@ -64,7 +102,7 @@ gridadmin bar/
 ```
 
 
-## Mode 2: project-based (`project` keyword)
+### Mode 2: project-based (`project` keyword)
 
 The layer tree gains one extra wrapper level compared to mode 1; layer ownership (including `Waterdepth` and the tool groups) is otherwise identical.
 
@@ -99,7 +137,7 @@ project bar/
 ```
 
 
-## Mode 3: isolated layers (`layer_path` keyword)
+### Mode 3: isolated layers (`layer_path` keyword)
 
 Used by the current Rana integration, which knows the ordered file-tree
 location a result came from (e.g. `["<project>", "files", "folder", "result.zip"]`) and wants the QGIS layer tree to mirror it.
@@ -107,7 +145,7 @@ location a result came from (e.g. `["<project>", "files", "folder", "result.zip"
 > [!NOTE]
 > a non-empty `layer_path` always takes precedence over `project`, even if both are supplied.
 
-Unlike modes 1 and 2, a isolated result does **not** reuse the grid's shared layers. `ThreeDiPluginLayerManager.load_result()` copies fresh, independent vector-layer instances from the same underlying GeoPackage into the  result's *own* layer group (`ThreeDiResultItem.layer_group` `ThreeDiResultItem.layer_ids`). This lets two results that share one computational grid (same schematisation revision, different result files) have independent visibility, styling, aliases, fields and cleanup. The underlying `.gpkg` conversion is still only performed once and reused. The `ThreeDiGridItem` itself is *not* duplicated: the Results Analysis model still keeps one logical grid item per computational grid, and multiple isolated results (with different `layer_path` values) can be children of the same grid item. Only the *QGIS layers* differ per result; the *model* tree looks the same as in the other modes.
+Unlike modes 1 and 2, an isolated result does **not** reuse the grid's shared layers. `ThreeDiPluginLayerManager.load_result()` copies fresh, independent vector-layer instances from the same underlying GeoPackage into the result's *own* layer group (`ThreeDiResultItem.layer_group` and `ThreeDiResultItem.layer_ids`). This lets two results that share one computational grid (same schematisation revision, different result files) have independent visibility, styling, aliases, fields and cleanup. The underlying `.gpkg` conversion is still only performed once and reused. The `ThreeDiGridItem` itself is *not* duplicated: the Results Analysis model still keeps one logical grid item per computational grid, and multiple isolated results (with different `layer_path` values) can be children of the same grid item. Only the *QGIS layers* differ per result; the *model* tree looks the same as in the other modes.
 
 In isolated mode, each ThreeDiResultItem stores its layer_path, its result-owned layer_group, and its result-owned layer_ids. The result remains a child of the matching ThreeDiGridItem in the Results Analysis model, but its QGIS layers are tracked independently from the grid. In non-isolated modes these result-owned attributes remain unused: the result uses its parent grid’s layer_group and layer_ids instead. This lets the model retain the link between a result and its computational grid while allowing isolated results to appear at separate locations in the QGIS layer tree.
 
@@ -125,14 +163,6 @@ project foo/
         └── Waterdepth/
             └── max wd result-b
 ```
-
-## Summary: are results sharing a grid isolated together?
-
-| | RA model (result manager) | QGIS layer tree |
-| --- | --- | --- |
-| Mode 1: standalone | isolated under one grid item | isolated under one `<grid name>` group |
-| Mode 2: `project` | isolated under one grid item | isolated under one `<project>/.../<grid name>` group |
-| Mode 3: `layer_path` | isolated under one grid item | **not** isolated — each result's layers live wherever its own `layer_path` places them |
 
 
 ## Deferred grid-layer creation
