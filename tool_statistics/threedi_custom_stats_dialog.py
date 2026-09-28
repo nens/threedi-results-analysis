@@ -1395,11 +1395,11 @@ class Aggregate3DiResults(QgsTask):
             tool_group = result_group_parent.insertGroup(0, group_name)
             tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
 
-        # A grouped result already has its own layer-tree group. Avoid adding
-        # a redundant simulation-name group below the tool group. Ungrouped
+        # An isolated result already has its own layer-tree group. Avoid adding
+        # a redundant simulation-name group below the tool group. Non-isolated
         # results share their grid group, so retain that extra level to keep
         # outputs from different results separate.
-        if result.group_path:
+        if result.layer_path:
             self.layer_groups[result.id] = tool_group
             return tool_group
 

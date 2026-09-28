@@ -89,7 +89,7 @@ class TestResult(unittest.TestCase):
     def test_creation(self):
         item = ThreeDiResultItem(self.result_path, "text")
         self.assertTrue(item)
-        self.assertIsNone(item.group_path)
+        self.assertIsNone(item.layer_path)
         self.assertIsNone(item.layer_group)
         self.assertEqual(item.layer_ids, {})
 
@@ -150,14 +150,14 @@ class TestResult(unittest.TestCase):
         item = ThreeDiResultItem(self.result_path, "text")
         self.assertFalse(self.model.add_result(item, None))
 
-    def test_grouped_results_keep_one_logical_grid(self):
+    def test_isolated_results_keep_one_logical_grid(self):
         result = ThreeDiResultItem(self.result_path, "result")
-        result.group_path = ["project", "files", "result"]
+        result.layer_path = ["project", "files", "result"]
         result.layer_group = object()
         result.layer_ids = {"node": "result-layer-id"}
 
         second_result = ThreeDiResultItem("c:/test2/results_3di.nc", "result 2")
-        second_result.group_path = ["project", "files", "result-2"]
+        second_result.layer_path = ["project", "files", "result-2"]
         second_result.layer_group = object()
         second_result.layer_ids = {"node": "result-2-layer-id"}
 
@@ -183,13 +183,13 @@ class TestResult(unittest.TestCase):
 
     def test_result_field_names_are_scoped_to_layer(self):
         result = ThreeDiResultItem(self.result_path, "result")
-        result.group_path = ["files", "result"]
+        result.layer_path = ["files", "result"]
         result._result_field_names["result-layer-id"] = (
             "result_value",
             "initial_value",
         )
         second_result = ThreeDiResultItem("c:/test2/results_3di.nc", "result 2")
-        second_result.group_path = ["files", "result-2"]
+        second_result.layer_path = ["files", "result-2"]
         second_result._result_field_names["second-layer-id"] = (
             "second_result_value",
             "second_initial_value",

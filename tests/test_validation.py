@@ -54,25 +54,25 @@ class TestResultValidation(unittest.TestCase):
             self.assertTrue(self.validator._validate_result("c:/test/results_3di.nc", self.grid_item))
             result_valid.emit.assert_called_once_with(result_item_mock.return_value, self.grid_item)
 
-    def test_group_path_is_set_before_result_is_emitted(self, test_h5, result_item_mock):
+    def test_layer_path_is_set_before_result_is_emitted(self, test_h5, result_item_mock):
         test_h5.return_value.attrs = {"threedicore_version": "", "model_slug": "result_slug".encode()}
         result_item_mock.return_value.path.name = "results_3di.nc"
 
         with patch.object(self.validator, "result_valid") as result_valid, patch.object(
                 ThreeDiPluginModelValidator, "get_grid_slug", return_value="result_slug"):
-            for group_path in (None, [], ["project", "files", "result.zip"]):
-                result_item_mock.return_value.group_path = "old value"
+            for layer_path in (None, [], ["project", "files", "result.zip"]):
+                result_item_mock.return_value.layer_path = "old value"
                 result_valid.reset_mock()
 
                 self.assertTrue(
                     self.validator._validate_result(
                         "c:/test/results_3di.nc",
                         self.grid_item,
-                        group_path=group_path,
+                        layer_path=layer_path,
                     )
                 )
 
-                self.assertEqual(result_item_mock.return_value.group_path, group_path)
+                self.assertEqual(result_item_mock.return_value.layer_path, layer_path)
                 result_valid.emit.assert_called_once_with(
                     result_item_mock.return_value,
                     self.grid_item,
@@ -156,7 +156,7 @@ class TestResultValidation(unittest.TestCase):
             calls = [call(result_item_mock.return_value, wrong_grid)]
             result_valid.emit.assert_has_calls(calls)
 
-    def test_grouped_results_reuse_one_logical_grid(self, test_h5, result_item_mock):
+    def test_isolated_results_reuse_one_logical_grid(self, test_h5, result_item_mock):
         with patch.object(
             ThreeDiPluginModelValidator,
             "get_result_slug",
@@ -169,12 +169,12 @@ class TestResultValidation(unittest.TestCase):
             self.validator.validate_result_grid(
                 "c:/result-a/results_3di.nc",
                 "c:/test/gridadmin.h5",
-                group_path=["files", "result-a"],
+                layer_path=["files", "result-a"],
             )
             self.validator.validate_result_grid(
                 "c:/result-b/results_3di.nc",
                 "c:/test/gridadmin.h5",
-                group_path=["files", "result-b"],
+                layer_path=["files", "result-b"],
             )
 
         self.assertEqual(self.model.number_of_grids(), 1)
@@ -182,11 +182,11 @@ class TestResultValidation(unittest.TestCase):
         self.assertIs(validate_result.call_args_list[0].args[1], self.grid_item)
         self.assertIs(validate_result.call_args_list[1].args[1], self.grid_item)
         self.assertEqual(
-            validate_result.call_args_list[0].kwargs["group_path"],
+            validate_result.call_args_list[0].kwargs["layer_path"],
             ["files", "result-a"],
         )
         self.assertEqual(
-            validate_result.call_args_list[1].kwargs["group_path"],
+            validate_result.call_args_list[1].kwargs["layer_path"],
             ["files", "result-b"],
         )
 
@@ -208,19 +208,19 @@ class TestGridValidator(unittest.TestCase):
             new_grid_item = validator.validate_grid("c:/test/gridadmin.h5", project='bar')
             grid_valid.emit.assert_called_once_with(new_grid_item, 'bar')
 
-    def test_new_grid_defers_layer_creation_when_grouped(self):
-        """A brand-new grid requested only for a grouped result should not
+    def test_new_grid_defers_layer_creation_when_isolated(self):
+        """A brand-new grid requested only for an isolated result should not
         eagerly create its own (shared) layers; the layer manager creates
-        them lazily only if a non-grouped result later needs them."""
+        them lazily only if a non-isolated result later needs them."""
         validator = ThreeDiPluginModelValidator(self.model)
         with patch.object(validator, "grid_valid") as grid_valid:
             new_grid_item = validator.validate_grid(
-                "c:/test/gridadmin.h5", group_path=["files", "result.zip"]
+                "c:/test/gridadmin.h5", layer_path=["files", "result.zip"]
             )
             grid_valid.emit.assert_called_once_with(new_grid_item, '')
             self.assertTrue(new_grid_item.defer_layer_creation)
 
-    def test_new_grid_does_not_defer_layer_creation_without_group_path(self):
+    def test_new_grid_does_not_defer_layer_creation_without_layer_path(self):
         validator = ThreeDiPluginModelValidator(self.model)
         with patch.object(validator, "grid_valid"):
             new_grid_item = validator.validate_grid("c:/test/gridadmin.h5")

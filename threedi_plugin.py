@@ -245,7 +245,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         result_path: str,
         grid_path: str,
         project: Optional[str] = None,
-        group_path: Optional[list[str]] = None,
+        layer_path: Optional[list[str]] = None,
     ):
         """This function can be used by other plugins to load results into
         this tool. It will follow the standard workflow (as it would have been
@@ -254,7 +254,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             result_path,
             grid_path,
             project=project,
-            group_path=group_path,
+            layer_path=layer_path,
         )
 
     def write(self, doc: QDomDocument) -> bool:
@@ -278,7 +278,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def write_map_layer(self, layer: QgsMapLayer, elem: QDomElement, _: QDomDocument):
         # Result fields are keyed by their actual owner layer ID, including
-        # independent layers created for grouped results.
+        # independent layers created for isolated results.
         result_field_names = self.model.get_result_field_names(layer.id())
         ThreeDiPluginModelSerializer.remove_result_field_references(
             elem, result_field_names,

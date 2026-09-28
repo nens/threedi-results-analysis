@@ -322,7 +322,7 @@ class Graph3DiQgsConnector:
             logger.info("Retrieving result group from cache")
             self.result_group = self.preloaded_layers[self.result_id]["group"]
         else:
-            # Place result layers below the owning grouped/standalone result group.
+            # Place result layers below the owning isolated/standalone result group.
             result = self.model.get_result(self.result_id)
             result_group_parent = result.get_layer_group()
             assert result_group_parent
@@ -332,7 +332,7 @@ class Graph3DiQgsConnector:
                 tool_group = result_group_parent.insertGroup(0, GROUP_NAME)
                 tool_group.willRemoveChildren.connect(lambda n, i1, i2: self._group_removed(n, i1, i2))
 
-            if result.group_path:
+            if result.layer_path:
                 self.result_group = tool_group
             else:
                 # Shared grid groups need a result-specific subgroup.

@@ -70,9 +70,9 @@ class ThreeDiGridItem(ThreeDiModelItem):
 
         # One-shot hint consumed by the layer manager: when set, creation of
         # this grid's own (shared) layers is deferred because the grid was
-        # first requested only for a grouped result, which owns independent
+        # first requested only for an isolated result, which owns independent
         # layers of its own. Cleared once the grid's own layers are created
-        # (immediately, or lazily when a non-grouped result needs them).
+        # (immediately, or lazily when a non-isolated result needs them).
         self.defer_layer_creation = False
 
 
@@ -91,9 +91,9 @@ class ThreeDiResultItem(ThreeDiModelItem):
         self.setCheckState(Qt.CheckState.Unchecked)
 
         # layer info
-        # Grouped results own independent layer instances. In standalone mode these
+        # Isolated results own independent layer instances. In standalone mode these
         # remain empty and the parent grid owns the layers.
-        self.group_path = None
+        self.layer_path = None
         self.layer_group = None
         self.layer_ids = {}
 
@@ -115,13 +115,13 @@ class ThreeDiResultItem(ThreeDiModelItem):
 
     def get_layer_ids(self):
         """Return the layer IDs owned by this result or its parent grid."""
-        if self.group_path:
+        if self.layer_path:
             return self.layer_ids
         return self.parent().layer_ids
 
     def get_layer_group(self):
         """Return the layer group owned by this result or its parent grid."""
-        if self.group_path:
+        if self.layer_path:
             return self.layer_group
         return self.parent().layer_group
 

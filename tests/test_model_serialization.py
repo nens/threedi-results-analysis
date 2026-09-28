@@ -46,13 +46,13 @@ def _serialize_model(model):
     return root
 
 
-def test_grouped_result_serializes_display_path_and_owned_layers():
+def test_isolated_result_serializes_display_path_and_owned_layers():
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
     grid.layer_ids["node"] = "grid-node-id"
     result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
     result.setCheckState(Qt.CheckState.Checked)
-    result.group_path = ["project", "files", "result.zip"]
+    result.layer_path = ["project", "files", "result.zip"]
     result.layer_ids = {"node": "result-node-id", "flowline": "result-flowline-id"}
     assert model.add_grid(grid)
     assert model.add_result(result, grid)
@@ -61,7 +61,7 @@ def test_grouped_result_serializes_display_path_and_owned_layers():
     result_element = grid_element.firstChildElement("result")
 
     assert result_element.attribute("path") == "resolved:c:/result/results_3di.nc"
-    assert result_element.attribute("group_path") == "project/files/result.zip"
+    assert result_element.attribute("layer_path") == "project/files/result.zip"
     assert result_element.attribute("check_state") == "2"
     layers = result_element.elementsByTagName("layer")
     assert layers.length() == 2
@@ -80,7 +80,7 @@ def test_grouped_result_serializes_display_path_and_owned_layers():
     assert grid_layer.attribute("id") == "grid-node-id"
 
 
-def test_standalone_result_omits_grouped_metadata():
+def test_standalone_result_omits_isolated_metadata():
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
     result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
@@ -91,16 +91,16 @@ def test_standalone_result_omits_grouped_metadata():
         _serialize_model(model).firstChildElement("grid").firstChildElement("result")
     )
 
-    assert not result_element.hasAttribute("group_path")
+    assert not result_element.hasAttribute("layer_path")
     assert result_element.elementsByTagName("layer").length() == 0
 
 
-def test_grouped_result_read_restores_path_and_owned_layers():
+def test_isolated_result_read_restores_path_and_owned_layers():
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
     grid.layer_ids["node"] = "grid-node-id"
     result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
-    result.group_path = ["project", "files", "result.zip"]
+    result.layer_path = ["project", "files", "result.zip"]
     result.layer_ids = {"node": "result-node-id", "flowline": "result-flowline-id"}
     assert model.add_grid(grid)
     assert model.add_result(result, grid)
@@ -114,7 +114,7 @@ def test_grouped_result_read_restores_path_and_owned_layers():
     restored_grid = loader.grids[0][0]
     restored_result, result_parent = loader.results[0]
     assert restored_grid.layer_ids == {"node": "grid-node-id"}
-    assert restored_result.group_path == ["project", "files", "result.zip"]
+    assert restored_result.layer_path == ["project", "files", "result.zip"]
     assert restored_result.layer_ids == {
         "node": "result-node-id",
         "flowline": "result-flowline-id",
@@ -136,6 +136,22 @@ def test_legacy_enum_check_state_is_read():
     loader = RecordingLoader()
     assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
     assert loader.results[0][0].checkState() == Qt.CheckState.Checked
+
+
+def test_legacy_group_path_is_read_as_layer_path():
+    document = QDomDocument()
+    document.setContent(
+        """<qgis><threediPluginModel>
+        <grid id="grid" path="resolved:c:/grid/gridadmin.gpkg" text="grid">
+            <result id="result" path="resolved:c:/result/results_3di.nc"
+                    text="result" group_path="files/result.zip"/>
+        </grid>
+        </threediPluginModel></qgis>"""
+    )
+
+    loader = RecordingLoader()
+    assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
+    assert loader.results[0][0].layer_path == ["files", "result.zip"]
 
 
 def test_missing_check_state_defaults_to_unchecked():
@@ -169,19 +185,19 @@ def test_standalone_result_read_does_not_claim_grid_layers():
     assert ThreeDiPluginModelSerializer.read(loader, document, IdentityResolver())[0]
 
     restored_result = loader.results[0][0]
-    assert restored_result.group_path is None
+    assert restored_result.layer_path is None
     assert restored_result.layer_ids == {}
 
 
-def test_grid_with_only_grouped_results_restores_as_deferred():
-    """Restoring a project where every result under a grid is grouped must
+def test_grid_with_only_isolated_results_restores_as_deferred():
+    """Restoring a project where every result under a grid is isolated must
     not eagerly recreate the grid's own (shared) layers on reopen."""
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
     result_a = ThreeDiResultItem(Path("c:/result-a/results_3di.nc"))
-    result_a.group_path = ["files", "result-a.zip"]
+    result_a.layer_path = ["files", "result-a.zip"]
     result_b = ThreeDiResultItem(Path("c:/result-b/results_3di.nc"))
-    result_b.group_path = ["files", "result-b.zip"]
+    result_b.layer_path = ["files", "result-b.zip"]
     assert model.add_grid(grid)
     assert model.add_result(result_a, grid)
     assert model.add_result(result_b, grid)
@@ -198,15 +214,15 @@ def test_grid_with_only_grouped_results_restores_as_deferred():
 
 
 def test_grid_with_a_standalone_result_does_not_restore_as_deferred():
-    """If any result under a grid is non-grouped, the grid's own layers are
+    """If any result under a grid is non-isolated, the grid's own layers are
     needed and must not be deferred on restore."""
     model = ThreeDiPluginModel()
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
-    grouped_result = ThreeDiResultItem(Path("c:/result-a/results_3di.nc"))
-    grouped_result.group_path = ["files", "result-a.zip"]
+    isolated_result = ThreeDiResultItem(Path("c:/result-a/results_3di.nc"))
+    isolated_result.layer_path = ["files", "result-a.zip"]
     standalone_result = ThreeDiResultItem(Path("c:/result-b/results_3di.nc"))
     assert model.add_grid(grid)
-    assert model.add_result(grouped_result, grid)
+    assert model.add_result(isolated_result, grid)
     assert model.add_result(standalone_result, grid)
 
     document = QDomDocument()

@@ -15,12 +15,12 @@ from threedi_results_analysis.threedi_plugin_model import (
 )
 
 
-def test_grouped_result_uses_direct_group_path():
-    """A grouped result gets the exact path and a computational-grid subgroup."""
-    group_path = [f"task4-{uuid4().hex}", "files", "result.zip"]
+def test_isolated_result_uses_direct_layer_path():
+    """An isolated result gets the exact path and a computational-grid subgroup."""
+    layer_path = [f"task4-{uuid4().hex}", "files", "result.zip"]
     grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.gpkg"), "grid")
     result_item = ThreeDiResultItem(Path("c:/test/results_3di.nc"))
-    result_item.group_path = group_path
+    result_item.layer_path = layer_path
     grid_item.appendRow(result_item)
     root = QgsProject.instance().layerTreeRoot()
 
@@ -28,7 +28,7 @@ def test_grouped_result_uses_direct_group_path():
         assert ThreeDiPluginLayerManager().load_result(result_item, grid_item)
 
         current_group = root
-        for group_name in group_path:
+        for group_name in layer_path:
             matching_groups = [
                 child
                 for child in current_group.children()
@@ -40,10 +40,10 @@ def test_grouped_result_uses_direct_group_path():
         assert result_item.layer_group is current_group
         assert [child.name() for child in current_group.children()] == [GRID_GROUP_NAME]
     finally:
-        root.removeChildNode(root.findGroup(group_path[0]))
+        root.removeChildNode(root.findGroup(layer_path[0]))
 
 
-def test_grouped_results_get_independent_grid_layers(tmp_path):
+def test_isolated_results_get_independent_grid_layers(tmp_path):
     """Two results sharing a GeoPackage receive separate QGIS layer sets."""
     # Work on a copy because opening a GeoPackage through QGIS may create
     # SQLite sidecar files next to it.
@@ -64,7 +64,7 @@ def test_grouped_results_get_independent_grid_layers(tmp_path):
     result_items = []
     for result_name in ("result-a.zip", "result-b.zip"):
         result_item = ThreeDiResultItem(Path(f"c:/{result_name}/results_3di.nc"))
-        result_item.group_path = [group_root, result_name]
+        result_item.layer_path = [group_root, result_name]
         grid_item.appendRow(result_item)
         result_items.append(result_item)
 
@@ -132,11 +132,11 @@ def test_grouped_results_get_independent_grid_layers(tmp_path):
         root.removeChildNode(root.findGroup(group_root))
 
 
-def test_grid_first_used_by_grouped_result_defers_own_layers(tmp_path):
-    """A brand-new grid requested only for a grouped result must not get its
+def test_grid_first_used_by_isolated_result_defers_own_layers(tmp_path):
+    """A brand-new grid requested only for an isolated result must not get its
     own (shared) 'Computational grid' layers created; those are only ever
-    needed by non-grouped results, and grouped results own independent
-    layers of their own (see test_grouped_result_uses_direct_group_path)."""
+    needed by non-isolated results, and isolated results own independent
+    layers of their own (see test_isolated_result_uses_direct_layer_path)."""
     source_gpkg_path = (
         Path(__file__).parent / "data" / "testmodel" / "v2_bergermeer" / "gridadmin.gpkg"
     )
@@ -145,7 +145,7 @@ def test_grid_first_used_by_grouped_result_defers_own_layers(tmp_path):
 
     grid_item = ThreeDiGridItem(gpkg_path, "grid")
     # This is what the validator does for a brand-new grid requested with a
-    # non-empty group_path (see ThreeDiPluginModelValidator.validate_grid).
+    # non-empty layer_path (see ThreeDiPluginModelValidator.validate_grid).
     grid_item.defer_layer_creation = True
 
     project = QgsProject.instance()
@@ -162,7 +162,7 @@ def test_grid_first_used_by_grouped_result_defers_own_layers(tmp_path):
 
 
 def test_grid_layers_materialized_lazily_for_standalone_result(tmp_path):
-    """If a non-grouped result later attaches to a grid whose own layers
+    """If a non-isolated result later attaches to a grid whose own layers
     were deferred, the grid's shared layers must be created on demand."""
     source_gpkg_path = (
         Path(__file__).parent / "data" / "testmodel" / "v2_bergermeer" / "gridadmin.gpkg"
@@ -205,10 +205,10 @@ def test_grid_layers_materialized_lazily_for_standalone_result(tmp_path):
             root.removeChildNode(grid_item.layer_group)
 
 
-def test_grouped_result_first_then_standalone_result_share_one_grid(tmp_path):
-    """Mixed use of one grid: a grouped result loads first (deferring the
+def test_isolated_result_first_then_standalone_result_share_one_grid(tmp_path):
+    """Mixed use of one grid: an isolated result loads first (deferring the
     grid's own layers), then a standalone result attaches afterwards. The grid's
-    own layers must be created exactly once, on demand, and the grouped
+    own layers must be created exactly once, on demand, and the isolated
     result's independent layers must be unaffected."""
     source_gpkg_path = (
         Path(__file__).parent / "data" / "testmodel" / "v2_bergermeer" / "gridadmin.gpkg"
@@ -218,7 +218,7 @@ def test_grouped_result_first_then_standalone_result_share_one_grid(tmp_path):
     group_root = f"task-mixed-a-{uuid4().hex}"
 
     grid_item = ThreeDiGridItem(gpkg_path, "grid")
-    grid_item.defer_layer_creation = True  # as validate_grid() would set for the grouped request
+    grid_item.defer_layer_creation = True  # as validate_grid() would set for the isolated request
 
     project = QgsProject.instance()
     root = project.layerTreeRoot()
@@ -227,20 +227,20 @@ def test_grouped_result_first_then_standalone_result_share_one_grid(tmp_path):
     assert manager.load_grid(grid_item)
     assert grid_item.layer_group is None  # still deferred
 
-    grouped_result = ThreeDiResultItem(Path("c:/grouped/results_3di.nc"))
-    grouped_result.group_path = [group_root, "grouped.zip"]
-    grid_item.appendRow(grouped_result)
+    isolated_result = ThreeDiResultItem(Path("c:/isolated/results_3di.nc"))
+    isolated_result.layer_path = [group_root, "isolated.zip"]
+    grid_item.appendRow(isolated_result)
 
     standalone_result = ThreeDiResultItem(Path("c:/standalone/results_3di.nc"))
     grid_item.appendRow(standalone_result)
 
     try:
-        # Grouped result loads first: grid stays deferred, grouped result
+        # Isolated result loads first: grid stays deferred, isolated result
         # gets its own independent layers.
-        assert manager.load_result(grouped_result, grid_item)
+        assert manager.load_result(isolated_result, grid_item)
         assert grid_item.layer_group is None
         assert grid_item.layer_ids == {}
-        assert grouped_result.layer_ids
+        assert isolated_result.layer_ids
 
         # Standalone result loads second: this is what finally materializes the
         # grid's own (shared) layers.
@@ -249,7 +249,7 @@ def test_grouped_result_first_then_standalone_result_share_one_grid(tmp_path):
         assert grid_item.layer_ids
 
         # The two result-owned layer sets never overlap.
-        assert set(grouped_result.layer_ids.values()).isdisjoint(
+        assert set(isolated_result.layer_ids.values()).isdisjoint(
             set(grid_item.layer_ids.values())
         )
         for layer_id in grid_item.layer_ids.values():
@@ -260,17 +260,17 @@ def test_grouped_result_first_then_standalone_result_share_one_grid(tmp_path):
     finally:
         for layer_id in grid_item.layer_ids.values():
             project.removeMapLayer(layer_id)
-        for layer_id in grouped_result.layer_ids.values():
+        for layer_id in isolated_result.layer_ids.values():
             project.removeMapLayer(layer_id)
         if grid_item.layer_group is not None:
             root.removeChildNode(grid_item.layer_group)
         root.removeChildNode(root.findGroup(group_root))
 
 
-def test_standalone_result_first_then_grouped_result_share_one_grid(tmp_path):
+def test_standalone_result_first_then_isolated_result_share_one_grid(tmp_path):
     """Mixed use of one grid in the opposite order: a standalone result loads
     first (creating the grid's own layers immediately, as always), then a
-    grouped result attaches afterwards and still gets independent layers."""
+    isolated result attaches afterwards and still gets independent layers."""
     source_gpkg_path = (
         Path(__file__).parent / "data" / "testmodel" / "v2_bergermeer" / "gridadmin.gpkg"
     )
@@ -279,7 +279,7 @@ def test_standalone_result_first_then_grouped_result_share_one_grid(tmp_path):
     group_root = f"task-mixed-b-{uuid4().hex}"
 
     grid_item = ThreeDiGridItem(gpkg_path, "grid")
-    # As validate_grid() would leave it for a plain (non-grouped) request.
+    # As validate_grid() would leave it for a plain (non-isolated) request.
     assert grid_item.defer_layer_creation is False
 
     project = QgsProject.instance()
@@ -293,16 +293,16 @@ def test_standalone_result_first_then_grouped_result_share_one_grid(tmp_path):
     standalone_result = ThreeDiResultItem(Path("c:/standalone/results_3di.nc"))
     grid_item.appendRow(standalone_result)
 
-    grouped_result = ThreeDiResultItem(Path("c:/grouped/results_3di.nc"))
-    grouped_result.group_path = [group_root, "grouped.zip"]
-    grid_item.appendRow(grouped_result)
+    isolated_result = ThreeDiResultItem(Path("c:/isolated/results_3di.nc"))
+    isolated_result.layer_path = [group_root, "isolated.zip"]
+    grid_item.appendRow(isolated_result)
 
     try:
         assert manager.load_result(standalone_result, grid_item)
-        assert manager.load_result(grouped_result, grid_item)
+        assert manager.load_result(isolated_result, grid_item)
 
-        assert grouped_result.layer_ids
-        assert set(grouped_result.layer_ids.values()).isdisjoint(
+        assert isolated_result.layer_ids
+        assert set(isolated_result.layer_ids.values()).isdisjoint(
             set(grid_item.layer_ids.values())
         )
         for layer_id in grid_item.layer_ids.values():
@@ -313,7 +313,7 @@ def test_standalone_result_first_then_grouped_result_share_one_grid(tmp_path):
     finally:
         for layer_id in grid_item.layer_ids.values():
             project.removeMapLayer(layer_id)
-        for layer_id in grouped_result.layer_ids.values():
+        for layer_id in isolated_result.layer_ids.values():
             project.removeMapLayer(layer_id)
         root.removeChildNode(grid_item.layer_group)
         root.removeChildNode(root.findGroup(group_root))
@@ -321,7 +321,7 @@ def test_standalone_result_first_then_grouped_result_share_one_grid(tmp_path):
 
 def test_unload_and_update_grid_tolerate_deferred_layers(tmp_path):
     """unload_grid/update_grid must not crash for a grid that never had its
-    own layers materialized (only used by grouped results so far)."""
+    own layers materialized (only used by isolated results so far)."""
     grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.gpkg"), "grid")
     grid_item.setText("grid")
     assert grid_item.layer_group is None
@@ -376,8 +376,8 @@ def test_standalone_result_unload_keeps_grid_layers():
         project.removeMapLayer(layer.id())
 
 
-def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
-    """Grouped field and style changes stay isolated from a sibling result.
+def test_isolated_result_aliases_fields_and_resets_its_own_style(tmp_path):
+    """Isolated field and style changes stay isolated from a sibling result.
 
     Both results share one logical grid, but each result owns a separate set of
     QGIS layers. The test changes only the first result and verifies that the
@@ -397,7 +397,7 @@ def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
     group_root = f"task6-{uuid4().hex}"
 
     # Keep both results under one model grid while giving them different QGIS
-    # layer-tree paths. This is the distinction the grouped ownership model
+    # layer-tree paths. This is the distinction the isolated ownership model
     # must preserve.
     grid_item = ThreeDiGridItem(gpkg_path, "grid")
     result_items = []
@@ -406,7 +406,7 @@ def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
         ("result-b.zip", "Result B"),
     ):
         result_item = ThreeDiResultItem(Path(f"c:/{result_name}/results_3di.nc"))
-        result_item.group_path = [group_root, result_name]
+        result_item.layer_path = [group_root, result_name]
         result_item.setText(result_text)
         grid_item.appendRow(result_item)
         result_items.append(result_item)
@@ -456,7 +456,7 @@ def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
         assert second_layer.fields().field(second_field_names[0]).alias() == "Result B"
 
         # result_unchecked() must reset styling/name state on the selected
-        # grouped result, not on the sibling's independently owned layers.
+        # isolated result, not on the sibling's independently owned layers.
         first_layer.setName("Changed layer name")
         second_layer.setName("Sibling layer name")
         manager.result_unchecked(first_result)
@@ -464,7 +464,7 @@ def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
         assert second_layer.name() == "Sibling layer name"
 
         # Removing the first result invokes internal cleanup of its generated
-        # fields and (for grouped results) its owned layers.
+        # fields and (for isolated results) its owned layers.
         assert manager.unload_result(first_result)
         assert all(
             second_layer.fields().indexFromName(name) != -1
@@ -481,8 +481,8 @@ def test_grouped_result_aliases_fields_and_resets_its_own_style(tmp_path):
         root.removeChildNode(root.findGroup(group_root))
 
 
-def test_grouped_result_unload_prunes_empty_ancestors(tmp_path):
-    """Removing the only grouped result prunes its empty path hierarchy."""
+def test_isolated_result_unload_prunes_empty_ancestors(tmp_path):
+    """Removing the only isolated result prunes its empty path hierarchy."""
     source_gpkg_path = (
         Path(__file__).parent
         / "data"
@@ -492,10 +492,10 @@ def test_grouped_result_unload_prunes_empty_ancestors(tmp_path):
     )
     gpkg_path = tmp_path / "gridadmin.gpkg"
     shutil.copy(source_gpkg_path, gpkg_path)
-    group_path = [f"task7-{uuid4().hex}", "files", "result.zip"]
+    layer_path = [f"task7-{uuid4().hex}", "files", "result.zip"]
     grid_item = ThreeDiGridItem(gpkg_path, "grid")
     result_item = ThreeDiResultItem(Path("c:/result.zip/results_3di.nc"))
-    result_item.group_path = group_path
+    result_item.layer_path = layer_path
     grid_item.appendRow(result_item)
 
     project = QgsProject.instance()
@@ -511,14 +511,14 @@ def test_grouped_result_unload_prunes_empty_ancestors(tmp_path):
         assert not result_item.layer_ids
         assert result_item.layer_group is None
         assert all(project.mapLayer(layer_id) is None for layer_id in layer_ids)
-        assert root.findGroup(group_path[0]) is None
+        assert root.findGroup(layer_path[0]) is None
     finally:
-        group = root.findGroup(group_path[0])
+        group = root.findGroup(layer_path[0])
         if group is not None:
             root.removeChildNode(group)
 
 
-def test_grouped_result_unload_preserves_sibling_and_external_layer(tmp_path):
+def test_isolated_result_unload_preserves_sibling_and_external_layer(tmp_path):
     """Removal preserves sibling results and external shared-ancestor layers."""
     source_gpkg_path = (
         Path(__file__).parent
@@ -534,7 +534,7 @@ def test_grouped_result_unload_preserves_sibling_and_external_layer(tmp_path):
     result_items = []
     for result_name in ("result-a.zip", "result-b.zip"):
         result_item = ThreeDiResultItem(Path(f"c:/{result_name}/results_3di.nc"))
-        result_item.group_path = [group_root, result_name]
+        result_item.layer_path = [group_root, result_name]
         grid_item.appendRow(result_item)
         result_items.append(result_item)
 
@@ -582,8 +582,8 @@ def test_grouped_result_unload_preserves_sibling_and_external_layer(tmp_path):
             root.removeChildNode(group)
 
 
-def test_grouped_waterdepth_is_owned_and_removed_independently(tmp_path):
-    """Grouped Waterdepth layers live below and belong to their result group."""
+def test_isolated_waterdepth_is_owned_and_removed_independently(tmp_path):
+    """Isolated Waterdepth layers live below and belong to their result group."""
     source_gpkg_path = (
         Path(__file__).parent
         / "data"
@@ -607,7 +607,7 @@ def test_grouped_waterdepth_is_owned_and_removed_independently(tmp_path):
     result_items = []
     for result_dir in result_dirs:
         result_item = ThreeDiResultItem(result_dir / "results_3di.nc")
-        result_item.group_path = [group_root, f"{result_dir.name}.zip"]
+        result_item.layer_path = [group_root, f"{result_dir.name}.zip"]
         grid_item.appendRow(result_item)
         result_items.append(result_item)
 
@@ -624,11 +624,11 @@ def test_grouped_waterdepth_is_owned_and_removed_independently(tmp_path):
             waterdepth_ids.append(result_item.waterdepth_layer_id)
 
         assert waterdepth_ids[0] != waterdepth_ids[1]
-        grouped_root = root.findGroup(group_root)
-        assert grouped_root is not None
+        isolated_root = root.findGroup(group_root)
+        assert isolated_root is not None
 
         for result_item in result_items:
-            result_group = grouped_root.findGroup(f"{result_item.path.parent.name}.zip")
+            result_group = isolated_root.findGroup(f"{result_item.path.parent.name}.zip")
             assert result_group is not None
             assert result_item.layer_group is result_group
             assert result_group.findGroup(GRID_GROUP_NAME) is not None
@@ -644,9 +644,9 @@ def test_grouped_waterdepth_is_owned_and_removed_independently(tmp_path):
         assert first_result.waterdepth_layer_id is None
         assert project.mapLayer(first_waterdepth_id) is None
         assert project.mapLayer(second_waterdepth_id) is not None
-        assert grouped_root.findGroup("result-a.zip") is None
-        assert grouped_root.findGroup("result-b.zip") is not None
-        assert grouped_root.findGroup("result-b.zip").findLayer(second_waterdepth_id)
+        assert isolated_root.findGroup("result-a.zip") is None
+        assert isolated_root.findGroup("result-b.zip") is not None
+        assert isolated_root.findGroup("result-b.zip").findLayer(second_waterdepth_id)
     finally:
         for result_item in result_items:
             for layer_id in result_item.layer_ids.values():
@@ -693,8 +693,8 @@ def test_standalone_waterdepth_stays_under_grid_group(tmp_path):
                 root.removeChildNode(root_group)
 
 
-def test_grouped_layer_restore_reuses_existing_layer_ids(tmp_path):
-    """Restoring valid grouped IDs reuses layers instead of creating duplicates."""
+def test_isolated_layer_restore_reuses_existing_layer_ids(tmp_path):
+    """Restoring valid isolated IDs reuses layers instead of creating duplicates."""
     source_gpkg_path = (
         Path(__file__).parent
         / "data"
@@ -704,10 +704,10 @@ def test_grouped_layer_restore_reuses_existing_layer_ids(tmp_path):
     )
     gpkg_path = tmp_path / "gridadmin.gpkg"
     shutil.copy(source_gpkg_path, gpkg_path)
-    group_path = [f"task12-{uuid4().hex}", "files", "result.zip"]
+    layer_path = [f"task12-{uuid4().hex}", "files", "result.zip"]
     grid_item = ThreeDiGridItem(gpkg_path, "grid")
     original_result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
-    original_result.group_path = group_path
+    original_result.layer_path = layer_path
     grid_item.appendRow(original_result)
 
     project = QgsProject.instance()
@@ -724,7 +724,7 @@ def test_grouped_layer_restore_reuses_existing_layer_ids(tmp_path):
         initial_project_layer_ids = set(project.mapLayers())
 
         restored_result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
-        restored_result.group_path = list(group_path)
+        restored_result.layer_path = list(layer_path)
         restored_result.layer_ids = dict(stored_layer_ids)
         grid_item.appendRow(restored_result)
 
@@ -744,6 +744,6 @@ def test_grouped_layer_restore_reuses_existing_layer_ids(tmp_path):
     finally:
         for layer_id in stored_layer_ids if "stored_layer_ids" in locals() else []:
             project.removeMapLayer(layer_id)
-        group = root.findGroup(group_path[0])
+        group = root.findGroup(layer_path[0])
         if group is not None:
             root.removeChildNode(group)
