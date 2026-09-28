@@ -6,7 +6,10 @@ Read this together with `threedi_plugin.py`, `threedi_plugin_model_validation.py
 
 ## Overview
 
-Loading a result always goes through the same three collaborators, in the same order:
+Loading a result always goes through the same three collaborators, in the same
+order. `validate_result_grid()` is the public orchestration method: it first
+calls `validate_grid()` and then calls `_validate_result()` with the grid that
+was found or created. If the grid already exists, the grid-loading part is skipped.
 
 ```mermaid
 sequenceDiagram
@@ -16,16 +19,22 @@ sequenceDiagram
     participant Model as ThreeDiPluginModel
 
     Caller->>Validator: validate_result_grid(result_path, grid_path, project, layer_path)
-    Validator->>Validator: validate_grid(...) — find-or-create the grid
-    Validator-->>Loader: grid_valid(grid_item, project)
-    Loader->>Loader: load_grid(grid_item, project)
-    Loader-->>Model: grid_loaded(grid_item)
-    Model->>Model: add_grid() emits grid_added
+    activate Validator
+    Validator->>Validator: validate_grid(...) — find or reuse the grid
+    alt grid is new
+        Validator-->>Loader: grid_valid(grid_item, project)
+        Loader->>Loader: load_grid(grid_item, project)
+        Loader-->>Model: grid_loaded(grid_item)
+        Model->>Model: add_grid() emits grid_added
+    else grid already exists
+        Note over Validator: Continue with the existing grid item
+    end
     Validator->>Validator: _validate_result(...) — validate the result file
     Validator-->>Loader: result_valid(result_item, grid_item)
     Loader->>Loader: load_result(result_item, grid_item)
     Loader-->>Model: result_loaded(result_item, grid_item)
     Model->>Model: add_result() emits result_added
+    deactivate Validator
 ```
 
 `ThreeDiPluginModel` is the source of truth for *what* is loaded (one `ThreeDiGridItem` per computational grid, with `ThreeDiResultItem` children). `ThreeDiPluginLayerManager` is the source of truth for *which QGIS layers* represent that state, and owns their lifecycle.
