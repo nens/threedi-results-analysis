@@ -273,13 +273,9 @@ class ThreeDiPluginLayerManager(QObject):
             logger.warning("Cannot load waterdepth: result item has no grid parent")
             return
 
-        layer_group = (
-            result_item.layer_group
-            if result_item.layer_path
-            else grid_item.layer_group
-        )
+        layer_group = result_item.get_layer_group()
         if not layer_group:
-            logger.warning("Cannot load waterdepth: grid has no layer group")
+            logger.warning("Cannot load waterdepth: owning item has no layer group")
             return
 
         project = QgsProject.instance()
@@ -331,11 +327,7 @@ class ThreeDiPluginLayerManager(QObject):
         grid_item = result_item.parent()
         if not isinstance(grid_item, ThreeDiGridItem):
             return
-        layer_group = (
-            result_item.layer_group
-            if result_item.layer_path
-            else grid_item.layer_group
-        )
+        layer_group = result_item.get_layer_group()
         if not layer_group:
             if result_item.layer_path:
                 QgsProject.instance().removeMapLayer(layer.id())

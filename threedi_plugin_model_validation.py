@@ -45,7 +45,7 @@ class ThreeDiPluginModelValidator(QObject):
 
         If not, the validator will check whether a grid with the same slug is found as the grid_file.
 
-        If not, the validor will create a new ThreeDiGridItem and emit the grid_valid signal.
+        If not, the validator will create a new ThreeDiGridItem and emit the grid_valid signal.
 
         layer_path is only used when a brand-new grid is created: it tells the
         layer manager to defer creating this grid's own layers, since the
