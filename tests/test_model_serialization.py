@@ -100,6 +100,7 @@ def test_isolated_result_read_restores_path_and_owned_layers():
     grid = ThreeDiGridItem(Path("c:/grid/gridadmin.gpkg"), "grid")
     grid.layer_ids["node"] = "grid-node-id"
     result = ThreeDiResultItem(Path("c:/result/results_3di.nc"))
+    result.setCheckState(Qt.CheckState.Checked)
     result.layer_path = ["project", "files", "result.zip"]
     result.layer_ids = {"node": "result-node-id", "flowline": "result-flowline-id"}
     assert model.add_grid(grid)
@@ -114,6 +115,7 @@ def test_isolated_result_read_restores_path_and_owned_layers():
     restored_grid = loader.grids[0][0]
     restored_result, result_parent = loader.results[0]
     assert restored_grid.layer_ids == {"node": "grid-node-id"}
+    assert restored_result.checkState() == Qt.CheckState.Checked
     assert restored_result.layer_path == ["project", "files", "result.zip"]
     assert restored_result.layer_ids == {
         "node": "result-node-id",
