@@ -61,16 +61,6 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="loadGridPushButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Load computational grid</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="loadResultPushButton">
             <property name="enabled">
              <bool>false</bool>

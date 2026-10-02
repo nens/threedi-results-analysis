@@ -75,7 +75,6 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tableView.doubleClicked.connect(self._item_double_clicked)
 
         self.loadResultPushButton.clicked.connect(self._add_result_from_table)
-        self.loadGridPushButton.clicked.connect(self._add_grid_from_table)
 
         self.refresh()
 
@@ -174,13 +173,6 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @pyqtSlot()
     @disable_dialog
-    def _add_grid_from_table(self) -> None:
-        index = self.proxy_model.mapToSource(self.tableView.currentIndex())
-        grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
-        self.grid_file_selected.emit(grid_file)
-
-    @pyqtSlot()
-    @disable_dialog
     def _add_result_from_table(self) -> None:
         index = self.proxy_model.mapToSource(self.tableView.currentIndex())
         result_file = os.path.join(self._retrieve_selected_result_folder(index), "results_3di.nc")
@@ -194,7 +186,6 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def _item_selected(self, index: QModelIndex):
         index = self.proxy_model.mapToSource(index)
-        self.loadGridPushButton.setEnabled(True)
         # Only activate result button when revision contain results
         if self.model.item(index.row(), 2):
             self.loadResultPushButton.setEnabled(True)
