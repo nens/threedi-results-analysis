@@ -35,17 +35,19 @@ class ThreeDiPluginModelSerializer:
         elif results_nodes.length() == 0:
             return True, None  # Nothing to load
 
-        results_node = results_nodes.at(0)
+        results_node = results_nodes.at(0).toElement()
         assert results_node.parentNode() is not None
 
         # Now traverse through the XML tree and add model items
-        if not ThreeDiPluginModelSerializer._read_recursive(loader, results_node, None, resolver):
+        if not ThreeDiPluginModelSerializer._read_recursive(
+            loader, results_node, None, resolver
+        ):
             logger.error("Unable to read XML, aborting read")
             return False, None
 
-        # Retrieve dedicated XML node for tools
+        # Retrieve the dedicated XML node used by tools to restore their state.
         tools_node = results_node.firstChildElement("tools")
-        if not tools_node:
+        if tools_node.isNull():
             logger.error("Unable to read XML (no dedicated tool node), aborting read")
             return False, None
 
@@ -73,10 +75,29 @@ class ThreeDiPluginModelSerializer:
 
                     model_node = ThreeDiGridItem(Path(resolver.readPath(xml_element_node.attribute("path"))), xml_element_node.attribute("text"), id)
                     assert xml_node.hasChildNodes()
-                    layer_nodes = xml_element_node.elementsByTagName("layer")
-                    for i in range(layer_nodes.count()):
-                        label_node = layer_nodes.at(i).toElement()
+                    layer_nodes = [
+                        child.toElement()
+                        for i in range(xml_element_node.childNodes().count())
+                        for child in [xml_element_node.childNodes().at(i)]
+                        if child.isElement() and child.toElement().tagName() == "layer"
+                    ]
+                    for label_node in layer_nodes:
                         model_node.layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
+
+                    # If every child result is isolated, this grid's own
+                    # layers were never created in the saved session either;
+                    # defer their creation the same way the live load does.
+                    result_children = [
+                        child.toElement()
+                        for i in range(xml_element_node.childNodes().count())
+                        for child in [xml_element_node.childNodes().at(i)]
+                        if child.isElement() and child.toElement().tagName() == "result"
+                    ]
+                    if result_children and all(
+                        child.attribute("layer_path").strip()
+                        for child in result_children
+                    ):
+                        model_node.defer_layer_creation = True
 
                     project = xml_element_node.attribute("project") or None
                     if not loader.load_grid(model_node, project):
@@ -88,20 +109,19 @@ class ThreeDiPluginModelSerializer:
                     already_used_ids.append(id)
 
                     model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))), id)
-                    check_state = xml_element_node.attribute("check_state") or str(
-                        int(Qt.CheckState.Unchecked)
+                    model_node.setCheckState(
+                        Qt.CheckState(int(xml_element_node.attribute("check_state")))
                     )
-                    legacy_check_states = {
-                        "CheckState.Unchecked": Qt.CheckState.Unchecked,
-                        "CheckState.PartiallyChecked": Qt.CheckState.PartiallyChecked,
-                        "CheckState.Checked": Qt.CheckState.Checked,
-                    }
-                    if check_state in legacy_check_states:
-                        check_state = legacy_check_states[check_state]
-                    else:
-                        check_state = Qt.CheckState(int(check_state))
-                    model_node.setCheckState(check_state)
                     model_node.setText(xml_element_node.attribute("text"))
+
+                    layer_path = xml_element_node.attribute("layer_path")
+                    if layer_path and layer_path.strip():
+                        model_node.layer_path = [part for part in layer_path.split("/") if part]
+                        for i in range(xml_element_node.childNodes().count()):
+                            child = xml_element_node.childNodes().at(i)
+                            if child.isElement() and child.toElement().tagName() == "layer":
+                                layer_node = child.toElement()
+                                model_node.layer_ids[layer_node.attribute("table_name")] = layer_node.attribute("id")
 
                     assert isinstance(model_parent, ThreeDiGridItem)
                     if not loader.load_result(model_node, model_parent):
@@ -117,6 +137,9 @@ class ThreeDiPluginModelSerializer:
 
                 if not ThreeDiPluginModelSerializer._read_recursive(loader, xml_node, model_node, resolver):
                     return False
+            elif not xml_node.toText().data().strip():
+                # XML formatting creates whitespace text nodes between elements.
+                continue
             else:
                 return False
 
@@ -191,6 +214,13 @@ class ThreeDiPluginModelSerializer:
                     xml_node.setAttribute("text", model_node.text())
                     xml_node.setAttribute("id", model_node.id)
                     xml_node.setAttribute("check_state", str(int(model_node.checkState())))
+                    if model_node.layer_path:
+                        xml_node.setAttribute("layer_path", "/".join(model_node.layer_path))
+                        for table_name, layer_id in model_node.layer_ids.items():
+                            layer_element = doc.createElement("layer")
+                            layer_element.setAttribute("id", layer_id)
+                            layer_element.setAttribute("table_name", table_name)
+                            xml_node.appendChild(layer_element)
                 else:
                     logger.error("Unknown node type for serialization")
                     return False
