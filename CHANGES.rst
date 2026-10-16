@@ -1,7 +1,7 @@
 Rana Results Analysis changelog
 ===============================
 
-3.26.20 (unreleased)
+3.26.20 (2026-10-16)
 --------------------
 
 - Removed "load grid" button in dialog (nens/rana#4886)
