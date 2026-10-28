@@ -9,6 +9,7 @@ from qgis.PyQt.QtWidgets import QLineEdit
 
 logger = logging.getLogger(__name__)
 
+
 class DebouncedSearchBox(QLineEdit):
     """
     A search box with debounced search signal.
@@ -22,7 +23,7 @@ class DebouncedSearchBox(QLineEdit):
     def __init__(
         self,
         parent=None,
-        delay_ms=500,
+        delay_ms=50,
         min_chars=0,
         placeholder="Search schematisations by name...",
         show_search_icon=True,
@@ -72,7 +73,6 @@ class DebouncedSearchBox(QLineEdit):
     def _on_timeout(self):
         """Emit the searchChanged signal with current text."""
         self.searchChanged.emit(self.text())
-
 
 
 class PenStyleWidget(QWidget):

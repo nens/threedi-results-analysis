@@ -43,7 +43,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="DebouncedSearchBox" name="lineEdit"/>
+           <widget class="DebouncedSearchBox" name="searchBox"/>
           </item>
           <item>
            <spacer name="horizontalSpacer_4">
