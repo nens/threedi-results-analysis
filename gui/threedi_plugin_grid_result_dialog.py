@@ -63,6 +63,8 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.proxy_model = QSortFilterProxyModel(self)
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setSortRole(Qt.ItemDataRole.DisplayRole)
+        self.proxy_model.setFilterKeyColumn(0)
+        self.proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.tableView.setModel(self.proxy_model)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tableView.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -75,6 +77,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tableView.doubleClicked.connect(self._item_double_clicked)
 
         self.loadResultPushButton.clicked.connect(self._add_result_from_table)
+        self.searchBox.searchChanged.connect(self.proxy_model.setFilterFixedString)
 
         self.refresh()
 
