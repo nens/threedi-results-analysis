@@ -25,7 +25,7 @@ class DebouncedSearchBox(QLineEdit):
         parent=None,
         delay_ms=50,
         min_chars=0,
-        placeholder="Search schematisations by name...",
+        placeholder="Search...",
         show_search_icon=True,
     ):
         super().__init__(parent)

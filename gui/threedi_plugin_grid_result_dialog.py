@@ -25,6 +25,30 @@ FORM_CLASS, _ = uic.loadUiType(
 )
 
 
+class ColumnFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._column_filters = {}
+
+    def set_column_filter_string(self, column: int, filter_string: str) -> None:
+        if filter_string:
+            self._column_filters[column] = filter_string.casefold()
+        else:
+            self._column_filters.pop(column, None)
+        # Starts a reevaluation of the filter
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        # Called for each row to determine if it should be included in the filtered results.
+        source_model = self.sourceModel()
+        for column, filter_string in self._column_filters.items():
+            index = source_model.index(source_row, column, source_parent)
+            value = source_model.data(index, self.filterRole())
+            if value is None or filter_string not in str(value).casefold():
+                return False
+        return True
+
+
 def disable_dialog(func):
     """
     Calls func while disabling widget.
@@ -60,10 +84,9 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tabWidget.currentChanged.connect(self._tabChanged)
         self.model = QStandardItemModel()
         self.current_sort_order = Qt.SortOrder.AscendingOrder
-        self.proxy_model = QSortFilterProxyModel(self)
+        self.proxy_model = ColumnFilterProxyModel(self)
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setSortRole(Qt.ItemDataRole.DisplayRole)
-        self.proxy_model.setFilterKeyColumn(0)
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.tableView.setModel(self.proxy_model)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -77,7 +100,12 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tableView.doubleClicked.connect(self._item_double_clicked)
 
         self.loadResultPushButton.clicked.connect(self._add_result_from_table)
-        self.searchBox.searchChanged.connect(self.proxy_model.setFilterFixedString)
+        self.searchBox.searchChanged.connect(
+            lambda text: self.proxy_model.set_column_filter_string(0, text),
+        )
+        self.searchBox_2.searchChanged.connect(
+            lambda text: self.proxy_model.set_column_filter_string(2, text),
+        )
 
         self.refresh()
 
