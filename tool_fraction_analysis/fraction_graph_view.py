@@ -70,7 +70,7 @@ class FractionWidget(QWidget):
     def highlight_feature_on_map(self, row):
         if self.current_feature_id and self.current_result_id and self.current_layer:
             result_item = self.result_model.get_result(self.current_result_id)
-            for table_name, layer_id in result_item.parent().layer_ids.items():
+            for table_name, layer_id in result_item.get_layer_ids().items():
                 if self.current_layer == table_name:
                     # query layer for object
                     filt = u'"id" = {0}'.format(self.current_feature_id)
@@ -172,7 +172,7 @@ class FractionWidget(QWidget):
         result_items = self.result_model.get_results(checked_only=False)
         for result_item in result_items:
             # Check whether this layer belongs to the selected grid
-            if layer.id() in result_item.parent().layer_ids.values():
+            if layer.id() in result_item.get_layer_ids().values():
                 self.fraction_plot.fraction_selected(new_idx, self.current_substance_unit, self.ts_units_combo_box.currentText(), self.current_stacked, self.current_volume)
                 self.current_result_id = result_item.id
                 self.current_layer = layer.objectName()
