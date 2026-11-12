@@ -1,11 +1,11 @@
-FROM qgis/qgis:4.2
-RUN apt-get update && apt-get install -y python3-pyqt5.qtwebsockets wget python3-scipy python3-h5py zip && apt-get clean
+FROM qgis/qgis:4.2.2
+RUN apt-get update && apt-get install -y python3-pyqt5.qtwebsockets wget python3-scipy python3-h5py zip make && apt-get clean 
 # RUN mkdir -p /tests_directory
 COPY requirements-dev.txt /root
 COPY requirements-test.txt /root
 # coverage is already installed globally, so we need to force-install it explicitly
-RUN pip3 install 'coverage>6.1.1,<7.0' --force
-RUN pip3 install -r /root/requirements-dev.txt
+RUN pip3 install 'coverage>6.1.1,<7.0' --force --break-system-packages
+RUN pip3 install -r /root/requirements-dev.txt --break-system-packages --ignore-installed
 RUN qgis_setup.sh
 
 # Copied the original PYTHONPATH and added the profile's python dir to
