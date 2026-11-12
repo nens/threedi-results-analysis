@@ -4,7 +4,7 @@ Rana Results Analysis changelog
 3.26.21 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Add search bar for schematisations (nens/rana#5201)
 
 
 3.26.20 (2026-10-16)
