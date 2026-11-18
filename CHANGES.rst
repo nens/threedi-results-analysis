@@ -4,7 +4,7 @@ Rana Results Analysis changelog
 3.26.22 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Refer to Rana Water Intelligence in metadata.
 
 
 3.26.21 (2026-11-12)
@@ -341,7 +341,7 @@ Rana Results Analysis changelog
 - Bump threedigrid-builder to 1.13.*
 - Bump hydxlib to 1.5.2
 - Refactor threedigrid_to_ogr to copy features from gridadmin.gpkg (#997)
-- Watershed tool: Retrieve result sets from flowline & watersheds layers' catchment_id field when loading those layers from cache 
+- Watershed tool: Retrieve result sets from flowline & watersheds layers' catchment_id field when loading those layers from cache
 - Watershed tool: Empty "Analysed nodes" layer closing the tool or switching to a different simulation result
 - Watershed tool: Do not empty the result layers when closing the tool (and remove the result sets filter when closing the tool)
 - Watershed tool: Do not empty the result layers when toggling "Smooth result watersheds"

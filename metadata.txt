@@ -4,8 +4,8 @@ qgisMinimumVersion=3.22
 qgisMaximumVersion=4.99
 description=Rana Results Analysis
 version=3.26.22
-author=Nelen & Schuurmans
-email=servicedesk@nelen-schuurmans.nl
+author=Rana Water Intelligence
+email=support@ranawaterintelligence.com
 
 about=Analyse Rana simulation results and visualize computational grids in the Rana Desktop Client.
 
@@ -21,14 +21,12 @@ about=Analyse Rana simulation results and visualize computational grids in the R
     - Find the upstream or downstream area for any node or group of nodes
 
 
-    This plugin replaces the 3Di Toolbox plugin. See the transition guide: https://docs.3di.live/i_transition_from_3di_toolbox.html
-    
-    For questions on 3Di or the use of this plugin please contact us via servicedesk@nelen-schuurmans.nl 
+    For questions on Rana or the use of this plugin please contact us via support@ranawaterintelligence.com
 
 tracker=https://github.com/nens/threedi-results-analysis
 repository=https://github.com/nens/threedi-results-analysis
 
-changelog=https://docs.3di.live/a_releasenotes_3di_mi.html
+changelog=https://docs.ranawaterintelligence.com/a_releasenotes_rana_rdc.html
 
 # Tags are comma separated with spaces allowed
 tags=analysis, catchment, drainage, flood, flooding, graph, grid, groundwater, hydraulics, hydrology, modelling, netcdf, network analysis, plot, profile, statistics, time series, water
